@@ -1,0 +1,9 @@
+{
+  "name": "5연전 3전: 잿불 점화사가 합류한 4기",
+  "units": [
+    { "unitId": "iron_shieldbearer", "star": 1, "col": 4, "row": 1 },
+    { "unitId": "arena_recruit", "star": 1, "col": 4, "row": 3 },
+    { "unitId": "legion_crossbow", "star": 1, "col": 6, "row": 1 },
+    { "unitId": "ember_kindler", "star": 1, "col": 6, "row": 3 }
+  ]
+}

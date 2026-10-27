@@ -1,0 +1,11 @@
+{
+  "name": "5연전 5전: 1성 6기 (심연 속삭임꾼 포함)",
+  "units": [
+    { "unitId": "iron_shieldbearer", "star": 1, "col": 4, "row": 2 },
+    { "unitId": "arena_recruit", "star": 1, "col": 4, "row": 0 },
+    { "unitId": "shade_dagger", "star": 1, "col": 5, "row": 3 },
+    { "unitId": "legion_crossbow", "star": 1, "col": 6, "row": 0 },
+    { "unitId": "abyss_whisperer", "star": 1, "col": 6, "row": 2 },
+    { "unitId": "ember_kindler", "star": 1, "col": 7, "row": 4 }
+  ]
+}

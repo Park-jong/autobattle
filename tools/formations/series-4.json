@@ -1,0 +1,10 @@
+{
+  "name": "5연전 4전: 2성 방패병 + 심연 속삭임꾼 (5기)",
+  "units": [
+    { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 2 },
+    { "unitId": "arena_recruit", "star": 1, "col": 4, "row": 0 },
+    { "unitId": "shade_dagger", "star": 1, "col": 5, "row": 3 },
+    { "unitId": "abyss_whisperer", "star": 1, "col": 6, "row": 1 },
+    { "unitId": "ember_kindler", "star": 1, "col": 7, "row": 3 }
+  ]
+}

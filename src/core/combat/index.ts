@@ -1,0 +1,18 @@
+export * from './board';
+export { COMBAT } from './constants';
+export { computeDamage, overheatMultiplier } from './damage';
+export { EffectExecutor, type EffectContext } from './effects';
+export type { CombatEvent, CombatEventType, StatusDuration, Winner } from './events';
+export { parseFormation, assertFormationValid, type Formation, type FormationEntry, type StarLevel } from './formation';
+export { findPath } from './pathfinding';
+export { CombatSimulator, type CombatResult, type CombatSetup, type Survivor } from './sim';
+export { TraitEngine, type ActiveTrait } from './traits';
+export { TriggerBus, type TriggerPayloads, type TriggerType } from './triggers';
+export { CombatUnit } from './unit';
+export { CombatWorld } from './world';
+export type { CardCommand, PlayResult, PlayTarget, RejectedCommand } from './cardCommand';
+export { CardPlayer, type CombatPhase } from './cardPlayer';
+export { CardPlanRunner, parseCardPlan, TARGET_RULES, type PlanEntry, type PlanStats, type TargetRule } from './cardPlan';
+export { CombatCommandPoints } from './combatCp';
+export type { CpReason } from './events';
+export type { CombatCardSetup } from './sim';

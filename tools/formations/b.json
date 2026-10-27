@@ -1,0 +1,10 @@
+{
+  "name": "암살자 + 근접 (적 쪽)",
+  "units": [
+    { "unitId": "arena_recruit", "star": 1, "col": 4, "row": 1 },
+    { "unitId": "iron_shieldbearer", "star": 1, "col": 4, "row": 3 },
+    { "unitId": "shade_dagger", "star": 1, "col": 5, "row": 2 },
+    { "unitId": "grove_archer", "star": 1, "col": 6, "row": 1 },
+    { "unitId": "legion_crossbow", "star": 1, "col": 7, "row": 3 }
+  ]
+}

@@ -1,0 +1,9 @@
+[
+  { "tick": 0, "card": "war_drums" },
+  { "tick": 10, "card": "shield_formation" },
+  { "tick": 20, "card": "focus_fire", "target": { "rule": "lowestHpEnemy" } },
+  { "tick": 30, "card": "charge_signal" },
+  { "tick": 40, "card": "hold_the_line", "target": { "rule": "lowestHpAlly" } },
+  { "tick": 60, "card": "hold_the_line", "target": { "rule": "lowestHpAlly" } },
+  { "tick": 80, "card": "last_stand", "target": { "rule": "lowestHpAlly" } }
+]

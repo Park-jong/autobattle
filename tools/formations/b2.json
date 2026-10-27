@@ -1,0 +1,8 @@
+{
+  "name": "2성 방패병 1기 (적 쪽)",
+  "units": [
+    { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 2 },
+    { "unitId": "shade_dagger", "star": 1, "col": 5, "row": 2 },
+    { "unitId": "grove_archer", "star": 1, "col": 6, "row": 2 }
+  ]
+}

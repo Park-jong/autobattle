@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "traits": [
+    {
+      "id": "iron_legion",
+      "name": "강철군단",
+      "kind": "origin",
+      "thresholds": [2, 4, 6],
+      "text": "아군 전체 ARM +15 / +35 / +60.",
+      "effects": [
+        { "kind": "statAdd", "selector": "allAllies", "stat": "arm", "amount": [15, 35, 60], "duration": "combat" }
+      ]
+    },
+    {
+      "id": "ember",
+      "name": "잿불",
+      "kind": "origin",
+      "thresholds": [2, 4, 6],
+      "text": "잿불 유닛 공격 시 화상 (3초, 초당 ATK의 10% / 20% / 35% 마법 피해). (효과 미구현)"
+    },
+    {
+      "id": "abyss",
+      "name": "심연",
+      "kind": "origin",
+      "thresholds": [2, 4, 6],
+      "text": "아군 유닛이 적을 처치하면 CP +1 (전투당 최대 2 / 4 / 6).",
+      "effects": [
+        { "kind": "cpOnKill", "selector": "allAllies", "amount": 1, "maxPerCombat": [2, 4, 6] }
+      ]
+    },
+    {
+      "id": "forest_pact",
+      "name": "숲의 맹약",
+      "kind": "origin",
+      "thresholds": [2, 4, 6],
+      "text": "전투 시작 시 최대 HP 10% / 20% / 35% 보호막, 3초마다 AS 증가. (효과 미구현)"
+    },
+    {
+      "id": "guardian",
+      "name": "수호자",
+      "kind": "job",
+      "thresholds": [2, 4, 6],
+      "text": "전열 아군 받는 피해 -15% / -30% / -45%.",
+      "effects": [
+        { "kind": "damageTakenMult", "selector": "alliesFrontRow", "mult": [0.85, 0.7, 0.55], "duration": "combat" }
+      ]
+    },
+    {
+      "id": "gladiator",
+      "name": "검투사",
+      "kind": "job",
+      "thresholds": [2, 4, 6],
+      "text": "검투사가 적 처치 시 HP 회복 + ATK 누적. (효과 미구현)"
+    },
+    {
+      "id": "marksman",
+      "name": "사수",
+      "kind": "job",
+      "thresholds": [2, 4, 6],
+      "text": "사수 사거리 +1, 확률 연속 사격. (효과 미구현)"
+    },
+    {
+      "id": "mystic",
+      "name": "주술사",
+      "kind": "job",
+      "thresholds": [2, 4, 6],
+      "text": "주술사 스킬 사용 시 손패 카드 비용 -1. (효과 미구현)"
+    },
+    {
+      "id": "assassin",
+      "name": "암살자",
+      "kind": "job",
+      "thresholds": [2, 4, 6],
+      "text": "전투 시작 시 적 후열로 도약, 치명타. (효과 미구현)"
+    }
+  ]
+}

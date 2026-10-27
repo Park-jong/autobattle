@@ -1,0 +1,174 @@
+import type { DamageType } from '../data/effect';
+import { Rng } from '../rng';
+import { Board, type Cell, type Side } from './board';
+import { COMBAT } from './constants';
+import { computeDamage, overheatMultiplier } from './damage';
+import type { CombatEvent } from './events';
+import { TriggerBus } from './triggers';
+import type { CombatUnit } from './unit';
+
+type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
+/** t(발생 시각)는 world가 채운다 */
+export type NewEvent = DistributiveOmit<CombatEvent, 't'>;
+
+export interface DamageRequest {
+  source: CombatUnit | null;
+  target: CombatUnit;
+  /** 배율·방어 적용 전 피해 */
+  raw: number;
+  type: DamageType;
+  /** 방어력 무시 비율(%) */
+  ignoreArmorPct?: number;
+}
+
+/**
+ * 전투 한 판의 공유 상태와 기본 연산(피해·회복·사망·마나·위치 변경).
+ * 효과 실행기, 유닛 컨트롤러, 시뮬이 모두 이 객체를 통해 상태를 바꾸고 이벤트를 남긴다.
+ */
+export class CombatWorld {
+  readonly board = new Board();
+  readonly bus = new TriggerBus();
+  readonly events: CombatEvent[] = [];
+  /** uid 오름차순 */
+  readonly units: CombatUnit[] = [];
+  tick = 0;
+
+  constructor(readonly rng: Rng) {}
+
+  /** 현재 시각(초) */
+  get now(): number {
+    return this.tick / COMBAT.TICKS_PER_SECOND;
+  }
+
+  /** 시각 계산용 함수 (상태 집합에 주입) */
+  readonly clock = (): number => this.now;
+
+  addUnit(unit: CombatUnit): void {
+    this.units.push(unit);
+    this.board.place(unit.uid, unit.cell);
+  }
+
+  emit(event: NewEvent): void {
+    this.events.push({ ...event, t: this.now } as CombatEvent);
+  }
+
+  unitByUid(uid: number): CombatUnit | undefined {
+    return this.units[uid];
+  }
+
+  /** 살아 있는 유닛 (uid 오름차순) */
+  aliveUnits(): CombatUnit[] {
+    return this.units.filter((u) => u.alive);
+  }
+
+  alliesOf(side: Side): CombatUnit[] {
+    return this.units.filter((u) => u.alive && u.side === side);
+  }
+
+  enemiesOf(side: Side): CombatUnit[] {
+    return this.units.filter((u) => u.alive && u.side !== side);
+  }
+
+  // ---- 피해·회복·보호막 ----
+
+  /**
+   * 피해 적용. 순서: 받는 피해 배율(상태 × 과열) → 방어(ARM/RES) → 보호막 흡수 → HP 감소.
+   * 최종 피해량(보호막 흡수 전)을 반환한다.
+   */
+  dealDamage(req: DamageRequest): number {
+    const { source, target } = req;
+    if (!target.alive) return 0;
+
+    const defense = target.stat(req.type === 'physical' ? 'arm' : 'res');
+    const takenMult = target.statuses.takenMultiplier() * overheatMultiplier(this.now);
+    const amount = computeDamage(req.raw, takenMult, defense, req.ignoreArmorPct ?? 0);
+
+    const hadShield = target.statuses.shieldTotal() > 0;
+    const absorbed = target.statuses.absorb(amount);
+    let hp = target.hp - (amount - absorbed);
+    if (hp < 1 && target.statuses.isUndying()) hp = 1;
+    target.hp = Math.max(0, hp);
+
+    this.emit({
+      type: 'damage',
+      unit: target.uid,
+      source: source ? source.uid : null,
+      amount,
+      absorbed,
+      dmgType: req.type,
+      hp: target.hp,
+    });
+    if (hadShield && target.statuses.shieldTotal() === 0) {
+      this.emit({ type: 'statusRemoved', unit: target.uid, status: 'shield' });
+    }
+    this.bus.emit('onDamageTaken', { unit: target, source, amount, dmgType: req.type });
+    if (target.hp <= 0) this.kill(target, source);
+    return amount;
+  }
+
+  heal(source: CombatUnit | null, target: CombatUnit, amount: number): void {
+    if (!target.alive) return;
+    const actual = Math.min(Math.round(amount), target.maxHp - target.hp);
+    if (actual <= 0) return;
+    target.hp += actual;
+    this.emit({ type: 'heal', unit: target.uid, source: source ? source.uid : null, amount: actual, hp: target.hp });
+  }
+
+  /** untilSeconds가 Infinity면 전투 끝까지 */
+  addShield(target: CombatUnit, amount: number, durationSeconds: number): void {
+    if (!target.alive || amount <= 0) return;
+    target.statuses.addShield(amount, this.now + durationSeconds);
+    this.emit({
+      type: 'shield',
+      unit: target.uid,
+      amount,
+      duration: Number.isFinite(durationSeconds) ? durationSeconds : 'combat',
+    });
+  }
+
+  private kill(victim: CombatUnit, killer: CombatUnit | null): void {
+    victim.alive = false;
+    victim.hp = 0;
+    victim.moving = null;
+    this.board.release(victim.uid);
+    this.emit({ type: 'death', unit: victim.uid, killer: killer ? killer.uid : null });
+    this.bus.emit('onKill', { killer, victim });
+    this.bus.emit('onDeath', { unit: victim, killer });
+  }
+
+  // ---- 마나 ----
+
+  /** 마나를 절대값으로 설정(0~최대로 제한). 변하면 이벤트를 남긴다. */
+  setMana(unit: CombatUnit, value: number): void {
+    const next = Math.round(Math.min(unit.maxMana, Math.max(0, value)) * 100) / 100;
+    if (next === unit.mana) return;
+    unit.mana = next;
+    this.emit({ type: 'mana', unit: unit.uid, mana: next });
+  }
+
+  addMana(unit: CombatUnit, delta: number): void {
+    if (unit.alive) this.setMana(unit, unit.mana + delta);
+  }
+
+  // ---- 위치 변경 ----
+
+  /** 순간이동. 대상 칸이 비어 있어야 한다. */
+  relocate(unit: CombatUnit, to: Cell): void {
+    const from = unit.cell;
+    this.board.relocate(unit.uid, from, to);
+    unit.cell = to;
+    this.emit({ type: 'teleport', unit: unit.uid, from, to });
+  }
+
+  /** 두 유닛의 위치 교환. 이동 중인 유닛이 있으면 하지 않는다. */
+  swap(a: CombatUnit, b: CombatUnit): void {
+    if (a.moving || b.moving || a === b) return;
+    const cellA = a.cell;
+    const cellB = b.cell;
+    this.board.swap(a.uid, cellA, b.uid, cellB);
+    a.cell = cellB;
+    b.cell = cellA;
+    this.emit({ type: 'teleport', unit: a.uid, from: cellA, to: cellB });
+    this.emit({ type: 'teleport', unit: b.uid, from: cellB, to: cellA });
+  }
+}

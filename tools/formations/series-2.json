@@ -1,0 +1,8 @@
+{
+  "name": "5연전 2전: 방패병 + 신병 + 석궁병",
+  "units": [
+    { "unitId": "iron_shieldbearer", "star": 1, "col": 4, "row": 1 },
+    { "unitId": "arena_recruit", "star": 1, "col": 4, "row": 3 },
+    { "unitId": "legion_crossbow", "star": 1, "col": 6, "row": 2 }
+  ]
+}

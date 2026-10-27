@@ -1,0 +1,7 @@
+{
+  "name": "5연전 1전: 투기장 신병 + 숲 궁수",
+  "units": [
+    { "unitId": "arena_recruit", "star": 1, "col": 4, "row": 2 },
+    { "unitId": "grove_archer", "star": 1, "col": 6, "row": 2 }
+  ]
+}

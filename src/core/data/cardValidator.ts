@@ -1,0 +1,143 @@
+import {
+  CARD_TYPES,
+  KEYWORDS,
+  RARITIES,
+  TARGET_KINDS,
+  type Card,
+  type CardChain,
+  type CardEffect,
+  type CardFile,
+  type CardLimits,
+  type CardResonance,
+  type CardTarget,
+  type CardUpgrade,
+  type Keyword,
+} from './card';
+import { assertEffectsUsable } from './effectUsage';
+import { EffectValidator } from './effectValidator';
+import { DataValidationError } from './errors';
+import { FieldReader } from './fieldReader';
+
+const CARD_KEYS = [
+  'id', 'name', 'owner', 'rarity', 'type', 'cost', 'target', 'keywords',
+  'limits', 'resonance', 'chain', 'text', 'effects', 'upgrade',
+] as const;
+const UPGRADE_KEYS = ['text', 'effects', 'cost', 'resonance', 'chain'] as const;
+
+/** cards.json 구조를 검증해 타입 있는 Card로 변환한다. 파일 I/O는 하지 않는다. */
+export class CardValidator {
+  /** 카드에는 성급이 없으므로 성급 배열을 거부하는 공통 효과 검증기를 쓴다 */
+  constructor(private readonly effects: EffectValidator = new EffectValidator({ allowStarArrays: false })) {}
+
+  validateFile(data: unknown): CardFile {
+    const root = FieldReader.of(data, '');
+    const version = root.int('version', 1);
+    const rawCards = root.array('cards');
+
+    const seen = new Map<string, number>();
+    const cards = rawCards.map((raw, index) => {
+      const card = this.validateCard(raw, index);
+      const prev = seen.get(card.id);
+      if (prev !== undefined) {
+        throw new DataValidationError(
+          `cards[${index}] (${card.id}).id`,
+          `중복된 id "${card.id}" (cards[${prev}]와 동일)`,
+        );
+      }
+      seen.set(card.id, index);
+      return card;
+    });
+    return { version, cards };
+  }
+
+  private validateCard(raw: unknown, index: number): Card {
+    let path = `cards[${index}]`;
+    // id를 읽을 수 있으면 경로에 덧붙여 어느 카드인지 알려 준다
+    if (typeof raw === 'object' && raw !== null && typeof (raw as { id?: unknown }).id === 'string') {
+      path += ` (${(raw as { id: string }).id})`;
+    }
+    const r = FieldReader.of(raw, path);
+    r.onlyKeys(CARD_KEYS);
+
+    const target = this.validateTarget(r.object('target'));
+    const card: Card = {
+      id: r.string('id'),
+      name: r.string('name'),
+      owner: r.string('owner'),
+      rarity: r.enum('rarity', RARITIES),
+      type: r.enum('type', CARD_TYPES),
+      cost: r.int('cost', 0),
+      target,
+      keywords: this.validateKeywords(r),
+      text: r.string('text'),
+      effects: this.validateEffects(r, 'effects', target),
+    };
+    if (r.has('limits')) card.limits = this.validateLimits(r.object('limits'));
+    if (r.has('resonance')) card.resonance = this.validateResonance(r.object('resonance'), target);
+    const hasChainKeyword = card.keywords.includes('chain');
+    if (r.has('chain')) {
+      if (!hasChainKeyword) r.fail('chain', 'keywords에 chain이 없는 카드는 chain 효과를 가질 수 없음');
+      card.chain = this.validateChain(r.object('chain'), target);
+    } else if (hasChainKeyword) {
+      r.fail('chain', 'keywords에 chain이 있으면 chain 효과가 필요함');
+    }
+    if (r.has('upgrade')) card.upgrade = this.validateUpgrade(r.object('upgrade'), target, hasChainKeyword);
+    return card;
+  }
+
+  private validateTarget(r: FieldReader): CardTarget {
+    r.onlyKeys(['kind', 'count']);
+    const kind = r.enum('kind', TARGET_KINDS);
+    if (kind === 'allyUnits') return { kind, count: r.int('count', 1) };
+    if (r.has('count')) r.fail('count', `kind "${kind}"에서는 count를 쓸 수 없음`);
+    return { kind };
+  }
+
+  private validateKeywords(r: FieldReader): Keyword[] {
+    return r.array('keywords').map((value, i) => {
+      if (typeof value !== 'string' || !(KEYWORDS as readonly string[]).includes(value)) {
+        r.fail(`keywords[${i}]`, `알 수 없는 값 ${JSON.stringify(value)} (허용: ${KEYWORDS.join(', ')})`);
+      }
+      return value as Keyword;
+    });
+  }
+
+  private validateLimits(r: FieldReader): CardLimits {
+    r.onlyKeys(['perCombat']);
+    const limits: CardLimits = {};
+    if (r.has('perCombat')) limits.perCombat = r.int('perCombat', 1);
+    return limits;
+  }
+
+  private validateResonance(r: FieldReader, target: CardTarget): CardResonance {
+    r.onlyKeys(['trait', 'effects']);
+    return { trait: r.string('trait'), effects: this.validateEffects(r, 'effects', target) };
+  }
+
+  private validateChain(r: FieldReader, target: CardTarget): CardChain {
+    r.onlyKeys(['effects']);
+    return { effects: this.validateEffects(r, 'effects', target) };
+  }
+
+  private validateUpgrade(r: FieldReader, target: CardTarget, hasChainKeyword: boolean): CardUpgrade {
+    r.onlyKeys(UPGRADE_KEYS);
+    const upgrade: CardUpgrade = {
+      text: r.string('text'),
+      effects: this.validateEffects(r, 'effects', target),
+    };
+    if (r.has('cost')) upgrade.cost = r.int('cost', 0);
+    if (r.has('resonance')) upgrade.resonance = this.validateResonance(r.object('resonance'), target);
+    if (r.has('chain')) {
+      if (!hasChainKeyword) r.fail('chain', 'keywords에 chain이 없는 카드는 chain 효과를 가질 수 없음');
+      upgrade.chain = this.validateChain(r.object('chain'), target);
+    }
+    return upgrade;
+  }
+
+  /** 공통 효과 검증기로 형식을 확인한 뒤, 카드 문맥(시전자 없음, 대상 종류)에서 실행 가능한지 검사한다 */
+  private validateEffects(parent: FieldReader, key: string, target: CardTarget): CardEffect[] {
+    const effects = this.effects.validateList(parent, key);
+    assertEffectsUsable(parent, key, effects, { targetKind: target.kind });
+    return effects;
+  }
+}

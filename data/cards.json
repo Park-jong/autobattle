@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "cards": [
+    {
+      "id": "shield_formation",
+      "name": "방진 유지",
+      "owner": "cmd_harten",
+      "rarity": "starter",
+      "type": "command",
+      "cost": 1,
+      "target": { "kind": "none" },
+      "keywords": [],
+      "text": "전열 아군 전체에 최대 HP 15% 보호막 (3초).",
+      "effects": [
+        { "kind": "shield", "selector": "alliesFrontRow", "pctMaxHp": 15, "duration": 3 }
+      ],
+      "upgrade": {
+        "text": "전열 아군 전체에 최대 HP 20% 보호막 (4초).",
+        "effects": [
+          { "kind": "shield", "selector": "alliesFrontRow", "pctMaxHp": 20, "duration": 4 }
+        ]
+      }
+    },
+    {
+      "id": "hold_the_line",
+      "name": "전열 사수",
+      "owner": "neutral",
+      "rarity": "starter",
+      "type": "command",
+      "cost": 1,
+      "target": { "kind": "allyUnit" },
+      "keywords": [],
+      "text": "아군 1명 3초간 받는 피해 -50%.",
+      "effects": [
+        { "kind": "damageTakenMult", "selector": "target", "mult": 0.5, "duration": 3 }
+      ],
+      "upgrade": {
+        "text": "아군 1명 4초간 받는 피해 -60%.",
+        "effects": [
+          { "kind": "damageTakenMult", "selector": "target", "mult": 0.4, "duration": 4 }
+        ]
+      }
+    },
+    {
+      "id": "war_drums",
+      "name": "전쟁 북",
+      "owner": "neutral",
+      "rarity": "starter",
+      "type": "operation",
+      "cost": 1,
+      "target": { "kind": "none" },
+      "keywords": [],
+      "text": "이번 전투 동안 아군 전체 ATK +10%.",
+      "effects": [
+        { "kind": "statMod", "selector": "allAllies", "stat": "atk", "pct": 10, "duration": "combat" }
+      ],
+      "upgrade": {
+        "text": "이번 전투 동안 아군 전체 ATK +15%.",
+        "effects": [
+          { "kind": "statMod", "selector": "allAllies", "stat": "atk", "pct": 15, "duration": "combat" }
+        ]
+      }
+    },
+    {
+      "id": "formation_swap",
+      "name": "진형 교대",
+      "owner": "neutral",
+      "rarity": "starter",
+      "type": "command",
+      "cost": 0,
+      "target": { "kind": "allyUnits", "count": 2 },
+      "keywords": [],
+      "limits": { "perCombat": 1 },
+      "text": "아군 2명의 위치를 바꾼다. 전투당 1회.",
+      "effects": [
+        { "kind": "swapPositions", "selector": "target" }
+      ],
+      "upgrade": {
+        "text": "아군 2명의 위치를 바꾸고, 둘에게 최대 HP 10% 보호막 (3초). 전투당 1회.",
+        "effects": [
+          { "kind": "swapPositions", "selector": "target" },
+          { "kind": "shield", "selector": "target", "pctMaxHp": 10, "duration": 3 }
+        ]
+      }
+    },
+    {
+      "id": "focus_fire",
+      "name": "집중 포화",
+      "owner": "neutral",
+      "rarity": "starter",
+      "type": "command",
+      "cost": 1,
+      "target": { "kind": "enemyUnit" },
+      "keywords": [],
+      "text": "3초간 아군 전체가 지정한 적을 우선 공격한다.",
+      "effects": [
+        { "kind": "forceTarget", "selector": "allAllies", "duration": 3 }
+      ],
+      "upgrade": {
+        "text": "3초간 아군 전체가 지정한 적을 우선 공격한다. 그 적은 받는 피해 +15%.",
+        "effects": [
+          { "kind": "forceTarget", "selector": "allAllies", "duration": 3 },
+          { "kind": "damageTakenMult", "selector": "target", "mult": 1.15, "duration": 3 }
+        ]
+      }
+    },
+    {
+      "id": "last_stand",
+      "name": "최후의 저항",
+      "owner": "neutral",
+      "rarity": "starter",
+      "type": "command",
+      "cost": 2,
+      "target": { "kind": "allyUnit" },
+      "keywords": [],
+      "text": "아군 1명 2초간 HP가 1 밑으로 내려가지 않는다.",
+      "effects": [
+        { "kind": "undying", "selector": "target", "duration": 2 }
+      ],
+      "upgrade": {
+        "cost": 1,
+        "text": "아군 1명 2초간 HP가 1 밑으로 내려가지 않는다.",
+        "effects": [
+          { "kind": "undying", "selector": "target", "duration": 2 }
+        ]
+      }
+    },
+    {
+      "id": "charge_signal",
+      "name": "돌격 신호",
+      "owner": "neutral",
+      "rarity": "starter",
+      "type": "command",
+      "cost": 2,
+      "target": { "kind": "none" },
+      "keywords": [],
+      "text": "아군 근접 유닛 전체 4초간 AS +30%.",
+      "effects": [
+        { "kind": "statMod", "selector": "alliesMelee", "stat": "as", "pct": 30, "duration": 4 }
+      ],
+      "upgrade": {
+        "text": "아군 근접 유닛 전체 4초간 AS +45%.",
+        "effects": [
+          { "kind": "statMod", "selector": "alliesMelee", "stat": "as", "pct": 45, "duration": 4 }
+        ]
+      }
+    }
+  ]
+}

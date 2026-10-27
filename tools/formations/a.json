@@ -1,0 +1,10 @@
+{
+  "name": "강철군단 정석 (아군 쪽)",
+  "units": [
+    { "unitId": "iron_shieldbearer", "star": 1, "col": 3, "row": 1 },
+    { "unitId": "moss_warden", "star": 1, "col": 3, "row": 3 },
+    { "unitId": "arena_recruit", "star": 1, "col": 2, "row": 2 },
+    { "unitId": "legion_crossbow", "star": 1, "col": 1, "row": 1 },
+    { "unitId": "grove_archer", "star": 1, "col": 0, "row": 3 }
+  ]
+}
