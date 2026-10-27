@@ -61,7 +61,6 @@ export class CharacterMomentsState {
     this.finished = false;
     this.combatTime = 0;
     this.lastSeq = -1;
-    this.nextId = 0;
     this.lastSpeech = -Infinity;
     this.lastCutIn = -Infinity;
     this.nextBanter = 8;

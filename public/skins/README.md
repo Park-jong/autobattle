@@ -8,6 +8,12 @@ The skin is presentation-only. Core unit IDs, stats, factions, skills and battle
 
 Both assets were generated/edited with the built-in image tool. The SD wardrobe edit used the original SD sheet as its target and the modern portrait atlas as a design reference. The final layout edit used that revised SD sheet.
 
+## Battle dialogue and skill portraits
+
+Agents trade opening lines and occasional two-person banter, react to low HP and fallen teammates, and conclude the operation. Speech follows moving units; at most two bubbles appear together. Each speaker has a cooldown. Actual skill events can display a full portrait with the agent name, skill name and character line for 2.2 seconds, with a shared 5.5-second cooldown and allied priority for simultaneous casts. Excess portraits are discarded rather than queued.
+
+These effects pause with battle and slow with card selection. Their presentation clock caps at real time to remain readable at ×2/×4; concluding dialogue expires even after the simulation finishes. Targeting a card hides the portrait to keep the field accessible. Reset clears dialogue and replay-event history. Reduced-motion preferences disable slide/fade animation. A live status region also exposes the lines to screen readers.
+
 ## SD wardrobe prompt
 
 Edit the FIRST image (transparent six-character SD game sprite sheet). Preserve the same six ADULT women identities, adult miniature proportions, faces, hair colors, jacket colors, weapons, linework, and transparent background. The SECOND image is a reference only for modern wardrobe motifs and colors, not for anatomy or posing.

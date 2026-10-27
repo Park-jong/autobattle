@@ -54,7 +54,7 @@ export class EffectsLayer {
       .setVisible(false);
   }
 
-  update(time: number, effects: readonly ReplayEffect[], views: ReadonlyMap<number, UnitView>): void {
+  update(time: number, effects: readonly ReplayEffect[], views: ReadonlyMap<number, UnitView>, hiddenSkillLabels?: ReadonlySet<number>): void {
     this.lines.clear();
     const live = new Set<number>();
     let bannerAlpha = 0;
@@ -87,7 +87,7 @@ export class EffectsLayer {
           });
           break;
         case 'skill':
-          if (age > TIMING.SKILL_TEXT) break;
+          if (age > TIMING.SKILL_TEXT || hiddenSkillLabels?.has(e.unit)) break;
           this.showFloating(e.seq, live, e.unit, views, e.skill, TEXT_COLORS.SKILL, age / TIMING.SKILL_TEXT, {
             lift: MOTION.SKILL_RISE_PX,
             baseY: -78,

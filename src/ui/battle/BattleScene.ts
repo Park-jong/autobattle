@@ -10,6 +10,8 @@ import { BoardRenderer } from './BoardRenderer';
 import { EffectsLayer } from './EffectsLayer';
 import { TargetingOverlay } from './TargetingOverlay';
 import { UnitSprite } from './UnitSprite';
+import { CharacterMoments } from './CharacterMoments';
+import { CharacterMomentsState } from './CharacterMomentsState';
 import { AGENTS, selectedAgent, SKIN_ATLAS_URL, SKIN_EVENT, SKIN_TEXTURE, SD_ATLAS_URL, SD_TEXTURE } from '../skin';
 
 /** 씬이 화면에 쓸 이름을 얻는 창구 (데이터 카탈로그를 직접 알 필요가 없게) */
@@ -34,6 +36,8 @@ export class BattleScene extends Phaser.Scene {
   private sprites = new Map<number, UnitSprite>();
   private signature = '';
   private hoverCell: Cell | null = null;
+  private moments!: CharacterMoments;
+  private readonly momentsState = new CharacterMomentsState();
 
   constructor(
     private readonly source: BattleViewSource,
@@ -81,6 +85,7 @@ export class BattleScene extends Phaser.Scene {
     this.board = new BoardRenderer(this, this.layout, this.metrics);
     this.targetingOverlay = new TargetingOverlay(this, this.layout);
     this.effects = new EffectsLayer(this, this.metrics, this.layout, (id, upgraded) => this.labels.cardName(id, upgraded));
+    this.moments = new CharacterMoments(this, this.metrics, this.layout);
 
     this.timeText = createText(this, this.metrics, STAGE.WIDTH / 2, LAYOUT.TIME_Y, '', {
       fontSize: '25px',
@@ -107,6 +112,8 @@ export class BattleScene extends Phaser.Scene {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
       this.effects.clear();
       this.targetingOverlay.clear();
+      this.moments.destroy();
+      this.momentsState.clear();
     });
   }
 
@@ -170,10 +177,20 @@ export class BattleScene extends Phaser.Scene {
       }
     }
     for (const view of views) this.sprites.get(view.uid)?.update(view, time, this.source.phase !== 'edit');
-    this.effects.update(time, effects, byUid);
-
     const targeting = this.source.targeting();
+    this.momentsState.update({
+      phase: this.source.phase,
+      combatTime: time,
+      delta: delta / 1000,
+      timeScale: this.source.timeScale,
+      views,
+      effects,
+    });
+    const hiddenSkillLabels = new Set(this.momentsState.bubbles.map((bubble) => bubble.uid));
+    if (this.momentsState.cutIn && !targeting.active) hiddenSkillLabels.add(this.momentsState.cutIn.uid);
+    this.effects.update(time, effects, byUid, hiddenSkillLabels);
     this.targetingOverlay.update(targeting, byUid, performance.now());
+    this.moments.update(this.momentsState, byUid, targeting.active);
 
     const editing = this.source.phase === 'edit';
     const hover =
