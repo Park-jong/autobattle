@@ -3,28 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#101116" />
-    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-    <title>AFTER HOURS — 네온 전술 지휘관</title>
-    <script type="module" crossorigin src="./assets/index-DOh-1zor.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-BfZvas6C.css">
+    <title>전술 지휘관 (가제)</title>
+    <style>html,body{background:#111;height:100%;margin:0;overflow:hidden}#app{height:100%;display:flex}#stage{flex-direction:column;flex:auto;min-width:0;min-height:0;display:flex}#game{flex:auto;min-width:0;min-height:0;position:relative}#hand{flex:none}#panel{border-left:1px solid #2a2f3d;flex:0 0 340px;width:340px;overflow-y:auto}@media (width<=800px){#app{flex-direction:column}#stage{flex:58%}#panel{border-top:1px solid #2a2f3d;border-left:0;flex:0 0 42%;width:auto}}</style>
+    <script type="module" crossorigin src="./assets/index-CYW7MvSO.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-XFRDnvbd.css">
   </head>
   <body>
-    <header class="topbar">
-      <a class="brand" href="./" aria-label="애프터 아워즈 홈"><span class="brand-mark">A<span>/</span>H</span><span>AFTER HOURS<small>TACTICAL AUTO BATTLE</small></span></a>
-      <nav class="top-nav" aria-label="메인 메뉴"><span class="nav-active">전투 구역 <i>01</i></span><button type="button" id="open-gallery">에이전트 도감 <span>06</span></button></nav>
-      <div class="connection"><span></span> LOCAL OPERATION <b>v.01</b></div>
-    </header>
-    <main id="app">
+    <div id="app">
       <div id="stage">
-        <div class="arena-heading"><div><p class="eyebrow">OPERATION / NIGHT SHIFT</p><h1>밤은, 우리의 편.</h1></div><div class="arena-status"><span class="status-dot"></span><span id="battle-status" aria-live="polite">출전 준비</span><small>8 × 5 TACTICAL FIELD</small></div></div>
-        <div id="game" role="region" aria-label="전술 전투 보드"><p id="character-live" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></p></div>
-        <div class="arena-caption"><span><i></i> ALLIED AGENTS <b>VS</b> HOSTILE SQUAD</span><span>좌클릭 배치 <em>/</em> 우클릭 제거 <em>/</em> ESC 카드 취소</span></div>
-        <section id="hand" aria-label="전술 카드" hidden></section>
+        <div id="game"></div>
+        <section id="hand" hidden></section>
       </div>
-      <aside id="panel" aria-label="편성 및 전투 설정"></aside>
-    </main>
-    <footer class="app-footer"><span>AFTER HOURS <b>무드: NEON / BLACK</b></span><span>도시가 잠들면, 작전이 시작된다.</span><span>AGENTS ONLINE <i>●</i></span></footer>
-    <dialog id="skin-gallery" aria-labelledby="gallery-title"><div class="gallery-head"><div><p class="eyebrow">PERSONNEL ARCHIVE / 06</p><h2 id="gallery-title">AFTER HOURS AGENTS</h2><p>에이전트를 선택해 작전 화면을 꾸며보세요.</p></div><button type="button" id="close-gallery" aria-label="도감 닫기">✕</button></div><div id="gallery-grid"></div><p class="gallery-note">선택한 에이전트는 보드 왼쪽에 표시됩니다. 전투 능력은 각 유닛의 병과를 따릅니다.</p></dialog>
+      <aside id="panel"></aside>
+    </div>
   </body>
 </html>
