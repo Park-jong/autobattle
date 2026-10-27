@@ -148,13 +148,16 @@ export class Deck {
 
   // ---- 사용·종료 ----
 
-  /** 손패의 카드를 사용 처리: 소모 키워드면 소모 더미, 아니면 버린 더미. 손패에 없으면 Error */
-  play(instanceId: number): CardInstance {
+  /** 손패에서 분리해 resolve로 효과를 해결한 뒤 소모/버린 더미로 옮긴다. 손패에 없으면 Error */
+  play(instanceId: number, resolve?: () => void): CardInstance {
     const index = this.handCards.findIndex((c) => c.instanceId === instanceId);
     const card = this.handCards[index];
     if (!card) throw new Error(`손패에 없는 카드 인스턴스 ${instanceId}`);
     this.handCards.splice(index, 1);
-    (this.hasKeyword(card, 'exhaust') ? this.exhausted : this.discards).push(card);
+    // 해결 중인 카드는 손패와 버린 더미 양쪽에서 제외한다.
+    // 드로우 효과가 자신을 다시 뽑지 않고 손패의 빈 자리도 정확히 계산하게 한다.
+    resolve?.();
+    (this.hasKeyword(card, 'exhaust') || this.catalog.get(card.cardId)?.type === 'equipment' ? this.exhausted : this.discards).push(card);
     return card;
   }
 

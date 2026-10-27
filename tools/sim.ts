@@ -15,7 +15,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Deck, startingDeckSpecs } from '../src/core/cards';
+import { Deck, startingDeckSpecs, type DeckPreset } from '../src/core/cards';
 import {
   CardPlanRunner,
   CombatSimulator,
@@ -45,6 +45,7 @@ interface Args {
   seed: number;
   commander?: string;
   plan?: string;
+  deckPreset: DeckPreset;
 }
 
 function readJson(path: string): unknown {
@@ -72,8 +73,11 @@ function parseArgs(argv: string[]): Args {
   if (!Number.isInteger(seed)) throw new Error(`--seed는 정수여야 함 (실제: ${values.get('seed')})`);
   const commander = values.get('commander');
   const plan = values.get('plan');
+  const deckPreset = values.get('deck') ?? 'starter';
+  if (deckPreset !== 'starter' && deckPreset !== 'test') throw new Error('--deck은 starter 또는 test여야 함');
+  if (deckPreset === 'test' && !commander) throw new Error('--deck test를 쓰려면 --commander도 필요함');
   if (plan && !commander) throw new Error('--plan을 쓰려면 --commander도 필요함 (카드 덱은 지휘관의 시작 덱)');
-  return { a, b, n, seed, ...(commander ? { commander } : {}), ...(plan ? { plan } : {}) };
+  return { a, b, n, seed, deckPreset, ...(commander ? { commander } : {}), ...(plan ? { plan } : {}) };
 }
 
 function loadFormation(path: string, label: string): Formation {
@@ -148,7 +152,7 @@ function runWithCommander(args: Args, data: GameData, a: Formation, b: Formation
 
   const makeSim = (i: number): CombatSimulator => {
     const seed = args.seed + i;
-    const deck = Deck.create(startingDeckSpecs(commander), data.cards, new Rng(seed));
+    const deck = Deck.create(startingDeckSpecs(commander, args.deckPreset), data.cards, new Rng(seed));
     deck.drawOpeningHand();
     return new CombatSimulator(
       { seed, formations: [a, b], cards: { commander, deck: deck.serialize() } },
@@ -174,7 +178,7 @@ function runWithCommander(args: Args, data: GameData, a: Formation, b: Formation
   }
 
   console.log(`A: ${args.a} (${a.length}기)  vs  B: ${args.b} (${b.length}기)`);
-  console.log(`지휘관 ${commander.id} (${commander.passive.name}), 시작 덱 ${commander.startingDeck.reduce((s, e) => s + e.count, 0)}장`);
+  console.log(`지휘관 ${commander.id} (${commander.passive.name}), ${args.deckPreset === 'test' ? '확장 카드 테스트' : '시작'} 덱 ${startingDeckSpecs(commander, args.deckPreset).length}장`);
   console.log(`판 수 ${args.n}, 시드 ${args.seed}~${args.seed + args.n - 1}`);
   console.log('[기준] 지휘관 패시브만, 카드 사용 없음');
   baseline.print('  ');

@@ -96,6 +96,7 @@ export interface PanelInput {
   /** 재생 시각(초): CP 진행률 계산용 */
   time: number;
   usesOf(cardId: string): number;
+  cardsPlayed?: number;
   selectedInstanceId: number | null;
   holding: boolean;
   hint: string;
@@ -158,7 +159,7 @@ export class CardPanelViewBuilder {
   private handCard(instance: CardInstance, input: PanelInput): HandCardView {
     const card = this.catalog.get(instance.cardId);
     if (!card) throw new Error(`알 수 없는 카드 "${instance.cardId}"`);
-    const view = effectiveCard(card, instance.upgraded);
+    const view = effectiveCard(card, instance.upgraded, input.cardsPlayed);
     const reason =
       input.blockedReason ??
       (input.phase === null
@@ -168,6 +169,7 @@ export class CardPanelViewBuilder {
             prepCp: input.prepCp,
             combatCp: input.combatCp,
             usesOf: input.usesOf,
+            cardsPlayed: input.cardsPlayed,
           }));
     return {
       instanceId: instance.instanceId,

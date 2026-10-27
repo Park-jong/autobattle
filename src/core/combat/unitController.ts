@@ -33,6 +33,7 @@ export class UnitController {
       if (ready) this.attack(unit, target);
       return;
     }
+    if (unit.statuses.isRooted()) return;
     this.advance(unit, target);
   }
 
@@ -80,8 +81,10 @@ export class UnitController {
 
   private attack(unit: CombatUnit, target: CombatUnit): void {
     const world = this.world;
-    const shots = unit.statuses.consumeExtraShot() ? 2 : 1;
-    if (shots === 2 && unit.statuses.extraShots === 0) {
+    const charged = unit.statuses.consumeExtraShot();
+    const volley = unit.volleyChance > 0 && world.rng.next() < unit.volleyChance;
+    const shots = charged || volley ? 2 : 1;
+    if (charged && unit.statuses.extraShots === 0) {
       world.emit({ type: 'statusRemoved', unit: unit.uid, status: 'extraShots' });
     }
     world.emit({ type: 'attack', unit: unit.uid, target: target.uid, shots });

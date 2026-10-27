@@ -27,6 +27,11 @@ function input(over: Partial<PanelInput> = {}): PanelInput {
 }
 
 describe('CardPanelViewBuilder', () => {
+  it('연쇄가 켜지면 표시 비용과 사용 가능 여부가 함께 바뀐다', () => {
+    const piles = Deck.restore(handSnapshot(['tactical_reorganization']), cardCatalog, newRng(1));
+    expect(builder.build(input({ piles, combatCp: 0 })).hand[0]).toMatchObject({ cost: 1, playable: false });
+    expect(builder.build(input({ piles, combatCp: 0, cardsPlayed: 1 })).hand[0]).toMatchObject({ cost: 0, playable: true, reason: null });
+  });
   it('손패 카드에 이름·비용·타입·설명·강화 표시를 담는다', () => {
     const view = builder.build(input());
     expect(view.visible).toBe(true);

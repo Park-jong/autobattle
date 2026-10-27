@@ -1,4 +1,7 @@
 import type { ActiveTrait, Cell, CombatResult, FormationEntry, Side, StarLevel } from '../../core/combat';
+import type { DeckPreset } from '../../core/cards';
+import type { BattleKind, EconomyView } from '../../core/economy';
+import type { ManagementSnapshot } from '../../core/management';
 import type { CardInputMode } from '../cards/CardInteraction';
 import type { CardPanelView } from '../cards/cardPanelView';
 import type { PlaybackSpeed } from '../cards/playbackScale';
@@ -41,6 +44,10 @@ export interface SessionSnapshot {
   seed: number;
   /** 선택한 지휘관 id. 없으면 null (카드 시스템 꺼짐) */
   commanderId: string | null;
+  deckPreset: DeckPreset;
+  battleKind: BattleKind;
+  economy: EconomyView;
+  management: { state: ManagementSnapshot; selectedUnitId: number | null; canManage: boolean } | null;
   /** 지금 적용 중인 시간 배율 (배속 × 슬로모션, 정지면 0) */
   timeScale: number;
   pauseOnCardHold: boolean;
@@ -103,6 +110,23 @@ export interface DebugController {
   togglePause(): void;
   setSpeed(speed: PlaybackSpeed): void;
   reset(): void;
+  /** 단일 전투 결과를 확정하고 잔고를 유지한 채 새 전투를 준비한다 */
+  nextBattle(): void;
+  /** 단일 디버그 경제를 시작 잔고로 초기화한다 (준비 단계에서만) */
+  resetEconomy(): void;
+  setBattleKind(kind: BattleKind): void;
+  startManagementRun(preset?: DeckPreset): void;
+  endManagementRun(): void;
+  buyUnit(slot: number): void;
+  rerollShop(): void;
+  buyExperience(): void;
+  toggleShopLock(): void;
+  selectManagedUnit(id: number | null): void;
+  moveManagedToBoard(id: number, cell: Cell): void;
+  moveManagedToBench(id: number, index?: number): void;
+  sellManagedUnit(id: number): void;
+  managedUnitAtStage(x: number, y: number): number | null;
+  dropManagedToBoard(id: number, x: number, y: number): void;
   clearSide(side: Side): void;
   exportFormation(side: Side): string;
   /** 오류가 있으면 Error를 던진다 (한국어 메시지) */
@@ -111,6 +135,7 @@ export interface DebugController {
   reportError(message: string): void;
   /** 지휘관 선택 (null이면 카드 시스템 끔) */
   setCommander(commanderId: string | null): void;
+  setDeckPreset(preset: DeckPreset): void;
   /** 선택한 지휘관의 시작 유닛 편성을 아군 쪽에 불러온다 */
   loadCommanderStart(): void;
   setPauseOnCardHold(enabled: boolean): void;

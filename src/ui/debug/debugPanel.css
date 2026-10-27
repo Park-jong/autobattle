@@ -90,7 +90,9 @@
 .dbg-panel select.dbg-input { width: auto; max-width: 100%; }
 .dbg-panel label.dbg-row { cursor: pointer; }
 .dbg-series { margin-top: 6px; }
-.dbg-series-head, .dbg-series-row { display: grid; grid-template-columns: 28px 1fr 64px 48px; gap: 6px; padding: 2px 0; font-size: 13px; }
+.dbg-series-head, .dbg-series-row { display: grid; grid-template-columns: 24px 1fr 58px 38px 42px; gap: 5px; padding: 2px 0; font-size: 13px; }
 .dbg-series-head { color: #9aa3b5; border-bottom: 1px solid #2a2f3d; }
 .dbg-series-row.win { color: #9be29b; }
 .dbg-series-row.lose { color: #ffb4a0; }
+.dbg-gold { color: #ffd54a; font-size: 18px; }
+.dbg-reward { margin-top: 8px; padding: 8px; background: #1c2030; border-radius: 4px; font-size: 12px; }

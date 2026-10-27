@@ -50,7 +50,9 @@ export class TraitEngine {
       const trait = this.traits.get(traitId);
       if (!trait?.effects) continue;
       const resolved = trait.effects.map((e) => resolveEffect(e, tier - 1));
-      executor.execute(resolved, { side, caster: null, targets: [] });
+      const members = executor.select('allAllies', { side, caster: null, targets: [] })
+        .filter((u) => u.def.origin === traitId || u.def.job === traitId);
+      executor.execute(resolved, { side, caster: null, targets: members });
     }
     return active;
   }

@@ -48,6 +48,7 @@ export interface Survivor {
   hp: number;
   maxHp: number;
   cell: Cell;
+  temporary?: true;
 }
 
 export interface CombatResult {
@@ -105,7 +106,8 @@ export class CombatSimulator {
     if (cardSetup && !cardCatalog) throw new Error('setup.cards를 쓰려면 카드 카탈로그가 필요함');
     this.cardCatalog = cardCatalog ?? null;
     if (cardSetup) this.commandPoints = new CombatCommandPoints(world, cardSetup.commander?.startCpBonus ?? 0);
-    const executor = new EffectExecutor(world, this.commandPoints);
+    if (cardSetup && cardCatalog) this.deck = Deck.restore(cardSetup.deck, cardCatalog, new Rng(0));
+    const executor = new EffectExecutor(world, this.commandPoints, this.deck, units);
     new ManaSystem(world);
     this.rules = new StatusRules(world);
     this.controller = new UnitController(world, executor);
@@ -132,14 +134,23 @@ export class CombatSimulator {
           mana: unit.mana,
           maxMana: unit.maxMana,
         });
+        for (const equipmentId of entry.equipment ?? []) {
+          const upgraded = equipmentId.endsWith('+');
+          const id = upgraded ? equipmentId.slice(0, -1) : equipmentId;
+          const equipment = cardCatalog?.get(id);
+          if (!equipment || equipment.type !== 'equipment') throw new Error(`알 수 없는 장비 ${equipmentId}`);
+          const effects = upgraded ? equipment.upgrade?.effects : equipment.effects;
+          if (!effects) throw new Error(`강화 장비 정의가 없습니다: ${equipmentId}`);
+          unit.equipment.push(equipmentId);
+          executor.execute(effects.map((e) => resolveEffect(e, 0)), { side, caster: null, targets: [unit] });
+        }
       }
     }
 
     const engine = new TraitEngine(traits);
     this.activeTraits = [engine.apply(0, defsBySide[0], executor), engine.apply(1, defsBySide[1], executor)];
 
-    if (cardSetup && cardCatalog && this.commandPoints) {
-      this.deck = Deck.restore(cardSetup.deck, cardCatalog, new Rng(0));
+    if (cardSetup && cardCatalog && this.commandPoints && this.deck) {
       this.player = new CardPlayer(world, executor, this.commandPoints, this.deck, cardCatalog, this.activeTraits[0]);
       // 지휘관 패시브: 특성 효과 바로 다음, 같은 시점(틱 0 이전)에 아군 기준으로 한 번 적용
       if (cardSetup.commander) {
@@ -171,6 +182,11 @@ export class CombatSimulator {
     return this.playedCommands;
   }
 
+  /** 소환 유닛은 제외한 원본 유닛의 장비. 강화 카드는 ID 뒤에 +를 붙여 저장한다. */
+  get equippedItems(): ReadonlyMap<number, readonly string[]> {
+    return new Map(this.world.units.filter((u) => !u.temporary).map((u) => [u.uid, [...u.equipment]]));
+  }
+
   /**
    * 전투 시작: 준비 단계를 끝내고 전투 CP를 지급한다 (남은 준비 CP는 소멸). 이미 시작했으면 아무것도 안 함.
    * step()이 첫 호출 때 자동으로 부르며, 틱 0에 직접 카드를 쓰려는 UI는 먼저 부른다.
@@ -189,7 +205,10 @@ export class CombatSimulator {
   playCard(cardInstanceId: number, target: PlayTarget): PlayResult {
     if (!this.player) return { ok: false, reason: '카드 시스템이 없는 전투입니다' };
     const result = this.player.play(this.phaseValue, cardInstanceId, target);
-    if (result.ok) this.playedCommands.push({ tick: this.world.tick, cardInstanceId, target: structuredClone(target) });
+    if (result.ok) {
+      this.playedCommands.push({ tick: this.world.tick, cardInstanceId, target: structuredClone(target) });
+      this.checkEnd();
+    }
     return result;
   }
 
@@ -204,6 +223,7 @@ export class CombatSimulator {
     const world = this.world;
     this.startCombat();
     this.runScheduledCommands();
+    if (this.outcome) return;
 
     if (world.tick === COMBAT.OVERHEAT_START_SECONDS * COMBAT.TICKS_PER_SECOND) world.emit({ type: 'overheat' });
     world.bus.emit('onTick', { tick: world.tick, time: world.now });
@@ -238,6 +258,7 @@ export class CombatSimulator {
       hp: u.hp,
       maxHp: u.maxHp,
       cell: u.cell,
+      ...(u.temporary ? { temporary: true as const } : {}),
     }));
     return { ...this.outcome, endTime: this.world.now, survivors, events: this.world.events };
   }
@@ -285,7 +306,8 @@ export class CombatSimulator {
 
   private isOperationInHand(instanceId: number): boolean {
     const instance = this.deck?.findInHand(instanceId);
-    return instance !== undefined && this.cardCatalog?.get(instance.cardId)?.type === 'operation';
+    const type = instance ? this.cardCatalog?.get(instance.cardId)?.type : undefined;
+    return type === 'operation' || type === 'equipment';
   }
 
   private runScheduledCommands(): void {

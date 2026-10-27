@@ -3,9 +3,9 @@ import { EffectValidator } from './effectValidator';
 import { FieldReader } from './fieldReader';
 import { SKILL_TARGETINGS, type SkillDef, type UnitDef, type UnitFile, type UnitStats } from './unit';
 
-const UNIT_KEYS = ['id', 'name', 'tier', 'origin', 'job', 'stats', 'skill'] as const;
+const UNIT_KEYS = ['id', 'name', 'tier', 'origin', 'job', 'stats', 'skill', 'grantedCard'] as const;
 const STAT_KEYS = ['hp', 'atk', 'as', 'rng', 'arm', 'res', 'mana'] as const;
-const SKILL_KEYS = ['name', 'text', 'targeting', 'effects'] as const;
+const SKILL_KEYS = ['name', 'text', 'targeting', 'effects', 'targetCount'] as const;
 
 /** units.json 구조를 검증해 타입 있는 UnitDef로 변환한다. 파일 I/O는 하지 않는다. */
 export class UnitValidator {
@@ -37,7 +37,7 @@ export class UnitValidator {
     }
     const r = FieldReader.of(raw, path);
     r.onlyKeys(UNIT_KEYS);
-    return {
+    const unit: UnitDef = {
       id: r.string('id'),
       name: r.string('name'),
       tier: r.int('tier', 1),
@@ -46,6 +46,8 @@ export class UnitValidator {
       stats: this.validateStats(r.object('stats')),
       skill: this.validateSkill(r.object('skill')),
     };
+    if (r.has('grantedCard')) unit.grantedCard = r.string('grantedCard');
+    return unit;
   }
 
   private validateStats(r: FieldReader): UnitStats {
@@ -63,11 +65,19 @@ export class UnitValidator {
 
   private validateSkill(r: FieldReader): SkillDef {
     r.onlyKeys(SKILL_KEYS);
-    return {
+    const skill: SkillDef = {
       name: r.string('name'),
       text: r.string('text'),
       targeting: r.enum('targeting', SKILL_TARGETINGS),
       effects: this.effects.validateList(r, 'effects'),
     };
+    if (r.has('targetCount')) {
+      const raw = r.rawValue('targetCount');
+      if (Array.isArray(raw)) {
+        if (raw.length !== 3 || raw.some((n) => !Number.isInteger(n) || n < 1)) r.fail('targetCount', '양의 정수 3개가 필요함');
+        skill.targetCount = raw as [number, number, number];
+      } else skill.targetCount = r.int('targetCount', 1);
+    }
+    return skill;
   }
 }

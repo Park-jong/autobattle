@@ -18,6 +18,9 @@ export const EFFECT_SELECTORS = [
   'targetAndAdjacent',
   'enemiesInTargetArea',
   'alliesInTargetArea',
+  'traitUnits',
+  'selfAndAdjacent',
+  'targetArea2x2',
 ] as const;
 export const TELEPORT_DESTINATIONS = ['behindTarget'] as const;
 export const COMBAT_EFFECT_KINDS = [
@@ -39,6 +42,9 @@ export const COMBAT_EFFECT_KINDS = [
   'silence',
   'manaDrain',
   'cpOnKill',
+  'manaFill',
+  'drawCards',
+  'root', 'hpCost', 'lifesteal', 'onAttackBurn', 'killFeast', 'marksman', 'attackMana', 'summon', 'scout',
 ] as const;
 
 export type CombatStat = (typeof COMBAT_STATS)[number];
@@ -76,6 +82,7 @@ export type EffectOf<V> =
       dmgType: DamageType;
       /** 대상 방어력 무시 비율(%) */
       ignoreArmorPct?: V;
+      maxHpOnKill?: V;
     }
   | { kind: 'stun'; selector: EffectSelector; duration: V }
   | { kind: 'heal'; selector: EffectSelector; amount: V }
@@ -97,6 +104,19 @@ export type EffectOf<V> =
   | { kind: 'silence'; selector: EffectSelector; duration: V }
   /** 대상 마나 감소 (0 미만으로 내려가지 않음) */
   | { kind: 'manaDrain'; selector: EffectSelector; amount: V }
+  /** 지정 유닛의 마나를 최대로 채운다 */
+  | { kind: 'manaFill'; selector: EffectSelector }
+  /** 플레이어 카드 전용. selector는 allAllies, 유닛 수와 무관하게 한 번 뽑는다 */
+  | { kind: 'drawCards'; selector: EffectSelector; count: V }
+  | { kind: 'root'; selector: EffectSelector; duration: V }
+  | { kind: 'hpCost'; selector: EffectSelector; pctMaxHp: V }
+  | { kind: 'lifesteal'; selector: EffectSelector; pct: V; duration: V }
+  | { kind: 'onAttackBurn'; selector: EffectSelector; pctAtk: V; duration: V }
+  | { kind: 'killFeast'; selector: EffectSelector; healPct: V; atkPct: V }
+  | { kind: 'marksman'; selector: EffectSelector; rangeBonus: V; chance: V }
+  | { kind: 'attackMana'; selector: EffectSelector; amount: V }
+  | { kind: 'summon'; selector: EffectSelector; count: V; tier: V }
+  | { kind: 'scout'; selector: EffectSelector; count: V; pctMaxHp: V }
   /**
    * 전투 시작 시 등록되는 트리거: 효과를 적용한 진영의 유닛이 적을 처치하면 CP를 amount만큼 얻는다.
    * 실제로 얻은 CP 합계가 maxPerCombat에 도달하면 더 얻지 않는다. selector는 allAllies만 허용.

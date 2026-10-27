@@ -44,6 +44,8 @@ export interface DueAura {
 export class StatusSet {
   private stunUntil = 0;
   private silenceUntil = 0;
+  private rootUntil = 0;
+  private readonly leeches: (TimedEntry & { pct: number })[] = [];
   private burn: BurnState | null = null;
   private shields: (TimedEntry & { amount: number })[] = [];
   private takenMults: (TimedEntry & { mult: number })[] = [];
@@ -68,6 +70,11 @@ export class StatusSet {
   addSilence(until: number): void {
     this.silenceUntil = Math.max(this.silenceUntil, until);
   }
+
+  addRoot(until: number): void { this.rootUntil = Math.max(this.rootUntil, until); }
+  isRooted(): boolean { return this.isActive(this.rootUntil); }
+  addLifesteal(pct: number, until: number): void { this.leeches.push({ pct, expiresAt: until }); }
+  lifestealPct(): number { return this.leeches.reduce((sum, l) => sum + (this.isActive(l.expiresAt) ? l.pct : 0), 0); }
 
   addBurn(dps: number, until: number, sourceUid: number | null): void {
     if (this.burn) {
@@ -234,6 +241,8 @@ export class StatusSet {
     const removed: string[] = [];
     const now = this.clock();
     const dead = (expiresAt: number) => expiresAt <= now + COMBAT.EPS;
+    if (this.rootUntil > 0 && dead(this.rootUntil)) { this.rootUntil = 0; removed.push('root'); }
+    this.drop(this.leeches, dead, 'lifesteal', removed);
 
     if (this.stunUntil > 0 && dead(this.stunUntil)) {
       this.stunUntil = 0;

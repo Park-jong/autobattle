@@ -36,6 +36,50 @@ function playStage(g: Gauntlet, commands: readonly CardCommand[] = []) {
 }
 
 describe('Gauntlet', () => {
+  it('같은 전투 결과를 다시 읽어 정산해도 판 번호와 골드가 중복 증가하지 않는다', () => {
+    const g = new Gauntlet(config(), cardCatalog);
+    const stage = g.stage;
+    const deck = g.deckForBattle();
+    if (!stage || !deck) throw new Error('준비 데이터 없음');
+    const sim = new CombatSimulator(
+      { seed: g.seed, formations: [g.ally, stage.enemy], cards: { commander: harten, deck } },
+      units, traits, cardCatalog,
+    );
+    const first = g.complete(sim.run(), 0, sim.deck?.serialize() ?? null);
+    const gold = g.economyView.gold;
+    expect(g.complete(sim.result(), 0, sim.deck?.serialize() ?? null)).toBe(first);
+    expect(g.index).toBe(1);
+    expect(g.records).toHaveLength(1);
+    expect(g.economyView.gold).toBe(gold);
+  });
+
+  it('확장 덱에서 보존·소모·드로우 결과를 다음 판에도 이어받는다', () => {
+    const g = new Gauntlet(config({ deckPreset: 'test', baseSeed: 1 }), cardCatalog);
+    const deck = g.deckForBattle();
+    const stage = g.stage;
+    if (!deck || !stage) throw new Error('준비 데이터 없음');
+    const sim = new CombatSimulator(
+      { seed: g.seed, formations: [g.ally, stage.enemy], cards: { commander: harten, deck } },
+      units, traits, cardCatalog,
+    );
+    sim.startCombat();
+    // 드로우까지 포함해 각 카드가 다음 손패/더미로 이어지는 실제 흐름을 확인한다.
+    const reorganization = sim.deck?.hand.find((c) => c.cardId === 'tactical_reorganization');
+    if (reorganization) expect(sim.playCard(reorganization.instanceId, { kind: 'none' }).ok).toBe(true);
+    const arrow = sim.deck?.hand.find((c) => c.cardId === 'ember_arrow');
+    if (!arrow) throw new Error('테스트 시드에 불씨 화살이 필요함');
+    const target = sim.world.enemiesOf(0)[0];
+    if (!target) throw new Error('적 없음');
+    expect(sim.playCard(arrow.instanceId, { kind: 'unit', uid: target.uid }).ok).toBe(true);
+    const mana = sim.deck?.hand.find((c) => c.cardId === 'mana_infusion');
+    if (!mana) throw new Error('테스트 시드에 마나 주입이 필요함');
+    g.complete(sim.run(), sim.commandLog.length, sim.deck?.serialize() ?? null);
+    const next = g.deckForBattle();
+    expect(next?.hand.some((c) => c.instanceId === mana.instanceId)).toBe(true);
+    expect(next?.exhaust.some((c) => c.instanceId === arrow.instanceId)).toBe(true);
+    expect([...(next?.hand ?? []), ...(next?.draw ?? []), ...(next?.discard ?? [])].some((c) => c.instanceId === arrow.instanceId)).toBe(false);
+  });
+
   it('판 번호별 시드는 결정적이고 서로 다르다', () => {
     const seeds = [0, 1, 2, 3, 4].map((i) => deriveBattleSeed(7, i));
     expect(new Set(seeds).size).toBe(5);

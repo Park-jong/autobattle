@@ -36,8 +36,8 @@ function errorOf(cards: unknown[], withTraits = true): string {
 }
 
 describe('카드 검증기: 공통 효과 검증기 통합', () => {
-  it('기존 cards.json 7장은 특성 참조 검증과 함께도 통과', () => {
-    expect(loadCards(cardsJson, traits).size).toBe(7);
+  it('cards.json 16종은 특성 참조 검증과 함께도 통과', () => {
+    expect(loadCards(cardsJson, traits).size).toBe(16);
   });
 
   it('전투 효과 kind 전부를 카드에서 쓸 수 있다 (시전자 불필요한 형태)', () => {
@@ -122,6 +122,21 @@ describe('카드 검증기: 공통 효과 검증기 통합', () => {
 
 describe('카드 검증기: 공명과 연쇄', () => {
   const chainEffects = [{ kind: 'heal', selector: 'allAllies', amount: 5 }];
+
+  it('비용만 바꾸는 연쇄를 허용하고 잘못된 비용·빈 연쇄는 거부한다', () => {
+    expect(load([card({ keywords: ['chain'], chain: { cost: 0, effects: [] } })]).get('fx')?.chain?.cost).toBe(0);
+    for (const cost of [-1, 0.5, '0']) {
+      expect(errorOf([card({ keywords: ['chain'], chain: { cost, effects: [] } })])).toContain('chain.cost');
+    }
+    expect(errorOf([card({ keywords: ['chain'], chain: { effects: [] } })])).toContain('연쇄 효과 또는 비용이 필요함');
+  });
+
+  it('드로우 수는 양의 정수, 선택자는 allAllies만 허용한다', () => {
+    for (const count of [0, -1, 1.5, [1, 2, 3]]) {
+      expect(errorOf([card({ effects: [{ kind: 'drawCards', selector: 'allAllies', count }] })])).toContain('.count');
+    }
+    expect(errorOf([card({ target: { kind: 'allyUnit' }, effects: [{ kind: 'drawCards', selector: 'target', count: 2 }] })])).toContain('.selector');
+  });
 
   it('연쇄 키워드가 있으면 chain 효과가 필요하고, 형식은 { effects: [...] }', () => {
     const ok = load([card({ keywords: ['chain'], chain: { effects: chainEffects } })]);

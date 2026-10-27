@@ -16,9 +16,9 @@ function errorOf(mutate: (d: any) => void): string {
 }
 
 describe('loadCards', () => {
-  it('실제 data/cards.json 7장이 통과', () => {
+  it('실제 data/cards.json 16종이 통과', () => {
     const catalog = loadCards(cardsJson);
-    expect(catalog.size).toBe(7);
+    expect(catalog.size).toBe(16);
     expect(catalog.get('focus_fire')?.effects).toHaveLength(1);
     expect(catalog.get('last_stand')?.upgrade?.cost).toBe(1);
   });

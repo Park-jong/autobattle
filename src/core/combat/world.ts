@@ -5,7 +5,8 @@ import { COMBAT } from './constants';
 import { computeDamage, overheatMultiplier } from './damage';
 import type { CombatEvent } from './events';
 import { TriggerBus } from './triggers';
-import type { CombatUnit } from './unit';
+import { CombatUnit } from './unit';
+import type { UnitDef } from '../data/unit';
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
 /** t(발생 시각)는 world가 채운다 */
@@ -48,6 +49,14 @@ export class CombatWorld {
     this.board.place(unit.uid, unit.cell);
   }
 
+  spawn(def: UnitDef, side: Side, cell: Cell, temporary = false): CombatUnit {
+    const unit = new CombatUnit(this.units.length, side, def, 1, cell, this.clock);
+    unit.temporary = temporary;
+    this.addUnit(unit);
+    this.emit({ type: 'spawn', unit: unit.uid, unitId: def.id, side, star: 1, cell, hp: unit.hp, maxHp: unit.maxHp, mana: 0, maxMana: unit.maxMana });
+    return unit;
+  }
+
   emit(event: NewEvent): void {
     this.events.push({ ...event, t: this.now } as CombatEvent);
   }
@@ -85,6 +94,7 @@ export class CombatWorld {
 
     const hadShield = target.statuses.shieldTotal() > 0;
     const absorbed = target.statuses.absorb(amount);
+    const hpBefore = target.hp;
     let hp = target.hp - (amount - absorbed);
     if (hp < 1 && target.statuses.isUndying()) hp = 1;
     target.hp = Math.max(0, hp);
@@ -103,6 +113,7 @@ export class CombatWorld {
     }
     this.bus.emit('onDamageTaken', { unit: target, source, amount, dmgType: req.type });
     if (target.hp <= 0) this.kill(target, source);
+    if (source?.alive && source !== target) this.heal(source, source, (hpBefore - target.hp) * source.statuses.lifestealPct() / 100);
     return amount;
   }
 

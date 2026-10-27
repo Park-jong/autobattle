@@ -13,6 +13,7 @@
 | `npm run typecheck` | `tsc --noEmit` (src, tools 포함) |
 | `npm run sim -- --a A.json --b B.json --n 1000 --seed 1` | 헤드리스 전투 시뮬: 편성 A vs B N회 승률·평균 시간 (tsx). 편성 예시는 `tools/formations/` |
 | `npm run sim -- ... --commander cmd_harten [--plan tools/plans/harten-basic.json]` | 지휘관 패시브 적용, 카드 사용 계획을 넣으면 "카드 없음"과 같은 시드로 비교 출력 (계획 형식은 data/README.md) |
+| `npm run sim -- --a tools/formations/harten-start.json --b tools/formations/series-3.json --n 100 --seed 1 --commander cmd_harten --deck test --plan tools/plans/expanded-cards.json` | 추가 5종을 포함한 테스트 덱으로 카드 사용 전후 비교 |
 
 ## 폴더 구조
 ```
@@ -21,6 +22,8 @@
   rng.ts           시드 기반 RNG (Rng 클래스)
   data/            카드·유닛·특성·지휘관·효과 타입, 검증기(Card/Unit/Trait/Commander/EffectValidator — 카드·지휘관도 공통 효과 검증기를 씀), 로더(loadCards/loadUnits/loadTraits/loadCommanders)
   cards/           덱 모델(Deck: 뽑을/손패/버린/소모 더미, 직렬화), CP 규칙(CommandPoints), 강화 반영(effectiveCard), 상수(CARDS). combat에 의존하지 않음
+  economy/         Economy: 골드 계정·전투 보상·이자·중복 정산 방지, ECONOMY 상수. 전투·DOM 비의존
+  management/      Management: 상점·공유 유닛 풀·소유 로스터·벤치·레벨·인구·합성·판매, Economy와Rng 주입
   combat/          전투 시뮬 (Phaser·DOM 비의존, 상수는 constants.ts)
     sim.ts           CombatSimulator: 0.1초 틱 루프(step/runUntil/run), 종료 판정, 이벤트 로그. setup.cards로 카드 시스템(CP·덱·지휘관 패시브) 켬
     cardPlayer.ts    카드 사용 검증·실행 (단계/CP/대상/제한/전제조건 → 공통 EffectExecutor), cardCommand.ts 명령·대상 타입
@@ -37,7 +40,8 @@
   hidpi.ts         HiDPI 처리: 캔버스 = 1280x720 x DPR, 카메라 줌 = DPR, 텍스트 setResolution
   gameData.ts      data/*.json 검증 로드 + 기본 편성(tools/formations/a,b.json), 지휘관 시작 편성, 5연전 적 편성(series-1~5.json)
   replay/          ReplayState: 이벤트 로그(진행 중이라 늘어나도 됨) + 시각 t -> 유닛 표시 상태·연출 이벤트 (Phaser·DOM 비의존)
-  live/            LiveBattle(sim을 재생 시각에 맞춰 runUntil로 점진 진행 + ReplayState + 카드 사용), Gauntlet(5연전 진행기: 판별 시드 파생·덱 이어받기·기록) — 모두 Phaser·DOM 비의존
+  live/            LiveBattle(실시간 시뮬+재생), Gauntlet(고정 편성 5연전), ManagementRun(가변 로스터·상점·장비·제공 카드·골드 이어받기) — 모두 Phaser·DOM 비의존
+  economy/         ManagementPanel: 상점·레벨·벤치·판매 UI와 캔버스↔벤치 유닛 드래그
   cards/           CardInteraction(카드 선택→대상 지정 상태 머신), playbackScale(배속×슬로모션/정지), cardAvailability(사용 불가 사유), cardPanelView(손패 패널 표시 정보 빌더), dealDeck, stagePoint(화면→게임 좌표) — 순수 TS, HandPanel(DOM)+handPanel.css
   battle/          BattleScene(씬), BoardLayout(칸<->좌표), BoardPicker(좌표→칸/유닛, 보간 위치 기준), BoardRenderer, UnitSprite, EffectsLayer, TargetingOverlay(대상 강조)
   debug/           BattleSession(편성·지휘관·덱·전투·연전을 묶는 파사드, Phaser·DOM 비의존), contracts.ts(씬용 BattleViewSource / 패널용 DebugController / 손패용 CardController 인터페이스), DebugPanel(DOM) + debugPanel.css
@@ -60,7 +64,22 @@
 - 카드를 집은 동안 시간 배율 = 배속 × `CARD_UI.SLOWMO_FACTOR`(0.25), 옵션 "카드 선택 중 일시정지"면 0 (`playbackScale`).
 - 지휘관이 있으면 편성 단계가 곧 준비 단계: 손패 5장이 뽑혀 있고 작전 카드를 준비 CP로 쓴다(준비 단계 sim이 살아 있음). 편성·시드·지휘관을 바꾸면 준비 단계를 다시 만든다(쓴 작전 카드는 되돌려짐). 지휘관 없음이면 카드 UI는 숨겨지고 M1 동작. 처음 열면 기본 지휘관 하르텐(`gameData.ts`의 `DEFAULT_COMMANDER_ID`, 데이터에 없으면 없음)이 선택되어 있고 시작 편성은 자동 배치하지 않는다. `BattleSession`은 `extras.defaultCommanderId`를 줘야 기본 선택이 켜진다(없으면 지휘관 없음).
 - 5연전(`Gauntlet`): 아군 편성 고정, 적은 `tools/formations/series-1~5.json`, 판별 시드 파생, 덱은 판 사이에 이어짐, "카드 사용 금지" 옵션으로 같은 시드·편성 비교.
+- 카드 풀은 16종. 패널의 덱 선택에서 지휘관 기본 덱/확장 카드 테스트 덱(각 10장)을 선택한다. 테스트 덱에는 제련된 칼날·예비대 호출이 포함된다. `DeckPreset`은 단일 전투·5연전·경제 플레이·헤드리스에 공통 적용된다. `manaFill`은 공통 효과, `drawCards`는 카드 전용 효과다. `chain.cost`는 연쇄 활성 시 CP 검사 전 실제 비용에 반영하고 UI도 같은 `effectiveCard`를 사용한다.
 - 레이아웃: 왼쪽 열 `#stage`(`#game` 캔버스 + 아래 `#hand` 손패 바, 지휘관이 없으면 숨김) + `#panel`(340px 사이드). 폭 800px 이하면 위아래로 쌓는다.
+
+## 골드 경제 (M3-1)
+- `src/core/economy`: 시작 10G, 일반/정예/보스 승리 5/8/15G, 패배·무승부 3G. 이자는 **정산 전 잔고** 10G당 1G, 최대 3G. 모든 금액은 0 이상의 안전한 정수다.
+- `Economy.settleBattle(id, kind, outcome)`는 동일 ID에 한 번만 지급하고 최초 영수증을 다시 반환한다. `spend`는 잔고 부족 시 false이며 상태를 바꾸지 않는다.
+- `BattleSession`의 단일 전투는 결과 후 `nextBattle()`로 새 전투 ID를 발급해 골드를 이어간다. `reset()`은 같은 전투를 재시도하므로 보상을 재지급하지 않는다. `resetEconomy()`는 편집 가능한 준비 단계에서만 10G로 초기화한다.
+- `Gauntlet`은 독립 골드 계정으로 시작하며 마지막 판까지 정산한다. 종료/중단 시 단일 계정은 그대로 복원된다. `GauntletStage.kind` 생략 시 일반 전투. 같은 전투 로그를 중복 정산하면 판과 골드가 증가하지 않는다.
+- 디버그 패널에 골드·다음 이자·최근 지급 내역과 전투 종류 선택을 표시한다. 상점 구매는 경제 플레이에서 제공하며 카드 획득 보상은 M4 범위다.
+
+## 경제 플레이 (M3)
+- `main.ts`가 `startManagementRun()`을 호출해 지휘관의 실제 시작2기·10G·레벨3으로 연다. 경제 플레이 종료 시 기존 편성 디버그로 복귀한다. 테스트 시작 버튼은 장비·징집을 포함한 10장 덱을 사용한다.
+- `ManagementRun`은 `Management`와 `Economy`를 소유하며 5연전 사이에 소유 로스터·덱·장비·골드를 유지한다. 다음 전투 때 무료 상점 갱신(잠금이면 1회 유지 후 해제), 마지막 두 판은 정예/보스 보상 등급이다. 전투 진행 중 관리 명령은 거부한다.
+- 제공 카드는 `syncGrantedCards`에 보드 소유 유닛 ID를 공급한다. 기본 덱의 동명 카드와 구분해 벤치·판매·3성 합성을 동기화한다. 영구 장비는 아군 원본 formation 인덱스(시뮬 UID)와 소유 ID를 대응해 `setEquipment`로 저장하며 징집 UID는 읽지 않는다.
+- 장비 준비 카드 사용 시 원본 준비 덱에서도 해당 인스턴스만 소모 처리해 재배치/리셋으로 복제되지 않게 한다. 상점 리롤·잠금·XP처럼 편성이 바뀌지 않는 관리 동작은 준비 단계 작전 효과를 되돌리지 않는다.
+- 유닛14종, 특성 효과6종(강철군단·잿불·심연·수호자·검투사·사수). 숲·주술사·암살자 정의는 유지하며 고유 특성 효과는 후속 범위다. 맵·지휘관 HP·카드 획득 보상·런 저장은 M4다.
 
 ## 컨벤션
 - TypeScript strict, ES 모듈. 주석과 사용자 노출 문자열은 한국어.

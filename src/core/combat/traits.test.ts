@@ -41,10 +41,10 @@ describe('특성 단계 계산', () => {
     expect(tierOf([def('iron_shieldbearer')], 'ember')).toBeUndefined();
   });
 
-  it('유닛 8기: 강철군단 3, 수호자 2, 숲의 맹약 2, 사수 2, 심연 2', () => {
+  it('유닛 14종의 기원·직업 종류 수를 계산한다', () => {
     const all = units.units.map((u) => u);
     const byId = Object.fromEntries(engine.compute(all).map((t) => [t.traitId, t.count]));
-    expect(byId).toMatchObject({ iron_legion: 3, guardian: 2, forest_pact: 2, marksman: 2, abyss: 2, assassin: 1, ember: 1, mystic: 2 });
+    expect(byId).toMatchObject({ iron_legion: 5, guardian: 3, forest_pact: 3, marksman: 3, abyss: 3, assassin: 2, ember: 3, mystic: 3, gladiator: 3 });
   });
 });
 

@@ -7,14 +7,35 @@
       "tier": 1,
       "origin": "iron_legion",
       "job": "guardian",
-      "stats": { "hp": 650, "atk": 40, "as": 0.6, "rng": 1, "arm": 40, "res": 20, "mana": 80 },
+      "stats": {
+        "hp": 650,
+        "atk": 40,
+        "as": 0.6,
+        "rng": 1,
+        "arm": 40,
+        "res": 20,
+        "mana": 80
+      },
       "skill": {
         "name": "방패 밀치기",
         "text": "앞의 적에게 ATK 150% 물리 피해 + 기절 1 / 1.25 / 1.5초.",
         "targeting": "currentTarget",
         "effects": [
-          { "kind": "damage", "selector": "target", "pctAtk": 150, "dmgType": "physical" },
-          { "kind": "stun", "selector": "target", "duration": [1, 1.25, 1.5] }
+          {
+            "kind": "damage",
+            "selector": "target",
+            "pctAtk": 150,
+            "dmgType": "physical"
+          },
+          {
+            "kind": "stun",
+            "selector": "target",
+            "duration": [
+              1,
+              1.25,
+              1.5
+            ]
+          }
         ]
       }
     },
@@ -24,7 +45,15 @@
       "tier": 1,
       "origin": "iron_legion",
       "job": "gladiator",
-      "stats": { "hp": 580, "atk": 52, "as": 0.75, "rng": 1, "arm": 25, "res": 15, "mana": 60 },
+      "stats": {
+        "hp": 580,
+        "atk": 52,
+        "as": 0.75,
+        "rng": 1,
+        "arm": 25,
+        "res": 15,
+        "mana": 60
+      },
       "skill": {
         "name": "투지",
         "text": "4초간 AS +40 / 50 / 70%. 지속 중 적을 처치하면 지속 시간 초기화.",
@@ -34,7 +63,11 @@
             "kind": "statMod",
             "selector": "self",
             "stat": "as",
-            "pct": [40, 50, 70],
+            "pct": [
+              40,
+              50,
+              70
+            ],
             "duration": 4,
             "refreshOnKill": true
           }
@@ -47,13 +80,30 @@
       "tier": 1,
       "origin": "iron_legion",
       "job": "marksman",
-      "stats": { "hp": 450, "atk": 50, "as": 0.65, "rng": 4, "arm": 15, "res": 10, "mana": 70 },
+      "stats": {
+        "hp": 450,
+        "atk": 50,
+        "as": 0.65,
+        "rng": 4,
+        "arm": 15,
+        "res": 10,
+        "mana": 70
+      },
       "skill": {
         "name": "관통 볼트",
         "text": "직선으로 관통하는 화살. 경로상 적 모두에게 ATK 180 / 200 / 240% 물리 피해.",
         "targeting": "currentTarget",
         "effects": [
-          { "kind": "damage", "selector": "lineThroughTarget", "pctAtk": [180, 200, 240], "dmgType": "physical" }
+          {
+            "kind": "damage",
+            "selector": "lineThroughTarget",
+            "pctAtk": [
+              180,
+              200,
+              240
+            ],
+            "dmgType": "physical"
+          }
         ]
       }
     },
@@ -63,14 +113,37 @@
       "tier": 1,
       "origin": "forest_pact",
       "job": "guardian",
-      "stats": { "hp": 700, "atk": 35, "as": 0.55, "rng": 1, "arm": 30, "res": 30, "mana": 90 },
+      "stats": {
+        "hp": 700,
+        "atk": 35,
+        "as": 0.55,
+        "rng": 1,
+        "arm": 30,
+        "res": 30,
+        "mana": 90
+      },
       "skill": {
         "name": "뿌리내리기",
         "text": "3초간 받는 피해 -50%. 그동안 주변 1칸 아군 HP 초당 20 / 30 / 50 회복.",
         "targeting": "self",
         "effects": [
-          { "kind": "damageTakenMult", "selector": "self", "mult": 0.5, "duration": 3 },
-          { "kind": "healAura", "selector": "self", "perSecond": [20, 30, 50], "radius": 1, "duration": 3 }
+          {
+            "kind": "damageTakenMult",
+            "selector": "self",
+            "mult": 0.5,
+            "duration": 3
+          },
+          {
+            "kind": "healAura",
+            "selector": "self",
+            "perSecond": [
+              20,
+              30,
+              50
+            ],
+            "radius": 1,
+            "duration": 3
+          }
         ]
       }
     },
@@ -80,13 +153,29 @@
       "tier": 1,
       "origin": "forest_pact",
       "job": "marksman",
-      "stats": { "hp": 430, "atk": 46, "as": 0.75, "rng": 4, "arm": 10, "res": 15, "mana": 60 },
+      "stats": {
+        "hp": 430,
+        "atk": 46,
+        "as": 0.75,
+        "rng": 4,
+        "arm": 10,
+        "res": 15,
+        "mana": 60
+      },
       "skill": {
         "name": "연사",
         "text": "다음 3 / 4 / 5회 공격이 2발씩 나간다.",
         "targeting": "self",
         "effects": [
-          { "kind": "extraShots", "selector": "self", "count": [3, 4, 5] }
+          {
+            "kind": "extraShots",
+            "selector": "self",
+            "count": [
+              3,
+              4,
+              5
+            ]
+          }
         ]
       }
     },
@@ -96,14 +185,35 @@
       "tier": 1,
       "origin": "abyss",
       "job": "assassin",
-      "stats": { "hp": 500, "atk": 55, "as": 0.8, "rng": 1, "arm": 15, "res": 15, "mana": 50 },
+      "stats": {
+        "hp": 500,
+        "atk": 55,
+        "as": 0.8,
+        "rng": 1,
+        "arm": 15,
+        "res": 15,
+        "mana": 50
+      },
       "skill": {
         "name": "그림자 찌르기",
         "text": "HP가 가장 낮은 적의 뒤로 순간이동해 ATK 220 / 250 / 300% 물리 피해.",
         "targeting": "lowestHpEnemy",
         "effects": [
-          { "kind": "teleport", "selector": "self", "destination": "behindTarget" },
-          { "kind": "damage", "selector": "target", "pctAtk": [220, 250, 300], "dmgType": "physical" }
+          {
+            "kind": "teleport",
+            "selector": "self",
+            "destination": "behindTarget"
+          },
+          {
+            "kind": "damage",
+            "selector": "target",
+            "pctAtk": [
+              220,
+              250,
+              300
+            ],
+            "dmgType": "physical"
+          }
         ]
       }
     },
@@ -113,14 +223,36 @@
       "tier": 1,
       "origin": "ember",
       "job": "mystic",
-      "stats": { "hp": 450, "atk": 35, "as": 0.6, "rng": 3, "arm": 10, "res": 20, "mana": 60 },
+      "stats": {
+        "hp": 450,
+        "atk": 35,
+        "as": 0.6,
+        "rng": 3,
+        "arm": 10,
+        "res": 20,
+        "mana": 60
+      },
       "skill": {
         "name": "점화",
         "text": "대상과 인접 적에게 마법 피해 120 / 180 / 300 + 화상 3초 (초당 시전자 ATK의 100%).",
         "targeting": "currentTarget",
         "effects": [
-          { "kind": "flatDamage", "selector": "targetAndAdjacent", "amount": [120, 180, 300], "dmgType": "magic" },
-          { "kind": "burn", "selector": "targetAndAdjacent", "dpsPctAtk": 100, "duration": 3 }
+          {
+            "kind": "flatDamage",
+            "selector": "targetAndAdjacent",
+            "amount": [
+              120,
+              180,
+              300
+            ],
+            "dmgType": "magic"
+          },
+          {
+            "kind": "burn",
+            "selector": "targetAndAdjacent",
+            "dpsPctAtk": 100,
+            "duration": 3
+          }
         ]
       }
     },
@@ -130,17 +262,299 @@
       "tier": 2,
       "origin": "abyss",
       "job": "mystic",
-      "stats": { "hp": 560, "atk": 40, "as": 0.6, "rng": 3, "arm": 15, "res": 30, "mana": 70 },
+      "stats": {
+        "hp": 560,
+        "atk": 40,
+        "as": 0.6,
+        "rng": 3,
+        "arm": 15,
+        "res": 30,
+        "mana": 70
+      },
       "skill": {
         "name": "속삭임",
         "text": "적 1명에게 마법 피해 80 / 120 / 200, 침묵 2 / 2.5 / 3초, 마나 -30.",
         "targeting": "currentTarget",
         "effects": [
-          { "kind": "flatDamage", "selector": "target", "amount": [80, 120, 200], "dmgType": "magic" },
-          { "kind": "silence", "selector": "target", "duration": [2, 2.5, 3] },
-          { "kind": "manaDrain", "selector": "target", "amount": 30 }
+          {
+            "kind": "flatDamage",
+            "selector": "target",
+            "amount": [
+              80,
+              120,
+              200
+            ],
+            "dmgType": "magic"
+          },
+          {
+            "kind": "silence",
+            "selector": "target",
+            "duration": [
+              2,
+              2.5,
+              3
+            ]
+          },
+          {
+            "kind": "manaDrain",
+            "selector": "target",
+            "amount": 30
+          }
         ]
       }
+    },
+    {
+      "id": "ember_slinger",
+      "name": "잿불 투석수",
+      "tier": 1,
+      "origin": "ember",
+      "job": "marksman",
+      "stats": {
+        "hp": 440,
+        "atk": 48,
+        "as": 0.7,
+        "rng": 3,
+        "arm": 10,
+        "res": 10,
+        "mana": 70
+      },
+      "skill": {
+        "name": "화염 항아리",
+        "text": "대상 칸을 좌상단으로 하는 2×2 범위에 마법 피해 90/140/240 + 화상 3초.",
+        "targeting": "currentTarget",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "targetArea2x2",
+            "amount": [
+              90,
+              140,
+              240
+            ],
+            "dmgType": "magic"
+          },
+          {
+            "kind": "burn",
+            "selector": "targetArea2x2",
+            "dpsPctAtk": 100,
+            "duration": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "war_drummer",
+      "name": "전쟁 군악대",
+      "tier": 2,
+      "origin": "iron_legion",
+      "job": "guardian",
+      "stats": {
+        "hp": 780,
+        "atk": 45,
+        "as": 0.6,
+        "rng": 1,
+        "arm": 40,
+        "res": 25,
+        "mana": 90
+      },
+      "skill": {
+        "name": "진군의 북",
+        "text": "자신과 주변 1칸 아군 4초간 ARM +20/30/50, AS +15/20/30%.",
+        "targeting": "self",
+        "effects": [
+          {
+            "kind": "statAdd",
+            "selector": "selfAndAdjacent",
+            "stat": "arm",
+            "amount": [
+              20,
+              30,
+              50
+            ],
+            "duration": 4
+          },
+          {
+            "kind": "statMod",
+            "selector": "selfAndAdjacent",
+            "stat": "as",
+            "pct": [
+              15,
+              20,
+              30
+            ],
+            "duration": 4
+          }
+        ]
+      },
+      "grantedCard": "marching_song"
+    },
+    {
+      "id": "legion_spy",
+      "name": "군단 첩보원",
+      "tier": 2,
+      "origin": "iron_legion",
+      "job": "assassin",
+      "stats": {
+        "hp": 600,
+        "atk": 62,
+        "as": 0.8,
+        "rng": 1,
+        "arm": 20,
+        "res": 15,
+        "mana": 60
+      },
+      "skill": {
+        "name": "급소 공격",
+        "text": "ARM 50% 무시 ATK 200/240/300% 물리 피해, 대상 3초간 받는 피해 +15%.",
+        "targeting": "currentTarget",
+        "effects": [
+          {
+            "kind": "damage",
+            "selector": "target",
+            "pctAtk": [
+              200,
+              240,
+              300
+            ],
+            "dmgType": "physical",
+            "ignoreArmorPct": 50
+          },
+          {
+            "kind": "damageTakenMult",
+            "selector": "target",
+            "mult": 1.15,
+            "duration": 3
+          }
+        ]
+      },
+      "grantedCard": "enemy_scout"
+    },
+    {
+      "id": "ember_berserker",
+      "name": "잿불 광전사",
+      "tier": 2,
+      "origin": "ember",
+      "job": "gladiator",
+      "stats": {
+        "hp": 720,
+        "atk": 60,
+        "as": 0.75,
+        "rng": 1,
+        "arm": 25,
+        "res": 15,
+        "mana": 70
+      },
+      "skill": {
+        "name": "광폭화",
+        "text": "최대 HP 15% 소모(HP 1 미만 불가), 5초간 ATK +50/60/80%, 생명력 흡수 20%.",
+        "targeting": "self",
+        "effects": [
+          {
+            "kind": "hpCost",
+            "selector": "self",
+            "pctMaxHp": 15
+          },
+          {
+            "kind": "statMod",
+            "selector": "self",
+            "stat": "atk",
+            "pct": [
+              50,
+              60,
+              80
+            ],
+            "duration": 5
+          },
+          {
+            "kind": "lifesteal",
+            "selector": "self",
+            "pct": 20,
+            "duration": 5
+          }
+        ]
+      }
+    },
+    {
+      "id": "abyss_devourer",
+      "name": "심연 포식자",
+      "tier": 2,
+      "origin": "abyss",
+      "job": "gladiator",
+      "stats": {
+        "hp": 750,
+        "atk": 58,
+        "as": 0.7,
+        "rng": 1,
+        "arm": 25,
+        "res": 25,
+        "mana": 80
+      },
+      "skill": {
+        "name": "포식",
+        "text": "ATK 200/240/320% 물리 피해. 이 스킬로 처치하면 이번 전투 최대 HP +60/90/150.",
+        "targeting": "currentTarget",
+        "effects": [
+          {
+            "kind": "damage",
+            "selector": "target",
+            "pctAtk": [
+              200,
+              240,
+              320
+            ],
+            "dmgType": "physical",
+            "maxHpOnKill": [
+              60,
+              90,
+              150
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "grove_druid",
+      "name": "숲 드루이드",
+      "tier": 2,
+      "origin": "forest_pact",
+      "job": "mystic",
+      "stats": {
+        "hp": 580,
+        "atk": 38,
+        "as": 0.6,
+        "rng": 3,
+        "arm": 15,
+        "res": 30,
+        "mana": 80
+      },
+      "skill": {
+        "name": "덩굴 휘감기",
+        "text": "무작위 적 2/3/4명에게 마법 피해 60/90/150 + 속박 1.5초.",
+        "targeting": "randomEnemies",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "target",
+            "amount": [
+              60,
+              90,
+              150
+            ],
+            "dmgType": "magic"
+          },
+          {
+            "kind": "root",
+            "selector": "target",
+            "duration": 1.5
+          }
+        ],
+        "targetCount": [
+          2,
+          3,
+          4
+        ]
+      },
+      "grantedCard": "vine_snare"
     }
   ]
 }

@@ -61,6 +61,28 @@ function playToEnd(s: BattleSession): void {
 }
 
 describe('BattleSession 지휘관 선택', () => {
+  it('확장 테스트 덱을 선택하면 새 카드 5종을 포함한 10장으로 다시 준비하고 연전에도 적용한다', () => {
+    const s = newSession();
+    s.setDeckPreset('test');
+    const view = s.cardView();
+    const ids = [...view.hand, ...view.draw.entries].map((c) => c.cardId);
+    expect(ids).toHaveLength(10);
+    for (const id of ['firestorm', 'mana_infusion', 'tactical_reorganization', 'ember_arrow', 'marching_song']) expect(ids).toContain(id);
+    expect(view.hand).toHaveLength(5);
+    s.reset();
+    expect(s.cardView().hand).toEqual(view.hand);
+    s.startSeries(true);
+    expect(s.snapshot().deckPreset).toBe('test');
+    expect(s.cardView().hand.length + s.cardView().draw.count).toBe(10);
+    const seriesIds = [...s.cardView().hand, ...s.cardView().draw.entries].map((c) => c.cardId);
+    expect(seriesIds.sort()).toEqual([...ids].sort());
+    s.setDeckPreset('starter');
+    expect(s.snapshot().deckPreset).toBe('test'); // 연전 중 덱 교체 금지
+    s.endSeries();
+    s.setDeckPreset('starter');
+    expect(s.snapshot().deckPreset).toBe('starter');
+    expect([...s.cardView().hand, ...s.cardView().draw.entries].some((c) => c.cardId === 'firestorm')).toBe(false);
+  });
   it('지휘관이 없으면 카드 UI가 숨겨지고 결과는 카드 없는 sim과 같다 (M1 동작)', () => {
     const s = newSession(false);
     expect(s.cardView().visible).toBe(false);

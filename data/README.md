@@ -5,8 +5,16 @@
 
 ## cards.json
 
-현재 수록: 철벽 장군 하르텐(`cmd_harten`)의 시작 덱 카드 7종. 시작 덱 구성(10장)은 [CHARACTERS.md](../CHARACTERS.md) 3-1.
+현재 수록: 카드 풀 16종. 철벽 장군 하르텐(`cmd_harten`)의 기본 시작 덱은 기존 7종으로 구성한 10장([CHARACTERS.md](../CHARACTERS.md) 3-1)이며, "확장 카드 테스트 덱"은 M2 추가 카드 5종과 제련된 칼날·예비대 호출을 포함한 10장이다. 테스트 덱은 경제 플레이·5연전과 헤드리스 `--deck test`에서도 사용할 수 있다.
 코드는 `loadCards(json, traitCatalog?)`로 읽는다. 특성 카탈로그를 주면 공명이 가리키는 특성 id도 확인한다.
+
+M2 추가 카드: `firestorm`(화염 폭풍, 범위 피해·잿불 공명), `mana_infusion`(마나 주입, 충전·보존), `tactical_reorganization`(전술 재정비, 드로우·연쇄 비용 0), `ember_arrow`(불씨 화살, 단일 피해·화상·소모), `marching_song`(행군가, 전체 ARM 증가). 잿불 공명은 잿불 투석수·점화사·광전사 중 서로 다른 2종으로 일반 플레이에서도 활성화할 수 있다.
+
+M3 추가 카드: `call_reserves`(예비대 호출, 3CP·강화 2CP, 후열 빈 칸 2개에 무작위 1등급 임시 유닛 소환), `forged_blade`(제련된 칼날, 준비 CP 1, 장비 ATK +15/+25 및 공격 시 마나 +5), `enemy_scout`(적진 정찰, 작전 0CP, 무작위 적 1/2명의 최대 HP -10%), `vine_snare`(덩굴 속박, 1CP, 3×3 이동 금지 2/3초). 후열 자리가 부족하면 징집은 CP·손패·로그·RNG를 전혀 바꾸지 않고 실패한다. 임시 소환은 소유 로스터와 공유 유닛 풀에 들어가지 않으며 전투를 넘겨 이어지지 않는다.
+
+보드 제공 카드: 군악대→행군가, 첩보원→적진 정찰, 드루이드→덩굴 속박. `syncGrantedCards`는 소유 유닛 ID(`CardInstance.grantedBy`)마다 카드 한 장을 유지하며, 벤치 이동·판매 시 모든 더미에서 제거하고 3성이면 강화한다. 원래 덱의 같은 이름 카드는 제거하지 않는다. 새 카드는 뽑을 더미 뒤에 추가한다. 시작 손패를 만들기 전에 동기화하면 그 손패에도 나올 수 있다.
+
+장비: `FormationEntry.equipment`에 카드 ID 배열을 저장하며 강화는 `forged_blade+`처럼 `+`를 붙인다. 준비 단계 장착 시 즉시 효과를 받고 카드는 소모 더미로 간다. 다음 전투는 소유 로스터의 장비 배열을 시뮬에 전달해 효과를 다시 적용한다. 합성 시 장비는 남는 유닛으로 모으고 판매 시 사라진다. `CombatSimulator.equippedItems`는 임시 소환을 제외한 원본 유닛의 장비 복사본이다.
 
 ### 카드 필드
 | 필드 | 값 |
@@ -15,13 +23,13 @@
 | `name` | 표시 이름 |
 | `owner` | 지휘관 id (고유 카드) 또는 `neutral` (공용) |
 | `rarity` | `starter` / `common` / `rare` / `epic` |
-| `type` | `operation`(작전, 준비 단계) / `command`(명령) / `spell`(주문) / `equipment`(장비, M3) / `curse`(저주, 사용 불가) |
+| `type` | `operation`(작전, 준비 단계) / `command`(명령) / `spell`(주문) / `equipment`(장비, 준비 단계·아군 1명) / `curse`(저주, 사용 불가) |
 | `cost` | CP 비용 |
 | `target` | 대상 지정 방식 (아래) |
-| `keywords` | `exhaust`(소모) / `retain`(보존) / `chain`(연쇄) / `conscript`(징집, M3). 공명은 `resonance` 필드로 |
+| `keywords` | `exhaust`(소모) / `retain`(보존) / `chain`(연쇄) / `conscript`(징집). 공명은 `resonance` 필드로 |
 | `limits` | 선택. `perCombat`: 전투당 사용 횟수 (같은 카드 id의 모든 장이 합산) |
 | `resonance` | 선택. `{ "trait": 특성 id, "effects": [...] }` — 그 특성이 아군 진영에서 활성(단계 1 이상)이면 기본 효과 뒤에 추가 실행 |
-| `chain` | `keywords`에 `chain`이 있을 때만, 그리고 반드시 있어야 함. `{ "effects": [...] }` — 이번 전투에서 앞서 카드를 한 장이라도 썼으면(준비 단계 작전 포함) 기본 효과(·공명) 뒤에 추가 실행 |
+| `chain` | `keywords`에 `chain`이 있을 때만, 그리고 반드시 있어야 함. `{ "effects": [...], "cost"?: 정수 }` — 앞서 카드를 썼으면(준비 단계 작전 포함) 추가 효과 실행. `cost`는 CP 검사·차감·UI 표시에 먼저 적용하며, 비용만 바꾸면 `effects: []` 허용 |
 | `text` | 카드 설명문 |
 | `effects` | 효과 목록 (순서대로 적용) |
 | `upgrade` | 강화(+) 버전. `effects`·`text`는 통째로 대체, `cost`·`resonance`·`chain`은 있을 때만 대체(없으면 기본 카드 것을 그대로 씀) |
@@ -42,6 +50,7 @@
 - 카드는 시전 유닛이 없으므로 `damage`(ATK 비례)와 selector `self`/`lineThroughTarget`은 거부한다. 고정 피해는 `flatDamage`, 화상은 `dps`(고정값)를 쓴다.
 - selector `target`·`targetAndAdjacent`와 효과 `forceTarget`·`teleport`는 유닛을 지정하는 target.kind(`allyUnit`/`enemyUnit`/`allyUnits`)에서만, `enemiesInTargetArea`·`alliesInTargetArea`는 `cell`/`area3x3`에서만 쓸 수 있다.
 - `cpOnKill`은 특성 전용이라 카드에서 거부한다.
+- `drawCards`는 카드 전용이며 `selector: "allAllies"`, 양의 정수 `count`를 사용한다. 대상 유닛 수와 무관하게 한 번 뽑는다. 스킬·특성·지휘관 패시브에서는 거부한다.
 - `allAllies` 등 진영 기준 selector는 플레이어 진영(side 0)을 기준으로 한다. 적 진영은 카드를 쓰지 않는다.
 
 ---
@@ -77,6 +86,13 @@
 | `stun` | `duration` | 기절: 이동 시작·공격·스킬 불가 (이미 시작한 1칸 이동은 끝낸다). 중첩 없이 더 늦게 끝나는 쪽으로 갱신 |
 | `silence` | `duration` | 침묵: 스킬 시전 불가 (이동·기본 공격은 가능, 마나는 계속 참). 중첩 없이 더 늦게 끝나는 쪽으로 갱신 |
 | `manaDrain` | `amount` | 대상 마나 감소 (0 미만 불가) |
+| `manaFill` | — | 대상 유닛 마나를 최대로 충전 (다음 행동에서 일반 스킬 규칙 적용) |
+| `drawCards` | `count` (양의 정수), selector는 `allAllies` | 카드 전용. 그 수만큼 드로우, 손패 상한·버린 더미 재셔플 규칙 적용 |
+| `root` | `duration` | 이동 시작만 금지. 이미 시작한 이동은 끝내고 공격·스킬은 허용 |
+| `hpCost` / `lifesteal` | `pctMaxHp` / `pct`, `duration` | 최대 HP 비율 자가 소모(HP 최소 1) / 실제 HP 피해 기준 흡혈 |
+| `onAttackBurn` / `killFeast` / `marksman` | 화상 비율·지속 / 회복·ATK 비율 / 사거리·확률 | 특성 전용 트리거. `traitUnits`로 해당 기원·직업 유닛만 선택 |
+| `attackMana` | `amount` | 선택한 유닛이 기본 공격하면 마나 추가. 장비에 사용 |
+| `summon` / `scout` | `count`, `tier` / `count`, `pctMaxHp` | 카드 전용 징집 / 무작위 적 최대 HP 감소 |
 | `heal` | `amount` | 즉시 회복 (최대 HP 초과 불가) |
 | `healAura` | `perSecond`, `radius`, `duration` | 지속 중 1초마다 반경 `radius`칸 안의 **다른** 아군을 `perSecond`만큼 회복 |
 | `burn` | `dpsPctAtk` 또는 `dps` (정확히 하나), `duration` | 화상: 1초마다 마법 피해. `dpsPctAtk`는 시전자 ATK 비례, `dps`는 고정값(시전자 없는 카드용). 재부여 시 지속 시간 갱신 + 초당 피해는 큰 값 (중첩 없음) |
@@ -100,7 +116,7 @@
 
 ## units.json
 
-유닛 8기: M1 6기 + M2 2기 (CHARACTERS.md 4·5장). 코드는 `loadUnits(json, traitCatalog)`로 읽으며, 특성 카탈로그를 주면 `origin`/`job` 참조(존재, 종류)도 검증한다.
+유닛 14기: 1등급 8종 + 2등급 6종 (CHARACTERS.md 4·5장). 코드는 `loadUnits(json, traitCatalog)`로 읽으며, 특성 카탈로그를 주면 `origin`/`job` 참조(존재, 종류)도 검증한다. `grantedCard`는 보드 제공 카드 ID이며 `assertUnitCardReferences`가 카드 참조를 검증한다.
 
 | 필드 | 값 |
 |---|---|
@@ -126,7 +142,7 @@ M2에서 추가된 유닛
 | `effects` | 선택. 전투 시작 시 단계에 도달한 진영에 적용. 수치 배열은 `[1단계, 2단계, 3단계]`. 없으면 효과 미구현 |
 
 단계 = `thresholds` 중 종류 수 이상으로 도달한 개수 (0~3). 같은 유닛 여러 기는 1종으로 센다. 양측 진영 모두 각자 계산한다.
-현재 효과가 있는 특성은 `iron_legion`(ARM +15/+35/+60), `guardian`(전열 받는 피해 −15/−30/−45%), `abyss`(`cpOnKill`: 처치 시 CP +1, 전투당 최대 2/4/6) 셋이고 나머지 6개는 id만 정의되어 있다.
+현재 실제 효과가 있는 특성은 `iron_legion`(ARM), `ember`(기본 공격 화상), `abyss`(처치 CP), `guardian`(전열 피해 감소), `gladiator`(처치 회복·ATK 누적), `marksman`(사거리·확률 연사) 여섯이다. `forest_pact`·`mystic`·`assassin`의 고유 특성 효과는 후속 범위로 표시되어 있다. 같은 종류 유닛을 여러 기 놓아도 활성화 종류 수는 1이며, 임시 소환은 시작 시 계산된 단계에 추가되지 않는다.
 
 전열 대상 특성(guardian)은 전투 시작 시점에 전열(아군 열 3, 적 열 4)에 있던 유닛에게 전투 내내 부여된다. 이후 위치 변화와 무관하며, 시작 시 전열 유닛이 없으면 효과 없음. (소환·부활·전투 중 위치 교환(진형 교대)이 있으므로 피해 계산 시 현재 열을 검사하는 방식으로 바꾸는 것을 검토)
 
@@ -155,6 +171,7 @@ M2에서 추가된 유닛
 - 전투 준비 시 `HAND_SIZE`(5)장 뽑기. 뽑을 더미가 비면 버린 더미를 Rng로 섞어 새 뽑을 더미로 삼는다.
 - **손패 상한 `HAND_LIMIT`(10)**: 이미 상한만큼 들고 있을 때 뽑게 되는 카드는 손패에 들어오지 못하고 즉시 버린 더미로 간다.
 - 사용한 카드는 버린 더미로, `exhaust` 카드는 소모 더미로(이번 런에서 제거. 재섞기에도 돌아오지 않음).
+- 드로우 카드는 효과 해결 중 손패에서 빠지지만 버린 더미에는 아직 들어가지 않는다. 뽑기가 끝난 뒤 버려져 자기 자신을 즉시 다시 뽑지 않으며, 빈 손패 자리도 정확히 계산한다.
 - 전투 종료 시 손패는 모두 버린 더미로 가고 `retain` 카드만 손패에 남는다. 더미는 전투가 끝나도 이어진다.
 - 상수는 `src/core/cards/constants.ts`의 `CARDS` 한 곳.
 
@@ -169,9 +186,10 @@ M2에서 추가된 유닛
 - **카드 명령** `CardCommand = { tick, cardInstanceId, target: PlayTarget }`. 그 틱의 모든 유닛 행동보다 먼저 실행된다. `tick: 0`의 작전 카드는 준비 단계에 쓴 것으로 취급한다. 두 가지 방법으로 낸다.
   - 예약: `setup.cards.commands`에 목록으로. 실패한 명령은 `sim.rejectedCommands`에 모인다.
   - 직접: 틱 사이에 `sim.playCard(instanceId, target)`. 성공한 명령은 `sim.commandLog`에 쌓이며, 이 로그를 그대로 `commands`에 넣으면 같은 이벤트 로그가 재현된다.
-- 사용 검증 순서와 실패 사유(한국어, `{ ok: false, reason }`): 손패에 없음 → 종류/단계(작전은 준비 단계만, 명령·주문은 전투 중만, 장비·저주 사용 불가) → `perCombat` 초과 → CP 부족 → 대상 적법성(종류 일치, 존재, 생존, 진영, `allyUnits` 수·중복, 칸이 보드 안) → 효과 전제조건(순간이동 목적지, 위치 교환 대상 2명·이동 중 아님).
+- 사용 검증 순서와 실패 사유(한국어, `{ ok: false, reason }`): 손패에 없음 → 종류/단계(작전·장비는 준비 단계만, 명령·주문은 전투 중만, 저주 사용 불가) → `perCombat` 초과 → CP 부족 → 대상 적법성(종류 일치, 존재, 생존, 진영, `allyUnits` 수·중복, 칸이 보드 안) → 효과 전제조건(순간이동 목적지, 위치 교환 대상 2명·이동 중 아님, 징집 후열 빈 칸).
 - **실패하면 CP·카드·이벤트 로그가 전혀 바뀌지 않는다** (별도 실패 이벤트 없음. 사유는 반환값으로만).
-- 성공 시: CP 차감(`cp` 이벤트, 비용 0이면 생략) → 덱 이동 → `cardPlayed` 이벤트 → `onCardPlay` 트리거 → 효과 실행. 강화 카드는 `upgrade`의 효과·비용을 쓴다.
+- 성공 시: CP 차감(`cp` 이벤트, 비용 0이면 생략) → 손패에서 분리 → `cardPlayed` 이벤트 → `onCardPlay` 트리거 → 효과 실행 → 버린/소모 더미로 이동. 강화 카드는 `upgrade`의 효과·비용을 쓴다.
+- 공격 카드로 한쪽이 전멸하면 즉시 종료·손패 정리를 하고 이후 카드를 거부한다. 예약 명령 재생에서도 종료 이후 유닛 행동은 실행하지 않는다.
 - 이벤트: `cp { pool: 'prep'|'combat', delta, cp, reason: 'start'|'regen'|'card'|'abyss' }`, `cardPlayed { cardId, instanceId, upgraded, target, cp, pool }`.
 
 ### 카드 사용 계획 (헤드리스 시뮬용)

@@ -27,7 +27,7 @@ const UPGRADE_KEYS = ['text', 'effects', 'cost', 'resonance', 'chain'] as const;
 /** cards.json 구조를 검증해 타입 있는 Card로 변환한다. 파일 I/O는 하지 않는다. */
 export class CardValidator {
   /** 카드에는 성급이 없으므로 성급 배열을 거부하는 공통 효과 검증기를 쓴다 */
-  constructor(private readonly effects: EffectValidator = new EffectValidator({ allowStarArrays: false })) {}
+  constructor(private readonly effects: EffectValidator = new EffectValidator({ allowStarArrays: false, allowCardEffects: true })) {}
 
   validateFile(data: unknown): CardFile {
     const root = FieldReader.of(data, '');
@@ -72,6 +72,7 @@ export class CardValidator {
       text: r.string('text'),
       effects: this.validateEffects(r, 'effects', target),
     };
+    if (card.type === 'equipment' && target.kind !== 'allyUnit') r.fail('target.kind', '장비는 아군 유닛 1명을 지정해야 함');
     if (r.has('limits')) card.limits = this.validateLimits(r.object('limits'));
     if (r.has('resonance')) card.resonance = this.validateResonance(r.object('resonance'), target);
     const hasChainKeyword = card.keywords.includes('chain');
@@ -115,8 +116,11 @@ export class CardValidator {
   }
 
   private validateChain(r: FieldReader, target: CardTarget): CardChain {
-    r.onlyKeys(['effects']);
-    return { effects: this.validateEffects(r, 'effects', target) };
+    r.onlyKeys(['effects', 'cost']);
+    const chain: CardChain = { effects: this.validateEffects(r, 'effects', target, true) };
+    if (r.has('cost')) chain.cost = r.int('cost', 0);
+    if (chain.effects.length === 0 && chain.cost === undefined) r.fail('effects', '연쇄 효과 또는 비용이 필요함');
+    return chain;
   }
 
   private validateUpgrade(r: FieldReader, target: CardTarget, hasChainKeyword: boolean): CardUpgrade {
@@ -135,8 +139,8 @@ export class CardValidator {
   }
 
   /** 공통 효과 검증기로 형식을 확인한 뒤, 카드 문맥(시전자 없음, 대상 종류)에서 실행 가능한지 검사한다 */
-  private validateEffects(parent: FieldReader, key: string, target: CardTarget): CardEffect[] {
-    const effects = this.effects.validateList(parent, key);
+  private validateEffects(parent: FieldReader, key: string, target: CardTarget, allowEmpty = false): CardEffect[] {
+    const effects = this.effects.validateList(parent, key, allowEmpty);
     assertEffectsUsable(parent, key, effects, { targetKind: target.kind });
     return effects;
   }

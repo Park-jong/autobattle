@@ -68,4 +68,11 @@ export const SKILL_TARGET_RESOLVERS: Record<SkillTargeting, SkillTargetResolver>
   self: selfResolver,
   currentTarget: currentTargetResolver,
   lowestHpEnemy: lowestHpEnemyResolver,
+  randomEnemies: {
+    requiresRange: false,
+    resolve: (caster, _target, world) => {
+      const count = caster.def.skill.targetCount ?? 1;
+      return world.rng.shuffle(world.enemiesOf(caster.side)).slice(0, Array.isArray(count) ? count[caster.star - 1] : count as number);
+    },
+  },
 };

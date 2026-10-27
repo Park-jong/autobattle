@@ -134,6 +134,8 @@ export const STATUS_BADGES: readonly StatusBadge[] = [
   { label: '방', color: 0x7fd6ff, match: (n) => n === 'damageTakenMult' },
   { label: '불', color: 0xd9a6ff, match: (n) => n === 'undying' },
   { label: '침', color: 0xb0b8c8, match: (n) => n === 'silence' },
+  { label: '속', color: 0x91c975, match: (n) => n === 'root' },
+  { label: '흡', color: 0xec91a9, match: (n) => n === 'lifesteal' },
   { label: '도', color: 0xff6a8a, match: (n) => n === 'forceTarget' },
   { label: '치', color: 0x6be37a, match: (n) => n === 'healAura' },
   { label: '강', color: 0x9be29b, match: (n) => n.startsWith('statMod:') || n === 'extraShots' },

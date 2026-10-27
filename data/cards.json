@@ -8,16 +8,28 @@
       "rarity": "starter",
       "type": "command",
       "cost": 1,
-      "target": { "kind": "none" },
+      "target": {
+        "kind": "none"
+      },
       "keywords": [],
       "text": "전열 아군 전체에 최대 HP 15% 보호막 (3초).",
       "effects": [
-        { "kind": "shield", "selector": "alliesFrontRow", "pctMaxHp": 15, "duration": 3 }
+        {
+          "kind": "shield",
+          "selector": "alliesFrontRow",
+          "pctMaxHp": 15,
+          "duration": 3
+        }
       ],
       "upgrade": {
         "text": "전열 아군 전체에 최대 HP 20% 보호막 (4초).",
         "effects": [
-          { "kind": "shield", "selector": "alliesFrontRow", "pctMaxHp": 20, "duration": 4 }
+          {
+            "kind": "shield",
+            "selector": "alliesFrontRow",
+            "pctMaxHp": 20,
+            "duration": 4
+          }
         ]
       }
     },
@@ -28,16 +40,28 @@
       "rarity": "starter",
       "type": "command",
       "cost": 1,
-      "target": { "kind": "allyUnit" },
+      "target": {
+        "kind": "allyUnit"
+      },
       "keywords": [],
       "text": "아군 1명 3초간 받는 피해 -50%.",
       "effects": [
-        { "kind": "damageTakenMult", "selector": "target", "mult": 0.5, "duration": 3 }
+        {
+          "kind": "damageTakenMult",
+          "selector": "target",
+          "mult": 0.5,
+          "duration": 3
+        }
       ],
       "upgrade": {
         "text": "아군 1명 4초간 받는 피해 -60%.",
         "effects": [
-          { "kind": "damageTakenMult", "selector": "target", "mult": 0.4, "duration": 4 }
+          {
+            "kind": "damageTakenMult",
+            "selector": "target",
+            "mult": 0.4,
+            "duration": 4
+          }
         ]
       }
     },
@@ -48,16 +72,30 @@
       "rarity": "starter",
       "type": "operation",
       "cost": 1,
-      "target": { "kind": "none" },
+      "target": {
+        "kind": "none"
+      },
       "keywords": [],
       "text": "이번 전투 동안 아군 전체 ATK +10%.",
       "effects": [
-        { "kind": "statMod", "selector": "allAllies", "stat": "atk", "pct": 10, "duration": "combat" }
+        {
+          "kind": "statMod",
+          "selector": "allAllies",
+          "stat": "atk",
+          "pct": 10,
+          "duration": "combat"
+        }
       ],
       "upgrade": {
         "text": "이번 전투 동안 아군 전체 ATK +15%.",
         "effects": [
-          { "kind": "statMod", "selector": "allAllies", "stat": "atk", "pct": 15, "duration": "combat" }
+          {
+            "kind": "statMod",
+            "selector": "allAllies",
+            "stat": "atk",
+            "pct": 15,
+            "duration": "combat"
+          }
         ]
       }
     },
@@ -68,18 +106,34 @@
       "rarity": "starter",
       "type": "command",
       "cost": 0,
-      "target": { "kind": "allyUnits", "count": 2 },
+      "target": {
+        "kind": "allyUnits",
+        "count": 2
+      },
       "keywords": [],
-      "limits": { "perCombat": 1 },
+      "limits": {
+        "perCombat": 1
+      },
       "text": "아군 2명의 위치를 바꾼다. 전투당 1회.",
       "effects": [
-        { "kind": "swapPositions", "selector": "target" }
+        {
+          "kind": "swapPositions",
+          "selector": "target"
+        }
       ],
       "upgrade": {
         "text": "아군 2명의 위치를 바꾸고, 둘에게 최대 HP 10% 보호막 (3초). 전투당 1회.",
         "effects": [
-          { "kind": "swapPositions", "selector": "target" },
-          { "kind": "shield", "selector": "target", "pctMaxHp": 10, "duration": 3 }
+          {
+            "kind": "swapPositions",
+            "selector": "target"
+          },
+          {
+            "kind": "shield",
+            "selector": "target",
+            "pctMaxHp": 10,
+            "duration": 3
+          }
         ]
       }
     },
@@ -90,17 +144,32 @@
       "rarity": "starter",
       "type": "command",
       "cost": 1,
-      "target": { "kind": "enemyUnit" },
+      "target": {
+        "kind": "enemyUnit"
+      },
       "keywords": [],
       "text": "3초간 아군 전체가 지정한 적을 우선 공격한다.",
       "effects": [
-        { "kind": "forceTarget", "selector": "allAllies", "duration": 3 }
+        {
+          "kind": "forceTarget",
+          "selector": "allAllies",
+          "duration": 3
+        }
       ],
       "upgrade": {
         "text": "3초간 아군 전체가 지정한 적을 우선 공격한다. 그 적은 받는 피해 +15%.",
         "effects": [
-          { "kind": "forceTarget", "selector": "allAllies", "duration": 3 },
-          { "kind": "damageTakenMult", "selector": "target", "mult": 1.15, "duration": 3 }
+          {
+            "kind": "forceTarget",
+            "selector": "allAllies",
+            "duration": 3
+          },
+          {
+            "kind": "damageTakenMult",
+            "selector": "target",
+            "mult": 1.15,
+            "duration": 3
+          }
         ]
       }
     },
@@ -111,17 +180,27 @@
       "rarity": "starter",
       "type": "command",
       "cost": 2,
-      "target": { "kind": "allyUnit" },
+      "target": {
+        "kind": "allyUnit"
+      },
       "keywords": [],
       "text": "아군 1명 2초간 HP가 1 밑으로 내려가지 않는다.",
       "effects": [
-        { "kind": "undying", "selector": "target", "duration": 2 }
+        {
+          "kind": "undying",
+          "selector": "target",
+          "duration": 2
+        }
       ],
       "upgrade": {
         "cost": 1,
         "text": "아군 1명 2초간 HP가 1 밑으로 내려가지 않는다.",
         "effects": [
-          { "kind": "undying", "selector": "target", "duration": 2 }
+          {
+            "kind": "undying",
+            "selector": "target",
+            "duration": 2
+          }
         ]
       }
     },
@@ -132,16 +211,373 @@
       "rarity": "starter",
       "type": "command",
       "cost": 2,
-      "target": { "kind": "none" },
+      "target": {
+        "kind": "none"
+      },
       "keywords": [],
       "text": "아군 근접 유닛 전체 4초간 AS +30%.",
       "effects": [
-        { "kind": "statMod", "selector": "alliesMelee", "stat": "as", "pct": 30, "duration": 4 }
+        {
+          "kind": "statMod",
+          "selector": "alliesMelee",
+          "stat": "as",
+          "pct": 30,
+          "duration": 4
+        }
       ],
       "upgrade": {
         "text": "아군 근접 유닛 전체 4초간 AS +45%.",
         "effects": [
-          { "kind": "statMod", "selector": "alliesMelee", "stat": "as", "pct": 45, "duration": 4 }
+          {
+            "kind": "statMod",
+            "selector": "alliesMelee",
+            "stat": "as",
+            "pct": 45,
+            "duration": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "firestorm",
+      "name": "화염 폭풍",
+      "owner": "neutral",
+      "rarity": "starter",
+      "type": "spell",
+      "cost": 3,
+      "target": {
+        "kind": "area3x3"
+      },
+      "keywords": [],
+      "text": "3×3 범위 적에게 마법 피해 150. 공명 [잿불]: 초당 마법 피해 30의 화상 (3초).",
+      "effects": [
+        {
+          "kind": "flatDamage",
+          "selector": "enemiesInTargetArea",
+          "amount": 150,
+          "dmgType": "magic"
+        }
+      ],
+      "resonance": {
+        "trait": "ember",
+        "effects": [
+          {
+            "kind": "burn",
+            "selector": "enemiesInTargetArea",
+            "dps": 30,
+            "duration": 3
+          }
+        ]
+      },
+      "upgrade": {
+        "text": "3×3 범위 적에게 마법 피해 200. 공명 [잿불]: 초당 마법 피해 40의 화상 (3초).",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "enemiesInTargetArea",
+            "amount": 200,
+            "dmgType": "magic"
+          }
+        ],
+        "resonance": {
+          "trait": "ember",
+          "effects": [
+            {
+              "kind": "burn",
+              "selector": "enemiesInTargetArea",
+              "dps": 40,
+              "duration": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "mana_infusion",
+      "name": "마나 주입",
+      "owner": "neutral",
+      "rarity": "starter",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [
+        "retain"
+      ],
+      "text": "아군 1명의 마나를 가득 채운다. 보존.",
+      "effects": [
+        {
+          "kind": "manaFill",
+          "selector": "target"
+        }
+      ],
+      "upgrade": {
+        "cost": 1,
+        "text": "아군 1명의 마나를 가득 채운다. 보존.",
+        "effects": [
+          {
+            "kind": "manaFill",
+            "selector": "target"
+          }
+        ]
+      }
+    },
+    {
+      "id": "tactical_reorganization",
+      "name": "전술 재정비",
+      "owner": "neutral",
+      "rarity": "starter",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "chain"
+      ],
+      "text": "카드 2장을 뽑는다. 연쇄: 비용 0.",
+      "effects": [
+        {
+          "kind": "drawCards",
+          "selector": "allAllies",
+          "count": 2
+        }
+      ],
+      "chain": {
+        "cost": 0,
+        "effects": []
+      },
+      "upgrade": {
+        "text": "카드 3장을 뽑는다. 연쇄: 비용 0.",
+        "effects": [
+          {
+            "kind": "drawCards",
+            "selector": "allAllies",
+            "count": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "ember_arrow",
+      "name": "불씨 화살",
+      "owner": "neutral",
+      "rarity": "starter",
+      "type": "spell",
+      "cost": 1,
+      "target": {
+        "kind": "enemyUnit"
+      },
+      "keywords": [
+        "exhaust"
+      ],
+      "text": "적 1명에게 마법 피해 80, 초당 마법 피해 20의 화상 (3초). 소모.",
+      "effects": [
+        {
+          "kind": "flatDamage",
+          "selector": "target",
+          "amount": 80,
+          "dmgType": "magic"
+        },
+        {
+          "kind": "burn",
+          "selector": "target",
+          "dps": 20,
+          "duration": 3
+        }
+      ],
+      "upgrade": {
+        "text": "적 1명에게 마법 피해 120, 초당 마법 피해 30의 화상 (3초). 소모.",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "target",
+            "amount": 120,
+            "dmgType": "magic"
+          },
+          {
+            "kind": "burn",
+            "selector": "target",
+            "dps": 30,
+            "duration": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "marching_song",
+      "name": "행군가",
+      "owner": "neutral",
+      "rarity": "starter",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "아군 전체 ARM +20 (4초).",
+      "effects": [
+        {
+          "kind": "statAdd",
+          "selector": "allAllies",
+          "stat": "arm",
+          "amount": 20,
+          "duration": 4
+        }
+      ],
+      "upgrade": {
+        "text": "아군 전체 ARM +35 (4초).",
+        "effects": [
+          {
+            "kind": "statAdd",
+            "selector": "allAllies",
+            "stat": "arm",
+            "amount": 35,
+            "duration": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "call_reserves",
+      "name": "예비대 호출",
+      "owner": "neutral",
+      "rarity": "starter",
+      "type": "command",
+      "cost": 3,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "conscript",
+        "exhaust"
+      ],
+      "text": "징집: 후열의 빈 칸에 무작위 1등급 유닛 2기를 이번 전투 동안 소환한다. 소모.",
+      "effects": [
+        {
+          "kind": "summon",
+          "selector": "allAllies",
+          "count": 2,
+          "tier": 1
+        }
+      ],
+      "upgrade": {
+        "cost": 2,
+        "text": "징집: 후열의 빈 칸에 무작위 1등급 유닛 2기를 이번 전투 동안 소환한다. 소모.",
+        "effects": [
+          {
+            "kind": "summon",
+            "selector": "allAllies",
+            "count": 2,
+            "tier": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "forged_blade",
+      "name": "제련된 칼날",
+      "owner": "neutral",
+      "rarity": "starter",
+      "type": "equipment",
+      "cost": 1,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "text": "준비 CP 1. 아군 1명에게 장착: ATK +15, 공격 시 마나 +5. 장비와 효과는 전투 사이에 유지된다.",
+      "effects": [
+        {
+          "kind": "statAdd",
+          "selector": "target",
+          "stat": "atk",
+          "amount": 15,
+          "duration": "combat"
+        },
+        {
+          "kind": "attackMana",
+          "selector": "target",
+          "amount": 5
+        }
+      ],
+      "upgrade": {
+        "text": "준비 CP 1. 아군 1명에게 장착: ATK +25, 공격 시 마나 +5. 장비와 효과는 전투 사이에 유지된다.",
+        "effects": [
+          {
+            "kind": "statAdd",
+            "selector": "target",
+            "stat": "atk",
+            "amount": 25,
+            "duration": "combat"
+          },
+          {
+            "kind": "attackMana",
+            "selector": "target",
+            "amount": 5
+          }
+        ]
+      }
+    },
+    {
+      "id": "enemy_scout",
+      "name": "적진 정찰",
+      "owner": "neutral",
+      "rarity": "starter",
+      "type": "operation",
+      "cost": 0,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "무작위 적 1명의 이번 전투 최대 HP -10%.",
+      "effects": [
+        {
+          "kind": "scout",
+          "selector": "allAllies",
+          "count": 1,
+          "pctMaxHp": 10
+        }
+      ],
+      "upgrade": {
+        "text": "무작위 적 2명의 이번 전투 최대 HP -10%.",
+        "effects": [
+          {
+            "kind": "scout",
+            "selector": "allAllies",
+            "count": 2,
+            "pctMaxHp": 10
+          }
+        ]
+      }
+    },
+    {
+      "id": "vine_snare",
+      "name": "덩굴 속박",
+      "owner": "neutral",
+      "rarity": "starter",
+      "type": "spell",
+      "cost": 1,
+      "target": {
+        "kind": "area3x3"
+      },
+      "keywords": [],
+      "text": "3×3 범위의 적을 2초간 속박한다 (이동 불가).",
+      "effects": [
+        {
+          "kind": "root",
+          "selector": "enemiesInTargetArea",
+          "duration": 2
+        }
+      ],
+      "upgrade": {
+        "text": "3×3 범위의 적을 3초간 속박한다 (이동 불가).",
+        "effects": [
+          {
+            "kind": "root",
+            "selector": "enemiesInTargetArea",
+            "duration": 3
+          }
         ]
       }
     }

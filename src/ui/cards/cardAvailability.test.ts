@@ -16,6 +16,11 @@ const ctx = (over: Partial<AvailabilityContext> = {}): AvailabilityContext => ({
 });
 
 describe('explainUnplayable', () => {
+  it('연쇄 비용을 반영해 CP가 0이어도 전술 재정비를 허용한다', () => {
+    expect(explainUnplayable(card('tactical_reorganization'), false, ctx({ combatCp: 0 }))).toContain('CP 부족');
+    expect(explainUnplayable(card('tactical_reorganization'), false, ctx({ combatCp: 0, cardsPlayed: 1 }))).toBeNull();
+    expect(explainUnplayable(card('tactical_reorganization'), true, ctx({ combatCp: 0, cardsPlayed: 1 }))).toBeNull();
+  });
   it('쓸 수 있으면 null', () => {
     expect(explainUnplayable(card('hold_the_line'), false, ctx())).toBeNull();
     expect(explainUnplayable(card('war_drums'), false, ctx({ phase: 'prep', prepCp: 2 }))).toBeNull();

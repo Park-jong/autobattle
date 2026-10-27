@@ -36,7 +36,8 @@ function bootstrap(): void {
     startFormations: data.startFormations,
     seriesStages: data.seriesStages,
   });
-  new DebugPanel(panelHost, session, data.units, data.traits, data.commanders);
+  session.startManagementRun();
+  new DebugPanel(panelHost, session, data.units, data.traits, data.commanders, gameHost, data.cards);
   new HandPanel(handHost, session, gameHost);
 
   // HiDPI: 캔버스 = 1280x720 x DPR, 카메라 줌 = DPR (hidpi.ts). Scale.FIT로 화면에 맞춘다.

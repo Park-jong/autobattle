@@ -33,6 +33,8 @@ export interface CardResonance {
 /** 연쇄: 이번 전투에서 앞서 카드를 사용했으면 기본 효과 뒤에 추가로 실행. 키워드 chain이 있는 카드만 가진다 */
 export interface CardChain {
   effects: CardEffect[];
+  /** 연쇄가 활성화되면 지불할 비용 (효과 실행 전 적용) */
+  cost?: number;
 }
 
 export interface CardUpgrade {

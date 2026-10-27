@@ -1,5 +1,7 @@
 import type { ResolvedEffect } from '../data/effect';
-import { chebyshev, frontCol, rayCells, sameCell, type Cell, type Side } from './board';
+import type { Deck } from '../cards/deck';
+import { backCol, BOARD_ROWS, chebyshev, frontCol, rayCells, sameCell, type Cell, type Side } from './board';
+import type { UnitCatalog } from '../data/unitLoader';
 import type { CombatUnit } from './unit';
 import type { CombatWorld } from './world';
 
@@ -32,6 +34,8 @@ export class EffectExecutor {
   constructor(
     private readonly world: CombatWorld,
     private readonly cp: CpGainSink | null = null,
+    private readonly deck: Deck | null = null,
+    private readonly catalog: UnitCatalog | null = null,
   ) {}
 
   execute(effects: readonly ResolvedEffect[], ctx: EffectContext): void {
@@ -50,6 +54,10 @@ export class EffectExecutor {
   /** canExecute와 같은 검사. 실패하면 한국어 사유, 통과하면 null */
   checkExecutable(effects: readonly ResolvedEffect[], ctx: EffectContext): string | null {
     for (const effect of effects) {
+      if (effect.kind === 'summon') {
+        if (!this.catalog?.units.some((u) => u.tier === effect.tier)) return '징집할 등급의 유닛이 없습니다';
+        if (this.summonCells(ctx.side).length < effect.count) return `후열에 빈 칸 ${effect.count}개가 필요합니다`;
+      }
       if (effect.kind === 'teleport') {
         const primary = ctx.targets[0];
         if (!primary || !primary.alive) return '순간이동의 기준이 될 대상이 없습니다';
@@ -69,6 +77,12 @@ export class EffectExecutor {
   select(selector: ResolvedEffect['selector'], ctx: EffectContext): CombatUnit[] {
     const world = this.world;
     switch (selector) {
+      case 'traitUnits': return ctx.targets.filter((u) => u.alive);
+      case 'selfAndAdjacent': return ctx.caster ? world.alliesOf(ctx.side).filter((u) => chebyshev(u.cell, (ctx.caster as CombatUnit).cell) <= 1) : [];
+      case 'targetArea2x2': {
+        const target = ctx.targets[0];
+        return target ? world.enemiesOf(ctx.side).filter((u) => u.cell.col >= target.cell.col && u.cell.col <= target.cell.col + 1 && u.cell.row >= target.cell.row && u.cell.row <= target.cell.row + 1) : [];
+      }
       case 'target':
         return ctx.targets.filter((u) => u.alive);
       case 'self':
@@ -134,6 +148,67 @@ export class EffectExecutor {
       });
 
     switch (effect.kind) {
+      case 'root':
+        for (const u of units) { u.statuses.addRoot(world.now + effect.duration); applied(u, 'root', effect.duration); }
+        break;
+      case 'hpCost':
+        for (const u of units) {
+          const amount = Math.min(u.hp - 1, Math.round(u.maxHp * effect.pctMaxHp / 100));
+          u.hp -= amount;
+          world.emit({ type: 'damage', unit: u.uid, source: u.uid, amount, absorbed: 0, dmgType: 'magic', hp: u.hp });
+        }
+        break;
+      case 'lifesteal':
+        for (const u of units) { u.statuses.addLifesteal(effect.pct, world.now + effect.duration); applied(u, 'lifesteal', effect.duration, effect.pct); }
+        break;
+      case 'onAttackBurn': {
+        const members = new Set(units.map((u) => u.uid));
+        world.bus.on('onAttack', ({ attacker, target }) => {
+          if (!members.has(attacker.uid) || !target.alive) return;
+          const dps = attacker.stat('atk') * effect.pctAtk / 100;
+          target.statuses.addBurn(dps, world.now + effect.duration, attacker.uid);
+          world.emit({ type: 'statusApplied', unit: target.uid, status: 'burn', source: attacker.uid, value: dps, duration: effect.duration });
+        });
+        break;
+      }
+      case 'killFeast': {
+        const members = new Set(units.map((u) => u.uid));
+        world.bus.on('onKill', ({ killer }) => {
+          if (!killer?.alive || !members.has(killer.uid)) return;
+          world.heal(killer, killer, killer.maxHp * effect.healPct / 100);
+          this.execute([{ kind: 'statMod', selector: 'self', stat: 'atk', pct: effect.atkPct, duration: 'combat' }], { side: killer.side, caster: killer, targets: [] });
+        });
+        break;
+      }
+      case 'marksman':
+        for (const u of units) { u.rangeBonus += effect.rangeBonus; u.volleyChance = Math.min(1, u.volleyChance + effect.chance); }
+        break;
+      case 'attackMana': {
+        const members = new Set(units.map((u) => u.uid));
+        world.bus.on('onAttack', ({ attacker }) => { if (members.has(attacker.uid)) world.addMana(attacker, effect.amount); });
+        break;
+      }
+      case 'summon': {
+        const cells = this.summonCells(ctx.side).slice(0, effect.count);
+        const candidates = this.catalog?.units.filter((u) => u.tier === effect.tier) ?? [];
+        for (const cell of cells) world.spawn(world.rng.pick(candidates), ctx.side, cell, true);
+        break;
+      }
+      case 'scout':
+        for (const u of world.rng.shuffle(world.enemiesOf(ctx.side)).slice(0, effect.count)) {
+          const loss = Math.round(u.maxHp * effect.pctMaxHp / 100);
+          u.maxHp = Math.max(1, u.maxHp - loss);
+          u.hp = Math.min(u.hp, u.maxHp);
+          world.emit({ type: 'maxHp', unit: u.uid, hp: u.hp, maxHp: u.maxHp });
+        }
+        break;
+      case 'drawCards':
+        if (!this.deck) throw new Error('drawCards 효과는 카드 덱이 필요함');
+        this.deck.draw(effect.count);
+        break;
+      case 'manaFill':
+        for (const u of units) world.setMana(u, u.maxMana);
+        break;
       case 'shield':
         for (const u of units) {
           world.addShield(u, Math.round((u.maxHp * effect.pctMaxHp) / 100), durationToSeconds(effect.duration));
@@ -199,6 +274,11 @@ export class EffectExecutor {
             type: effect.dmgType,
             ignoreArmorPct: effect.ignoreArmorPct ?? 0,
           });
+          if (!u.alive && effect.maxHpOnKill && caster.alive) {
+            caster.maxHp += effect.maxHpOnKill;
+            caster.hp += effect.maxHpOnKill;
+            world.emit({ type: 'maxHp', unit: caster.uid, maxHp: caster.maxHp, hp: caster.hp });
+          }
         }
         break;
       }
@@ -296,6 +376,10 @@ export class EffectExecutor {
   private requireCaster(ctx: EffectContext, kind: string): CombatUnit {
     if (!ctx.caster) throw new Error(`${kind} 효과는 시전자가 필요함`);
     return ctx.caster;
+  }
+
+  private summonCells(side: Side): Cell[] {
+    return Array.from({ length: BOARD_ROWS }, (_, row) => ({ col: backCol(side), row })).filter((c) => this.world.board.isFree(c));
   }
 
   /**

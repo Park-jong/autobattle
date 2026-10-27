@@ -2,11 +2,15 @@ import type { Side, StarLevel } from '../../core/combat';
 import type { CommanderCatalog } from '../../core/data/commanderLoader';
 import type { TraitCatalog } from '../../core/data/traitLoader';
 import type { UnitCatalog } from '../../core/data/unitLoader';
+import type { CardCatalog } from '../../core/data/cardLoader';
+import { BATTLE_KINDS, type BattleKind } from '../../core/economy';
 import { PLAYBACK_SPEEDS, type Brush, type DebugController, type SessionSnapshot } from './contracts';
 import './debugPanel.css';
+import { ManagementPanel } from '../economy/ManagementPanel';
 
 const SIDE_NAMES = ['아군', '적'] as const;
 const STARS: readonly StarLevel[] = [1, 2, 3];
+const BATTLE_KIND_LABELS: Record<BattleKind, string> = { normal: '일반', elite: '정예', boss: '보스' };
 
 function el<K extends keyof HTMLElementTagNameMap>(
   tag: K,
@@ -52,6 +56,7 @@ export class DebugPanel {
   private readonly fileButtons: HTMLButtonElement[] = [];
   private readonly countLabels: [HTMLElement, HTMLElement] = [el('span'), el('span')];
   private readonly commanderSelect = el('select', 'dbg-input');
+  private readonly deckSelect = el('select', 'dbg-input');
   private readonly passiveBox = el('div', 'dbg-hint');
   private readonly startFormationButton: HTMLButtonElement;
   private readonly pauseOnHoldBox = el('input');
@@ -62,6 +67,13 @@ export class DebugPanel {
   private readonly seriesEndButton: HTMLButtonElement;
   private readonly seriesStatus = el('div', 'dbg-winner');
   private readonly seriesTable = el('div', 'dbg-series');
+  private readonly goldLabel = el('strong', 'dbg-gold');
+  private readonly interestLabel = el('div', 'dbg-hint');
+  private readonly rewardBox = el('div', 'dbg-reward');
+  private readonly battleKindSelect = el('select', 'dbg-input');
+  private readonly nextBattleButton: HTMLButtonElement;
+  private readonly resetEconomyButton: HTMLButtonElement;
+  private readonly managementHost = el('div');
 
   constructor(
     private readonly root: HTMLElement,
@@ -69,6 +81,8 @@ export class DebugPanel {
     private readonly units: UnitCatalog,
     private readonly traits: TraitCatalog,
     private readonly commanders: CommanderCatalog,
+    canvasHost?: HTMLElement,
+    cards?: CardCatalog,
   ) {
     this.eraseButton = button('지우기 모드', () => controller.setBrush({ kind: 'erase' }), 'dbg-btn');
     this.startButton = button('전투 시작', () => this.onStart(), 'dbg-btn dbg-primary');
@@ -78,7 +92,10 @@ export class DebugPanel {
     this.seriesStartButton = button('5연전 시작', () => controller.startSeries(!this.noCardsBox.checked), 'dbg-btn dbg-primary');
     this.seriesNextButton = button('다음 전투', () => controller.nextSeriesBattle(), 'dbg-btn dbg-primary');
     this.seriesEndButton = button('5연전 중단', () => controller.endSeries(), 'dbg-btn');
+    this.nextBattleButton = button('다음 전투', () => controller.nextBattle(), 'dbg-btn dbg-primary');
+    this.resetEconomyButton = button('골드 초기화', () => controller.resetEconomy(), 'dbg-btn');
     this.build();
+    new ManagementPanel(this.managementHost, controller, units, cards, canvasHost);
     controller.subscribe(() => this.render());
     this.render();
   }
@@ -90,7 +107,9 @@ export class DebugPanel {
     this.root.replaceChildren(
       el('h1', 'dbg-title', '전투 디버그'),
       this.errorBox,
+      this.managementHost,
       this.buildCommander(),
+      this.buildEconomy(),
       this.buildPalette(),
       this.buildBattleControls(),
       this.buildSeries(),
@@ -121,6 +140,16 @@ export class DebugPanel {
     this.commanderSelect.addEventListener('change', () => this.controller.setCommander(this.commanderSelect.value || null));
     row.append(el('span', 'dbg-label', '지휘관'), this.commanderSelect);
 
+    const deckRow = el('label', 'dbg-row');
+    this.deckSelect.setAttribute('aria-label', '덱');
+    for (const [value, text] of [['starter', '지휘관 기본 덱 (10장)'], ['test', '확장 카드 테스트 덱 (10장)']] as const) {
+      const option = el('option', undefined, text);
+      option.value = value;
+      this.deckSelect.append(option);
+    }
+    this.deckSelect.addEventListener('change', () => this.controller.setDeckPreset(this.deckSelect.value === 'test' ? 'test' : 'starter'));
+    deckRow.append(el('span', 'dbg-label', '덱'), this.deckSelect);
+
     const startRow = el('div', 'dbg-row');
     startRow.append(this.startFormationButton);
 
@@ -128,7 +157,7 @@ export class DebugPanel {
     this.pauseOnHoldBox.type = 'checkbox';
     this.pauseOnHoldBox.addEventListener('change', () => this.controller.setPauseOnCardHold(this.pauseOnHoldBox.checked));
     holdRow.append(this.pauseOnHoldBox, el('span', undefined, '카드 선택 중 일시정지 (끄면 25% 슬로모션)'));
-    s.append(row, this.passiveBox, startRow, holdRow, this.scaleLabel);
+    s.append(row, this.passiveBox, deckRow, startRow, holdRow, this.scaleLabel);
     return s;
   }
 
@@ -161,6 +190,32 @@ export class DebugPanel {
     }
     stars.append(this.eraseButton);
     s.append(stars, el('p', 'dbg-hint', '보드 좌클릭: 배치 (아군·적 영역 모두) / 우클릭: 제거'));
+    return s;
+  }
+
+  private buildEconomy(): HTMLElement {
+    const s = this.section('골드 / 전투 보상');
+    this.goldLabel.setAttribute('aria-live', 'polite');
+    this.rewardBox.setAttribute('aria-live', 'polite');
+    const kindRow = el('label', 'dbg-row');
+    this.battleKindSelect.setAttribute('aria-label', '전투 종류');
+    for (const kind of BATTLE_KINDS) {
+      const option = el('option', undefined, BATTLE_KIND_LABELS[kind]);
+      option.value = kind;
+      this.battleKindSelect.append(option);
+    }
+    this.battleKindSelect.addEventListener('change', () => {
+      const kind = BATTLE_KINDS.find((value) => value === this.battleKindSelect.value);
+      if (kind) this.controller.setBattleKind(kind);
+    });
+    kindRow.append(el('span', 'dbg-label', '종류'), this.battleKindSelect);
+    const actions = el('div', 'dbg-row');
+    actions.append(this.nextBattleButton, this.resetEconomyButton);
+    s.append(
+      this.goldLabel, this.interestLabel, kindRow, this.rewardBox, actions,
+      el('p', 'dbg-hint', '승리: 일반 5G · 정예 8G · 보스 15G / 패배·무승부 3G. 정산 전 잔고 10G당 이자 1G (최대 3G).'),
+      el('p', 'dbg-hint', '리셋은 같은 전투를 재시도하며 보상을 다시 주지 않습니다. 결과 후 다음 전투를 누르면 골드를 이어갑니다. 5연전은 별도 10G로 시작합니다.'),
+    );
     return s;
   }
 
@@ -313,6 +368,8 @@ export class DebugPanel {
 
     this.errorBox.hidden = snap.error === null;
     this.errorBox.textContent = snap.error ?? '';
+    const title = this.root.querySelector('h1');
+    if (title) title.textContent = snap.management ? '전술 지휘관 · 경제 플레이' : '전투 디버그';
 
     for (const [id, b] of this.unitButtons) {
       b.classList.toggle('selected', snap.brush.kind === 'unit' && snap.brush.unitId === id);
@@ -336,6 +393,7 @@ export class DebugPanel {
     for (const [value, b] of this.speedButtons) b.classList.toggle('selected', snap.speed === value);
     for (const b of this.fileButtons) b.disabled = !editable;
     this.renderCommander(snap);
+    this.renderEconomy(snap);
     this.renderSeries(snap);
 
     for (const side of [0, 1] as const) {
@@ -349,6 +407,8 @@ export class DebugPanel {
     const commander = snap.commanderId ? this.commanders.get(snap.commanderId) : undefined;
     this.commanderSelect.value = snap.commanderId ?? '';
     this.commanderSelect.disabled = !snap.editable;
+    this.deckSelect.value = snap.deckPreset;
+    this.deckSelect.disabled = !snap.editable || !commander;
     this.passiveBox.textContent = commander
       ? `패시브 [${commander.passive.name}] ${commander.passive.text}`
       : '지휘관이 없으면 카드 UI가 숨겨지고 M1 디버그 전투와 같습니다.';
@@ -374,17 +434,18 @@ export class DebugPanel {
       return;
     }
     const mode = hasCommander ? (series.cardsEnabled ? '카드 사용' : '카드 사용 금지') : '카드 없음';
+    const phaseLabel = snap.phase === 'finished' ? '다음' : snap.phase === 'playing' ? '진행' : snap.phase === 'paused' ? '일시정지' : '준비';
     this.seriesStatus.textContent = series.done
       ? `5연전 종료 (${mode})`
-      : `${series.index + 1}/${series.total}전 ${snap.phase === 'finished' ? '다음' : '준비'}: ${series.stageName ?? ''} (${mode})`;
+      : `${series.index + 1}/${series.total}전 ${phaseLabel}: ${series.stageName ?? ''} (${mode})`;
 
-    const rows: HTMLElement[] = [tableRow(['전', '결과', '시간', '카드'], 'dbg-series-head')];
+    const rows: HTMLElement[] = [tableRow(['전', '결과', '시간', '카드', '골드'], 'dbg-series-head')];
     for (const r of series.records) {
       const outcome = r.winner === 'draw' ? '무' : r.winner === 0 ? '승' : '패';
       const reason = r.reason === 'timeout' ? '(시간초과)' : '';
       rows.push(
         tableRow(
-          [String(r.index + 1), `${outcome}${reason}`, `${r.endTime.toFixed(1)}초`, `${r.cardsUsed}장`],
+          [String(r.index + 1), `${outcome}${reason}`, `${r.endTime.toFixed(1)}초`, `${r.cardsUsed}장`, `+${r.reward.total}G`],
           `dbg-series-row ${r.winner === 0 ? 'win' : 'lose'}`,
         ),
       );
@@ -392,10 +453,25 @@ export class DebugPanel {
     if (series.summary.played > 0) {
       const t = series.summary;
       rows.push(
-        el('div', 'dbg-hint', `요약: ${t.wins}승 ${t.losses}패 ${t.draws}무, 총 ${t.totalTime.toFixed(1)}초, 카드 ${t.totalCards}회 사용`),
+        el('div', 'dbg-hint', `요약: ${t.wins}승 ${t.losses}패 ${t.draws}무, 총 ${t.totalTime.toFixed(1)}초, 카드 ${t.totalCards}회 사용, 골드 +${t.totalGold}G`),
       );
     }
     this.seriesTable.replaceChildren(...rows);
+  }
+
+  private renderEconomy(snap: SessionSnapshot): void {
+    const economy = snap.economy;
+    this.goldLabel.textContent = `보유 골드 ${economy.gold}G`;
+    this.interestLabel.textContent = `현재 잔고 기준 다음 이자 +${economy.nextInterest}G`;
+    this.battleKindSelect.value = snap.battleKind;
+    this.battleKindSelect.disabled = !snap.editable;
+    this.nextBattleButton.hidden = snap.series !== null;
+    this.nextBattleButton.disabled = snap.phase !== 'finished' || snap.series !== null;
+    this.resetEconomyButton.disabled = !snap.editable;
+    const reward = economy.lastReward;
+    this.rewardBox.textContent = reward
+      ? `최근 지급: ${BATTLE_KIND_LABELS[reward.kind]} ${reward.outcome === 'win' ? '승리' : reward.outcome === 'loss' ? '패배' : '무승부'} 기본 ${reward.base}G + 이자 ${reward.interest}G = +${reward.total}G (${reward.goldBefore}G → ${reward.goldAfter}G)`
+      : '전투가 끝나면 골드와 이자가 지급됩니다.';
   }
 
   private renderTraits(side: Side, snap: SessionSnapshot): void {

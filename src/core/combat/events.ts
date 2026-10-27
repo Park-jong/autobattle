@@ -42,6 +42,7 @@ export type CombatEvent = { t: number } & (
   | { type: 'shield'; unit: number; amount: number; duration: StatusDuration }
   | { type: 'skillCast'; unit: number; skill: string; targets: number[] }
   | { type: 'mana'; unit: number; mana: number }
+  | { type: 'maxHp'; unit: number; maxHp: number; hp: number }
   | {
       type: 'statusApplied';
       unit: number;

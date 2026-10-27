@@ -13,7 +13,11 @@ export interface MoveInProgress {
 
 /** 전투 중인 유닛 인스턴스의 가변 상태 */
 export class CombatUnit {
-  readonly maxHp: number;
+  maxHp: number;
+  readonly equipment: string[] = [];
+  temporary = false;
+  rangeBonus = 0;
+  volleyChance = 0;
   readonly statuses: StatusSet;
   /** 성급이 확정된 스킬 효과 */
   readonly skillEffects: readonly ResolvedEffect[];
@@ -62,7 +66,7 @@ export class CombatUnit {
 
   /** 사거리 (칸) */
   get range(): number {
-    return this.def.stats.rng;
+    return this.def.stats.rng + this.rangeBonus;
   }
 
   /** 버프를 반영한 현재 스탯 */

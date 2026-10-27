@@ -9,6 +9,7 @@ export interface FormationEntry {
   unitId: string;
   star: StarLevel;
   cell: Cell;
+  equipment?: string[];
 }
 
 export type Formation = readonly FormationEntry[];
@@ -19,10 +20,15 @@ export function parseFormation(data: unknown, label = 'formation'): FormationEnt
   root.onlyKeys(['name', 'units']);
   return root.array('units').map((raw, i) => {
     const r = FieldReader.of(raw, `${label}.units[${i}]`);
-    r.onlyKeys(['unitId', 'star', 'col', 'row']);
+    r.onlyKeys(['unitId', 'star', 'col', 'row', 'equipment']);
     const star = r.int('star', 1);
     if (star > 3) r.fail('star', `1~3이어야 함 (실제: ${star})`);
-    return { unitId: r.string('unitId'), star: star as StarLevel, cell: { col: r.int('col', 0), row: r.int('row', 0) } };
+    const entry: FormationEntry = { unitId: r.string('unitId'), star: star as StarLevel, cell: { col: r.int('col', 0), row: r.int('row', 0) } };
+    if (r.has('equipment')) entry.equipment = r.array('equipment').map((id, j) => {
+      if (typeof id !== 'string' || id.trim() === '') r.fail(`equipment[${j}]`, '카드 ID 문자열이어야 함');
+      return id as string;
+    });
+    return entry;
   });
 }
 

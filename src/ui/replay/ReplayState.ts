@@ -290,6 +290,11 @@ export class ReplayState {
         if (u) u.mana = e.mana;
         break;
       }
+      case 'maxHp': {
+        const u = this.units.get(e.unit);
+        if (u) { u.maxHp = e.maxHp; u.hp = e.hp; }
+        break;
+      }
 
       case 'statusApplied': {
         const u = this.units.get(e.unit);
@@ -363,8 +368,9 @@ export class ReplayState {
     const list = u.statuses.get(status);
     if (!list) return;
     const kept = list.filter((s) => s.until > t + EPS);
-    // 만료된 항목이 없으면(소모형 상태 등) 이름 전체를 제거한다
-    if (kept.length === list.length || kept.length === 0) u.statuses.delete(status);
+    // 같은 시각의 만료 알림이 여러 번 와도 아직 유효한 중첩은 유지한다.
+    // 연발은 시간이 아닌 충전 소모로 해제되므로 예외다.
+    if (status === 'extraShots' || kept.length === 0) u.statuses.delete(status);
     else u.statuses.set(status, kept);
   }
 

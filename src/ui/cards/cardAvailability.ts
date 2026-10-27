@@ -10,6 +10,7 @@ export interface AvailabilityContext {
   combatCp: number;
   /** 이번 전투에서 이 카드(id)를 쓴 횟수 */
   usesOf(cardId: string): number;
+  cardsPlayed?: number;
 }
 
 /**
@@ -18,18 +19,18 @@ export interface AvailabilityContext {
  */
 export function explainUnplayable(card: Card, upgraded: boolean, ctx: AvailabilityContext): string | null {
   if (ctx.phase === 'ended') return '전투가 끝났습니다';
-  if (card.type === 'equipment') return '장비 카드는 아직 사용할 수 없습니다';
   if (card.type === 'curse') return '저주 카드는 사용할 수 없습니다';
-  if (card.type === 'operation' && ctx.phase !== 'prep') return '작전 카드는 준비 단계에서만 사용할 수 있습니다';
-  if (card.type !== 'operation' && ctx.phase !== 'combat') return '명령·주문 카드는 전투 중에만 사용할 수 있습니다';
+  const prepCard = card.type === 'operation' || card.type === 'equipment';
+  if (prepCard && ctx.phase !== 'prep') return '작전·장비 카드는 준비 단계에서만 사용할 수 있습니다';
+  if (!prepCard && ctx.phase !== 'combat') return '명령·주문 카드는 전투 중에만 사용할 수 있습니다';
 
   const perCombat = card.limits?.perCombat;
   if (perCombat !== undefined && ctx.usesOf(card.id) >= perCombat) return `전투당 ${perCombat}회만 사용할 수 있습니다`;
 
-  const cost = effectiveCard(card, upgraded).cost;
-  const pool = card.type === 'operation' ? ctx.prepCp : ctx.combatCp;
+  const cost = effectiveCard(card, upgraded, ctx.cardsPlayed).cost;
+  const pool = prepCard ? ctx.prepCp : ctx.combatCp;
   if (pool < cost) {
-    const label = card.type === 'operation' ? '준비 CP' : 'CP';
+    const label = prepCard ? '준비 CP' : 'CP';
     return `${label} 부족 (필요 ${cost}, 보유 ${pool})`;
   }
   return null;

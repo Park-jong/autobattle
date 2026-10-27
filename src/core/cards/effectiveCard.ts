@@ -14,10 +14,10 @@ export interface EffectiveCard {
  * 강화 카드는 effects·text를 통째로 대체하고, cost·resonance·chain은 upgrade에 있을 때만 대체한다.
  * 강화 버전이 없는 카드를 강화로 요청하면 Error.
  */
-export function effectiveCard(card: Card, upgraded: boolean): EffectiveCard {
+export function effectiveCard(card: Card, upgraded: boolean, cardsPlayed = 0): EffectiveCard {
   if (!upgraded) {
     return {
-      cost: card.cost,
+      cost: cardsPlayed > 0 ? card.chain?.cost ?? card.cost : card.cost,
       text: card.text,
       effects: card.effects,
       ...(card.resonance ? { resonance: card.resonance } : {}),
@@ -29,7 +29,7 @@ export function effectiveCard(card: Card, upgraded: boolean): EffectiveCard {
   const resonance = up.resonance ?? card.resonance;
   const chain = up.chain ?? card.chain;
   return {
-    cost: up.cost ?? card.cost,
+    cost: cardsPlayed > 0 ? chain?.cost ?? up.cost ?? card.cost : up.cost ?? card.cost,
     text: up.text,
     effects: up.effects,
     ...(resonance ? { resonance } : {}),

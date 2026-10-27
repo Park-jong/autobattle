@@ -1,13 +1,15 @@
-import type { DeckSnapshot } from '../../core/cards';
+import type { DeckPreset, DeckSnapshot } from '../../core/cards';
 import type { CombatResult, FormationEntry, Winner } from '../../core/combat';
 import type { CardCatalog } from '../../core/data/cardLoader';
 import type { CommanderDef } from '../../core/data/commander';
+import { Economy, type BattleKind, type BattleReward, type EconomyView } from '../../core/economy';
 import { createStartingDeck, dealOpeningHand } from '../cards/dealDeck';
 
 /** 연전의 한 판: 이름과 고정 적 편성 */
 export interface GauntletStage {
   name: string;
   enemy: readonly FormationEntry[];
+  kind?: BattleKind;
 }
 
 export interface GauntletConfig {
@@ -19,6 +21,7 @@ export interface GauntletConfig {
   /** false면 카드를 뽑지도 쓰지도 않는다 (지휘관 패시브는 유지) */
   cardsEnabled: boolean;
   baseSeed: number;
+  deckPreset?: DeckPreset;
 }
 
 /** 한 판의 결과 기록 */
@@ -32,6 +35,7 @@ export interface GauntletRecord {
   cardsUsed: number;
   /** 종료 시 살아남은 아군 수 */
   allySurvivors: number;
+  reward: BattleReward;
 }
 
 export interface GauntletSummary {
@@ -41,6 +45,7 @@ export interface GauntletSummary {
   draws: number;
   totalTime: number;
   totalCards: number;
+  totalGold: number;
 }
 
 /** 판마다 시드를 결정적으로 파생한다 (기본 시드와 판 번호만으로 결정) */
@@ -59,13 +64,16 @@ export class Gauntlet {
   private readonly recordList: GauntletRecord[] = [];
   private carryDeck: DeckSnapshot | null;
   private dealt: DeckSnapshot | null = null;
+  private readonly economy = new Economy();
+  /** result() 재호출로 새 결과 객체가 와도 같은 시뮬의 로그는 같은 배열이다. */
+  private readonly completedLogs = new WeakMap<CombatResult['events'], GauntletRecord>();
 
   constructor(
     private readonly config: GauntletConfig,
     private readonly catalog: CardCatalog,
   ) {
     if (config.stages.length === 0) throw new Error('연전에는 최소 한 판이 필요합니다');
-    this.carryDeck = config.commander ? createStartingDeck(config.commander, catalog, config.baseSeed) : null;
+    this.carryDeck = config.commander ? createStartingDeck(config.commander, catalog, config.baseSeed, config.deckPreset) : null;
   }
 
   get total(): number {
@@ -102,6 +110,10 @@ export class Gauntlet {
     return this.recordList;
   }
 
+  get economyView(): EconomyView {
+    return this.economy.snapshot();
+  }
+
   /** 현재 판의 전투 시드 */
   get seed(): number {
     return deriveBattleSeed(this.config.baseSeed, this.currentIndex);
@@ -119,6 +131,8 @@ export class Gauntlet {
    * endDeck = 시뮬이 끝난 뒤의 덱 상태(sim.deck.serialize()). 다음 판의 뽑을 더미가 여기서 이어진다.
    */
   complete(result: CombatResult, cardsUsed: number, endDeck: DeckSnapshot | null): GauntletRecord {
+    const completed = this.completedLogs.get(result.events);
+    if (completed) return completed;
     const stage = this.stage;
     if (!stage) throw new Error('이미 모든 판이 끝났습니다');
     const record: GauntletRecord = {
@@ -129,8 +143,10 @@ export class Gauntlet {
       endTime: result.endTime,
       cardsUsed,
       allySurvivors: result.survivors.filter((s) => s.side === 0).length,
+      reward: this.economy.settleBattle(`stage:${this.currentIndex}`, stage.kind ?? 'normal', result.winner === 0 ? 'win' : result.winner === 1 ? 'loss' : 'draw'),
     };
     this.recordList.push(record);
+    this.completedLogs.set(result.events, record);
     if (endDeck) this.carryDeck = endDeck;
     this.dealt = null;
     this.currentIndex += 1;
@@ -138,13 +154,14 @@ export class Gauntlet {
   }
 
   summary(): GauntletSummary {
-    const s: GauntletSummary = { played: this.recordList.length, wins: 0, losses: 0, draws: 0, totalTime: 0, totalCards: 0 };
+    const s: GauntletSummary = { played: this.recordList.length, wins: 0, losses: 0, draws: 0, totalTime: 0, totalCards: 0, totalGold: 0 };
     for (const r of this.recordList) {
       if (r.winner === 0) s.wins++;
       else if (r.winner === 1) s.losses++;
       else s.draws++;
       s.totalTime += r.endTime;
       s.totalCards += r.cardsUsed;
+      s.totalGold += r.reward.total;
     }
     return s;
   }

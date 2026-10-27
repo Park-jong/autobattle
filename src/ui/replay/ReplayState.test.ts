@@ -36,6 +36,34 @@ function spawn(unit: number, col: number, row: number, extra: Partial<CombatEven
 }
 
 describe('ReplayState (실제 sim 로그)', () => {
+  it('최대 HP 변경 이벤트가 HP 비율과 생명력에 반영된다', () => {
+    const replay = new ReplayState([spawn(0, 1, 1), { t: 1, type: 'maxHp', unit: 0, hp: 150, maxHp: 200 }]);
+    replay.advanceTo(1);
+    expect(replay.viewOf(0)).toMatchObject({ hp: 150, maxHp: 200 });
+  });
+  it.each(['statMod:atk', 'damageTakenMult', 'healAura'])('중첩된 %s 만료 알림이 반복되어도 남은 효과를 유지한다', (status) => {
+    const events: CombatEvent[] = [spawn(0, 1, 1)];
+    for (const duration of [1, 1, 3]) {
+      events.push({ t: 0, type: 'statusApplied', unit: 0, status, duration, source: null, value: 10 });
+    }
+    for (let i = 0; i < 2; i++) events.push({ t: 1, type: 'statusRemoved', unit: 0, status });
+    const replay = new ReplayState(events);
+    replay.advanceTo(1);
+    expect(replay.viewOf(0)?.statuses).toEqual([{ name: status, until: 3, remaining: 2, value: 10 }]);
+    replay.advanceTo(3);
+    expect(replay.viewOf(0)?.statuses).toEqual([]);
+  });
+
+  it('연발 충전은 소모 알림에서 즉시 해제한다', () => {
+    const replay = new ReplayState([
+      spawn(0, 1, 1),
+      { t: 0, type: 'statusApplied', unit: 0, status: 'extraShots', duration: 'combat', source: null },
+      { t: 1, type: 'statusRemoved', unit: 0, status: 'extraShots' },
+    ]);
+    replay.advanceTo(1);
+    expect(replay.viewOf(0)?.statuses).toEqual([]);
+  });
+
   it('종료 시각의 HP·생존이 sim 결과와 일치한다', () => {
     for (const seed of [1, 2, 3]) {
       const result = makeSim(A, B, seed).run();

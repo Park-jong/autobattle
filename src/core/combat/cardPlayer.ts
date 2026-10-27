@@ -22,7 +22,7 @@ const PLAYER_SIDE: Side = 0;
 type TargetResolution = { ok: true; ctx: EffectContext } | { ok: false; reason: string };
 
 /**
- * 카드 사용: 검증 → CP 차감 → 덱 이동 → 이벤트 → 공통 효과 실행기로 효과 실행.
+ * 카드 사용: 검증 → CP 차감 → 손패 분리 → 이벤트 → 효과 실행 → 버린/소모 더미 이동.
  * 실패하면 아무것도 바뀌지 않는다 (CP·카드·이벤트 로그 모두 그대로, 사유만 반환).
  *
  * 효과 실행 순서: 기본 효과 → 공명(해당 특성이 아군 진영에서 단계 1 이상) → 연쇄(앞서 카드를 쓴 적이 있으면).
@@ -65,8 +65,8 @@ export class CardPlayer {
       return fail(`"${card.name}"은(는) 전투당 ${perCombat}회만 사용할 수 있습니다`);
     }
 
-    const view = effectiveCard(card, instance.upgraded);
-    const pool: CpPool = card.type === 'operation' ? 'prep' : 'combat';
+    const view = effectiveCard(card, instance.upgraded, this.playedCount);
+    const pool: CpPool = card.type === 'operation' || card.type === 'equipment' ? 'prep' : 'combat';
     if (!this.cp.canSpend(pool, view.cost)) {
       const label = pool === 'prep' ? '준비 단계 작전 CP가' : '지휘력이';
       return fail(`${label} 부족합니다 (필요 ${view.cost}, 보유 ${this.cp.amount(pool)})`);
@@ -81,19 +81,23 @@ export class CardPlayer {
 
     // ---- 검증 통과: 여기부터 상태 변경 ----
     this.cp.spend(pool, view.cost);
-    this.deck.play(instanceId);
     this.usesByCard.set(card.id, this.usesOf(card.id) + 1);
-    this.world.emit({
-      type: 'cardPlayed',
-      cardId: card.id,
-      instanceId,
-      upgraded: instance.upgraded,
-      target: structuredClone(target),
-      cp: this.cp.amount(pool),
-      pool,
+    this.deck.play(instanceId, () => {
+      this.world.emit({
+        type: 'cardPlayed',
+        cardId: card.id,
+        instanceId,
+        upgraded: instance.upgraded,
+        target: structuredClone(target),
+        cp: this.cp.amount(pool),
+        pool,
+      });
+      this.world.bus.emit('onCardPlay', { cardId: card.id, instanceId });
+      this.executor.execute(effects, resolution.ctx);
+      if (card.type === 'equipment') {
+        for (const unit of resolution.ctx.targets) unit.equipment.push(`${card.id}${instance.upgraded ? '+' : ''}`);
+      }
     });
-    this.world.bus.emit('onCardPlay', { cardId: card.id, instanceId });
-    this.executor.execute(effects, resolution.ctx);
     this.playedCount += 1;
     return { ok: true, cp: this.cp.amount(pool), pool };
   }
@@ -102,7 +106,7 @@ export class CardPlayer {
 
   private checkPhase(card: Card, phase: CombatPhase): string | null {
     if (phase === 'ended') return '전투가 이미 끝났습니다';
-    if (card.type === 'equipment') return '장비 카드는 아직 사용할 수 없습니다';
+    if (card.type === 'equipment') return phase === 'prep' ? null : '장비 카드는 준비 단계에서만 사용할 수 있습니다';
     if (card.type === 'curse') return '저주 카드는 사용할 수 없습니다';
     if (card.type === 'operation') {
       return phase === 'prep' ? null : '작전 카드는 준비 단계에서만 사용할 수 있습니다';

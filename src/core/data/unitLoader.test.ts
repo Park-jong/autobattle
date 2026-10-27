@@ -33,9 +33,9 @@ function traitError(mutate: (d: any) => void): string {
 }
 
 describe('loadUnits', () => {
-  it('실제 data/units.json 8기(M1 6기 + M2 2기)가 통과하고 특성 참조도 유효', () => {
+  it('실제 data/units.json 14기가 통과하고 특성 참조도 유효', () => {
     const catalog = loadUnits(unitsJson, traits);
-    expect(catalog.size).toBe(8);
+    expect(catalog.size).toBe(14);
     const shield = catalog.get('iron_shieldbearer');
     expect(shield?.stats).toEqual({ hp: 650, atk: 40, as: 0.6, rng: 1, arm: 40, res: 20, mana: 80 });
     expect(shield?.skill.effects).toHaveLength(2);
@@ -84,10 +84,10 @@ describe('loadUnits', () => {
 });
 
 describe('loadTraits', () => {
-  it('9개 특성 정의, 효과는 강철군단·심연·수호자만', () => {
+  it('9개 특성 정의 중 6개에 실제 효과가 있다', () => {
     expect(traits.size).toBe(9);
     const withEffects = traits.traits.filter((t) => t.effects && t.effects.length > 0).map((t) => t.id);
-    expect(withEffects).toEqual(['iron_legion', 'abyss', 'guardian']);
+    expect(withEffects).toEqual(['iron_legion', 'ember', 'abyss', 'guardian', 'gladiator', 'marksman']);
     for (const id of ['iron_legion', 'ember', 'abyss', 'forest_pact', 'guardian', 'gladiator', 'marksman', 'mystic', 'assassin']) {
       expect(traits.get(id)).toBeDefined();
     }
@@ -107,8 +107,13 @@ describe('loadTraits', () => {
 });
 
 describe('효과 검증기와 카드 호환', () => {
+  it('덱 드로우는 유닛 스킬과 특성에서 거부한다', () => {
+    const effect = { kind: 'drawCards', selector: 'allAllies', count: 2 };
+    expect(unitError((d) => { d.units[0].skill.effects = [effect]; })).toContain('카드 전용');
+    expect(traitError((d) => { d.traits[0].effects = [effect]; })).toContain('카드 전용');
+  });
   it('cards.json의 모든 카드 효과가 전투 효과 검증기를 통과 (카드가 같은 효과 모듈을 재사용 가능)', () => {
-    const validator = new EffectValidator();
+    const validator = new EffectValidator({ allowStarArrays: false, allowCardEffects: true });
     for (const card of cardsJson.cards) {
       const lists = [card.effects, ...(card.upgrade ? [card.upgrade.effects] : [])];
       for (const effects of lists) {

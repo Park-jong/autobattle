@@ -3,6 +3,7 @@ import commandersJson from '../../data/commanders.json';
 import traitsJson from '../../data/traits.json';
 import unitsJson from '../../data/units.json';
 import { parseFormation, type FormationEntry } from '../core/combat';
+import { assertUnitCardReferences } from '../core/cards';
 import {
   loadCards,
   loadCommanders,
@@ -49,6 +50,7 @@ export function loadGameData(): GameData {
   const traits = loadTraits(traitsJson);
   const units = loadUnits(unitsJson, traits);
   const cards = loadCards(cardsJson, traits);
+  assertUnitCardReferences(units, cards);
   const commanders = loadCommanders(commandersJson, cards, units);
   const seriesStages = SERIES_FILES.map((raw, i) => {
     const label = `5연전 ${i + 1}전 편성`;
