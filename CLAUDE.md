@@ -8,6 +8,7 @@
 | `npm run dev` | 개발 서버 (포트 **5738**, strictPort — 점유 시 실패) |
 | `npm run build` | 타입체크 후 프로덕션 빌드 (`dist/`) |
 | `npm run preview` | 빌드 결과 미리보기 |
+| `npm run deploy` | 빌드 후 `dist/`를 `gh-pages` 브랜치로 푸시 (GitHub Pages 배포, `--nojekyll`). 원격에 올리므로 사용자 확인 후에만 실행 |
 | `npm test` | Vitest 실행 (`vitest run`) |
 | `npm run typecheck` | `tsc --noEmit` (src, tools 포함) |
 | `npm run sim -- --a A.json --b B.json --n 1000 --seed 1` | 헤드리스 전투 시뮬: 편성 A vs B N회 승률·평균 시간 (tsx). 편성 예시는 `tools/formations/` |
@@ -68,6 +69,11 @@
 - 결정론: `src/core`에서 `Math.random` 금지. 난수는 항상 `Rng`를 주입받아 쓴다.
 - 콘텐츠는 `/data` JSON. 코드로 읽을 때 반드시 검증(`loadCards` 등)을 거친다. 파일 읽기와 검증은 분리 (검증은 객체를 받음).
 - 검증기는 외부 라이브러리 없이 직접 작성 (번들 크기·의존성 최소화, 한국어 오류 메시지에 위치 경로를 넣기 쉬움).
+
+## 배포
+- 주소: https://park-jong.github.io/autobattle/ (원격 `Park-jong/autobattle`). `npm run deploy`가 `predeploy`(빌드) 후 `gh-pages -d dist --nojekyll`로 `gh-pages` 브랜치에 올린다.
+- 첫 배포 후 GitHub 저장소 Settings → Pages에서 Source를 `gh-pages` 브랜치 / root로 지정해야 한다.
+- Vite `base`는 `./`(상대 경로): 저장소 이름이 바뀌어도 하위 경로에서 동작하고 dev 서버(`/`)에도 영향이 없다. 데이터 JSON은 import로 번들되어 별도 fetch 파일이 없다.
 
 ## 문서
 - [DESIGN.md](DESIGN.md) 게임 설계, 10장 구현 구조
