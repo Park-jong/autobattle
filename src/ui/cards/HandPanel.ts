@@ -3,6 +3,7 @@ import { CARD_UI } from '../theme';
 import type { CardPanelView, HandCardView, PileView } from './cardPanelView';
 import { clientToStage } from './stagePoint';
 import './handPanel.css';
+import { portraitStyle } from '../skin';
 
 type PileKey = 'draw' | 'discard' | 'exhaust';
 const PILE_LABELS: Record<PileKey, string> = { draw: '뽑을 더미', discard: '버린 더미', exhaust: '소모 더미' };
@@ -140,7 +141,7 @@ export class HandPanel {
 
   private render(view: CardPanelView): void {
     this.phaseLabel.textContent = view.phaseLabel;
-    this.commanderBox.replaceChildren(el('strong', undefined, view.commanderName), el('span', 'hand-passive', `패시브 ${view.passiveName}`));
+    this.commanderBox.replaceChildren(el('strong', undefined, view.commanderName === '철벽 장군 하르텐 볼크' ? '세라 / FIELD COMMANDER' : view.commanderName), el('span', 'hand-passive', `패시브 ${view.passiveName}`));
     this.commanderBox.title = `${view.passiveName}: ${view.passiveText}`;
     this.hintBox.textContent = view.holding ? view.hint : '';
     this.hintBox.hidden = !view.holding;
@@ -168,6 +169,8 @@ export class HandPanel {
 
   private cardNode(card: HandCardView): HTMLElement {
     const node = el('div', `hcard type-${card.type}`);
+    const cardArt: Record<string, number> = { shield_formation: 0, hold_the_line: 0, war_drums: 1, formation_swap: 3, focus_fire: 4, last_stand: 5, charge_signal: 1 };
+    portraitStyle(node, cardArt[card.cardId] ?? (card.type === 'spell' ? 2 : 0));
     node.classList.toggle('selected', card.selected);
     node.classList.toggle('disabled', !card.playable);
     node.classList.toggle('upgraded', card.upgraded);

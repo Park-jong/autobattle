@@ -6,6 +6,8 @@ import { DebugPanel } from './ui/debug/DebugPanel';
 import { loadGameData } from './ui/gameData';
 import { computeHiDpi } from './ui/hidpi';
 import { COLORS } from './ui/theme';
+import { setupSkinGallery, unitSkinName } from './ui/skin';
+import './ui/skin.css';
 
 /** 데이터 검증 오류를 화면에 보여준다 (게임은 시작하지 않음). */
 function showFatalError(host: HTMLElement, message: string): void {
@@ -16,6 +18,7 @@ function showFatalError(host: HTMLElement, message: string): void {
 }
 
 function bootstrap(): void {
+  setupSkinGallery();
   const gameHost = document.getElementById('game');
   const panelHost = document.getElementById('panel');
   const handHost = document.getElementById('hand');
@@ -38,11 +41,15 @@ function bootstrap(): void {
   });
   new DebugPanel(panelHost, session, data.units, data.traits, data.commanders);
   new HandPanel(handHost, session, gameHost);
+  session.subscribe(() => {
+    const status = document.getElementById('battle-status');
+    if (status) status.textContent = { edit: '출전 준비', playing: '작전 진행 중', paused: '작전 일시정지', finished: '작전 종료' }[session.snapshot().phase];
+  });
 
   // HiDPI: 캔버스 = 1280x720 x DPR, 카메라 줌 = DPR (hidpi.ts). Scale.FIT로 화면에 맞춘다.
   const metrics = computeHiDpi();
   const labels: SceneLabels = {
-    unitAbbreviation: (unitId) => (data.units.get(unitId)?.name ?? unitId).replace(/\s+/g, '').slice(0, 2),
+    unitAbbreviation: (unitId) => unitSkinName(unitId),
     cardName: (cardId, upgraded) => `${data.cards.get(cardId)?.name ?? cardId}${upgraded ? '+' : ''}`,
   };
   new Phaser.Game({

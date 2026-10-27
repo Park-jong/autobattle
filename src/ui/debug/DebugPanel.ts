@@ -4,6 +4,7 @@ import type { TraitCatalog } from '../../core/data/traitLoader';
 import type { UnitCatalog } from '../../core/data/unitLoader';
 import { PLAYBACK_SPEEDS, type Brush, type DebugController, type SessionSnapshot } from './contracts';
 import './debugPanel.css';
+import { AGENTS, portraitStyle, unitSkinIndex, unitSkinName, unitSkinRole } from '../skin';
 
 const SIDE_NAMES = ['아군', '적'] as const;
 const STARS: readonly StarLevel[] = [1, 2, 3];
@@ -88,15 +89,16 @@ export class DebugPanel {
   private build(): void {
     this.root.classList.add('dbg-panel');
     this.root.replaceChildren(
-      el('h1', 'dbg-title', '전투 디버그'),
+      el('p', 'panel-eyebrow', 'SQUAD MANAGEMENT'),
+      el('h1', 'dbg-title', '당신의 작전, 당신의 팀.'),
       this.errorBox,
+      this.buildBattleControls(),
       this.buildCommander(),
       this.buildPalette(),
-      this.buildBattleControls(),
-      this.buildSeries(),
-      this.buildTraits(),
       this.buildResult(),
-      this.buildFiles(),
+      this.fold('팀 시너지', this.buildTraits()),
+      this.fold('연속 작전 · 5연전', this.buildSeries()),
+      this.fold('편성 저장 / 불러오기', this.buildFiles()),
     );
   }
 
@@ -106,15 +108,25 @@ export class DebugPanel {
     return s;
   }
 
+  private fold(title: string, content: HTMLElement): HTMLElement {
+    const details = el('details', 'dbg-section');
+    details.append(el('summary', undefined, title), content);
+    return details;
+  }
+
   private buildCommander(): HTMLElement {
-    const s = this.section('지휘관 / 카드');
+    const s = this.section('01 / FIELD COMMANDER');
+    const dossier = el('div', 'commander-dossier');
+    const copy = el('div', 'dossier-copy');
+    copy.append(el('small', undefined, 'AFTER HOURS / COMMAND'), el('strong', undefined, 'SERA'), el('span', undefined, '세라 · 철벽 전술 지휘관'), el('b', undefined, '내 신호만 기다려.'));
+    dossier.append(copy);
     const row = el('div', 'dbg-row');
     this.commanderSelect.setAttribute('aria-label', '지휘관');
     const none = el('option', undefined, '없음 (카드 시스템 끔)');
     none.value = '';
     this.commanderSelect.append(none);
     for (const c of this.commanders.commanders) {
-      const option = el('option', undefined, c.name);
+      const option = el('option', undefined, c.id === 'cmd_harten' ? '세라 · 철벽 전술' : c.name);
       option.value = c.id;
       this.commanderSelect.append(option);
     }
@@ -128,23 +140,22 @@ export class DebugPanel {
     this.pauseOnHoldBox.type = 'checkbox';
     this.pauseOnHoldBox.addEventListener('change', () => this.controller.setPauseOnCardHold(this.pauseOnHoldBox.checked));
     holdRow.append(this.pauseOnHoldBox, el('span', undefined, '카드 선택 중 일시정지 (끄면 25% 슬로모션)'));
-    s.append(row, this.passiveBox, startRow, holdRow, this.scaleLabel);
+    s.append(dossier, row, this.passiveBox, startRow, holdRow, this.scaleLabel);
     return s;
   }
 
   private buildPalette(): HTMLElement {
-    const s = this.section('유닛 팔레트');
+    const s = this.section('02 / AGENT LINEUP');
     const list = el('div', 'dbg-units');
     for (const def of this.units.units) {
-      const origin = this.traits.get(def.origin)?.name ?? def.origin;
-      const job = this.traits.get(def.job)?.name ?? def.job;
       const b = el('button', 'dbg-unit');
       b.type = 'button';
-      b.title = def.skill.text;
+      b.title = `${unitSkinName(def.id)} · ${def.name}\n${def.skill.text}`;
+      portraitStyle(b, unitSkinIndex(def.id));
       b.append(
-        el('strong', undefined, def.name),
-        el('span', 'dbg-tier', `${def.tier}등급`),
-        el('span', 'dbg-unit-traits', `${origin} · ${job}`),
+        el('strong', undefined, unitSkinName(def.id)),
+        el('span', 'dbg-tier', `★ ${def.tier} · ${unitSkinRole(def.id)}`),
+        el('span', 'dbg-unit-traits', AGENTS[unitSkinIndex(def.id)]!.role),
       );
       b.addEventListener('click', () => this.selectUnit(def.id));
       this.unitButtons.set(def.id, b);
@@ -165,7 +176,7 @@ export class DebugPanel {
   }
 
   private buildBattleControls(): HTMLElement {
-    const s = this.section('전투');
+    const s = this.section('OPERATION CONTROL');
     const seedRow = el('div', 'dbg-row');
     this.seedInput.type = 'number';
     this.seedInput.value = '1';

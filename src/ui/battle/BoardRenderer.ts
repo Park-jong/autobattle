@@ -36,6 +36,8 @@ export class BoardRenderer {
   private drawStatic(scene: Phaser.Scene, metrics: HiDpiMetrics): void {
     const g = scene.add.graphics().setDepth(0);
     const size = this.layout.cellSize;
+    g.fillStyle(0x17151f, 1);
+    g.fillRoundedRect(this.layout.originX - 12, this.layout.originY - 12, this.layout.width + 24, this.layout.height + 24, 8);
     for (let col = 0; col < BOARD_COLS; col++) {
       for (let row = 0; row < BOARD_ROWS; row++) {
         const ally = col < BOARD_COLS / 2;
@@ -45,7 +47,9 @@ export class BoardRenderer {
           : alt ? COLORS.ENEMY_CELL_A : COLORS.ENEMY_CELL_B;
         const p = this.layout.topLeft(col, row);
         g.fillStyle(color, 1);
-        g.fillRect(p.x, p.y, size, size);
+        g.fillRoundedRect(p.x + 3, p.y + 3, size - 6, size - 6, 5);
+        g.lineStyle(1, ally ? 0x645472 : 0x755065, .4);
+        g.strokeRoundedRect(p.x + 3, p.y + 3, size - 6, size - 6, 5);
       }
     }
     // 전열 열(아군 3, 적 4) 강조
@@ -54,7 +58,7 @@ export class BoardRenderer {
       g.fillStyle(COLORS.FRONT_TINT, 0.08);
       g.fillRect(p.x, p.y, size, this.layout.height);
     }
-    g.lineStyle(1, COLORS.GRID_LINE, 1);
+    g.lineStyle(1, COLORS.GRID_LINE, .3);
     for (let col = 0; col <= BOARD_COLS; col++) {
       const p = this.layout.topLeft(col, 0);
       g.lineBetween(p.x, p.y, p.x, p.y + this.layout.height);
@@ -68,12 +72,12 @@ export class BoardRenderer {
 
     // 라벨
     const half = (BOARD_COLS / 2) * size;
-    const labelStyle = { fontSize: '20px', color: TEXT_COLORS.MUTED };
-    createText(scene, metrics, this.layout.originX + half / 2, LAYOUT.SIDE_LABEL_Y, '아군 영역', labelStyle).setOrigin(0.5);
-    createText(scene, metrics, this.layout.originX + half * 1.5, LAYOUT.SIDE_LABEL_Y, '적 영역', labelStyle).setOrigin(0.5);
+    const labelStyle = { fontSize: '13px', color: TEXT_COLORS.MUTED };
+    createText(scene, metrics, this.layout.originX + half / 2, LAYOUT.SIDE_LABEL_Y, '01 / ALLIED AGENTS', labelStyle).setOrigin(0.5);
+    createText(scene, metrics, this.layout.originX + half * 1.5, LAYOUT.SIDE_LABEL_Y, '02 / HOSTILE SQUAD', labelStyle).setOrigin(0.5);
     for (const side of [0, 1] as const) {
       const c = this.layout.center(frontCol(side), 0);
-      createText(scene, metrics, c.x, LAYOUT.FRONT_LABEL_Y, '전열', { fontSize: '18px', color: TEXT_COLORS.MUTED }).setOrigin(0.5);
+      createText(scene, metrics, c.x, LAYOUT.FRONT_LABEL_Y + 9, 'FRONT LINE', { fontSize: '10px', color: TEXT_COLORS.MUTED }).setOrigin(0.5);
     }
   }
 }

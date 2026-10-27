@@ -10,6 +10,7 @@ import { BoardRenderer } from './BoardRenderer';
 import { EffectsLayer } from './EffectsLayer';
 import { TargetingOverlay } from './TargetingOverlay';
 import { UnitSprite } from './UnitSprite';
+import { AGENTS, selectedAgent, SKIN_ATLAS_URL, SKIN_EVENT, SKIN_TEXTURE, SD_ATLAS_URL, SD_TEXTURE } from '../skin';
 
 /** 씬이 화면에 쓸 이름을 얻는 창구 (데이터 카탈로그를 직접 알 필요가 없게) */
 export interface SceneLabels {
@@ -42,20 +43,51 @@ export class BattleScene extends Phaser.Scene {
     super('BattleScene');
   }
 
+  preload(): void {
+    this.load.image(SKIN_TEXTURE, SKIN_ATLAS_URL);
+    this.load.image(SD_TEXTURE, SD_ATLAS_URL);
+  }
+
   create(): void {
     applyHiDpiCamera(this, this.metrics);
     this.cameras.main.setBackgroundColor(COLORS.BACKGROUND);
+    if (this.textures.exists(SD_TEXTURE)) {
+      const texture = this.textures.get(SD_TEXTURE);
+      const image = texture.getSourceImage() as HTMLImageElement;
+      const canvas = document.createElement('canvas');
+      canvas.width = image.width;
+      canvas.height = image.height;
+      const context = canvas.getContext('2d', { willReadFrequently: true });
+      context?.drawImage(image, 0, 0);
+      const pixels = context?.getImageData(0, 0, image.width, image.height).data;
+      for (let i = 0; i < AGENTS.length; i++) {
+        const left = Math.round((i % 3) * image.width / 3);
+        const top = Math.round(Math.floor(i / 3) * image.height / 2);
+        const right = Math.round(((i % 3) + 1) * image.width / 3);
+        const bottom = Math.round((Math.floor(i / 3) + 1) * image.height / 2);
+        let minX = right, minY = bottom, maxX = left, maxY = top;
+        // Trim transparent cell margins in memory so every agent has the same on-board height.
+        if (pixels) for (let y = top; y < bottom; y++) for (let x = left; x < right; x++) {
+          if (pixels[(y * image.width + x) * 4 + 3]! < 32) continue;
+          minX = Math.min(minX, x); minY = Math.min(minY, y);
+          maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+        }
+        if (minX <= maxX && minY <= maxY) texture.add(`agent-${i}`, 0, minX, minY, maxX - minX + 1, maxY - minY + 1);
+        else texture.add(`agent-${i}`, 0, left, top, right - left, bottom - top);
+      }
+    }
+    this.createAgentArt();
     this.layout = new BoardLayout(LAYOUT.BOARD_X, LAYOUT.BOARD_Y, LAYOUT.CELL_SIZE);
     this.board = new BoardRenderer(this, this.layout, this.metrics);
     this.targetingOverlay = new TargetingOverlay(this, this.layout);
     this.effects = new EffectsLayer(this, this.metrics, this.layout, (id, upgraded) => this.labels.cardName(id, upgraded));
 
     this.timeText = createText(this, this.metrics, STAGE.WIDTH / 2, LAYOUT.TIME_Y, '', {
-      fontSize: '34px',
+      fontSize: '25px',
       fontStyle: 'bold',
       color: TEXT_COLORS.TITLE,
     }).setOrigin(0.5);
-    this.hintText = createText(this, this.metrics, 20, 20, '', { fontSize: '16px', color: TEXT_COLORS.MUTED });
+    this.hintText = createText(this, this.metrics, STAGE.WIDTH / 2, 75, '', { fontSize: '12px', color: TEXT_COLORS.MUTED }).setOrigin(0.5);
 
     this.input.mouse?.disableContextMenu();
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
@@ -78,6 +110,45 @@ export class BattleScene extends Phaser.Scene {
     });
   }
 
+  private createAgentArt(): void {
+    if (!this.textures.exists(SKIN_TEXTURE)) return;
+    const texture = this.textures.get(SKIN_TEXTURE);
+    const source = texture.getSourceImage() as HTMLImageElement;
+    const panelWidth = source.width / AGENTS.length;
+    for (let i = 0; i < AGENTS.length; i++) {
+      const x = Math.round(i * panelWidth);
+      const width = Math.round((i + 1) * panelWidth) - x;
+      texture.add(`portrait-${i}`, 0, x, 0, width, source.height);
+      texture.add(`face-${i}`, 0, x, Math.round(source.height * .015), width, Math.min(width, Math.floor(source.height * .53)));
+    }
+    const agent = selectedAgent();
+    const left = this.add.image(110, 368, SKIN_TEXTURE, `portrait-${agent}`).setDisplaySize(204, 470).setAlpha(.9).setDepth(-3);
+    this.add.image(1170, 368, SKIN_TEXTURE, 'portrait-5').setDisplaySize(204, 470).setAlpha(.65).setDepth(-3);
+    const shades = this.add.graphics().setDepth(-2);
+    shades.fillGradientStyle(COLORS.BACKGROUND, COLORS.BACKGROUND, COLORS.BACKGROUND, COLORS.BACKGROUND, 0, 0, 1, 1);
+    shades.fillRect(8, 350, 204, 255);
+    shades.fillRect(1068, 350, 204, 255);
+    shades.lineStyle(1, 0x7d5b78, .5);
+    shades.strokeRect(8, 133, 204, 470);
+    shades.strokeRect(1068, 133, 204, 470);
+    const name = createText(this, this.metrics, 22, 530, AGENTS[agent]!.english, { fontSize: '31px', fontStyle: 'bold', color: '#f3d8ee' }).setDepth(-1);
+    const subtitle = createText(this, this.metrics, 22, 571, AGENTS[agent]!.role, { fontSize: '10px', color: '#c7a3c3' }).setDepth(-1);
+    createText(this, this.metrics, 22, 610, 'PERSONNEL / ALLIED', { fontSize: '10px', color: '#8e7799' });
+    createText(this, this.metrics, 1080, 530, 'RAVEN', { fontSize: '31px', fontStyle: 'bold', color: '#efb7cb' }).setDepth(-1);
+    createText(this, this.metrics, 1080, 571, 'HOSTILE / NIGHT DIVISION', { fontSize: '10px', color: '#b18b9e' }).setDepth(-1);
+    createText(this, this.metrics, 1080, 610, 'THREAT LEVEL / HIGH', { fontSize: '10px', color: '#8e7799' });
+    const onChange = (event: Event): void => {
+      const index = (event as CustomEvent<number>).detail;
+      const skin = AGENTS[index];
+      if (!skin) return;
+      left.setTexture(SKIN_TEXTURE, `portrait-${index}`);
+      name.setText(skin.english);
+      subtitle.setText(skin.role);
+    };
+    window.addEventListener(SKIN_EVENT, onChange);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => window.removeEventListener(SKIN_EVENT, onChange));
+  }
+
   override update(_time: number, delta: number): void {
     this.source.advance(delta / 1000);
     const views = this.source.views();
@@ -85,11 +156,21 @@ export class BattleScene extends Phaser.Scene {
 
     const time = this.source.time;
     const byUid = new Map<number, UnitView>();
-    for (const view of views) {
-      byUid.set(view.uid, view);
-      this.sprites.get(view.uid)?.update(view, time);
+    for (const view of views) byUid.set(view.uid, view);
+    const effects = this.source.recentEffects(TIMING.EFFECT_WINDOW);
+    for (const effect of effects) {
+      if (effect.kind === 'attack') {
+        const from = byUid.get(effect.unit);
+        const target = byUid.get(effect.target);
+        if (from && target) this.sprites.get(effect.unit)?.attack(effect.t, target.pos.col - from.pos.col, target.pos.row - from.pos.row);
+      } else if (effect.kind === 'damage') {
+        this.sprites.get(effect.unit)?.hit(effect.t);
+      } else if (effect.kind === 'skill') {
+        this.sprites.get(effect.unit)?.skill(effect.t);
+      }
     }
-    this.effects.update(time, this.source.recentEffects(TIMING.EFFECT_WINDOW), byUid);
+    for (const view of views) this.sprites.get(view.uid)?.update(view, time, this.source.phase !== 'edit');
+    this.effects.update(time, effects, byUid);
 
     const targeting = this.source.targeting();
     this.targetingOverlay.update(targeting, byUid, performance.now());
@@ -139,7 +220,7 @@ export class BattleScene extends Phaser.Scene {
     for (const view of views) {
       this.sprites.set(
         view.uid,
-        new UnitSprite(this, this.metrics, this.layout, this.labels.unitAbbreviation(view.unitId), view.star),
+        new UnitSprite(this, this.metrics, this.layout, this.labels.unitAbbreviation(view.unitId), view.star, view.unitId),
       );
     }
     this.effects.clear();

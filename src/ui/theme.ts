@@ -15,7 +15,7 @@ export const LAYOUT = {
   TIME_Y: 40,
   SIDE_LABEL_Y: 100,
   FRONT_LABEL_Y: 650,
-  UNIT_RADIUS: 26,
+  UNIT_RADIUS: 29,
   BAR_WIDTH: 76,
   HP_BAR_HEIGHT: 9,
   MANA_BAR_HEIGHT: 5,
@@ -31,13 +31,13 @@ export const LAYOUT = {
 } as const;
 
 export const COLORS = {
-  BACKGROUND: 0x1b1f2a,
-  ALLY_CELL_A: 0x24405f,
-  ALLY_CELL_B: 0x2b4b70,
-  ENEMY_CELL_A: 0x5f2a2a,
-  ENEMY_CELL_B: 0x713333,
+  BACKGROUND: 0x101116,
+  ALLY_CELL_A: 0x252335,
+  ALLY_CELL_B: 0x2c293e,
+  ENEMY_CELL_A: 0x34232e,
+  ENEMY_CELL_B: 0x3b2a37,
   FRONT_TINT: 0xffffff,
-  GRID_LINE: 0x0e1118,
+  GRID_LINE: 0x4a3c51,
   OVERHEAT_BORDER: 0xff3b30,
   /** 카드 대상 지정: 유효 대상 / 선택됨 / 범위 미리보기 / 조준 표식 / 불사 */
   TARGET_VALID: 0x7dffb0,
@@ -48,19 +48,19 @@ export const COLORS = {
   UNDYING: 0xd9a6ff,
   CARD_PULSE: 0xfff2a8,
   SWAP_TRAIL: 0x9be29b,
-  BOARD_BORDER: 0x3a4152,
+  BOARD_BORDER: 0x8f6d90,
   HOVER_OK: 0x9be29b,
   HOVER_BAD: 0xff7b7b,
 
-  ALLY_UNIT: 0x4aa3ff,
-  ENEMY_UNIT: 0xff6a5a,
+  ALLY_UNIT: 0xb899e2,
+  ENEMY_UNIT: 0xf097b3,
   UNIT_OUTLINE: 0x0b0d12,
 
   HP_BACK: 0x151820,
-  HP_ALLY: 0x5fd068,
-  HP_ENEMY: 0xe0554a,
+  HP_ALLY: 0xbacb9a,
+  HP_ENEMY: 0xe395a8,
   SHIELD: 0xe8f4ff,
-  MANA: 0x4f8dff,
+  MANA: 0xa692d9,
 
   ATTACK_ALLY: 0x8fd0ff,
   ATTACK_ENEMY: 0xffb0a0,
@@ -71,14 +71,14 @@ export const TEXT_COLORS = {
   TITLE: '#ffffff',
   MUTED: '#9aa3b5',
   UNIT_NAME: '#ffffff',
-  STAR: '#ffd54a',
+  STAR: '#edc2cf',
   PHYSICAL: '#ff9a4d',
   MAGIC: '#c58bff',
   HEAL: '#6be37a',
   SKILL: '#fff2a8',
   OVERHEAT: '#ff5a4a',
   CARD_BANNER: '#fff2a8',
-  CP: '#7fd6ff',
+  CP: '#d0b5f2',
 } as const;
 
 export const FONT_FAMILY = '"Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
