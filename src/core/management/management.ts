@@ -94,6 +94,9 @@ const fail = (reason: string): ManagementResult => ({ ok: false, reason });
 const copiesAtStar = (star: StarLevel): number => 3 ** (star - 1);
 const copyUnit = (unit: OwnedUnit): OwnedUnit => ({ ...unit, cell: unit.cell ? { ...unit.cell } : null, equipment: [...unit.equipment] });
 
+/** 테스트 유닛을 보드에 둘 때 채우는 칸 순서 (전열부터) */
+const BOARD_FILL_ORDER: readonly Cell[] = [3, 2, 1, 0].flatMap((col) => [2, 1, 3, 0, 4].map((row) => ({ col, row })));
+
 /** 빈 등급은 제외한 뒤 확률을 다시 정규화한다. 모든 후보가 없으면 null. */
 export function rollShopTier(level: number, rng: Rng, availableTiers: readonly number[] = [1, 2, 3, 4, 5]): number | null {
   const odds = LEVEL_ODDS[level];
@@ -291,6 +294,45 @@ export class Management {
     this.owned = next;
     this.nextOwnedId++;
     this.pool.set(unitId, remaining - 1);
+    this.applyMirrorMerge();
+    return OK;
+  }
+
+  /**
+   * 테스트 런 전용: 레벨을 직접 정한다 (경험치는 0). 보드 인원이 새 레벨의 인구 한도를 넘으면 실패하고 상태는 그대로.
+   */
+  setLevel(level: number): ManagementResult {
+    if (!Number.isInteger(level) || level < MANAGEMENT.START_LEVEL || level > MANAGEMENT.MAX_LEVEL) {
+      return fail(`레벨은 ${MANAGEMENT.START_LEVEL}~${MANAGEMENT.MAX_LEVEL}의 정수여야 합니다`);
+    }
+    const onBoard = this.owned.filter((unit) => unit.cell !== null).length;
+    if (onBoard > level) return fail(`보드 유닛 ${onBoard}기가 레벨 ${level}의 인구 한도를 넘습니다 (먼저 벤치로 옮기세요)`);
+    this.levelValue = level;
+    this.xpValue = 0;
+    return OK;
+  }
+
+  /**
+   * 테스트 런 전용: 골드 없이 원하는 성급의 유닛 1기를 보드 빈 칸 또는 벤치에 둔다. 풀에서는 성급 몫(1/3/9개)을 가져가되
+   * 재고가 모자라면 있는 만큼만 가져간다 (0 아래로 내려가지 않음). 실패하면 아무것도 바꾸지 않는다.
+   */
+  addOwnedUnit(unitId: string, star: StarLevel, place: 'board' | 'bench'): ManagementResult {
+    const def = this.units.get(unitId);
+    if (!def || def.boss) return fail('받을 수 없는 유닛입니다');
+    if (![1, 2, 3].includes(star)) return fail('성급은 1~3이어야 합니다');
+    const onBoard = this.owned.filter((unit) => unit.cell !== null);
+    let cell: Cell | null = null;
+    if (place === 'board') {
+      if (onBoard.length >= this.levelValue) return fail(`보드 인원이 레벨 ${this.levelValue}의 인구 한도에 도달했습니다`);
+      cell = BOARD_FILL_ORDER.find((candidate) => !onBoard.some((unit) => sameCell(unit.cell as Cell, candidate))) ?? null;
+      if (!cell) return fail('보드에 빈 칸이 없습니다');
+    }
+    const candidate: OwnedUnit = { id: this.nextOwnedId, unitId, star, cell, benchIndex: cell ? null : -1, equipment: [] };
+    const next = this.merge([...this.owned.map(copyUnit), candidate]);
+    if (!this.placeUnassigned(next)) return fail('벤치가 가득 찼습니다');
+    this.owned = next;
+    this.nextOwnedId++;
+    this.pool.set(unitId, Math.max(0, (this.pool.get(unitId) ?? 0) - copiesAtStar(star)));
     this.applyMirrorMerge();
     return OK;
   }

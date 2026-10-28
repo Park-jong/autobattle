@@ -46,6 +46,14 @@ export class CommanderHealth {
     this.current += amount;
   }
 
+  /** 테스트 런 전용: 최대 HP와 현재 HP를 직접 정한다 (1 ≤ HP ≤ 최대 HP). 잘못된 값은 Error이고 상태는 그대로 */
+  setValues(max: number, hp: number): void {
+    if (!Number.isInteger(max) || max < 1) throw new Error(`지휘관 최대 HP는 1 이상의 정수여야 합니다 (실제: ${max})`);
+    if (!Number.isInteger(hp) || hp < 1 || hp > max) throw new Error(`지휘관 HP는 1 이상 최대 HP(${max}) 이하의 정수여야 합니다 (실제: ${hp})`);
+    this.maxValue = max;
+    this.current = hp;
+  }
+
   get dead(): boolean {
     return this.current <= 0;
   }

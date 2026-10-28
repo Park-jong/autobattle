@@ -23,7 +23,7 @@ import type { UnitCatalog } from '../../core/data/unitLoader';
 import { Rng } from '../../core/rng';
 import { Economy, type BattleKind } from '../../core/economy';
 import type { ManagementResult } from '../../core/management';
-import type { BattleSettlement } from '../../core/run';
+import { forceCombatResult, type BattleSettlement, type ForcedResult } from '../../core/run';
 import { BoardLayout } from '../battle/BoardLayout';
 import { BoardPicker, type BoardPick } from '../battle/BoardPicker';
 import { CardInteraction, type CardInputMode, type InteractionOutcome } from '../cards/CardInteraction';
@@ -908,6 +908,20 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
 
   runSettlement(): BattleSettlement | null {
     return this.runResult;
+  }
+
+  forceRunResult(result: ForcedResult): void {
+    if (!this.runLink) return this.fail('연결된 런 전투가 없습니다.');
+    if (this.currentPhase === 'finished') return;
+    if (this.currentPhase === 'edit') {
+      this.start(this.seed);
+      if (this.phase !== 'playing') return; // 시작하지 못했으면 start가 사유를 error로 남겼다
+    }
+    const live = this.live;
+    if (!live) return;
+    forceCombatResult(live.sim, result);
+    live.advance(1e6); // 끝 시각까지 재생을 몰아 보내 일반 종료 처리(finishBattle)를 그대로 탄다
+    if (live.finished) this.finishBattle(live);
   }
 
   private fail(message: string): void {

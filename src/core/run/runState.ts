@@ -37,6 +37,17 @@ export type NodeSession =
   | { kind: 'event'; state: EventSessionState }
   | { kind: 'camp' };
 
+/** 테스트 런의 시작 위치: 액트 처음(1층 노드 선택) / 보스 직전(12층 야영지를 지난 맵 단계, 보스를 고를 수 있음) */
+export type TestStartPosition = 'actStart' | 'bossGate';
+export const TEST_START_POSITIONS: readonly TestStartPosition[] = ['actStart', 'bossGate'];
+
+/** 테스트 런 표시 (저장본의 선택 필드 `test`). 없으면 일반 런 */
+export interface TestRunInfo {
+  /** 테스트 런을 시작한 액트 */
+  startAct: number;
+  startPosition: TestStartPosition;
+}
+
 /** 지나온 전투의 기록 */
 export interface RunRecord {
   nodeId: string;
@@ -96,6 +107,8 @@ export class RunState {
   session: NodeSession | null = null;
   outcome: RunOutcome | null = null;
   history: RunRecord[] = [];
+  /** 플레이 테스트 런 표시 (일반 런이면 null). 테스트 명령 허용과 저장 검증 완화 여부를 정한다 */
+  test: TestRunInfo | null = null;
 
   constructor(
     readonly seed: number,

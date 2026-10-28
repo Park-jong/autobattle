@@ -15,7 +15,7 @@ import { RUN } from './constants';
 import type { EventSessionState, PendingPick } from './eventDirector';
 import { PlayerForces, type ForcesState } from './forces';
 import { NODE_TYPES, RunMap, type MapNode, type SerializedMap } from './runMap';
-import { RunState, RUN_PHASES, type NodeSession, type RunOutcome, type RunPhase, type RunRecord } from './runState';
+import { RunState, RUN_PHASES, TEST_START_POSITIONS, type NodeSession, type RunOutcome, type RunPhase, type RunRecord, type TestRunInfo } from './runState';
 
 export const SAVE_FORMAT = 'autochess-run';
 
@@ -44,6 +44,8 @@ export interface RunSave {
   session: NodeSession | null;
   outcome: RunOutcome | null;
   history: RunRecord[];
+  /** v3의 선택 필드. 있으면 플레이 테스트 런이다 (일반 런 저장본에는 이 필드가 없다) */
+  test?: TestRunInfo;
 }
 
 /** 복원에 필요한 데이터 카탈로그 */
@@ -82,6 +84,7 @@ export class RunSerializer {
       session: state.session ? structuredClone(state.session) : null,
       outcome: state.outcome,
       history: state.history.map((record) => ({ ...record })),
+      ...(state.test ? { test: { ...state.test } } : {}),
     };
   }
 
@@ -95,7 +98,7 @@ export class RunSerializer {
     // v1에는 유물 필드가 없다: 하르텐(commanderId는 v1에도 있음)·유물 없음으로 읽는다.
     // v1·v2에는 액트 필드가 없다: 단일 `map`을 액트 1의 맵으로 읽는다 (v3는 `maps`와 `totalActs`)
     const keys = ['format', 'version', 'seed', 'commanderId', 'deckPreset', 'position', 'health', 'forces', 'removals', 'seenEvents', 'phase', 'session', 'outcome', 'history'];
-    r.onlyKeys([...keys, ...(version >= 2 ? ['relics'] : []), ...(version >= 3 ? ['maps', 'totalActs'] : ['map'])]);
+    r.onlyKeys([...keys, ...(version >= 2 ? ['relics'] : []), ...(version >= 3 ? ['maps', 'totalActs', 'test'] : ['map'])]);
 
     const seed = r.number('seed');
     if (!Number.isInteger(seed) || seed !== (seed | 0)) r.fail('seed', `부호 있는 32비트 정수여야 함 (실제: ${seed})`);
@@ -112,7 +115,7 @@ export class RunSerializer {
     const outcome = r.rawValue('outcome');
     const totalActs = this.parseTotalActs(r, version, maps.length, phase, outcome);
     const state = new RunState(seed, commanderId, deckPreset, maps, health, forces, totalActs);
-    const map = state.map;
+    if (r.has('test')) state.test = this.parseTestInfo(r.object('test'), totalActs, maps.length);
 
     const position = r.object('position');
     position.onlyKeys(['currentNodeId', 'visited']);
@@ -150,6 +153,14 @@ export class RunSerializer {
     return state;
   }
 
+  /** 테스트 런 표시: 시작 액트는 전체 액트 수 이하이고 지금 액트보다 뒤일 수 없다 */
+  private parseTestInfo(t: FieldReader, totalActs: number, act: number): TestRunInfo {
+    t.onlyKeys(['startAct', 'startPosition']);
+    const startAct = t.int('startAct', 1);
+    if (startAct > totalActs || startAct > act) t.fail('startAct', `전체 액트 수(${totalActs})와 지금 액트(${act}) 이하여야 함 (실제: ${startAct})`);
+    return { startAct, startPosition: t.enum('startPosition', TEST_START_POSITIONS) };
+  }
+
   /** v3는 `maps`(액트 순서대로, 액트마다 id 접두사가 다른 맵), v1·v2는 단일 `map`을 액트 1로 읽는다 */
   private parseMaps(r: FieldReader, version: number): RunMap[] {
     if (version < 3) return [RunMap.parse(r.rawValue('map'), 'run.map', 1)];
@@ -184,7 +195,8 @@ export class RunSerializer {
     // 유물: 최대 HP는 지휘관 기본값 + 보유 유물의 최대 HP 증가의 합
     const commander = this.deps.commanders.get(state.commanderId);
     const expectedMax = (commander?.maxHp ?? RUN.START_HP) + state.forces.relics.sum('maxHp', (e) => e.amount);
-    if (state.health.max !== expectedMax) r.fail('health.maxHp', `지휘관 기본 최대 HP와 보유 유물에서 계산한 ${expectedMax}여야 함 (실제: ${state.health.max})`);
+    // 테스트 런은 최대 HP를 직접 정할 수 있어 기본값과 같을 필요가 없다 (1 이상은 CommanderHealth가 확인)
+    if (state.test === null && state.health.max !== expectedMax) r.fail('health.maxHp', `지휘관 기본 최대 HP와 보유 유물에서 계산한 ${expectedMax}여야 함 (실제: ${state.health.max})`);
 
     this.checkCommanderCards(r, state);
 
@@ -354,7 +366,8 @@ export class RunSerializer {
     }
     const commander = this.deps.commanders.get(state.commanderId);
     const removalEvents = state.seenEvents.some((id) => this.deps.events.get(id)?.choices.some((c) => c.effects.some((e) => e.kind === 'removeCard')));
-    if (commander && state.deckPreset === 'starter' && state.removals === 0 && !removalEvents) {
+    // 테스트 런은 카드를 자유롭게 빼고 넣을 수 있어 시작 덱 보존을 확인하지 않는다 (다른 지휘관 고유 카드 금지는 그대로)
+    if (state.test === null && commander && state.deckPreset === 'starter' && state.removals === 0 && !removalEvents) {
       const owned = new Map<string, number>();
       for (const cards of Object.values(piles)) for (const card of cards) owned.set(card.cardId, (owned.get(card.cardId) ?? 0) + 1);
       for (const entry of commander.startingDeck) {

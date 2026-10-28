@@ -4,7 +4,7 @@ import type { Cell } from '../../core/combat/board';
 import type { CommanderDef } from '../../core/data/commander';
 import type { BattleKind, EconomyView } from '../../core/economy';
 import type { ManagementResult, ManagementSnapshot } from '../../core/management';
-import type { BattleSettlement, SettleResult } from '../../core/run';
+import type { BattleSettlement, ForcedResult, SettleResult } from '../../core/run';
 import type { SessionPhase } from './contracts';
 
 /** 로스터 명령 창구. Management(경제 플레이)와 RunRoster(런)가 같은 모양으로 만족한다 */
@@ -53,5 +53,10 @@ export interface RunBattleHost {
   /** 가장 최근에 끝난 런 전투의 정산 결과 (준비 단계를 다시 만들면 null) */
   runSettlement(): BattleSettlement | null;
   start(seed: number): void;
+  /**
+   * 테스트 런 전용: 지금 연결된 런 전투를 원하는 결과로 끝낸다 (준비 중이면 시작부터). 재생 중인 시뮬에 core의 forceCombatResult를
+   * 쓰고 끝난 뒤에는 일반 전투와 같은 정산 경로(complete)를 탄다.
+   */
+  forceRunResult(result: ForcedResult): void;
   subscribe(listener: () => void): () => void;
 }

@@ -165,8 +165,8 @@ export class PlayerForces {
 
   // ---- 덱 편집 (런 보상·상점·이벤트·야영지) ----
 
-  addCard(cardId: string): void {
-    this.carryDeck = addCardToDeck(this.carryDeck, this.cards, cardId);
+  addCard(cardId: string, upgraded = false): void {
+    this.carryDeck = addCardToDeck(this.carryDeck, this.cards, cardId, upgraded);
     this.preparedDeck = null;
   }
 

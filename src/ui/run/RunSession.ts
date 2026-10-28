@@ -1,16 +1,17 @@
-import { RUN, RunController, type RunDeps, type RunResult } from '../../core/run';
+import { RUN, RunController, type ForcedResult, type RunDeps, type RunResult, type TestRunSetup } from '../../core/run';
 import type { CardCatalog } from '../../core/data/cardLoader';
 import type { UnitCatalog } from '../../core/data/unitLoader';
 import type { RunBattleHost } from '../debug/runLink';
 import { RunBattleAdapter } from './RunBattleAdapter';
 import type { RunSaveStore } from './RunSaveStore';
 import type {
-  BattleScreenInfo, BattleStage, RunCommands, RunNotice, RunScreenId, RunSnapshot, RunViewSource, StartInfo,
+  BattleScreenInfo, BattleStage, RunCommands, RunNotice, RunScreenId, RunSnapshot, RunViewSource, StartInfo, TestCommands, TestToolCommand,
 } from './contracts';
 import {
   buildActIntroView, buildBossRelicView, buildCampView, buildCommanderChoices, buildEncounterPreview, buildEndView, buildEventView, buildHud, buildMapView, buildRewardView, buildSettlementView,
   buildShopView, type EncounterPreviewView,
 } from './runViews';
+import { buildTestCatalog, buildTestToolsView, type TestCatalogView } from './testViews';
 
 /** 시작 화면의 두 가지 옛 진입점(경제 플레이·편성 디버그)을 여는 쪽. 런 화면은 구현을 모른다 */
 export interface LegacyModes {
@@ -43,7 +44,7 @@ type Mode = 'start' | 'run' | 'debug';
  * 전투: 전투 준비 단계에 들어가면 BattleSession에 런 전투 연결을 걸어 준비 화면(상점·배치·준비 카드)을 재사용하고,
  * 전투가 끝나 정산되면 결과를 보여준 뒤(resultPending) "계속"을 눌러야 다음 단계 화면으로 넘어간다.
  */
-export class RunSession implements RunViewSource, RunCommands {
+export class RunSession implements RunViewSource, RunCommands, TestCommands {
   private mode: Mode = 'start';
   private controller: RunController | null = null;
   private suggestedSeed: number;
@@ -58,6 +59,8 @@ export class RunSession implements RunViewSource, RunCommands {
   private readonly listeners = new Set<() => void>();
   private readonly cards: CardCatalog;
   private readonly units: UnitCatalog;
+  /** 테스트 도구의 선택지 목록 (데이터에서 한 번만 만든다) */
+  private testCatalogCache: TestCatalogView | null = null;
 
   constructor(private readonly o: RunSessionOptions) {
     this.cards = o.deps.cards;
@@ -115,7 +118,13 @@ export class RunSession implements RunViewSource, RunCommands {
       event: live && eventView ? buildEventView(eventView, run, this.cards) : null,
       camp: live && campView ? buildCampView(campView, run, this.cards, this.units) : null,
       ended: live && screen === 'ended' ? buildEndView(run, this.cards, this.units, this.o.deps.relics) : null,
+      testTools: live && screen !== 'ended' ? buildTestToolsView(run, this.o.deps, this.testCatalog(), this.resultPending) : null,
     };
+  }
+
+  private testCatalog(): TestCatalogView {
+    this.testCatalogCache ??= buildTestCatalog(this.o.deps);
+    return this.testCatalogCache;
   }
 
   private startInfo(): StartInfo {
@@ -124,6 +133,7 @@ export class RunSession implements RunViewSource, RunCommands {
       suggestedSeed: this.suggestedSeed,
       commanders: buildCommanderChoices(this.o.deps.commanders.commanders, this.cards, this.units, RUN.START_HP),
       defaultCommanderId: this.o.commanderId,
+      testCatalog: this.testCatalog(),
     };
   }
 
@@ -143,6 +153,20 @@ export class RunSession implements RunViewSource, RunCommands {
       this.adopt(RunController.create(this.o.deps, { seed: value, commanderId: commanderId ?? this.o.commanderId }));
     } catch (e) {
       return this.fail(`새 런을 만들 수 없습니다: ${(e as Error).message}`);
+    }
+    this.suggestedSeed = this.o.suggestSeed();
+    this.afterChange();
+  }
+
+  startTestRun(seed: number | null, setup: Omit<TestRunSetup, 'seed'>): void {
+    const value = seed ?? this.suggestedSeed;
+    if (!Number.isInteger(value) || value < SEED_MIN || value > SEED_MAX) {
+      return this.fail(`시드는 ${SEED_MIN}~${SEED_MAX} 사이의 정수여야 합니다.`);
+    }
+    try {
+      this.adopt(RunController.createTest(this.o.deps, { ...setup, seed: value }));
+    } catch (e) {
+      return this.fail(`테스트 런을 만들 수 없습니다: ${(e as Error).message}`);
     }
     this.suggestedSeed = this.o.suggestSeed();
     this.afterChange();
@@ -224,6 +248,50 @@ export class RunSession implements RunViewSource, RunCommands {
   campPromote(ownedUnitId: number): void { this.run((run) => run.campPromote(ownedUnitId)); }
   leaveCamp(): void { this.run((run) => run.leaveCamp()); }
 
+  // ---- TestCommands: 런 중 테스트 도구 ----
+
+  /** 테스트 런의 명령 한 건. 일반 런이거나 단계가 맞지 않으면 core가 거부하고 사유가 알림으로 나온다 */
+  testCommand(command: TestToolCommand): void {
+    const run = this.controller;
+    if (!run || this.mode !== 'run') return;
+    if (run.testInfo === null) return this.fail('테스트 런에서만 쓸 수 있습니다.');
+    if (this.resultPending) return this.fail('전투 결과를 확인한 뒤("계속") 쓸 수 있습니다.');
+    if (command.kind === 'forceResult') return this.forceBattle(run, command.result);
+    const result = this.execTest(run, command);
+    if (!result.ok) return this.fail(result.reason);
+    this.notice = null;
+    // 전투 준비 중에 덱·HP·유닛·유물이 바뀌었으면 준비 화면(시뮬)을 새 상태로 다시 만든다
+    if (run.phase === 'battlePrep') this.attachBattle(run, true);
+    this.afterChange();
+  }
+
+  private execTest(run: RunController, c: TestToolCommand): RunResult {
+    const t = run.test;
+    switch (c.kind) {
+      case 'setGold': return t.setGold(c.amount);
+      case 'addGold': return t.addGold(c.amount);
+      case 'setHp': return t.setHp(c.hp, c.maxHp);
+      case 'setLevel': return t.setLevel(c.level);
+      case 'addRelic': return t.addRelic(c.relicId);
+      case 'removeRelic': return t.removeRelic(c.relicId);
+      case 'addCard': return t.addCard(c.cardId, c.upgraded, c.count);
+      case 'removeCard': return t.removeCard(c.instanceId);
+      case 'grantUnit': return t.grantUnit(c.unitId, c.star, c.place);
+      case 'jumpToBoss': return t.jumpToBoss(c.viaCamp);
+      case 'nextAct': return t.skipToNextAct(c.withBossRelic);
+      case 'forceResult': return { ok: false, reason: '전투 결과는 별도 경로로 처리합니다' };
+    }
+  }
+
+  /** 지금 전투를 강제로 끝낸다: 연결된 전투 세션의 시뮬에 적용해 일반 전투 종료·정산 경로를 그대로 탄다 */
+  private forceBattle(run: RunController, result: ForcedResult): void {
+    const blocked = run.test.availability().battle;
+    if (blocked) return this.fail(blocked);
+    if (run.phase === 'battlePrep') this.attachBattle(run);
+    this.notice = null;
+    this.o.battle.forceRunResult(result);
+  }
+
   // ---- 내부 ----
 
   /** 정예 보상 유물이 남아 있으면 먼저 받고 카드 보상을 처리한다 (카드만 고르고 유물을 놓치지 않게) */
@@ -272,10 +340,11 @@ export class RunSession implements RunViewSource, RunCommands {
     this.notify();
   }
 
-  private attachBattle(run: RunController): void {
+  /** 전투 준비 화면을 연결한다. force면 같은 전투여도 준비 시뮬을 새 상태로 다시 만든다 */
+  private attachBattle(run: RunController, force = false): void {
     const session = run.session;
     const key = `${run.currentNode?.id ?? ''}#${session?.kind === 'battle' ? session.tries : 0}`;
-    if (key === this.attachedKey) return;
+    if (key === this.attachedKey && !force) return;
     this.attachedKey = key;
     this.attachedAttempt = (session?.kind === 'battle' ? session.tries : 0) + 1;
     this.o.battle.attachRun(new RunBattleAdapter(run));

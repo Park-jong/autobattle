@@ -11,6 +11,8 @@ export interface SaveSummary {
   maxHp: number;
   gold: number;
   commanderName: string;
+  /** 테스트 런 저장본이면 true */
+  test: boolean;
 }
 
 export type SaveStatus =
@@ -41,7 +43,7 @@ export class RunSaveStore {
     const c = loaded.controller;
     return {
       kind: 'ok',
-      summary: { seed: c.seed, act: c.act, floor: c.floorReached, hp: c.hp, maxHp: c.maxHp, gold: c.gold, commanderName: c.commander.name },
+      summary: { seed: c.seed, act: c.act, floor: c.floorReached, hp: c.hp, maxHp: c.maxHp, gold: c.gold, commanderName: c.commander.name, test: c.testInfo !== null },
     };
   }
 
