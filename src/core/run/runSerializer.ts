@@ -5,11 +5,13 @@ import { FieldReader } from '../data/fieldReader';
 import type { EventCatalog } from '../data/eventLoader';
 import type { UnitCatalog } from '../data/unitLoader';
 import type { BattleOutcome } from '../economy';
+import { cardPrice } from './cardMarket';
+import type { RewardRarity } from './cardRewards';
 import { CommanderHealth } from './commanderHealth';
 import { RUN } from './constants';
 import type { EventSessionState, PendingPick } from './eventDirector';
 import { PlayerForces, type ForcesState } from './forces';
-import { NODE_TYPES, RunMap, type SerializedMap } from './runMap';
+import { NODE_TYPES, RunMap, type MapNode, type SerializedMap } from './runMap';
 import { RunState, RUN_PHASES, type NodeSession, type RunOutcome, type RunPhase, type RunRecord } from './runState';
 
 export const SAVE_FORMAT = 'autochess-run';
@@ -124,7 +126,81 @@ export class RunSerializer {
     if (state.outcome === 'dead' && !health.dead) r.fail('outcome', '사망 결과인데 지휘관 HP가 0이 아님');
 
     state.history = r.array('history').map((raw, i) => this.parseRecord(raw, `run.history[${i}]`, map));
+    this.checkConsistency(r, position, state);
     return state;
+  }
+
+  // ---- 필드 간 일관성 ----
+
+  /** 각 필드가 따로는 올바르지만 서로 모순되는 저장본(실제 진행으로는 만들어질 수 없는 상태)을 거부한다 */
+  private checkConsistency(r: FieldReader, position: FieldReader, state: RunState): void {
+    const { map, visited, session } = state;
+    const current = state.currentNodeId === null ? undefined : map.node(state.currentNodeId);
+
+    // 위치: 입장한 노드는 1층부터 간선을 따라 한 층씩 이어진다
+    if (visited.length > RUN.MAP.FLOORS) position.fail('visited', `${RUN.MAP.FLOORS}개 이하여야 함 (실제: ${visited.length})`);
+    if (visited.length === 0 ? state.currentNodeId !== null : state.currentNodeId !== visited[visited.length - 1]) {
+      position.fail('currentNodeId', '입장 기록(visited)의 마지막 노드와 같아야 함 (기록이 비면 null)');
+    }
+    visited.forEach((id, i) => {
+      const node = map.node(id) as MapNode;
+      if (i === 0 && node.floor !== 1) position.fail('visited[0]', `1층 노드여야 함 (실제: ${id}는 ${node.floor}층)`);
+      const previous = i === 0 ? undefined : map.node(visited[i - 1] as string);
+      if (previous && !previous.next.includes(id)) position.fail(`visited[${i}]`, `이전 노드 ${previous.id}에서 이어진 노드가 아님 (${id})`);
+    });
+
+    // 단계 ↔ 현재 노드 종류
+    const phase = state.phase;
+    const type = current?.type;
+    const battleNode = type === 'combat' || type === 'elite' || type === 'boss';
+    if (phase === 'map' && type === 'boss') r.fail('phase', '보스 노드 다음에는 맵 단계가 있을 수 없음');
+    if (phase === 'battlePrep' && !battleNode) r.fail('phase', `battlePrep은 전투 노드에서만 가능함 (현재 노드: ${type ?? '없음'})`);
+    if ((phase === 'shop' || phase === 'event' || phase === 'camp') && type !== phase) r.fail('phase', `${phase} 단계의 현재 노드는 ${phase}여야 함 (실제: ${type ?? '없음'})`);
+    if (session?.kind === 'reward') {
+      if (type !== 'combat' && type !== 'elite') r.fail('session', `카드 보상은 일반·정예 전투 노드에서만 가능함 (현재 노드: ${type ?? '없음'})`);
+      if (session.source !== (type === 'elite' ? 'elite' : 'normal')) r.fail('session.source', `현재 노드(${type})와 보상 종류(${session.source})가 맞지 않음`);
+    }
+    if (phase === 'ended') {
+      if (state.outcome === 'victory' && type !== 'boss') r.fail('outcome', '승리는 보스 노드에서만 가능함');
+      if (state.outcome === 'dead' && !battleNode) r.fail('outcome', '사망은 전투 노드에서만 가능함');
+    }
+
+    // 지휘관 HP: 사망은 곧 종료
+    if (phase !== 'ended' && state.health.dead) r.fail('health', `종료되지 않은 런(${phase})인데 지휘관 HP가 0임`);
+    if (state.outcome === 'victory' && state.health.dead) r.fail('health', '승리한 런인데 지휘관 HP가 0임');
+
+    // 전투 시도 횟수: 보스에서 질 때마다 기록이 하나 쌓이며 1씩 오른다
+    if (session?.kind === 'battle') {
+      const records = state.history.filter((record) => record.nodeId === state.currentNodeId).length;
+      if (session.tries !== records) r.fail('session.tries', `이 노드의 전투 기록 수(${records})와 같아야 함 (실제: ${session.tries})`);
+    }
+
+    // 상점: 3칸, 가격은 희귀도 가격표와 같다
+    if (session?.kind === 'shop') {
+      if (session.cards.length !== RUN.SHOP.CARD_SLOTS) r.fail('session.cards', `${RUN.SHOP.CARD_SLOTS}칸이어야 함 (실제: ${session.cards.length})`);
+      session.cards.forEach((slot, i) => {
+        const rarity = this.deps.cards.get(slot.cardId)?.rarity;
+        if (rarity !== 'common' && rarity !== 'rare' && rarity !== 'epic') r.fail(`session.cards[${i}].cardId`, `상점에 진열할 수 없는 카드 "${slot.cardId}"`);
+        const price = cardPrice(rarity as RewardRarity);
+        if (slot.price !== price) r.fail(`session.cards[${i}].price`, `희귀도 ${rarity}의 가격 ${price}G여야 함 (실제: ${slot.price})`);
+      });
+    }
+
+    // 이벤트: 입장한 이벤트 노드마다 id가 하나씩 쌓이고, 모두 본 뒤에야 되풀이된다
+    const eventNodes = visited.filter((id) => map.node(id)?.type === 'event').length;
+    if (state.seenEvents.length !== eventNodes) r.fail('seenEvents', `입장한 이벤트 노드 수(${eventNodes})와 같아야 함 (실제: ${state.seenEvents.length})`);
+    state.seenEvents.forEach((id, i) => {
+      const before = new Set(state.seenEvents.slice(0, i));
+      if (before.has(id) && before.size < this.deps.events.events.length) r.fail(`seenEvents[${i}]`, `다른 이벤트를 모두 보기 전에 "${id}"가 되풀이됨`);
+    });
+    if (session?.kind === 'event' && session.state.eventId !== state.seenEvents[state.seenEvents.length - 1]) {
+      r.fail('session.state.eventId', '가장 최근에 나온 이벤트(seenEvents의 마지막)와 같아야 함');
+    }
+
+    // 기록은 입장한 노드의 것이다
+    state.history.forEach((record, i) => {
+      if (!visited.includes(record.nodeId)) r.fail(`history[${i}].nodeId`, `입장하지 않은 노드 "${record.nodeId}"`);
+    });
   }
 
   // ---- 세션 ----

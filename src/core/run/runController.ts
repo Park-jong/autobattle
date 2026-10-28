@@ -102,6 +102,8 @@ export class RunController {
   private readonly rewards: CardRewardGenerator;
   private readonly director: EventDirector;
   private readonly serializer: RunSerializer;
+  /** 이 컨트롤러가 발급한 전투 시뮬 → 발급 당시 노드·시도·정산 여부. completeBattle이 현재 전투의 결과만 받게 묶는다 */
+  private readonly issued = new WeakMap<CombatSimulator, { nodeId: string; tries: number; settled: boolean }>();
   /** 단계에 따라 명령을 허용하는 유닛 관리 창구 */
   readonly roster: RunRoster;
 
@@ -226,7 +228,9 @@ export class RunController {
       cards: { commander: this.commander, deck: this.state.forces.deckForBattle(), commands, commanderHp: this.state.health.hp },
       enemy: plan.enemy,
     };
-    return new CombatSimulator(setup, this.deps.units, this.deps.traits, this.deps.cards);
+    const sim = new CombatSimulator(setup, this.deps.units, this.deps.traits, this.deps.cards);
+    this.issued.set(sim, { nodeId: this.requireNode().id, tries: this.requireBattleSession().tries, settled: false });
+    return sim;
   }
 
   /** 준비를 마치고 전투를 시작한다. 이후 정산 전까지 로스터 관리 명령은 거부된다 */
@@ -247,14 +251,21 @@ export class RunController {
    * 끝난 전투를 런에 정산한다. 같은 전투는 한 번만 정산된다 (단계가 바뀌고 전투 ID가 골드 계정에도 기록됨).
    * 골드(전투 종류별) → 카드로 잃은 HP → 패배/무승부면 패배 피해 → 덱·장비 이어받기 → 다음 단계:
    * 사망 → ended / 보스 승리 → ended(승리) / 승리 → reward / 보스 패배 → battlePrep(재도전) / 그 외 패배 → map
+   * createSimulator가 현재 노드·시도에 발급한 시뮬만 받는다 (다른 노드·이전 시도·다른 컨트롤러의 시뮬, 이미 정산한 시뮬은 거부).
    */
   completeBattle(sim: CombatSimulator): SettleResult {
     const session = this.state.session;
     if (session?.kind !== 'battle' || (this.state.phase !== 'battle' && this.state.phase !== 'battlePrep')) {
       return fail('정산할 전투가 없습니다 (이미 정산했거나 전투 단계가 아님)');
     }
-    if (!sim.finished || !sim.deck) return fail('전투가 아직 끝나지 않았습니다');
     const node = this.requireBattleNode();
+    const ticket = this.issued.get(sim);
+    if (!ticket) return fail('이 런에서 발급한 전투가 아닙니다 (createSimulator로 만든 시뮬만 정산할 수 있음)');
+    if (ticket.settled) return fail('이미 정산한 전투입니다');
+    if (ticket.nodeId !== node.id || ticket.tries !== session.tries) {
+      return fail(`현재 전투가 아닌 전투 결과입니다 (발급: ${ticket.nodeId} ${ticket.tries}번째 시도, 현재: ${node.id} ${session.tries}번째 시도)`);
+    }
+    if (!sim.finished || !sim.deck) return fail('전투가 아직 끝나지 않았습니다');
     const kind = kindOf(node);
     const result = sim.result();
     const outcome: BattleOutcome = result.winner === 0 ? 'win' : result.winner === 1 ? 'loss' : 'draw';
@@ -274,6 +285,7 @@ export class RunController {
       health.damage(defeat);
     }
     forces.finishBattle(sim.deck.serialize(), sim.equippedItems);
+    ticket.settled = true;
 
     this.state.history.push({
       nodeId: node.id, floor: node.floor, type: node.type, outcome, endTime: result.endTime,
