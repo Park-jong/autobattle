@@ -69,6 +69,10 @@ export interface TestAvailability {
   battle: string | null;
   /** 다음 액트로 넘기기만의 추가 사유 (마지막 액트) */
   nextAct: string | null;
+  /** "보스 직전 야영지로"만의 추가 사유 (이미 보스 직전 야영지에 있거나 지나왔을 때 등) */
+  bossCamp: string | null;
+  /** "보스 전투 준비로"만의 추가 사유 (이미 보스 노드에 있을 때 등) */
+  boss: string | null;
 }
 
 /** RunController가 테스트 도구에 열어 주는 내부 동작 (규칙은 컨트롤러에 그대로 둔다) */
@@ -90,11 +94,21 @@ const fail = (reason: string): { ok: false; reason: string } => ({ ok: false, re
 const isInt = (value: unknown, min: number, max: number): value is number => Number.isInteger(value) && (value as number) >= min && (value as number) <= max;
 
 /**
+ * 테스트 도구가 "지나온 것으로" 만들어 넣은 승리 기록인지 (건너뛴 구간). 실제 전투는 한 틱 이상 진행되므로 endTime이 0일 수 없다.
+ * 저장 형식에 표시 필드를 더하지 않고 기록 모양만으로 구분한다.
+ */
+export function isSkippedRecord(record: { endTime: number; cardsUsed: number }): boolean {
+  return record.endTime === 0 && record.cardsUsed === 0;
+}
+
+/**
  * 전투를 원하는 결과로 즉시 끝낸다 (win: 적 전멸 / loss: 아군 전멸). 실제 전투와 같은 시뮬 위에서 유닛을 쓰러뜨릴 뿐이라
  * 이후 정산(골드·피해·보상)은 일반 경로를 그대로 탄다. 증원 소환 같은 보스 연출이 있으면 끝날 때까지 몇 틱 더 쓰러뜨린다.
  */
 export function forceCombatResult(sim: CombatSimulator, result: ForcedResult): void {
   sim.startCombat();
+  // 한 틱 진행한 뒤 끝낸다: 강제 결과의 endTime이 0보다 커서, 건너뛴 구간 기록(endTime 0)과 구분된다
+  if (!sim.finished) sim.step();
   for (let guard = 0; guard < 20 && !sim.finished; guard++) {
     for (const unit of sim.world.units) {
       const kill = result === 'win' ? unit.side === 1 : unit.side === 0;
@@ -126,13 +140,33 @@ export class TestRunTools {
   availability(): TestAvailability {
     const none = '테스트 런에서만 쓸 수 있습니다';
     const { phase, act, totalActs, test } = this.state;
-    if (!test) return { edit: none, move: none, battle: none, nextAct: none };
+    if (!test) return { edit: none, move: none, battle: none, nextAct: none, bossCamp: none, boss: none };
+    const bossReasons = this.bossJumpReasons();
     return {
       edit: EDIT_PHASES.includes(phase) ? null : '맵·전투 준비·야영지 단계에서만 쓸 수 있습니다 (전투 중·보상·상점·이벤트·액트 전환 중에는 불가)',
       move: MOVE_PHASES.includes(phase) ? null : '맵·전투 준비·상점·이벤트·야영지 단계에서만 쓸 수 있습니다',
       battle: phase === 'battlePrep' || phase === 'battle' ? null : '전투 준비 또는 전투 중에만 쓸 수 있습니다',
       nextAct: act >= totalActs ? '마지막 액트입니다 (다음 액트가 없음)' : null,
+      ...bossReasons,
     };
+  }
+
+  /**
+   * 보스 이동 두 버튼의 위치별 사유. 야영지 경유(viaCamp)는 보스 직전 야영지(보스 바로 앞 노드)까지 아직 가지 않았을 때만 의미가 있다.
+   * 이미 그 야영지 안이거나 지나왔으면 "보스 전투 준비로"와 같은 결과가 되므로 거부해 버튼 이름과 동작을 일치시킨다.
+   */
+  private bossJumpReasons(): Pick<TestAvailability, 'bossCamp' | 'boss'> {
+    const { currentNodeId, map } = this.state;
+    if (currentNodeId === map.bossNode.id) {
+      const atBoss = '이미 보스 노드에 있습니다';
+      return { bossCamp: atBoss, boss: atBoss };
+    }
+    const path = this.pathTo(map.bossNode);
+    if (!path) {
+      const none = '현재 위치에서 보스로 이어지는 길이 없습니다';
+      return { bossCamp: none, boss: none };
+    }
+    return { bossCamp: path.length >= 2 ? null : '이미 보스 직전 야영지에 있거나 지나왔습니다 ("보스 전투 준비로"를 쓰세요)', boss: null };
   }
 
   // ---- 시작 구성 ----
@@ -292,11 +326,12 @@ export class TestRunTools {
   jumpToBoss(viaCamp: boolean): RunResult {
     const blocked = this.requireMovePhase('보스로 이동');
     if (blocked) return blocked;
-    if (this.state.currentNodeId === this.state.map.bossNode.id) return fail('이미 보스 노드에 있습니다');
-    const path = this.pathTo(this.state.map.bossNode);
-    if (!path) return fail('현재 위치에서 보스로 이어지는 길이 없습니다');
+    const a = this.availability();
+    const reason = viaCamp ? a.bossCamp : a.boss;
+    if (reason) return fail(reason);
+    const path = this.pathTo(this.state.map.bossNode) as MapNode[];
     this.leaveCurrentNode();
-    const stop = viaCamp && path.length >= 2 ? path.length - 2 : path.length - 1;
+    const stop = viaCamp ? path.length - 2 : path.length - 1;
     for (const node of path.slice(0, stop)) this.markPassed(node);
     this.hooks.visitNode(path[stop] as MapNode);
     return OK;

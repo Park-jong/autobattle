@@ -138,6 +138,37 @@ describe('RunSession 플레이 테스트 도구', () => {
     expect(h.session.snapshot().battle).toMatchObject({ stage: 'prep', attempt: 2 });
   });
 
+  it('테스트 런 종료 화면: 승리해도 건너뛴 구간 기록은 통계에서 빠지고 테스트 런 표시가 붙는다', () => {
+    const h = createHarness();
+    h.session.startTestRun(7, { startAct: 3, startPosition: 'bossGate' });
+    h.session.chooseNode(h.session.snapshot().map!.availableIds[0]!);
+    h.session.testCommand({ kind: 'forceResult', result: 'win' });
+    h.session.continueAfterBattle();
+    const snap = h.session.snapshot();
+    expect(snap.screen).toBe('ended');
+    expect(snap.ended).toMatchObject({ outcome: 'victory', battles: { played: 1, wins: 1, losses: 0, draws: 0 } });
+    expect(snap.ended!.testRun).toMatchObject({ badge: expect.stringContaining('테스트 런'), skippedRecords: expect.any(Number) });
+    expect(snap.ended!.testRun!.skippedRecords).toBeGreaterThanOrEqual(20);
+  });
+
+  it('테스트 런 종료 화면: 사망해도 실제로 치른 전투만 센다', () => {
+    const h = createHarness();
+    h.session.startTestRun(7, { startAct: 2, startPosition: 'bossGate', hp: 1 });
+    h.session.chooseNode(h.session.snapshot().map!.availableIds[0]!);
+    h.session.testCommand({ kind: 'forceResult', result: 'loss' });
+    h.session.continueAfterBattle();
+    const snap = h.session.snapshot();
+    expect(snap.screen).toBe('ended');
+    expect(snap.ended).toMatchObject({ outcome: 'dead', battles: { played: 1, wins: 0, losses: 1, draws: 0 } });
+    expect(snap.ended!.testRun!.skippedRecords).toBeGreaterThan(10);
+  });
+
+  it('일반 런 종료 화면에는 테스트 런 표시가 없다', () => {
+    const h = createHarness();
+    h.session.newRun(3);
+    expect(h.session.snapshot().ended).toBeNull();
+  });
+
   it('강제 결과는 전투가 없을 때 사유와 함께 거부된다', () => {
     const h = createHarness();
     h.session.startTestRun(7, {});

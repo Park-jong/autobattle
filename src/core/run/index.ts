@@ -16,7 +16,7 @@ export {
   type BattleSettlement, type NodeSession, type RunOutcome, type RunPhase, type RunRecord, type TestRunInfo, type TestStartPosition,
 } from './runState';
 export {
-  TEST_LIMITS, TestRunTools, forceCombatResult,
+  TEST_LIMITS, TestRunTools, forceCombatResult, isSkippedRecord,
   type ForcedResult, type TestAvailability, type TestCardSpec, type TestRunHooks, type TestRunSetup, type TestUnitSpec,
 } from './testRun';
 export { RunSerializer, SAVE_FORMAT, type RunSave, type SerializerDeps } from './runSerializer';

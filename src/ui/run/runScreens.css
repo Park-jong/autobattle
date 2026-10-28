@@ -39,6 +39,7 @@
 .run-end-card { width: min(560px, 100%); }
 .run-end-card.victory .run-title { color: #ffd54a; }
 .run-end-card.dead .run-title { color: #ff7b7b; }
+.run-end-test { margin: 0; padding: 4px 8px; background: #5b3a8a; border: 1px solid #a07be0; border-radius: 4px; color: #f0e6ff; font-size: 12px; text-align: center; }
 .run-seed-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
 .run-seed-row > span { color: #9aa3b5; }
 .run-seed-input { flex: 1; font-size: 16px; }
