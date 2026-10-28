@@ -54,7 +54,7 @@ export class BossRelicScreen extends NodeScreen {
   render(snap: RunSnapshot): void {
     const view = snap.bossRelic;
     if (!view) return;
-    const grid = tagged(el('div', 'run-relic-shelf'), 'boss-relic-choices');
+    const grid = tagged(el('div', 'run-relic-shelf run-boss-relic-grid'), 'boss-relic-choices');
     view.relics.forEach((relic, index) => {
       const box = el('div', 'run-relic-offer');
       box.append(relicCard(relic), tagged(button('이 유물 받기', () => this.commands.claimBossRelic(index), 'dbg-btn dbg-primary run-choice-button'), `boss-relic-${index}`));

@@ -212,6 +212,11 @@
 .run-relic-claimed { color: #9be29b; margin: 0; }
 .run-relic-shelf { display: flex; flex-wrap: wrap; gap: 14px; }
 .run-relic-offer { display: flex; flex-direction: column; gap: 6px; }
+/* 보스 유물 선택: 후보 카드를 같은 폭으로 정렬 (좁은 화면에서는 세로로 쌓는다) */
+.run-boss-relic-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; width: 100%; max-width: 900px; margin-bottom: 14px; }
+.run-boss-relic-grid .run-relic-offer { min-width: 0; }
+.run-boss-relic-grid .run-relic-card { max-width: none; flex: 1 1 auto; overflow-wrap: anywhere; }
+@media (max-width: 800px) { .run-boss-relic-grid { grid-template-columns: minmax(0, 1fr); } }
 
 /* 액트 (M5-1): 맵 위 액트 제목, HUD 액트 칸, 액트 소개, 보스 패턴 설명 */
 .run-hud-act .run-hud-value { color: #ffd54a; }
