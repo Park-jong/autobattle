@@ -55,6 +55,19 @@ export class RelicInventory implements ManagementPerks {
     return def;
   }
 
+  /**
+   * 테스트 런 전용: 유물을 뺀다. 없는 유물이면 Error. 한도가 있는 효과의 사용량은 남은 한도로 줄인다.
+   * 획득 때 한 번 적용된 즉시 효과(카드 강화, 쌍둥이 거울 합성)는 되돌리지 않는다.
+   */
+  remove(id: string): RelicDef {
+    const def = this.catalog.get(id);
+    if (!def || !this.has(id)) throw new Error(`가지고 있지 않은 유물입니다: ${def?.name ?? id}`);
+    this.ownedIds = this.ownedIds.filter((owned) => owned !== id);
+    this.mirrorUsed = Math.min(this.mirrorUsed, this.sum('mirrorMerge', (e) => e.count));
+    this.freeRerollsUsed = Math.min(this.freeRerollsUsed, this.sum('freeReroll', (e) => e.count));
+    return def;
+  }
+
   /** 한 종류 효과의 한 필드를 합산한다 (예: sum('winGold', 'amount')) */
   sum<K extends RelicEffect['kind']>(kind: K, pick: (effect: Extract<RelicEffect, { kind: K }>) => number): number {
     return this.effects().reduce((total, e) => (e.kind === kind ? total + pick(e as Extract<RelicEffect, { kind: K }>) : total), 0);

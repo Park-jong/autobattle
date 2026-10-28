@@ -1,5 +1,6 @@
 import { button, el, tagged } from './dom';
-import type { RunCommands, RunSnapshot } from './contracts';
+import type { RunCommands, RunSnapshot, TestCommands } from './contracts';
+import { TestStartPanel } from './TestStartPanel';
 
 /** 시작 화면: 새 런(시드 표시·입력) / 이어하기 / 경제 플레이 / 편성 디버그 */
 export class StartScreen {
@@ -12,8 +13,11 @@ export class StartScreen {
   private lastSnapshot: RunSnapshot | null = null;
   /** 선택한 지휘관 id (아직 고르지 않았으면 기본 지휘관) */
   private selectedCommander: string | null = null;
+  /** 테스트 시작 패널 (입력 상태를 유지하려고 한 번만 만들어 다시 그릴 때마다 같은 노드를 붙인다) */
+  private readonly testPanel: TestStartPanel;
 
-  constructor(private readonly commands: RunCommands) {
+  constructor(private readonly commands: RunCommands, testCommands: TestCommands) {
+    this.testPanel = new TestStartPanel(testCommands);
     this.seedInput.type = 'text';
     this.seedInput.inputMode = 'numeric';
     this.seedInput.setAttribute('aria-label', '시드');
@@ -61,7 +65,7 @@ export class StartScreen {
     card.append(resume);
     if (save.kind === 'ok') {
       const s = save.summary;
-      card.append(el('p', 'dbg-hint', `${s.commanderName} · 시드 ${s.seed} · 액트 ${s.act} ${s.floor}층 · HP ${s.hp}/${s.maxHp} · ${s.gold}G`));
+      card.append(el('p', 'dbg-hint', `${s.test ? '[테스트 런] ' : ''}${s.commanderName} · 시드 ${s.seed} · 액트 ${s.act} ${s.floor}층 · HP ${s.hp}/${s.maxHp} · ${s.gold}G`));
     } else if (save.kind === 'none') {
       card.append(el('p', 'dbg-hint', '저장된 런이 없습니다.'));
     } else {
@@ -78,6 +82,8 @@ export class StartScreen {
       tagged(button('편성 디버그', () => this.commands.openDebug()), 'open-debug'),
     );
     card.append(legacy);
+    this.testPanel.render(start);
+    card.append(this.testPanel.root);
     this.root.replaceChildren(card);
   }
 

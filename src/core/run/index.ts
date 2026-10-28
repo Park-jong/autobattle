@@ -11,7 +11,14 @@ export { RelicRewardGenerator, relicPrice, type DroppableRarity, type ShopRelicS
 export { EventDirector, type ChoiceView, type EventHost, type EventSessionState, type PendingPick } from './eventDirector';
 export { PlayerForces, type ForcesState } from './forces';
 export { RunRoster, type RosterGate } from './runRoster';
-export { RUN_PHASES, RunState, type BattleSettlement, type NodeSession, type RunOutcome, type RunPhase, type RunRecord } from './runState';
+export {
+  RUN_PHASES, RunState, TEST_START_POSITIONS,
+  type BattleSettlement, type NodeSession, type RunOutcome, type RunPhase, type RunRecord, type TestRunInfo, type TestStartPosition,
+} from './runState';
+export {
+  TEST_LIMITS, TestRunTools, forceCombatResult,
+  type ForcedResult, type TestAvailability, type TestCardSpec, type TestRunHooks, type TestRunSetup, type TestUnitSpec,
+} from './testRun';
 export { RunSerializer, SAVE_FORMAT, type RunSave, type SerializerDeps } from './runSerializer';
 export {
   RunController, type CampPromotion, type CampView, type EventView, type RunDeps, type RunOptions,

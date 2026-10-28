@@ -19,6 +19,12 @@ export function hudElement(hud: RunHud): HTMLElement {
   hp.append(el('span', 'run-hud-label', '지휘관 HP'), el('strong', 'run-hud-value', `${hud.hp} / ${hud.maxHp}`), bar);
   const act = tagged(el('div', 'run-hud-item run-hud-act'), 'hud-act');
   act.append(el('strong', 'run-hud-value', `액트 ${hud.act} — ${hud.actName}`));
+  if (hud.test) {
+    const badge = tagged(el('div', 'run-hud-item run-test-badge'), 'test-badge');
+    badge.title = hud.test;
+    badge.append(el('strong', 'run-test-badge-title', '테스트 런'), el('span', 'run-test-badge-text', hud.test.replace('테스트 런 · ', '')));
+    root.append(badge);
+  }
   root.append(
     act,
     item('지휘관', hud.commanderName),

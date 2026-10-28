@@ -1,9 +1,10 @@
-import type { RunCommands, RunScreenId, RunSnapshot, RunViewSource } from './contracts';
+import type { RunCommands, RunScreenId, RunSnapshot, RunViewSource, TestCommands } from './contracts';
 import { button, el, tagged } from './dom';
 import { EndScreen } from './EndScreen';
 import { MapScreen } from './MapScreen';
 import { ActIntroScreen, BossRelicScreen, CampScreen, EventScreen, RewardScreen, ShopScreen } from './NodeScreens';
 import { StartScreen } from './StartScreen';
+import { TestToolsPanel } from './TestToolsPanel';
 import './runScreens.css';
 
 /** 전체 화면 오버레이로 그리는 화면 (그 외 battle은 캔버스 + 오른쪽 패널, debug는 기존 디버그 패널) */
@@ -29,6 +30,8 @@ export class RunShell {
   private readonly overlay = tagged(el('div', 'run-overlay'), 'run-overlay');
   private readonly toast = tagged(el('div', 'run-toast'), 'run-toast');
   private readonly backButton: HTMLButtonElement;
+  /** 테스트 런 중에만 보이는 테스트 도구 (모든 런 화면 위에 떠 있다) */
+  private readonly testTools: TestToolsPanel;
   private readonly screens: Partial<Record<RunScreenId, OverlayScreen>>;
   private mounted: RunScreenId | null = null;
   private shownNotice = 0;
@@ -36,11 +39,11 @@ export class RunShell {
 
   constructor(
     private readonly view: RunViewSource,
-    commands: RunCommands,
+    commands: RunCommands & TestCommands,
     private readonly hosts: ShellHosts,
   ) {
     this.screens = {
-      start: new StartScreen(commands),
+      start: new StartScreen(commands, commands),
       map: new MapScreen(view, commands),
       reward: new RewardScreen(commands),
       bossRelic: new BossRelicScreen(commands),
@@ -52,7 +55,8 @@ export class RunShell {
     };
     this.backButton = tagged(button('← 시작 화면', () => commands.toStart(), 'dbg-btn run-back-button'), 'back-to-start');
     this.toast.hidden = true;
-    document.body.append(this.overlay, this.toast, this.backButton);
+    this.testTools = new TestToolsPanel(view, commands);
+    document.body.append(this.overlay, this.toast, this.backButton, this.testTools.root);
     view.subscribe(() => this.render());
     this.render();
   }

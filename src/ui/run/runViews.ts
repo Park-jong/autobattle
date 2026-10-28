@@ -14,7 +14,7 @@ import type { BattleKind } from '../../core/economy';
 import {
   RUN,
   type BattleSettlement, type CampView, type EncounterPlan, type EventView, type NodeType, type RunController,
-  type RunOutcome, type RunPhase, type ShopView,
+  type RunOutcome, type RunPhase, type ShopView, type TestRunInfo,
 } from '../../core/run';
 import { CARD_TYPE_LABELS, cardTags, targetLabel } from '../cards/cardLabels';
 
@@ -102,6 +102,11 @@ export function buildCommanderChoices(
 
 // ---- 상단 정보 ----
 
+/** HUD·테스트 도구 머리말에 쓰는 테스트 런 표시 문구 */
+export function testBadgeText(info: TestRunInfo): string {
+  return `테스트 런 · 액트 ${info.startAct} ${info.startPosition === 'bossGate' ? '보스 직전' : '처음'}부터 시작`;
+}
+
 export interface RunHud {
   seed: number;
   commanderName: string;
@@ -122,6 +127,8 @@ export interface RunHud {
   location: string;
   /** 보유 유물 (획득 순서) */
   relics: RelicView[];
+  /** 테스트 런이면 배지 문구 (일반 런이면 null) */
+  test: string | null;
 }
 
 export function buildHud(run: RunController): RunHud {
@@ -141,6 +148,7 @@ export function buildHud(run: RunController): RunHud {
     phaseLabel: PHASE_LABELS[run.phase],
     location: node ? `${node.floor}층 ${NODE_TYPE_INFO[node.type].label}` : '출발 전',
     relics: run.relics.map(buildRelicView),
+    test: run.testInfo ? testBadgeText(run.testInfo) : null,
   };
 }
 

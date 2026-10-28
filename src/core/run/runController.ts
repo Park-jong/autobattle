@@ -26,8 +26,9 @@ import { globalFloor, type MapNode, type RunMap } from './runMap';
 import { RelicRewardGenerator, type ShopRelicSlot } from './relicRewards';
 import { RunRoster } from './runRoster';
 import { RunSerializer, type RunSave } from './runSerializer';
-import { RunState, type BattleSettlement, type NodeSession, type RunOutcome, type RunPhase, type RunRecord } from './runState';
+import { RunState, type BattleSettlement, type NodeSession, type RunOutcome, type RunPhase, type RunRecord, type TestRunInfo } from './runState';
 import { deriveSeed, normalizeRunSeed } from './seeds';
+import { TestRunTools, type TestRunSetup } from './testRun';
 
 /** 런 코어가 쓰는 검증된 게임 데이터 */
 export interface RunDeps {
@@ -120,6 +121,8 @@ export class RunController {
   private readonly issued = new WeakMap<CombatSimulator, { nodeId: string; tries: number; settled: boolean }>();
   /** 단계에 따라 명령을 허용하는 유닛 관리 창구 */
   readonly roster: RunRoster;
+  /** 플레이 테스트 도구 (테스트 런에서만 명령을 받는다. 일반 런에서는 모든 명령이 거부됨) */
+  readonly test: TestRunTools;
 
   private constructor(
     private readonly deps: RunDeps,
@@ -133,6 +136,16 @@ export class RunController {
     this.roster = new RunRoster(state.forces.management, {
       canEdit: () => this.state.phase !== 'battle' && this.state.phase !== 'ended',
       canShop: () => this.state.phase === 'battlePrep' || this.state.phase === 'shop',
+    });
+    this.test = new TestRunTools(deps, state, {
+      acquireRelic: (relicId) => this.acquireRelic(relicId),
+      visitNode: (node) => this.visitNode(node),
+      toMap: () => this.toMap(),
+      clearActBoss: (offerRelic) => { this.clearActBoss(offerRelic); },
+      pickEvent: (nodeId, seen) => this.director.pickEvent(nodeId, seen).id,
+      createSimulator: () => this.createSimulator(),
+      beginBattle: () => this.beginBattle(),
+      completeBattle: (sim) => this.completeBattle(sim),
     });
   }
 
@@ -158,6 +171,18 @@ export class RunController {
     return new RunController(deps, state);
   }
 
+  /**
+   * 플레이 테스트 런: 일반 런을 만든 뒤 설정(시작 액트·위치, 골드·HP·레벨, 유물·카드·유닛)을 적용하고 `test` 표시를 붙인다.
+   * 설정이 틀리면 Error(한국어)이고 아무 런도 만들지 않는다. 이후 규칙(전투·정산·보상)은 일반 런과 같다.
+   */
+  static createTest(deps: RunDeps, setup: TestRunSetup): RunController {
+    const run = RunController.create(deps, { seed: setup.seed, ...(setup.commanderId ? { commanderId: setup.commanderId } : {}), ...(setup.deckPreset ? { deckPreset: setup.deckPreset } : {}) });
+    run.test.validateSetup(setup);
+    run.state.test = { startAct: setup.startAct ?? 1, startPosition: setup.startPosition ?? 'actStart' };
+    run.test.build(setup);
+    return run;
+  }
+
   /** 저장된 체크포인트에서 이어간다. 잘못된 데이터는 위치가 담긴 한국어 오류 */
   static restore(deps: RunDeps, data: unknown): RunController {
     return new RunController(deps, new RunSerializer(deps).parse(data));
@@ -181,6 +206,8 @@ export class RunController {
   get totalActs(): number { return this.state.totalActs; }
   /** 지금 액트의 이름·지역 */
   get actInfo(): { name: string; region: string; text: string } { return RUN.ACTS.INFO[this.state.act - 1] as { name: string; region: string; text: string }; }
+  /** 테스트 런 표시 (일반 런이면 null) */
+  get testInfo(): TestRunInfo | null { return this.state.test; }
   get commander(): CommanderDef { return this.deps.commanders.get(this.state.commanderId) as CommanderDef; }
   get hp(): number { return this.state.health.hp; }
   get maxHp(): number { return this.state.health.max; }
@@ -244,10 +271,7 @@ export class RunController {
     if (this.state.phase !== 'map') return fail('지금은 노드를 고를 수 없습니다');
     const node = this.availableNodes().find((candidate) => candidate.id === nodeId);
     if (!node) return fail('고를 수 없는 노드입니다 (현재 위치에서 이어진 다음 층 노드만 선택 가능)');
-    this.state.currentNodeId = node.id;
-    this.state.visited.push(node.id);
-    this.state.forces.relics.beginNode();
-    this.enter(node);
+    this.visitNode(node);
     return OK;
   }
 
@@ -366,14 +390,7 @@ export class RunController {
       this.finish('victory');
     } else if (outcome === 'win' && kind === 'boss') {
       actCleared = this.state.act;
-      const offer = this.relicRewards.offerBoss(forces.relics.ids, this.bossRelicRng());
-      if (offer.length > 0) {
-        bossOffer = [...offer];
-        this.state.session = { kind: 'bossRelic', offer };
-        this.state.phase = 'bossRelic';
-      } else {
-        this.advanceAct();
-      }
+      bossOffer = this.clearActBoss(true);
     } else if (outcome === 'win') {
       const choices = RUN.REWARD.CHOICES + forces.relics.sum('rewardChoices', (e) => e.amount);
       cardOffer = this.rewards.offer(kind, new Rng(deriveSeed(this.state.seed, 'reward', node.id, session.tries)), choices);
@@ -622,6 +639,14 @@ export class RunController {
 
   // ---- 내부 ----
 
+  /** 노드에 입장한다: 위치·입장 기록을 갱신하고 노드 종류별 화면 상태를 연다 */
+  private visitNode(node: MapNode): void {
+    this.state.currentNodeId = node.id;
+    this.state.visited.push(node.id);
+    this.state.forces.relics.beginNode();
+    this.enter(node);
+  }
+
   private enter(node: MapNode): void {
     const forces = this.state.forces;
     switch (node.type) {
@@ -661,6 +686,23 @@ export class RunController {
   private toMap(): void {
     this.state.session = null;
     this.state.phase = 'map';
+  }
+
+  /**
+   * 마지막이 아닌 액트의 보스를 쓰러뜨린 뒤: 보스 유물 후보가 있으면(offerRelic) 선택 단계로, 아니면 바로 다음 액트 소개로.
+   * 후보 목록을 돌려준다 (선택 단계로 갔을 때만, 아니면 null)
+   */
+  private clearActBoss(offerRelic: boolean): string[] | null {
+    if (offerRelic) {
+      const offer = this.relicRewards.offerBoss(this.state.forces.relics.ids, this.bossRelicRng());
+      if (offer.length > 0) {
+        this.state.session = { kind: 'bossRelic', offer };
+        this.state.phase = 'bossRelic';
+        return [...offer];
+      }
+    }
+    this.advanceAct();
+    return null;
   }
 
   /**
