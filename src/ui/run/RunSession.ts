@@ -51,6 +51,8 @@ export class RunSession implements RunViewSource, RunCommands {
   private handledSettlement: unknown = null;
   /** 전투 연결을 건 (노드, 시도). 같은 전투 준비는 한 번만 연결한다 */
   private attachedKey: string | null = null;
+  /** 연결한 전투의 시도 번호(1부터). 정산 후에는 tries가 늘어 있으므로 결과 화면은 이 값을 쓴다 */
+  private attachedAttempt = 1;
   private notice: RunNotice | null = null;
   private noticeSeq = 0;
   private readonly listeners = new Set<() => void>();
@@ -229,6 +231,7 @@ export class RunSession implements RunViewSource, RunCommands {
     this.resultPending = false;
     this.handledSettlement = null;
     this.attachedKey = null;
+    this.attachedAttempt = 1;
     this.o.battle.detachRun();
   }
 
@@ -246,6 +249,7 @@ export class RunSession implements RunViewSource, RunCommands {
     const key = `${run.currentNode?.id ?? ''}#${session?.kind === 'battle' ? session.tries : 0}`;
     if (key === this.attachedKey) return;
     this.attachedKey = key;
+    this.attachedAttempt = (session?.kind === 'battle' ? session.tries : 0) + 1;
     this.o.battle.attachRun(new RunBattleAdapter(run));
   }
 
@@ -279,7 +283,7 @@ export class RunSession implements RunViewSource, RunCommands {
     return {
       stage,
       plan: buildEncounterPreview(run.battlePlan()),
-      attempt: (session?.kind === 'battle' ? session.tries : 0) + 1,
+      attempt: this.resultPending ? this.attachedAttempt : (session?.kind === 'battle' ? session.tries : 0) + 1,
       settlement: settlement ? buildSettlementView(settlement) : null,
     };
   }

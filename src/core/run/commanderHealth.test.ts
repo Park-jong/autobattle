@@ -41,6 +41,12 @@ describe('지휘관 HP', () => {
     expect(() => new CommanderHealth(0)).toThrow();
     expect(() => new CommanderHealth(10, 11)).toThrow();
     expect(() => new CommanderHealth(10).damage(-1)).toThrow();
+    expect(() => new CommanderHealth(10, -1)).toThrow('0 이상');
+    expect(() => new CommanderHealth(10, 2.5)).toThrow('정수');
+    expect(() => new CommanderHealth(10, Number.NaN)).toThrow('정수');
+    expect(() => new CommanderHealth(-5)).toThrow('최대 HP');
+    expect(() => new CommanderHealth(1.5)).toThrow('최대 HP');
+    expect(() => new CommanderHealth(10, 11)).toThrow('최대 HP(10) 이하');
     const restored = CommanderHealth.restore(new CommanderHealth(80, 33).serialize(), 'health');
     expect(restored.hp).toBe(33);
     expect(restored.max).toBe(80);

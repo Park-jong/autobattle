@@ -18,6 +18,8 @@
 .run-overlay .dbg-error { margin: 8px 0; padding: 8px 10px; background: #4a1d1d; border: 1px solid #ff7b7b; color: #ffd0d0; border-radius: 4px; }
 .run-overlay .dbg-input { padding: 6px 8px; background: #0f1118; color: inherit; border: 1px solid #3a4152; border-radius: 4px; font: inherit; }
 
+.run-confirm { display: flex; flex-direction: column; gap: 8px; padding: 12px; background: #2a1f1f; border: 1px solid #7a3a3a; border-radius: 6px; }
+.run-confirm p { margin: 0; }
 .run-big-button { padding: 10px 18px !important; font-size: 16px !important; }
 .run-title { font-size: 34px; letter-spacing: 2px; text-align: center; }
 .run-subtitle { margin: 6px 0 0; text-align: center; color: #9aa3b5; }
@@ -28,6 +30,7 @@
   font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; font-size: 14px; box-shadow: 0 4px 16px #0008;
 }
 .run-toast.error { background: #4a1d1d; border-color: #ff7b7b; color: #ffd0d0; }
+.run-screen-header .dbg-btn, .run-back-button { white-space: nowrap; }
 .run-back-button { position: fixed; right: 350px; top: 6px; z-index: 60; }
 
 /* 시작 화면 / 종료 화면 */

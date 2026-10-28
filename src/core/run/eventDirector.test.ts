@@ -38,6 +38,16 @@ const catalog = loadEvents(
   runDeps.cards, runDeps.units,
 );
 const [fx, fx2, fx3] = catalog.events as [typeof catalog.events[number], typeof catalog.events[number], typeof catalog.events[number]];
+const unitSale = loadEvents(
+  {
+    version: 1,
+    events: [{
+      id: 'fx_unit', title: 't', text: 'x',
+      choices: [{ text: 'buy unit', result: 'u', effects: [{ kind: 'gold', amount: -4 }, { kind: 'gainUnit', tier: 1 }] }, { text: 'skip', result: 's', effects: [] }],
+    }],
+  },
+  runDeps.cards, runDeps.units,
+).events[0] as typeof fx;
 const director = new EventDirector(catalog, new CardRewardGenerator(runDeps.cards), 1);
 
 class FakeHost implements EventHost {
@@ -51,6 +61,10 @@ class FakeHost implements EventHost {
   upgraded: number[] = [];
   units: number[] = [];
   benchSpace = true;
+  /** 유닛 풀 재고가 바닥났는가 */
+  poolEmpty = false;
+  /** 앞에서부터 차례로 쓰는 가용성 검사 결과 (비면 실제 상태로 판단). 검사 뒤 상태가 바뀌는 경우를 흉내 낸다 */
+  blockerScript: (string | null)[] = [];
   addGold(amount: number): void { this.gold += amount; }
   spendGold(amount: number): boolean {
     if (amount > this.gold) return false;
@@ -63,9 +77,13 @@ class FakeHost implements EventHost {
   upgradableCards(): number[] { return this.upgradable; }
   removeCard(id: number): void { this.removed.push(id); }
   upgradeCard(id: number): void { this.upgraded.push(id); }
-  hasBenchSpace(): boolean { return this.benchSpace; }
+  unitGrantBlocker(_tier: number): string | null {
+    if (this.blockerScript.length > 0) return this.blockerScript.shift() as string | null;
+    if (!this.benchSpace) return '벤치에 빈 자리가 없습니다';
+    return this.poolEmpty ? '유닛 풀 재고가 없습니다' : null;
+  }
   grantRandomUnit(tier: number, _rng: Rng): boolean {
-    if (!this.benchSpace) return false;
+    if (!this.benchSpace || this.poolEmpty) return false;
     this.units.push(tier);
     return true;
   }
@@ -195,6 +213,40 @@ describe('이벤트 선택 조건', () => {
     expect(director.choiceViews(fx2, host)[1]?.enabled).toBe(false);
     host.upgradable = [];
     expect(director.choiceViews(fx2, host)[2]?.enabled).toBe(false);
+  });
+});
+
+describe('유닛 획득 이벤트: 재고 없음', () => {
+  it('유닛 풀 재고가 없으면 선택지가 불가 사유와 함께 막히고 골드도 빠지지 않는다', () => {
+    const host = new FakeHost();
+    host.poolEmpty = true;
+    const view = director.choiceViews(unitSale, host)[0];
+    expect(view).toMatchObject({ enabled: false });
+    expect(view?.reason).toContain('재고');
+    const state = director.start(unitSale);
+    const result = director.choose(state, unitSale, 0, host, 'n');
+    expect(result.ok).toBe(false);
+    expect(host.gold).toBe(10);
+    expect(host.units).toEqual([]);
+    expect(state.chosen).toBeNull();
+    expect(state.messages).toEqual([]);
+  });
+
+  it('검사 뒤 실행 단계에서 받지 못해도 실패로 알리고 선택 상태를 되돌린다 (효과가 하나도 적용되지 않은 경우)', () => {
+    const host = new FakeHost();
+    const unitFirst = loadEvents(
+      { version: 1, events: [{ id: 'fx_unit2', title: 't', text: 'x', choices: [{ text: 'u', result: 'u', effects: [{ kind: 'gainUnit', tier: 1 }, { kind: 'gold', amount: 3 }] }, { text: 's', result: 's', effects: [] }] }] },
+      runDeps.cards, runDeps.units,
+    ).events[0] as typeof fx;
+    host.blockerScript = [null, '유닛 풀 재고가 없습니다'];
+    const state = director.start(unitFirst);
+    const result = director.choose(state, unitFirst, 0, host, 'n');
+    expect(result).toEqual({ ok: false, reason: '유닛 풀 재고가 없습니다' });
+    expect(host.gold).toBe(10);
+    expect(host.units).toEqual([]);
+    expect(state.chosen).toBeNull();
+    expect(state.nextEffect).toBe(0);
+    expect(state.messages).toEqual([]);
   });
 });
 

@@ -385,6 +385,77 @@ describe('저장 데이터 일관성 검증', () => {
     expect(restoreWith(save)).toThrow(/run\.history\[0\]\.nodeId/);
   });
 
+  it('전투 노드의 기록 수는 정산 횟수와 맞아야 한다 (일반·정예 1건, 전투가 없는 노드 0건, 보스는 1건 이상)', () => {
+    const run = newRun(5);
+    run.chooseNode(run.availableNodes()[0]!.id);
+    finishBattle(run, 'win');
+    const save = dump(run);
+    expect(json(RunController.restore(runDeps, save))).toBe(json(run));
+
+    const extra = structuredClone(save);
+    extra.history.push({ ...extra.history[0] });
+    expect(restoreWith(extra)).toThrow(/run\.history.*1건/);
+    const missing = structuredClone(save);
+    missing.history = [];
+    expect(restoreWith(missing)).toThrow(/run\.history.*1건/);
+    const wrongType = structuredClone(save);
+    wrongType.history[0].type = 'elite';
+    expect(restoreWith(wrongType)).toThrow(/run\.history\[0\]/);
+
+    // 전투 준비 중인 현재 노드에는 아직 기록이 없어야 한다
+    const prep = firstBattle();
+    prep.history.push({ ...save.history[0], nodeId: prep.position.visited[0] });
+    expect(restoreWith(prep)).toThrow(/run\.(history|session\.tries)/);
+
+    // 전투가 없는 노드(상점)에 기록을 붙인 저장본
+    const shop = at(1, 'shop');
+    shop.history.push({ ...shop.history[0], nodeId: shop.position.visited[shop.position.visited.length - 1] });
+    expect(restoreWith(shop)).toThrow(/run\.history.*0건|run\.history\[/);
+
+    // 이미 지나온 전투 노드의 기록을 지운 저장본
+    const passed = at(1, 'shop');
+    const firstId = passed.history[0].nodeId;
+    passed.history = passed.history.filter((h: any) => h.nodeId !== firstId);
+    expect(restoreWith(passed)).toThrow(/run\.history.*1건/);
+
+    // 끝난 런의 보스 기록
+    const boss = newRun(6);
+    driveTo(boss, 'boss');
+    finishBattle(boss, 'win');
+    const ended = dump(boss);
+    expect(json(RunController.restore(runDeps, ended))).toBe(json(boss));
+    ended.history = ended.history.filter((h: any) => h.type !== 'boss');
+    expect(restoreWith(ended)).toThrow(/run\.history.*보스/);
+  });
+
+  it('큰 시드(32비트를 넘거나 음수)는 정규화되어 저장·복원 뒤에도 같은 런이다', () => {
+    for (const seed of [2 ** 31, 2 ** 32 + 5, 4294967296, -7, -(2 ** 31) - 3, Number.MAX_SAFE_INTEGER]) {
+      const run = newRun(seed);
+      expect(run.seed).toBe(seed | 0);
+      const restored = roundtrip(run);
+      expect(restored.seed).toBe(run.seed);
+      expect(json(restored)).toBe(json(run));
+      expect(finishAuto(restored).save).toBe(finishAuto(run).save);
+    }
+    expect(json(newRun(4294967296))).toBe(json(newRun(0)));
+    expect(() => newRun(1.5)).toThrow('안전한 정수');
+    expect(() => newRun(Number.NaN)).toThrow('안전한 정수');
+    expect(() => newRun(2 ** 60)).toThrow('안전한 정수');
+    const save = JSON.parse(json(newRun(1)));
+    save.seed = 2 ** 31;
+    expect(() => RunController.restore(runDeps, save)).toThrow(/run\.seed/);
+  });
+
+  it('AutoRunner가 끝까지 만든 저장본은 여러 시드·경로 정책에서 모두 복원된다 (패배·재도전·사망 포함)', () => {
+    for (let seed = 1; seed <= 12; seed++) {
+      for (const pathMode of ['first', 'random'] as const) {
+        const run = newRun(seed, seed % 2 === 0 ? 'test' : 'starter');
+        new AutoRunner(run, runDeps.cards, runDeps.units, { pathMode, policySeed: seed, plan: basicPlan }).run();
+        expect(json(roundtrip(run))).toBe(json(run));
+      }
+    }
+  });
+
   it('실제 진행이 만드는 모든 비전투 시점의 저장본은 복원된다 (여러 시드, 패배·재도전·사망 포함)', () => {
     let checkpoints = 0;
     const check = (run: RunController): void => {

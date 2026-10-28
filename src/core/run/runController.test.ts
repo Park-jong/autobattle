@@ -660,7 +660,9 @@ describe('정산 바인딩', () => {
     forceResult(d, 'loss');
     expect(boss.completeBattle(c).ok).toBe(true);
     const bossBefore = snapshot(boss);
-    expect(boss.completeBattle(d).ok).toBe(false);
+    const siblingResult = boss.completeBattle(d);
+    expect(siblingResult.ok).toBe(false);
+    if (!siblingResult.ok) expect(siblingResult.reason).toContain('현재 전투가 아닌 전투 결과입니다');
     expect(snapshot(boss)).toEqual(bossBefore);
   });
 });

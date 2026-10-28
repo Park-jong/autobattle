@@ -18,3 +18,9 @@ export function deriveSeed(base: number, ...parts: readonly (string | number)[])
   h ^= h >>> 16;
   return h >>> 0;
 }
+
+/** 런 시드를 저장 포맷의 범위(부호 있는 32비트 정수)로 정규화한다. 안전한 정수가 아니면 한국어 오류 */
+export function normalizeRunSeed(seed: number): number {
+  if (!Number.isSafeInteger(seed)) throw new Error(`런 시드는 안전한 정수여야 합니다 (실제: ${seed})`);
+  return seed | 0;
+}
