@@ -1,4 +1,5 @@
 import type { Cell } from '../combat/board';
+import type { FormationEntry } from '../combat';
 import type { Management, ManagementResult, ManagementSnapshot } from '../management';
 
 /** 런 단계에 따라 로스터 명령을 허용할지 정하는 규칙 */
@@ -23,6 +24,11 @@ export class RunRoster {
 
   snapshot(): ManagementSnapshot {
     return this.management.snapshot();
+  }
+
+  /** 보드에 올린 소유 유닛의 전투 편성 (읽기 전용 조회) */
+  formation(): FormationEntry[] {
+    return this.management.formation();
   }
 
   buy(slot: number): ManagementResult {

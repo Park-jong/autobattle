@@ -67,7 +67,22 @@ export type ReplayEffect =
   | { kind: 'overheat'; seq: number; t: number }
   | { kind: 'card'; seq: number; t: number; cardId: string; upgraded: boolean; target: PlayTarget }
   | { kind: 'cp'; seq: number; t: number; pool: CpPool; delta: number; cp: number; reason: CpReason }
-  | { kind: 'teleport'; seq: number; t: number; unit: number; from: Cell; to: Cell };
+  | { kind: 'teleport'; seq: number; t: number; unit: number; from: Cell; to: Cell }
+  /** 보스 패턴 예고: t부터 fireAt까지 cells를 강조한다 */
+  | { kind: 'telegraph'; seq: number; t: number; id: number; cells: Cell[]; fireAt: number }
+  /** 예고된 패턴 발동 */
+  | { kind: 'strike'; seq: number; t: number; id: number; cells: Cell[] };
+
+/** 지금 화면에 강조할 보스 예고 한 건 */
+export interface TelegraphView {
+  id: number;
+  cells: readonly Cell[];
+  /** 예고가 시작된 시각 / 발동 예정 시각 */
+  startedAt: number;
+  fireAt: number;
+  /** 예고 진행률 0~1 (발동 시 1) */
+  progress: number;
+}
 
 export interface ReplayOutcome {
   winner: Winner;
@@ -132,6 +147,8 @@ export class ReplayState {
   private outcome: ReplayOutcome | null = null;
   private forceMarks: ForceMark[] = [];
   private lastCardUnitTarget: number | null = null;
+  /** 아직 발동하지 않은 보스 예고 (id 기준) */
+  private openTelegraphs = new Map<number, Extract<ReplayEffect, { kind: 'telegraph' }>>();
 
   constructor(private readonly events: readonly CombatEvent[]) {
     this.reset();
@@ -147,6 +164,7 @@ export class ReplayState {
     this.outcome = null;
     this.forceMarks = [];
     this.lastCardUnitTarget = null;
+    this.openTelegraphs = new Map();
     this.advanceTo(0);
   }
 
@@ -195,6 +213,18 @@ export class ReplayState {
   /** 현재 시각 기준 maxAge초 이내에 발생한 연출 이벤트 (오래된 순) */
   recentEffects(maxAge: number): ReplayEffect[] {
     return this.effects.filter((e) => this.currentTime - e.t <= maxAge + EPS);
+  }
+
+  /** 현재 시각에 유효한 보스 예고 (발동 전까지). strike가 재생되었거나 발동 시각이 지났으면 제외 */
+  telegraphs(): TelegraphView[] {
+    const t = this.currentTime;
+    const out: TelegraphView[] = [];
+    for (const e of this.openTelegraphs.values()) {
+      if (t >= e.fireAt - EPS) continue;
+      const span = Math.max(EPS, e.fireAt - e.t);
+      out.push({ id: e.id, cells: e.cells, startedAt: e.t, fireAt: e.fireAt, progress: Math.min(1, Math.max(0, (t - e.t) / span)) });
+    }
+    return out;
   }
 
   // ---- 이벤트 적용 ----
@@ -335,6 +365,17 @@ export class ReplayState {
         break;
       case 'cp':
         this.effects.push({ kind: 'cp', seq, t: e.t, pool: e.pool, delta: e.delta, cp: e.cp, reason: e.reason });
+        break;
+
+      case 'telegraph': {
+        const effect = { kind: 'telegraph', seq, t: e.t, id: e.id, cells: e.cells, fireAt: e.fireAt } as const;
+        this.effects.push(effect);
+        this.openTelegraphs.set(e.id, effect);
+        break;
+      }
+      case 'strike':
+        this.openTelegraphs.delete(e.id);
+        this.effects.push({ kind: 'strike', seq, t: e.t, id: e.id, cells: e.cells });
         break;
 
       case 'overheat':
