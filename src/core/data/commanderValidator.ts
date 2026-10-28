@@ -37,14 +37,20 @@ export class CommanderValidator {
     }
     const r = FieldReader.of(raw, path);
     r.onlyKeys(COMMANDER_KEYS);
+    const passiveReader = r.object('passive');
     const commander: CommanderDef = {
       id: r.string('id'),
       name: r.string('name'),
-      passive: this.validatePassive(r.object('passive')),
+      passive: this.validatePassive(passiveReader),
       startingDeck: this.validateDeck(r),
       startingUnits: this.validateUnits(r),
       startCpBonus: r.int('startCpBonus', 0),
     };
+    // 패시브가 실제로 하는 일: 전투 시작 효과, 주문 피해·골드 보정, 시작 CP 보정 중 하나는 있어야 한다
+    const p = commander.passive;
+    if (p.effects.length === 0 && p.spellDamagePct === undefined && p.goldPerLeftoverCp === undefined && commander.startCpBonus === 0) {
+      passiveReader.fail('effects', '효과가 비어 있으면 spellDamagePct·goldPerLeftoverCp 또는 지휘관 startCpBonus 보정이 있어야 함 (아무 효과 없는 패시브)');
+    }
     if (r.has('maxHp')) commander.maxHp = r.int('maxHp', 1);
     if (r.has('unlock')) commander.unlock = r.string('unlock');
     if (r.has('ultimate')) commander.ultimate = this.validateUltimate(r.object('ultimate'));
@@ -102,6 +108,10 @@ export class CommanderValidator {
     }
     if (r.has('cpRegenBoostSeconds')) ultimate.cpRegenBoostSeconds = r.int('cpRegenBoostSeconds', 1);
     if (r.has('barrage')) ultimate.barrage = this.validateBarrage(r.object('barrage'));
+    // 궁극기는 id가 아니라 데이터로 정의된다: 실제로 하는 일(효과·운석·CP 가속)이 하나는 있어야 한다
+    if (!ultimate.effects?.length && !ultimate.barrage && ultimate.cpRegenBoostSeconds === undefined) {
+      r.fail('effects', '효과(effects)·운석(barrage)·CP 가속(cpRegenBoostSeconds) 중 하나는 정의해야 함 (효과 없는 궁극기)');
+    }
     return ultimate;
   }
 

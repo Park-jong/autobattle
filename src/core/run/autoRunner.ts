@@ -20,6 +20,8 @@ export interface AutoRunOptions {
   ultimate?: boolean;
   /** 안전 장치: 이 횟수만큼 행동해도 끝나지 않으면 Error */
   maxSteps?: number;
+  /** 각 행동 직전(전투 중이 아닌 시점)에 불리는 관찰 훅. 상태를 바꾸지 않는 용도 (저장·복원 검증 등) */
+  onStep?: () => void;
 }
 
 export interface AutoRunSummary {
@@ -81,6 +83,7 @@ export class AutoRunner {
     const controller = this.controller;
     while (controller.phase !== 'ended') {
       if (++this.steps > limit) throw new Error(`자동 런이 ${limit}번 행동해도 끝나지 않았습니다 (단계: ${controller.phase})`);
+      this.options.onStep?.();
       switch (controller.phase) {
         case 'map':
           this.chooseNode();

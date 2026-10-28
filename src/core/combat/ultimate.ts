@@ -18,7 +18,7 @@ export interface UltimateView {
   charge: number;
   max: number;
   used: boolean;
-  /** 지금 쓰면 잃는 지휘관 HP (0이면 소모 없음) */
+  /** 지금 쓰면 잃는 지휘관 HP (0이면 소모 없음). 이미 썼다면 그때 실제로 잃은 HP */
   hpCost: number;
   /** 지금 쓸 수 있는가 */
   ready: boolean;
@@ -42,6 +42,8 @@ interface PendingImpact {
 export class UltimateSystem {
   private chargeValue = 0;
   private usedValue = false;
+  /** 사용할 때 실제로 잃은 지휘관 HP */
+  private spentValue = 0;
   private nextImpactId = 1;
   private pending: PendingImpact[] = [];
 
@@ -84,7 +86,7 @@ export class UltimateSystem {
       charge: this.chargeValue,
       max: ULTIMATE.GAUGE_MAX,
       used: this.usedValue,
-      hpCost: this.hpCost(),
+      hpCost: this.usedValue ? this.spentValue : this.hpCost(),
       ready: reason === null,
       reason,
     };
@@ -111,6 +113,7 @@ export class UltimateSystem {
     const effects: ResolvedEffect[] = (this.def.effects ?? []).map((e) => resolveEffect(e, 0));
 
     this.usedValue = true;
+    this.spentValue = cost;
     if (cost > 0) {
       this.ledger.spend(cost);
       world.emit({ type: 'commanderHp', delta: -cost, remaining: this.ledger.remaining, cardId: `ultimate:${this.commanderId}`, instanceId: ULTIMATE_COMMAND_ID });

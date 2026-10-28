@@ -1,7 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { Deck } from '../../core/cards';
 import { cardCatalog, handSnapshot, harten, newRng } from '../../core/combat/testSupport';
-import { CardPanelViewBuilder, type PanelInput } from './cardPanelView';
+import type { UltimateView } from '../../core/combat';
+import { CardPanelViewBuilder, ultimateCostLabel, type PanelInput } from './cardPanelView';
 
 const builder = new CardPanelViewBuilder(cardCatalog);
 
@@ -84,5 +85,20 @@ describe('CardPanelViewBuilder', () => {
 
   it('숨김 뷰는 visible=false', () => {
     expect(builder.hidden().visible).toBe(false);
+  });
+});
+
+describe('ultimateCostLabel', () => {
+  const view = (over: Partial<UltimateView>): UltimateView => ({
+    commanderId: 'cmd_nox', name: '대가 지불', text: '', charge: 100, max: 100, used: false, hpCost: 7, ready: true, reason: null, ...over,
+  });
+
+  it('쓰기 전에는 지금 쓰면 잃는 HP, 쓴 뒤에는 실제 소모량(사용 표기)을 보인다', () => {
+    expect(ultimateCostLabel(view({}))).toBe('지휘관 HP -7');
+    expect(ultimateCostLabel(view({ used: true, ready: false }))).toBe('사용 시 지휘관 HP -7 소모');
+  });
+
+  it('소모가 없으면 표기하지 않는다', () => {
+    expect(ultimateCostLabel(view({ hpCost: 0 }))).toBeNull();
   });
 });

@@ -155,6 +155,8 @@ export class RunSerializer {
     const expectedMax = (commander?.maxHp ?? RUN.START_HP) + state.forces.relics.sum('maxHp', (e) => e.amount);
     if (state.health.max !== expectedMax) r.fail('health.maxHp', `지휘관 기본 최대 HP와 보유 유물에서 계산한 ${expectedMax}여야 함 (실제: ${state.health.max})`);
 
+    this.checkCommanderCards(r, state);
+
     // 위치: 입장한 노드는 1층부터 간선을 따라 한 층씩 이어진다
     if (visited.length > RUN.MAP.FLOORS) position.fail('visited', `${RUN.MAP.FLOORS}개 이하여야 함 (실제: ${visited.length})`);
     if (visited.length === 0 ? state.currentNodeId !== null : state.currentNodeId !== visited[visited.length - 1]) {
@@ -251,6 +253,47 @@ export class RunSerializer {
         r.fail('history', `전투가 없는 ${node.type} 노드 ${id}에 전투 기록이 ${count}건 있음`);
       }
     }
+  }
+
+  /**
+   * 지휘관 고유 카드: 다른 지휘관의 고유 카드는 이 런에서 얻을 길이 없다.
+   * 덱(시작 덱은 자기 지휘관 것만, 이후 보상·상점·이벤트 풀은 공용 카드만)과 제시된 보상·진열 카드를 확인한다.
+   * 테스트 덱(deckPreset test)의 10장과 보상·상점 풀도 모두 공용 카드라 덱 검사에 예외를 두지 않는다.
+   * 시작 덱 프리셋이면 카드를 한 장도 제거한 적이 없을 때(상점 제거 0회, 제거 선택지가 있는 이벤트를 본 적 없음)
+   * 시작 덱의 모든 카드가 (강화 여부와 무관하게) 장수 이상 덱에 남아 있어야 한다. 이세라처럼 고유 카드가 없는
+   * 지휘관을 다른 지휘관 저장본으로 바꾼 조작은 이 검사로 걸러진다. 카드를 한 번이라도 제거했다면 판별할 수 없어 건너뛴다.
+   */
+  private checkCommanderCards(r: FieldReader, state: RunState): void {
+    const foreign = (cardId: string): boolean => {
+      const owner = this.deps.cards.get(cardId)?.owner;
+      return owner !== undefined && owner !== 'neutral' && owner !== state.commanderId;
+    };
+    const deck = state.forces.deck;
+    const piles = { draw: deck.draw, hand: deck.hand, discard: deck.discard, exhaust: deck.exhaust };
+    for (const [pile, cards] of Object.entries(piles)) {
+      cards.forEach((card, i) => {
+        if (foreign(card.cardId)) r.fail(`forces.carryDeck.${pile}[${i}].cardId`, `다른 지휘관의 고유 카드 "${card.cardId}"는 ${state.commanderId}의 덱에 있을 수 없음`);
+      });
+    }
+    const commander = this.deps.commanders.get(state.commanderId);
+    const removalEvents = state.seenEvents.some((id) => this.deps.events.get(id)?.choices.some((c) => c.effects.some((e) => e.kind === 'removeCard')));
+    if (commander && state.deckPreset === 'starter' && state.removals === 0 && !removalEvents) {
+      const owned = new Map<string, number>();
+      for (const cards of Object.values(piles)) for (const card of cards) owned.set(card.cardId, (owned.get(card.cardId) ?? 0) + 1);
+      for (const entry of commander.startingDeck) {
+        if ((owned.get(entry.cardId) ?? 0) < entry.count) {
+          r.fail('forces.carryDeck', `카드를 제거한 적이 없는데 ${state.commanderId}의 시작 덱 카드 "${entry.cardId}"가 ${entry.count}장보다 적음 (실제: ${owned.get(entry.cardId) ?? 0}장)`);
+        }
+      }
+    }
+    const session = state.session;
+    const offered = session?.kind === 'reward' ? { key: 'session.offer', ids: session.offer }
+      : session?.kind === 'shop' ? { key: 'session.cards', ids: session.cards.map((slot) => slot.cardId) }
+        : null;
+    offered?.ids.forEach((id, i) => {
+      const owner = this.deps.cards.get(id)?.owner;
+      if (owner !== undefined && owner !== 'neutral') r.fail(`${offered.key}[${i}]`, `지휘관 고유 카드 "${id}"는 보상·상점 풀에 나올 수 없음`);
+    });
   }
 
   // ---- 세션 ----

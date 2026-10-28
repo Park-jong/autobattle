@@ -234,3 +234,9 @@ export class CardPanelViewBuilder {
     return { count: cards.length, entries };
   }
 }
+
+/** 궁극기 칸의 HP 비용 표기. 쓰기 전에는 "지금 쓰면 잃는 HP", 쓴 뒤에는 실제로 잃은 HP (남은 HP로 다시 계산하지 않는다) */
+export function ultimateCostLabel(ult: UltimateView): string | null {
+  if (ult.hpCost <= 0) return null;
+  return ult.used ? `사용 시 지휘관 HP -${ult.hpCost} 소모` : `지휘관 HP -${ult.hpCost}`;
+}

@@ -174,6 +174,8 @@ M2에서 추가된 유닛
 | 이세라 | 화로의 불씨: 주문 카드 피해 +25%(`spellDamagePct`), 전투 시작 CP +1(`startCpBonus`) | 잿불 점화사, 숲 궁수 | 불씨 화살 ×3, 마나 주입 ×2, 전술 재정비 ×2, 화염 폭풍, 전쟁 북, 집중 포화 | 대분화 |
 | 녹스 | 미지불 잔액: 전투 승리 시 남은 CP 1당 1G(`goldPerLeftoverCp`) | 그림자 단검 ×2 | 피의 대가 ×2, 심연의 계약 ×2, 집중 포화 ×2, 돌격 신호, 예비대 호출, 전술 재정비, 최후의 저항 | 대가 지불 |
 
+**검증**: 패시브는 `effects`가 비어 있으면 `spellDamagePct`·`goldPerLeftoverCp` 또는 지휘관 `startCpBonus`가 있어야 하고, 궁극기는 `effects`·`barrage`·`cpRegenBoostSeconds` 중 하나가 있어야 한다(궁극기는 id가 아니라 이 데이터가 곧 정의). 저장 복원은 최대 HP(지휘관 + 유물)와 다른 지휘관의 고유 카드(덱·보상·상점, 덱 프리셋 test 포함)를 거부한다. 시작 덱 프리셋에서 카드를 제거한 적이 없으면(상점 제거 0회·제거 선택지 이벤트를 본 적 없음) 시작 덱 카드 장수 미만인 덱도 거부해, 고유 카드가 없는 이세라와 다른 지휘관 사이의 교차 조작도 걸러낸다. 카드를 한 번이라도 제거했다면 이 장수 검사는 건너뛰므로, 그 경우 이세라 교차 조작은 최대 HP 일치로만 검사된다.
+
 **하르텐 패시브 철의 서약**: `shield` `alliesFrontRow` 최대 HP 10%, `duration: "combat"`. 전투 시작 시 전열(아군 열 3)에 있던 유닛에게 한 번 걸리고 전투 끝까지 유지된다(피해를 흡수하면 줄어든다).
 **이세라 주문 보정**: `type: spell` 카드의 `flatDamage` 양과 `burn` 초당 피해(`dps`)에 (1 + 보정%)를 곱해 반올림한다. 패시브 25%와 유물 잿불 부적 20%는 합산(45%)한다. **녹스 패시브**: 정산할 때 `sim.commandPoints.combat`(전투 종료 시 남은 CP) × 1G를 승리일 때만 `Economy.gain`으로 더한다 (`BattleSettlement.passiveGold`, 영수증과 별도).
 
@@ -231,7 +233,7 @@ M2에서 추가된 유닛
 
 ### 카드 사용 계획 (헤드리스 시뮬용)
 `tools/plans/*.json`: 배열. 항목 `{ "tick": 50, "card": "focus_fire", "target": { "rule": "lowestHpEnemy" }, "until": 200 }`.
-`tick`부터 `until`(생략 시 전투 끝까지)까지 매 틱 시도, 손패에 없으면 즉시 실패. `target.rule`은 `none`(기본) / `lowestHpEnemy` / `highestHpEnemy` / `lowestHpAlly` / `highestHpAlly` — 규칙이 가리키는 진영 유닛을 정렬해 카드가 필요한 수만큼 앞에서 고른다(칸 카드는 첫 유닛의 칸). 작전 카드는 `tick`과 무관하게 준비 단계에 한 번 시도한다. `npm run sim -- ... --commander cmd_harten --plan tools/plans/harten-basic.json`.
+`tick`부터 `until`(생략 시 전투 끝까지)까지 매 틱 시도, 손패에 없으면 즉시 실패(`"optional": true`면 "손패에 있으면 쓴다": 없어도 실패가 아니라 끝까지 기다리다 건너뜀(`skipped`)으로 센다). `target.rule`은 `none`(기본) / `lowestHpEnemy` / `highestHpEnemy` / `lowestHpAlly` / `highestHpAlly` — 규칙이 가리키는 진영 유닛을 정렬해 카드가 필요한 수만큼 앞에서 고른다(칸 카드는 첫 유닛의 칸). 작전 카드는 `tick`과 무관하게 준비 단계에 한 번 시도한다. `npm run sim -- ... --commander cmd_harten --plan tools/plans/harten-basic.json`.
 
 ---
 

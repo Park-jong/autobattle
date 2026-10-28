@@ -1,11 +1,11 @@
 [
-  { "tick": 0, "card": "war_drums" },
-  { "tick": 0, "card": "ember_arrow", "target": { "rule": "highestHpEnemy" } },
-  { "tick": 10, "card": "ember_arrow", "target": { "rule": "highestHpEnemy" } },
-  { "tick": 20, "card": "firestorm", "target": { "rule": "highestHpEnemy" } },
-  { "tick": 30, "card": "mana_infusion", "target": { "rule": "highestHpAlly" } },
-  { "tick": 40, "card": "focus_fire", "target": { "rule": "lowestHpEnemy" } },
-  { "tick": 60, "card": "tactical_reorganization" },
-  { "tick": 80, "card": "ember_arrow", "target": { "rule": "highestHpEnemy" } },
-  { "tick": 100, "card": "mana_infusion", "target": { "rule": "highestHpAlly" } }
+  { "tick": 0, "card": "war_drums", "optional": true },
+  { "tick": 0, "card": "ember_arrow", "target": { "rule": "highestHpEnemy" }, "optional": true },
+  { "tick": 10, "card": "ember_arrow", "target": { "rule": "highestHpEnemy" }, "optional": true },
+  { "tick": 20, "card": "firestorm", "target": { "rule": "highestHpEnemy" }, "optional": true },
+  { "tick": 30, "card": "mana_infusion", "target": { "rule": "highestHpAlly" }, "optional": true },
+  { "tick": 40, "card": "focus_fire", "target": { "rule": "lowestHpEnemy" }, "optional": true },
+  { "tick": 60, "card": "tactical_reorganization", "optional": true },
+  { "tick": 80, "card": "ember_arrow", "target": { "rule": "highestHpEnemy" }, "optional": true },
+  { "tick": 100, "card": "mana_infusion", "target": { "rule": "highestHpAlly" }, "optional": true }
 ]
