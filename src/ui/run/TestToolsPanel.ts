@@ -4,10 +4,19 @@ import { button, el, tagged } from './dom';
 import type { TestCardOption, TestToolsView } from './testViews';
 import './testTools.css';
 
+/** 열린 패널의 폭(px). 이 폭만큼 body 한쪽을 예약한다 */
+const PANEL_WIDTH = 360;
+const NARROW_QUERY = '(max-width: 800px)';
+
 /** 사유가 있으면 눌러도 소용없는 버튼: 끄고 마우스를 올리면 사유를 보여 준다 */
 function gate(target: HTMLButtonElement | HTMLInputElement | HTMLSelectElement, reason: string | null): void {
   target.disabled = reason !== null;
   target.title = reason ?? '';
+}
+
+function joinReasons(...reasons: (string | null)[]): string | null {
+  const list = reasons.filter((r): r is string => r !== null);
+  return list.length === 0 ? null : list.join(' / ');
 }
 
 /** 한 묶음(제목 + 컨트롤 + 사용 불가 사유 줄) */
@@ -38,6 +47,13 @@ export class TestToolsPanel {
   private readonly panel = tagged(el('div', 'tt-panel'), 'test-tools-panel');
   private readonly status = tagged(el('p', 'tt-status'), 'tt-status');
   private open = false;
+  /** 패널을 붙이는 쪽. 오른쪽에는 전투 패널이 있으므로 기본도 오른쪽 사이드 열이며 열려 있는 동안 그 폭만큼 화면을 예약한다 */
+  private dock: 'left' | 'right' = 'right';
+  private reserved: 'left' | 'right' | null = null;
+  private readonly narrow = window.matchMedia(NARROW_QUERY);
+  private collapsed = false;
+  private readonly dockButton: HTMLButtonElement;
+  private readonly collapseButton: HTMLButtonElement;
   private view: TestToolsView | null = null;
 
   // 값
@@ -85,6 +101,8 @@ export class TestToolsPanel {
   private readonly moveSection = new Section('이동');
   private readonly battleSection = new Section('전투');
   private readonly moveButtons: HTMLButtonElement[];
+  private readonly campJumpButton: HTMLButtonElement;
+  private readonly bossJumpButton: HTMLButtonElement;
   private readonly nextActButtons: HTMLButtonElement[];
   private readonly battleButtons: HTMLButtonElement[];
 
@@ -99,7 +117,15 @@ export class TestToolsPanel {
     this.toggle.setAttribute('aria-expanded', 'false');
 
     const header = el('div', 'tt-header');
-    header.append(el('strong', '', '테스트 도구'), tagged(button('닫기', () => this.setOpen(false), 'tt-close'), 'tt-close'));
+    const headerButtons = el('div', 'tt-header-buttons');
+    headerButtons.append(
+      tagged(button('왼쪽', () => this.toggleDock(), 'tt-close tt-dock-btn'), 'tt-dock'),
+      tagged(button('접기', () => this.toggleCollapsed(), 'tt-close'), 'tt-collapse'),
+      tagged(button('닫기', () => this.setOpen(false), 'tt-close'), 'tt-close'),
+    );
+    header.append(el('strong', '', '테스트 도구'), headerButtons);
+    this.dockButton = headerButtons.children[0] as HTMLButtonElement;
+    this.collapseButton = headerButtons.children[1] as HTMLButtonElement;
 
     // 값
     this.setGoldButton = this.action('설정', 'tt-set-gold', () => this.withNumber(this.goldInput, (amount) => this.commands.testCommand({ kind: 'setGold', amount })));
@@ -152,7 +178,9 @@ export class TestToolsPanel {
     const bossJump = this.action('보스 전투 준비로', 'tt-jump-boss', () => this.commands.testCommand({ kind: 'jumpToBoss', viaCamp: false }));
     const nextRelic = this.action('다음 액트 (보스 유물 선택)', 'tt-next-act-relic', () => this.commands.testCommand({ kind: 'nextAct', withBossRelic: true }));
     const nextAct = this.action('다음 액트 (유물 건너뛰기)', 'tt-next-act', () => this.commands.testCommand({ kind: 'nextAct', withBossRelic: false }));
-    this.moveButtons = [campJump, bossJump, nextRelic, nextAct];
+    this.campJumpButton = campJump;
+    this.bossJumpButton = bossJump;
+    this.moveButtons = [];
     this.nextActButtons = [nextRelic, nextAct];
     this.moveSection.body.append(this.row(campJump, bossJump), this.row(nextRelic, nextAct));
     this.moveSection.body.append(el('p', 'tt-info', '지나간 노드는 승리·진행한 것으로 기록됩니다. 보스 유물 선택이나 액트 소개 화면으로 이어집니다.'));
@@ -168,6 +196,9 @@ export class TestToolsPanel {
       this.cardSection.root, this.unitSection.root, this.moveSection.root,
     );
     this.root.append(this.toggle, this.panel);
+    this.panel.style.setProperty('--tt-panel-w', `${PANEL_WIDTH}px`);
+    this.applyLayout();
+    this.narrow.addEventListener('change', () => this.updateReserve());
 
     source.subscribe(() => this.render());
     window.addEventListener('keydown', (e) => this.onKey(e));
@@ -192,7 +223,7 @@ export class TestToolsPanel {
     this.relicSection.setReason(a.edit);
     this.cardSection.setReason(a.edit);
     this.unitSection.setReason(a.edit);
-    this.moveSection.setReason(a.move ?? (a.nextAct ? `다음 액트로 넘기기: ${a.nextAct}` : null));
+    this.moveSection.setReason(a.move ?? joinReasons(a.bossCamp ? `보스 직전 야영지로: ${a.bossCamp}` : null, a.nextAct ? `다음 액트로 넘기기: ${a.nextAct}` : null));
     this.battleSection.setReason(a.battle);
     this.hpInput.placeholder = String(view.hp);
     this.maxHpInput.placeholder = String(view.maxHp);
@@ -209,7 +240,7 @@ export class TestToolsPanel {
   private refreshButtons(): void {
     const view = this.view;
     if (!view) return;
-    const { edit, move, battle, nextAct } = view.availability;
+    const { edit, move, battle, nextAct, bossCamp, boss } = view.availability;
     const goldReason = edit ?? (this.goldInput.value.trim() === '' ? '골드 값을 입력하세요' : null);
     gate(this.setGoldButton, goldReason);
     gate(this.addGoldButton, goldReason);
@@ -219,6 +250,8 @@ export class TestToolsPanel {
     for (const chip of this.ownedRelics.querySelectorAll('button')) gate(chip, edit);
     for (const target of [this.goldInput, this.hpInput, this.maxHpInput, this.levelSelect]) gate(target, edit);
     for (const button of this.moveButtons) gate(button, move);
+    gate(this.campJumpButton, move ?? bossCamp);
+    gate(this.bossJumpButton, move ?? boss);
     for (const button of this.nextActButtons) gate(button, move ?? nextAct);
     for (const button of this.battleButtons) gate(button, battle);
   }
@@ -309,10 +342,44 @@ export class TestToolsPanel {
     this.commands.testCommand({ kind: 'addCard', cardId: this.cardSelect.value, upgraded: this.cardUpgraded.checked, count });
   }
 
+  private toggleDock(): void {
+    this.dock = this.dock === 'left' ? 'right' : 'left';
+    this.applyLayout();
+  }
+
+  private toggleCollapsed(): void {
+    this.collapsed = !this.collapsed;
+    this.applyLayout();
+  }
+
+  private applyLayout(): void {
+    this.panel.classList.toggle('tt-dock-left', this.dock === 'left');
+    this.panel.classList.toggle('tt-dock-right', this.dock === 'right');
+    this.panel.classList.toggle('tt-collapsed', this.collapsed);
+    this.dockButton.textContent = this.dock === 'left' ? '오른쪽으로' : '왼쪽으로';
+    this.collapseButton.textContent = this.collapsed ? '펴기' : '접기';
+    this.collapseButton.setAttribute('aria-expanded', String(!this.collapsed));
+    this.updateReserve();
+  }
+
+  /** 열림 && 펼침 && 넓은 화면이면 body 한쪽 공간을 예약하고, 바뀌면 resize로 Phaser 캔버스를 다시 맞춘다 */
+  private updateReserve(): void {
+    const next = this.open && !this.collapsed && !this.narrow.matches ? this.dock : null;
+    if (next === this.reserved) return;
+    this.reserved = next;
+    const body = document.body;
+    body.classList.toggle('tt-reserve-right', next === 'right');
+    body.classList.toggle('tt-reserve-left', next === 'left');
+    if (next) body.style.setProperty('--tt-w', `${PANEL_WIDTH}px`);
+    else body.style.removeProperty('--tt-w');
+    window.dispatchEvent(new Event('resize'));
+  }
+
   private setOpen(open: boolean): void {
     this.open = open && this.view !== null;
     this.panel.hidden = !this.open;
     this.toggle.setAttribute('aria-expanded', String(this.open));
+    this.updateReserve();
   }
 
   /** T 또는 `로 열고 닫는다 (입력 중이거나 조합키가 눌려 있으면 무시). 닫기는 Esc도 된다 */

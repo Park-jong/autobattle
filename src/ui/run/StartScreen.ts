@@ -39,7 +39,7 @@ export class StartScreen {
     }
 
     const card = el('div', 'run-start-card');
-    card.append(el('h1', 'run-title', '전술 지휘관'), el('p', 'run-subtitle', '오토체스 + 덱빌딩 로그라이크 · 1액트 (13층)'));
+    card.append(el('h1', 'run-title', '전술 지휘관'), el('p', 'run-subtitle', '오토체스 + 덱빌딩 로그라이크 · 3액트 (액트당 13층)'));
 
     card.append(this.commanderPicker(start));
     const seedRow = el('label', 'run-seed-row');

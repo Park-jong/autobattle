@@ -16,6 +16,10 @@ export class EndScreen {
       tagged(el('h1', 'run-title', end.outcome === 'victory' ? '승리' : '패배'), 'end-title'),
       el('p', 'run-subtitle', end.title),
     );
+    if (end.testRun) {
+      const note = tagged(el('p', 'run-end-test', `${end.testRun.badge}${end.testRun.skippedRecords > 0 ? ` — 건너뛴 구간 기록 ${end.testRun.skippedRecords}건은 통계에서 제외` : ''}`), 'end-test-badge');
+      card.append(note);
+    }
     const stats = tagged(el('dl', 'run-end-stats'), 'end-stats');
     const stat = (label: string, value: string): void => {
       stats.append(el('dt', '', label), el('dd', '', value));

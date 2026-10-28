@@ -12,7 +12,7 @@ import type { CardCatalog } from '../../core/data/cardLoader';
 import type { UnitCatalog } from '../../core/data/unitLoader';
 import type { BattleKind } from '../../core/economy';
 import {
-  RUN,
+  RUN, isSkippedRecord,
   type BattleSettlement, type CampView, type EncounterPlan, type EventView, type NodeType, type RunController,
   type RunOutcome, type RunPhase, type ShopView, type TestRunInfo,
 } from '../../core/run';
@@ -573,6 +573,8 @@ export interface EndScreenView {
   deckCount: number;
   /** 소유 유닛 요약 (보드 + 벤치) */
   roster: { name: string; star: number; onBoard: boolean }[];
+  /** 테스트 런이면 표시 문구와 통계에서 뺀 건너뛴 구간 기록 수 (일반 런은 null) */
+  testRun: { badge: string; skippedRecords: number } | null;
 }
 
 export function buildEndView(run: RunController, cards: CardCatalog, units: UnitCatalog, relics: RelicCatalog): EndScreenView {
@@ -586,8 +588,16 @@ export function buildEndView(run: RunController, cards: CardCatalog, units: Unit
   }
   const roster = run.roster.snapshot();
   const unitName = (unitId: string): string => units.get(unitId)?.name ?? unitId;
-  const battles = { played: run.history.length, wins: 0, losses: 0, draws: 0 };
+  const battles = { played: 0, wins: 0, losses: 0, draws: 0 };
+  const info = run.testInfo;
+  let skippedRecords = 0;
   for (const record of run.history) {
+    // 테스트 도구가 건너뛴 구간에 넣은 승리 기록은 실제 전투가 아니므로 통계에서 뺀다
+    if (info && isSkippedRecord(record)) {
+      skippedRecords++;
+      continue;
+    }
+    battles.played++;
     if (record.outcome === 'win') battles.wins++;
     else if (record.outcome === 'loss') battles.losses++;
     else battles.draws++;
@@ -615,6 +625,7 @@ export function buildEndView(run: RunController, cards: CardCatalog, units: Unit
       ...roster.board.map((u) => ({ name: unitName(u.unitId), star: u.star, onBoard: true })),
       ...roster.bench.flatMap((u) => (u ? [{ name: unitName(u.unitId), star: u.star, onBoard: false }] : [])),
     ],
+    testRun: info ? { badge: testBadgeText(info), skippedRecords } : null,
   };
 }
 

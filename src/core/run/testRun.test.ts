@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { RunController, type RunSave } from './index';
+import { RunController, isSkippedRecord, type RunSave } from './index';
 import { driveTo, finishBattle, newRun, runDeps } from './testSupport';
 
 const roundTrip = (run: RunController): RunController => RunController.restore(runDeps, JSON.parse(JSON.stringify(run.serialize())));
@@ -9,6 +9,8 @@ const expectStable = (run: RunController): void => {
   expect(JSON.parse(JSON.stringify(RunController.restore(runDeps, saved).serialize()))).toEqual(saved);
 };
 
+/** 강제 결과는 한 틱 진행한 뒤 끝나므로(건너뛴 기록과 구분하려고) 기록의 endTime만 지우고 비교한다 */
+const untimed = (save: RunSave): RunSave => ({ ...save, history: save.history.map((r) => ({ ...r, endTime: 0 })) });
 const create = (setup: Partial<Parameters<typeof RunController.createTest>[1]> = {}): RunController =>
   RunController.createTest(runDeps, { seed: 11, ...setup });
 
@@ -275,7 +277,7 @@ describe('테스트 명령', () => {
 
   it('명령 묶음별 사용 가능 사유를 알려 준다', () => {
     const run = create({ startPosition: 'bossGate' });
-    expect(run.test.availability()).toEqual({ edit: null, move: null, battle: expect.stringContaining('전투'), nextAct: null });
+    expect(run.test.availability()).toEqual({ edit: null, move: null, battle: expect.stringContaining('전투'), nextAct: null, bossCamp: expect.stringContaining('보스 전투 준비로'), boss: null });
     run.chooseNode(run.availableNodes()[0]!.id);
     run.beginBattle();
     expect(run.test.availability()).toMatchObject({ edit: expect.any(String), move: expect.any(String), battle: null });
@@ -283,11 +285,33 @@ describe('테스트 명령', () => {
     expect(create({ startAct: 3 }).test.availability().nextAct).toContain('마지막 액트');
   });
 
-  it('보스 직전 야영지에서 보스 야영지 경유를 요청해도 바로 보스로 들어간다', () => {
-    const run = create({ startPosition: 'bossGate' });
-    expect(run.test.jumpToBoss(true).ok).toBe(true);
-    expect(run.phase).toBe('battlePrep');
-    expect(run.currentNode?.type).toBe('boss');
+  it('이미 보스 직전 야영지에 있거나 지났으면 야영지 경유 이동은 거부되고 보스 전투 준비는 된다', () => {
+    const gate = create({ startPosition: 'bossGate' });
+    expect(gate.test.availability()).toMatchObject({ bossCamp: expect.stringContaining('보스 직전 야영지'), boss: null });
+    const before = JSON.stringify(gate.serialize());
+    expect(gate.test.jumpToBoss(true)).toMatchObject({ ok: false, reason: expect.stringContaining('보스 전투 준비로') });
+    expect(JSON.stringify(gate.serialize())).toBe(before);
+    expect(gate.test.jumpToBoss(false).ok).toBe(true);
+    expect(gate.phase).toBe('battlePrep');
+    expect(gate.currentNode?.type).toBe('boss');
+    expect(gate.test.availability()).toMatchObject({ bossCamp: expect.stringContaining('이미 보스'), boss: expect.stringContaining('이미 보스') });
+
+    // 야영지로 들어간 직후(야영지 단계)에도 같다
+    const camp = create({ startAct: 2 });
+    expect(camp.test.availability().bossCamp).toBeNull();
+    expect(camp.test.jumpToBoss(true).ok).toBe(true);
+    expect(camp.phase).toBe('camp');
+    expect(camp.test.availability().bossCamp).not.toBeNull();
+    expect(camp.test.jumpToBoss(true).ok).toBe(false);
+    expect(camp.phase).toBe('camp');
+  });
+
+  it('건너뛴 구간 승리 기록만 isSkippedRecord로 구분된다', () => {
+    const run = create({ startAct: 2, startPosition: 'bossGate' });
+    expect(run.history.length).toBeGreaterThan(0);
+    expect(run.history.every((r) => isSkippedRecord(r))).toBe(true);
+    expect(isSkippedRecord({ endTime: 12.3, cardsUsed: 0 })).toBe(false);
+    expect(isSkippedRecord({ endTime: 0, cardsUsed: 2 })).toBe(false);
   });
 
   it('다음 액트로 넘기기: 보스 유물 선택 / 바로 액트 소개 / 마지막 액트는 거부', () => {
@@ -350,7 +374,7 @@ describe('강제 전투 결과', () => {
     expect(a.settlement.actCleared).toBe(2);
     expect(a.settlement.bossRelicOffer).not.toBeNull();
     expect(forced.phase).toBe('bossRelic');
-    expect(forced.serialize()).toEqual(normal.serialize());
+    expect(untimed(forced.serialize())).toEqual(untimed(normal.serialize()));
     expectStable(forced);
   });
 
@@ -363,7 +387,7 @@ describe('강제 전투 결과', () => {
     expect(a.settlement).toEqual(b.settlement);
     expect(a.settlement.defeatDamage).toBeGreaterThan(0);
     expect(forced.phase).toBe('battlePrep');
-    expect(forced.serialize()).toEqual(normal.serialize());
+    expect(untimed(forced.serialize())).toEqual(untimed(normal.serialize()));
   });
 
   it('전투 중(battle)에도 쓸 수 있고, 이미 정산했거나 전투가 없으면 거부된다', () => {
