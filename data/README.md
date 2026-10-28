@@ -1,11 +1,11 @@
 # 데이터 파일
 
 게임 콘텐츠 정의. 코드는 이 파일을 읽어 검증한 뒤 사용한다 (ROADMAP M0-4).
-파일: `cards.json` / `units.json` / `traits.json` / `commanders.json`.
+파일: `cards.json` / `units.json` / `traits.json` / `commanders.json` / `encounters.json` / `events.json`.
 
 ## cards.json
 
-현재 수록: 카드 풀 16종. 철벽 장군 하르텐(`cmd_harten`)의 기본 시작 덱은 기존 7종으로 구성한 10장([CHARACTERS.md](../CHARACTERS.md) 3-1)이며, "확장 카드 테스트 덱"은 M2 추가 카드 5종과 제련된 칼날·예비대 호출을 포함한 10장이다. 테스트 덱은 경제 플레이·5연전과 헤드리스 `--deck test`에서도 사용할 수 있다.
+현재 수록: 카드 풀 17종(M4-A에서 심연의 계약 추가). 희귀도: 하르텐 시작 카드 7종은 `starter`, 보상·상점 풀은 `common`(마나 주입·전술 재정비·불씨 화살·행군가·제련된 칼날·적진 정찰·덩굴 속박)과 `rare`(화염 폭풍·예비대 호출·심연의 계약)이며 `epic`은 아직 없다. 철벽 장군 하르텐(`cmd_harten`)의 기본 시작 덱은 기존 7종으로 구성한 10장([CHARACTERS.md](../CHARACTERS.md) 3-1)이며, "확장 카드 테스트 덱"은 M2 추가 카드 5종과 제련된 칼날·예비대 호출을 포함한 10장이다. 테스트 덱은 경제 플레이·5연전과 헤드리스 `--deck test`에서도 사용할 수 있다.
 코드는 `loadCards(json, traitCatalog?)`로 읽는다. 특성 카탈로그를 주면 공명이 가리키는 특성 id도 확인한다.
 
 M2 추가 카드: `firestorm`(화염 폭풍, 범위 피해·잿불 공명), `mana_infusion`(마나 주입, 충전·보존), `tactical_reorganization`(전술 재정비, 드로우·연쇄 비용 0), `ember_arrow`(불씨 화살, 단일 피해·화상·소모), `marching_song`(행군가, 전체 ARM 증가). 잿불 공명은 잿불 투석수·점화사·광전사 중 서로 다른 2종으로 일반 플레이에서도 활성화할 수 있다.
@@ -28,6 +28,7 @@ M3 추가 카드: `call_reserves`(예비대 호출, 3CP·강화 2CP, 후열 빈 
 | `target` | 대상 지정 방식 (아래) |
 | `keywords` | `exhaust`(소모) / `retain`(보존) / `chain`(연쇄) / `conscript`(징집). 공명은 `resonance` 필드로 |
 | `limits` | 선택. `perCombat`: 전투당 사용 횟수 (같은 카드 id의 모든 장이 합산) |
+| `commanderHpCost` | 선택. `{ amount, waivedByTrait? }` — 사용 시 지휘관 HP를 `amount` 잃는다. 전투 시뮬은 `cards.commanderHp`(런의 현재 HP)를 받아 **사용 후 HP가 1 이상일 때만** 허용하고 `commanderHp` 이벤트(`delta`, `remaining`)를 남기며, 런이 정산한다. `waivedByTrait` 특성이 아군 진영에서 활성(단계 1 이상)이면 면제(공명 형태). `cards.commanderHp`를 안 주는 디버그 전투는 제한 없음 |
 | `resonance` | 선택. `{ "trait": 특성 id, "effects": [...] }` — 그 특성이 아군 진영에서 활성(단계 1 이상)이면 기본 효과 뒤에 추가 실행 |
 | `chain` | `keywords`에 `chain`이 있을 때만, 그리고 반드시 있어야 함. `{ "effects": [...], "cost"?: 정수 }` — 앞서 카드를 썼으면(준비 단계 작전 포함) 추가 효과 실행. `cost`는 CP 검사·차감·UI 표시에 먼저 적용하며, 비용만 바꾸면 `effects: []` 허용 |
 | `text` | 카드 설명문 |
@@ -88,6 +89,7 @@ M3 추가 카드: `call_reserves`(예비대 호출, 3CP·강화 2CP, 후열 빈 
 | `manaDrain` | `amount` | 대상 마나 감소 (0 미만 불가) |
 | `manaFill` | — | 대상 유닛 마나를 최대로 충전 (다음 행동에서 일반 스킬 규칙 적용) |
 | `drawCards` | `count` (양의 정수), selector는 `allAllies` | 카드 전용. 그 수만큼 드로우, 손패 상한·버린 더미 재셔플 규칙 적용 |
+| `cpGain` | `amount` (양의 정수), selector는 `allAllies` | 카드 전용. 전투 CP를 한 번 얻는다 (상한 6, `cp` 이벤트 reason `effect`). 심연의 계약이 사용 |
 | `root` | `duration` | 이동 시작만 금지. 이미 시작한 이동은 끝내고 공격·스킬은 허용 |
 | `hpCost` / `lifesteal` | `pctMaxHp` / `pct`, `duration` | 최대 HP 비율 자가 소모(HP 최소 1) / 실제 HP 피해 기준 흡혈 |
 | `onAttackBurn` / `killFeast` / `marksman` | 화상 비율·지속 / 회복·ATK 비율 / 사거리·확률 | 특성 전용 트리거. `traitUnits`로 해당 기원·직업 유닛만 선택 |
@@ -116,7 +118,7 @@ M3 추가 카드: `call_reserves`(예비대 호출, 3CP·강화 2CP, 후열 빈 
 
 ## units.json
 
-유닛 14기: 1등급 8종 + 2등급 6종 (CHARACTERS.md 4·5장). 코드는 `loadUnits(json, traitCatalog)`로 읽으며, 특성 카탈로그를 주면 `origin`/`job` 참조(존재, 종류)도 검증한다. `grantedCard`는 보드 제공 카드 ID이며 `assertUnitCardReferences`가 카드 참조를 검증한다.
+유닛 15기: 1등급 8종 + 2등급 6종 (CHARACTERS.md 4·5장) + 보스 전용 `gate_breaker`(성문 파괴자, 5등급, `boss: true`). 코드는 `loadUnits(json, traitCatalog)`로 읽으며, 특성 카탈로그를 주면 `origin`/`job` 참조(존재, 종류)도 검증한다. `grantedCard`는 보드 제공 카드 ID이며 `assertUnitCardReferences`가 카드 참조를 검증한다.
 
 | 필드 | 값 |
 |---|---|
@@ -127,6 +129,8 @@ M3 추가 카드: `call_reserves`(예비대 호출, 3CP·강화 2CP, 후열 빈 
 | `skill.name`, `skill.text` | 표시용 |
 | `skill.targeting` | `self` / `currentTarget`(현재 공격 대상, 사거리 안이어야 시전) / `lowestHpEnemy`(현재 HP가 가장 낮은 적, 사거리 무관) |
 | `skill.effects` | 효과 목록 (순서대로 실행, 최소 1개). 수치는 `[1성, 2성, 3성]` 배열 가능 |
+| `boss` | 선택. `true`면 보스 전용 — 상점 유닛 풀·징집 후보·이벤트 유닛 지급에서 제외 |
+| `pattern` | 선택(보스). `{ kind: "columnStrike", intervalSeconds, telegraphSeconds(< 간격), damage, dmgType }` — 주기 열 강타. 동작은 아래 "런 코어"의 보스 절 |
 
 M2에서 추가된 유닛
 - `ember_kindler` (U06 잿불 점화사, 잿불/주술사): 점화 = 대상과 인접 적에게 `flatDamage` 마법 120/180/300 + `burn` 3초. CHARACTERS에 화상 수치가 없어 초당 피해는 시전자 ATK의 100%(`dpsPctAtk: 100`)로 정했다.
@@ -157,6 +161,7 @@ M2에서 추가된 유닛
 | `startingDeck` | `[{ cardId, count }]` 시작 덱 (하르텐 10장) |
 | `startingUnits` | `[{ unitId, count }]` 시작 유닛 |
 | `startCpBonus` | 전투 시작 CP 보정 (기본 2에 더함). 하르텐 0 |
+| `maxHp` | 선택. 런 시작·최대 지휘관 HP (생략하면 80). 하르텐 80 |
 | `ultimate` | 선택. `{ name, text }` 표시용. **궁극기는 M5에서 구현** — 지금은 데이터만 있고 동작하지 않는다 |
 
 **하르텐 패시브 철의 서약**: `shield` `alliesFrontRow` 최대 HP 10%, `duration: "combat"`. 전투 시작 시 전열(아군 열 3)에 있던 유닛에게 한 번 걸리고 전투 끝까지 유지된다(피해를 흡수하면 줄어든다).
@@ -195,3 +200,92 @@ M2에서 추가된 유닛
 ### 카드 사용 계획 (헤드리스 시뮬용)
 `tools/plans/*.json`: 배열. 항목 `{ "tick": 50, "card": "focus_fire", "target": { "rule": "lowestHpEnemy" }, "until": 200 }`.
 `tick`부터 `until`(생략 시 전투 끝까지)까지 매 틱 시도, 손패에 없으면 즉시 실패. `target.rule`은 `none`(기본) / `lowestHpEnemy` / `highestHpEnemy` / `lowestHpAlly` / `highestHpAlly` — 규칙이 가리키는 진영 유닛을 정렬해 카드가 필요한 수만큼 앞에서 고른다(칸 카드는 첫 유닛의 칸). 작전 카드는 `tick`과 무관하게 준비 단계에 한 번 시도한다. `npm run sim -- ... --commander cmd_harten --plan tools/plans/harten-basic.json`.
+
+---
+
+## encounters.json
+
+적 편성 데이터 (DESIGN 7-1). 직접 설계한 편성을 층 범위로 고른다. 코드는 `loadEncounters(json, unitCatalog, coverage?)`로 읽는다.
+
+| 필드 | 값 |
+|---|---|
+| `id`, `name` | 영문 키, 표시 이름 |
+| `kind` | `normal`(전투 노드) / `elite`(정예) / `boss` |
+| `minFloor`, `maxFloor` | 이 편성이 나올 수 있는 층 (포함, 1~13) |
+| `text` | 미리보기 한 줄 설명 |
+| `units` | `[{ unitId, star(1~3), col(4~7), row(0~4) }]` 적 진영 배치. 칸 중복 불가, 최소 1기 |
+
+현재 수록: 일반 10개(1~11층을 겹쳐서 덮음), 정예 4개(4~11층), 보스 1개(`boss_gate_breaker`, 13층: 성문 파괴자 + 호위 2기). `loadRunDeps`는 일반 1~11층, 정예 4~11층, 보스 13층에 후보가 있는지 검사한다(없으면 어느 층인지 알리는 오류). 같은 노드는 (런 시드, 노드 id)로 편성을 고르므로 미리보기와 실제 전투가 항상 같다.
+
+**층 보정**: 모든 적 유닛의 HP·ATK × `1 + 0.04 × (층 − 1)` (`RUN.FLOOR_SCALE_PER_FLOOR`). 시뮬에는 `CombatSetup.enemy = { hpMult, atkMult, mutations }`로 넣는다 (편성 유닛에만 적용, 소환 유닛 제외, 생략하면 보정 없음).
+
+## events.json
+
+런 이벤트 (DESIGN 6장, 액트 1 회색 관문). 코드는 `loadEvents(json, cardCatalog, unitCatalog)`로 읽는다.
+
+| 필드 | 값 |
+|---|---|
+| `id`, `title`, `text` | 영문 키, 제목, 상황 설명 |
+| `choices` | 선택지 2~3개: `{ text, result, effects }`. `result`는 선택 뒤 보여줄 문장, `effects`는 순서대로 실행(비어 있으면 아무 일 없음) |
+
+**선택지 효과 최소 집합** (모르는 필드는 거부)
+| kind | 파라미터 | 의미 |
+|---|---|---|
+| `gold` | `amount`(0 아닌 정수) | 골드 증감. 음수면 지불 — 골드가 모자라면 그 선택지는 선택 불가 |
+| `commanderHp` | `amount` | 지휘관 HP 증감. 회복은 최대치까지. 피해는 이벤트로는 사망하지 않으며, 피해 후 HP가 1 미만이 되는 선택지는 선택 불가 |
+| `gainCard` | `mode: "random"` + `rarity` / `mode: "choose"` + `rarity` + `count`(≥2) / `mode: "fixed"` + `cardId` | 카드 획득: 희귀도(`common`/`rare`/`epic`, 보상 풀 기준)에서 무작위 1장 / 후보 count장 중 1장 선택 / 지정 카드 |
+| `removeCard` | `mode: "random"\|"choose"` | 덱 카드 제거(유닛 제공 카드 제외). 제거할 카드가 없으면 선택 불가 |
+| `upgradeCard` | `mode: "random"\|"choose"` | 덱 카드 강화(이미 강화·강화 버전 없음·유닛 제공 카드 제외). 가능한 카드가 없으면 선택 불가 |
+| `gainUnit` | `tier` | 무작위 `tier`등급 1성 유닛 1기를 벤치로 받는다(유닛 풀에서 원본 1개). 벤치가 가득 차면 선택 불가 |
+
+`choose` 모드는 선택 직후 `pending`(후보 목록)이 생기고 `pickEventOption(index)`로 고르면 남은 효과가 이어서 실행된다. 이벤트는 노드마다 결정적으로 고르며 이미 본 이벤트를 먼저 피한다. 현재 5개: 버려진 군수 창고 / 부상당한 정찰병 / 관문 대장장이 / 균열 제단 / 탈영병 야영지.
+
+---
+
+## 런 코어 (M4-A)
+
+`src/core/run`. 수치는 `RUN`(`run/constants.ts`)에 모여 있다. UI(M4-B)는 `RunController`만 보고 만든다.
+
+### 맵 (`MapGenerator`, `RunMap`)
+- 13층. 층 1~12는 노드 2~4개, 13층은 보스 1개. 인접한 두 층은 교차하지 않는 간선으로 잇고 노드마다 다음 층 노드 1~2개와 연결한다. 모든 노드는 시작에서 도달 가능하고 보스까지 경로가 있다.
+- 고정: 1층 전투만, 12층 야영지 전부, 13층 보스. 정예는 4층 이상. 간선으로 이어진 두 노드가 모두 상점/야영지인 경우(상점·야영지 연속) 금지.
+- 종류 비율은 보스 제외 전체 노드의 목표 비율(전투 45 / 정예 10 / 상점 12 / 이벤트 20 / 야영지 13)에 맞춘 "개수 할당"이라 시드마다 거의 같다 (300시드 측정: 전투 45.9 / 정예 10.0 / 상점 10.7 / 이벤트 20.3 / 야영지 13.1, 맵당 평균 37노드). 규칙 때문에 할당이 막히면 규칙을 지키는 다른 종류로 대체한다(주로 상점이 목표보다 약간 적음).
+- 같은 시드는 같은 맵 (맵 전용 Rng). 노드 id는 `층-인덱스`(예: `3-1`), `x`(0~1)는 표시용 가로 위치.
+
+### 단계(`RunPhase`)와 노드 처리
+`map → battlePrep → battle → reward | map | battlePrep(보스 재도전) | ended`, `map → shop | event | camp → map`.
+- 전투/정예/보스: 입장 시 유닛 상점 무료 갱신(잠금이면 1회 유지). 준비 단계에서 상점·배치·준비 카드 → `createSimulator()` → `beginBattle()` → 시뮬 실행 → `completeBattle(sim)`. 골드는 기존 `Economy`(일반/정예/보스 승리 5/8/15G, 패배·무승부 3G, 이자)로 전투 ID `노드#시도`당 한 번 정산.
+- 보스에서 지고 살아 있으면 같은 보스 노드에서 다시 도전(전투 시드·정산 ID가 달라짐). 일반·정예 패배는 보상 없이 다음 선택으로 넘어간다.
+- 승리 보상(보스 제외): 카드 3장 중 1장 선택/건너뛰기. 보스 처치 = 런 승리(`ended`, outcome `victory`), 지휘관 HP 0 = 사망(`dead`).
+
+### 지휘관 HP와 패배 피해
+- 시작·최대 HP 80 (`commanders.json maxHp`, 생략 시 `RUN.START_HP`).
+- 패배 피해 = `ceil((2 + 생존 적 유닛 등급 합 + floor(층 / 3)) × 배율)`: 일반 ×1, 정예 ×1.5, 보스 ×2 (소수는 올림). 생존 적은 소환 유닛 제외, 보스는 등급 5. **무승부(시간 초과·동시 전멸)는 패배로 취급**해 같은 피해와 3G를 받는다.
+- 카드로 잃은 HP(`commanderHp` 이벤트)는 승패와 무관하게 먼저 차감한다. 전투 시뮬은 시작 HP(`cards.commanderHp`)만 알고 "사용 후 HP ≥ 1"일 때만 HP 비용 카드를 허용한다. 이벤트 피해는 HP 1 밑으로 내리지 않는다.
+- 심연의 계약: 0CP 명령, `commanderHpCost { amount: 3, waivedByTrait: "abyss" }` + 효과 `cpGain 2`(강화 3), 전투당 2회. 심연 특성이 활성(단계 1+)이면 HP 비용이 면제된다.
+
+### 정예 변이 4종 (`combat/mutations.ts`, 정예 노드마다 결정적으로 1개, 50% 확률로 2개)
+| 변이 | 효과 | 구현 |
+|---|---|---|
+| 장갑 `armored` | 적 전원 ARM +50 (전투 내내) | 공통 효과 `statAdd` |
+| 분노 `rage` | 적이 HP 50% 이하가 되면 AS ×2 (유닛마다 1회) | `onDamageTaken` 트리거 + `statMod` |
+| 전파 `contagion` | 적이 죽으면 반경 1칸(체비쇼프)의 살아 있는 적이 대상 최대 HP의 20% 회복 | `onDeath` 트리거 + `heal` 이벤트 |
+| 방해 `disrupt` | 3초마다 플레이어 손패 무작위 1장의 비용 +1 (이번 전투, 누적) | `onTick` 트리거, `cardCost` 이벤트 (선택은 시드에서 파생한 별도 Rng) |
+설치는 `mutation` 이벤트로 남는다. 방해로 오른 비용은 `sim.cardSurcharge(instanceId)`로 조회하고 카드 사용 검사에 반영된다.
+
+### 보스: 성문 파괴자 (`units.json gate_breaker`, `boss: true`)
+- HP 2600 / ATK 70 / AS 0.5 / ARM 40 / RES 20 (층 13 보정 ×1.48 적용 시 HP 3848). 호위: 투기장 신병, 잿불 점화사. 상점 풀·징집 후보에서 제외.
+- 패턴 `columnStrike`: 10초마다(첫 발동 10초) 발동 2초 전에 `telegraph` 이벤트(`id`, `source`, `cells` 한 열 5칸, `fireAt`)를 내고, 발동 시 `strike` 이벤트 뒤에 그 열에 서 있는 아군 전원에게 420 물리 고정 피해(`flatDamage`, 받는 피해 배율·보호막·ARM 적용). 대상 열 = 아군이 가장 많이 선 열(동수면 보스에 가까운 쪽). 예고 중 진형 교대로 빠지거나 피해 감소 카드(전열 사수 등)로 대응할 수 있다. 보스가 죽으면 예약된 발동은 취소된다.
+
+### 카드 보상·상점·야영지
+- **보상 풀**: 공용(`neutral`)·비저주·`starter`가 아닌 카드(현재 common 7 / rare 3). 지휘관 고유 카드는 시작 덱 전용. 희귀도 가중치(일반 70/27/3, 정예·보스 40/50/10), 한 제시 안에서 중복 없음, 보스는 첫 장을 희귀 이상에서 보장. 카드 추가는 뽑을 더미에 넣고 덱 Rng로 섞는다.
+- **상점 노드**: 카드 3종(일반 보상 가중치, 희귀도별 가격 common 8 / rare 15 / epic 25G), 카드 제거 75G(상점에서 제거할 때마다 +25G, 런 누적), 유닛 상점은 입장 시 무료 갱신 후 기존 Management 그대로(리롤·잠금·구매·경험치). 이벤트·야영지의 제거/강화는 이 횟수에 포함하지 않는다.
+- **야영지(택1)**: 휴식 = 최대 HP의 30%(올림) 회복 / 단련 = 덱 카드 1장 강화(유닛 제공 카드·이미 강화된 카드 제외) / 승급 = 유닛 1기 +1성. 승급 비용 = 4 + (풀에서 추가로 가져오는 원본 수 × 유닛 등급): 1→2성은 원본 +2개(2성 = 3개), 2→3성은 +6개(3성 = 9개)를 유닛 풀에서 가져와 일반 합성과 같은 재고를 쓰므로 판매 시 돌려주는 개수(1/3/9)와 어긋나지 않는다. 재고나 골드가 모자라면 불가, 승급 뒤 같은 성급 3기가 되면 자동 합성한다.
+
+### 저장 (`RunSave`)
+- `{ format: "autochess-run", version: 1, seed, commanderId, deckPreset, map, position, health, forces{economy, management, managementRng, carryDeck}, removals, seenEvents, phase, session, outcome, history }`.
+- 노드 단위 체크포인트: 맵 선택 단계, 노드 입장 직후, 상점/이벤트(카드 선택 대기 포함)/야영지/보상 화면 모두 저장할 수 있다. 전투 중간 저장은 없다 — `battle` 단계는 `battlePrep`으로 저장되어 복원하면 같은 준비 손패·같은 전투 시드로 전투 준비 단계에 돌아온다. 복원 후 같은 선택은 같은 결과를 낸다(골드 영수증·상점 Rng·덱 Rng 상태까지 저장).
+- 복원은 모든 필드를 검증하고 `run.forces.carryDeck.draw[0].cardId` 같은 경로가 담긴 한국어 오류를 던진다 (모르는 필드·버전 불일치·단계/세션 불일치 포함).
+
+### 헤드리스 자동 런
+`npm run run -- --seed 1 --n 20 [--path first|random] [--plan 파일|--no-cards] [--deck starter|test] [--verbose]` (`tools/run.ts`, 로직은 `AutoRunner`). 정책: 보드를 채우고 가장 싼 유닛 구매(인구가 차고 골드 ≥ 8이면 경험치), 카드 보상 첫 장, 이벤트는 선택 가능한 첫 선택지, 야영지는 HP 50% 미만이면 휴식 아니면 강화, 전투는 `tools/plans/harten-basic.json` 카드 계획. i번째 런의 시드는 `seed + i`.

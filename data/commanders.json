@@ -24,6 +24,7 @@
         { "unitId": "iron_shieldbearer", "count": 2 }
       ],
       "startCpBonus": 0,
+      "maxHp": 80,
       "ultimate": {
         "name": "불굴의 방진",
         "text": "4초간 아군 전체 받는 피해 -40%, 전열 아군은 주변 적을 도발. (M5 구현 예정)"

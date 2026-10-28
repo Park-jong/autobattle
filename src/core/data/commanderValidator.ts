@@ -4,7 +4,7 @@ import { EffectValidator } from './effectValidator';
 import { DataValidationError } from './errors';
 import { FieldReader } from './fieldReader';
 
-const COMMANDER_KEYS = ['id', 'name', 'passive', 'startingDeck', 'startingUnits', 'startCpBonus', 'ultimate'] as const;
+const COMMANDER_KEYS = ['id', 'name', 'passive', 'startingDeck', 'startingUnits', 'startCpBonus', 'maxHp', 'ultimate'] as const;
 
 /** commanders.json 구조를 검증한다. 카드·유닛 id 참조는 loadCommanders가 확인한다. 파일 I/O는 하지 않는다. */
 export class CommanderValidator {
@@ -45,6 +45,7 @@ export class CommanderValidator {
       startingUnits: this.validateUnits(r),
       startCpBonus: r.int('startCpBonus', 0),
     };
+    if (r.has('maxHp')) commander.maxHp = r.int('maxHp', 1);
     if (r.has('ultimate')) commander.ultimate = this.validateUltimate(r.object('ultimate'));
     return commander;
   }

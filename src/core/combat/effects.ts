@@ -19,7 +19,7 @@ export interface EffectContext {
 /** CP 수급 창구. 심연 같은 CP 획득 효과(cpOnKill)가 사용한다. 카드 시스템이 없는 전투에서는 주지 않는다 */
 export interface CpGainSink {
   /** CP를 얻고 상한 때문에 깎인 뒤 실제로 늘어난 양을 반환 */
-  gainCp(amount: number, reason: 'abyss'): number;
+  gainCp(amount: number, reason: 'abyss' | 'effect'): number;
 }
 
 const durationToSeconds = (d: number | 'combat'): number => (d === 'combat' ? Infinity : d);
@@ -55,7 +55,7 @@ export class EffectExecutor {
   checkExecutable(effects: readonly ResolvedEffect[], ctx: EffectContext): string | null {
     for (const effect of effects) {
       if (effect.kind === 'summon') {
-        if (!this.catalog?.units.some((u) => u.tier === effect.tier)) return '징집할 등급의 유닛이 없습니다';
+        if (!this.catalog?.units.some((u) => !u.boss && u.tier === effect.tier)) return '징집할 등급의 유닛이 없습니다';
         if (this.summonCells(ctx.side).length < effect.count) return `후열에 빈 칸 ${effect.count}개가 필요합니다`;
       }
       if (effect.kind === 'teleport') {
@@ -190,7 +190,7 @@ export class EffectExecutor {
       }
       case 'summon': {
         const cells = this.summonCells(ctx.side).slice(0, effect.count);
-        const candidates = this.catalog?.units.filter((u) => u.tier === effect.tier) ?? [];
+        const candidates = this.catalog?.units.filter((u) => !u.boss && u.tier === effect.tier) ?? [];
         for (const cell of cells) world.spawn(world.rng.pick(candidates), ctx.side, cell, true);
         break;
       }
@@ -201,6 +201,9 @@ export class EffectExecutor {
           u.hp = Math.min(u.hp, u.maxHp);
           world.emit({ type: 'maxHp', unit: u.uid, hp: u.hp, maxHp: u.maxHp });
         }
+        break;
+      case 'cpGain':
+        this.cp?.gainCp(effect.amount, 'effect');
         break;
       case 'drawCards':
         if (!this.deck) throw new Error('drawCards 효과는 카드 덱이 필요함');

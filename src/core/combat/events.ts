@@ -7,7 +7,7 @@ import type { PlayTarget } from './cardCommand';
 export type Winner = 0 | 1 | 'draw';
 export type StatusDuration = number | 'combat';
 /** CP가 바뀐 이유: 시작 / 자연 증가 / 카드 사용 / 심연 특성 */
-export type CpReason = 'start' | 'regen' | 'card' | 'abyss';
+export type CpReason = 'start' | 'regen' | 'card' | 'abyss' | 'effect';
 
 export type CombatEvent = { t: number } & (
   | {
@@ -67,6 +67,16 @@ export type CombatEvent = { t: number } & (
     }
   /** 아군(side 0)의 CP 변화. delta는 실제로 변한 양, cp는 변화 후 값 */
   | { type: 'cp'; pool: CpPool; delta: number; cp: number; reason: CpReason }
+  /** 적 진영에 걸린 정예 변이 (전투 시작 시각에 한 번씩) */
+  | { type: 'mutation'; id: string }
+  /** 방해 변이: 손패 카드의 비용이 올랐다. surcharge는 그 카드의 누적 추가 비용 */
+  | { type: 'cardCost'; instanceId: number; cardId: string; surcharge: number }
+  /** 보스 패턴 예고: fireAt(초)에 cells 칸의 유닛이 공격받는다. id는 같은 시전의 strike와 짝 */
+  | { type: 'telegraph'; id: number; source: number; pattern: string; cells: Cell[]; fireAt: number }
+  /** 예고된 패턴 발동 (피해는 이어지는 damage 이벤트) */
+  | { type: 'strike'; id: number; source: number; cells: Cell[] }
+  /** 카드로 지휘관 HP를 잃었다 (런이 정산). remaining은 이 전투에서 아직 쓸 수 있는 HP */
+  | { type: 'commanderHp'; delta: number; remaining: number; cardId: string; instanceId: number }
   | { type: 'end'; winner: Winner; reason: 'annihilation' | 'timeout' }
 );
 

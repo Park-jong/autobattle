@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "id": "abandoned_depot",
+      "title": "버려진 군수 창고",
+      "text": "무너진 회색 관문 아래 군수 창고의 문이 열려 있다. 군단의 낙인이 찍힌 상자들 사이에서 쇠 부딪히는 소리가 어렴풋이 들린다.",
+      "choices": [
+        {
+          "text": "상자를 억지로 뜯는다 (+14G, 지휘관 HP -6)",
+          "result": "상자 안에는 군수금이 가득했지만 경보 장치가 터지며 파편이 튀었다.",
+          "effects": [
+            { "kind": "gold", "amount": 14 },
+            { "kind": "commanderHp", "amount": -6 }
+          ]
+        },
+        {
+          "text": "자물쇠를 조심스럽게 푼다 (-5G, 일반 카드 1장)",
+          "result": "공병이 남기고 간 전술서가 들어 있었다. 낡았지만 쓸 만하다.",
+          "effects": [
+            { "kind": "gold", "amount": -5 },
+            { "kind": "gainCard", "mode": "random", "rarity": "common" }
+          ]
+        },
+        {
+          "text": "손대지 않고 지나간다",
+          "result": "함정일지도 모른다. 발걸음을 돌려 관문 안쪽으로 향했다.",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "wounded_scout",
+      "title": "부상당한 정찰병",
+      "text": "성벽 아래에 군단 정찰병이 피를 흘리며 쓰러져 있다. 아직 숨이 붙어 있고, 당신의 깃발을 알아본 눈치다.",
+      "choices": [
+        {
+          "text": "치료해 준다 (-8G, 1등급 유닛 1기 합류)",
+          "result": "그는 목숨값으로 칼을 들고 대열에 합류했다.",
+          "effects": [
+            { "kind": "gold", "amount": -8 },
+            { "kind": "gainUnit", "tier": 1 }
+          ]
+        },
+        {
+          "text": "정보만 받고 보내준다 (카드 1장 무작위 강화)",
+          "result": "그가 알려준 관문의 배치를 바탕으로 작전을 다듬었다.",
+          "effects": [
+            { "kind": "upgradeCard", "mode": "random" }
+          ]
+        },
+        {
+          "text": "소지품만 챙긴다 (+8G, 지휘관 HP -4)",
+          "result": "챙긴 군수금은 쏠쏠했지만, 등 뒤의 신음이 오래 귀에 남았다.",
+          "effects": [
+            { "kind": "gold", "amount": 8 },
+            { "kind": "commanderHp", "amount": -4 }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "gate_smith",
+      "title": "관문 대장장이",
+      "text": "불씨가 남은 화로 곁에서 늙은 대장장이가 망치를 들고 있다. \"부서진 관문의 철이면 쓸 만한 칼이 되지. 일감이 있으면 맡기게.\"",
+      "choices": [
+        {
+          "text": "작전서를 단련시킨다 (-12G, 카드 1장 강화)",
+          "result": "망치질 몇 번에 낡은 계획이 날카롭게 벼려졌다.",
+          "effects": [
+            { "kind": "gold", "amount": -12 },
+            { "kind": "upgradeCard", "mode": "choose" }
+          ]
+        },
+        {
+          "text": "폐철 정리를 거든다 (지휘관 HP -5, 카드 1장 제거)",
+          "result": "무거운 폐철을 나르며 쓸모없는 짐을 덜어냈다.",
+          "effects": [
+            { "kind": "commanderHp", "amount": -5 },
+            { "kind": "removeCard", "mode": "choose" }
+          ]
+        },
+        {
+          "text": "그냥 떠난다",
+          "result": "대장장이는 어깨를 으쓱하고 다시 망치를 들었다.",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "rift_altar",
+      "title": "균열 제단",
+      "text": "회색 돌 사이로 보랏빛 균열이 맥동한다. 제단 위에서 낯선 문양의 카드들이 속삭인다. 군단이 만든 마력의 잔재다.",
+      "choices": [
+        {
+          "text": "균열에 손을 뻗는다 (지휘관 HP -10, 희귀 카드 3장 중 1장)",
+          "result": "손끝이 타들어 가는 대가로 균열이 한 장의 계약을 내밀었다.",
+          "effects": [
+            { "kind": "commanderHp", "amount": -10 },
+            { "kind": "gainCard", "mode": "choose", "rarity": "rare", "count": 3 }
+          ]
+        },
+        {
+          "text": "제물을 바친다 (-10G, 지휘관 HP +12)",
+          "result": "금화가 균열 속으로 녹아들자 따뜻한 기운이 몸을 감쌌다.",
+          "effects": [
+            { "kind": "gold", "amount": -10 },
+            { "kind": "commanderHp", "amount": 12 }
+          ]
+        },
+        {
+          "text": "눈을 돌리고 지나간다",
+          "result": "속삭임은 등 뒤에서 한참을 따라왔지만 곧 잦아들었다.",
+          "effects": []
+        }
+      ]
+    },
+    {
+      "id": "deserter_camp",
+      "title": "탈영병 야영지",
+      "text": "무너진 방벽 뒤에서 군단 탈영병들이 모닥불을 피우고 있다. 그들은 당신의 깃발을 알아보고 무기를 내려놓았다.",
+      "choices": [
+        {
+          "text": "합류를 받아들인다 (-6G, 2등급 유닛 1기)",
+          "result": "숙련된 탈영병 한 명이 대열에 합류했다.",
+          "effects": [
+            { "kind": "gold", "amount": -6 },
+            { "kind": "gainUnit", "tier": 2 }
+          ]
+        },
+        {
+          "text": "보급품을 징발한다 (+12G, 지휘관 HP -8)",
+          "result": "보급품은 얻었지만 탈영병들의 저항으로 상처를 입었다.",
+          "effects": [
+            { "kind": "gold", "amount": 12 },
+            { "kind": "commanderHp", "amount": -8 }
+          ]
+        },
+        {
+          "text": "모닥불 곁에서 잠시 쉬어간다 (지휘관 HP +4)",
+          "result": "따뜻한 수프 한 그릇에 피로가 조금 풀렸다.",
+          "effects": [
+            { "kind": "commanderHp", "amount": 4 }
+          ]
+        }
+      ]
+    }
+  ]
+}

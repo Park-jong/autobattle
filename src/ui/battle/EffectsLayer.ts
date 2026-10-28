@@ -9,7 +9,7 @@ interface PooledText {
 }
 
 /** CP 변화 이유 → 표시용 한국어 */
-const CP_REASON_LABELS = { start: '시작', regen: '회복', card: '카드', abyss: '심연' } as const;
+const CP_REASON_LABELS = { start: '시작', regen: '회복', card: '카드', abyss: '심연', effect: '카드 효과' } as const;
 
 /** 카드 id → 화면에 보일 카드 이름 */
 export type CardNamer = (cardId: string, upgraded: boolean) => string;

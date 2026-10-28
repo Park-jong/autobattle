@@ -3,6 +3,7 @@ import type { FormationEntry, StarLevel } from '../combat/formation';
 import { isInOwnHalf, sameCell, type Cell } from '../combat/board';
 import type { UnitCatalog } from '../data/unitLoader';
 import type { StartingUnit } from '../data/commander';
+import { FieldReader } from '../data/fieldReader';
 import { Rng } from '../rng';
 
 export const MANAGEMENT = {
@@ -13,6 +14,8 @@ export const MANAGEMENT = {
   REROLL_COST: 1,
   XP_COST: 4,
   XP_PER_PURCHASE: 4,
+  /** 야영지 승급 기본 비용. 총 비용 = 기본 + 풀에서 추가로 가져오는 원본 수 × 유닛 등급 */
+  PROMOTE_BASE_COST: 4,
   // 레벨 3→4부터 8→9까지 필요한 XP. 남은 XP는 다음 레벨로 이월한다.
   XP_TO_NEXT: { 3: 4, 4: 8, 5: 12, 6: 20, 7: 32, 8: 48 } as Record<number, number>,
   // 원본 1성 개수. 2·3성은 각각 3·9개의 재고를 차지한다.
@@ -58,6 +61,24 @@ export interface ManagementSnapshot {
   pool: Record<string, number>;
 }
 
+/** 저장용 상태. 소유 유닛·상점·유닛 풀 재고·레벨/XP를 모두 담는다 (골드는 Economy, RNG는 호출 측이 저장) */
+export interface ManagementState {
+  level: number;
+  xp: number;
+  locked: boolean;
+  nextOwnedId: number;
+  nextOfferId: number;
+  owned: OwnedUnit[];
+  offers: (ShopOffer | null)[];
+  pool: Record<string, number>;
+}
+
+/** 승급 견적: 풀에서 추가로 가져올 원본 수와 골드 비용 */
+export interface PromotionQuote {
+  extraCopies: number;
+  cost: number;
+}
+
 const OK: ManagementResult = { ok: true };
 const fail = (reason: string): ManagementResult => ({ ok: false, reason });
 const copiesAtStar = (star: StarLevel): number => 3 ** (star - 1);
@@ -96,6 +117,7 @@ export class Management {
     startingUnits: readonly StartingUnit[] = [],
   ) {
     for (const unit of units.units) {
+      if (unit.boss) continue; // 보스 전용 유닛은 상점 풀에 넣지 않는다
       const copies = MANAGEMENT.POOL_COPIES[unit.tier];
       if (copies === undefined) throw new Error(`지원하지 않는 유닛 등급: ${unit.tier}`);
       this.pool.set(unit.id, copies);
@@ -128,6 +150,98 @@ export class Management {
     };
   }
 
+  /** 저장용 상태 복사본 */
+  serializeState(): ManagementState {
+    return {
+      level: this.levelValue, xp: this.xpValue, locked: this.lockedValue,
+      nextOwnedId: this.nextOwnedId, nextOfferId: this.nextOfferId,
+      owned: this.owned.map(copyUnit),
+      offers: this.offers.map((offer) => (offer ? { ...offer } : null)),
+      pool: Object.fromEntries(this.pool),
+    };
+  }
+
+  /**
+   * 저장된 상태로 덮어쓴다. 모든 필드를 검증하며 잘못되면 위치가 담긴 DataValidationError를 던지고 상태는 바뀌지 않는다.
+   * 상점 RNG는 호출 측이 따로 복원한다.
+   */
+  restoreState(data: unknown, path = 'management'): void {
+    const r = FieldReader.of(data, path);
+    r.onlyKeys(['level', 'xp', 'locked', 'nextOwnedId', 'nextOfferId', 'owned', 'offers', 'pool']);
+    const level = r.int('level', MANAGEMENT.START_LEVEL);
+    if (level > MANAGEMENT.MAX_LEVEL) r.fail('level', `${MANAGEMENT.MAX_LEVEL} 이하여야 함`);
+    const xp = r.int('xp', 0);
+    const locked = r.boolean('locked');
+    const nextOwnedId = r.int('nextOwnedId', 1);
+    const nextOfferId = r.int('nextOfferId', 1);
+
+    const owned: OwnedUnit[] = [];
+    const cells = new Set<string>();
+    const benches = new Set<number>();
+    r.array('owned').forEach((raw, i) => {
+      const u = FieldReader.of(raw, `${path}.owned[${i}]`);
+      u.onlyKeys(['id', 'unitId', 'star', 'cell', 'benchIndex', 'equipment']);
+      const id = u.int('id', 1);
+      if (owned.some((entry) => entry.id === id)) u.fail('id', `중복된 소유 ID ${id}`);
+      if (id >= nextOwnedId) u.fail('id', 'nextOwnedId보다 작아야 함');
+      const unitId = u.string('unitId');
+      const def = this.units.get(unitId);
+      if (!def || def.boss) u.fail('unitId', `소유할 수 없는 유닛 "${unitId}"`);
+      const star = u.int('star', 1);
+      if (star > 3) u.fail('star', '1~3이어야 함');
+      let cell: Cell | null = null;
+      if (u.rawValue('cell') !== null) {
+        const c = u.object('cell');
+        cell = { col: c.int('col', 0), row: c.int('row', 0) };
+        if (!isInOwnHalf(0, cell)) u.fail('cell', '아군 보드 안의 칸이어야 함');
+        const key = `${cell.col},${cell.row}`;
+        if (cells.has(key)) u.fail('cell', `칸 (${key})이 중복됨`);
+        cells.add(key);
+      }
+      let benchIndex: number | null = null;
+      if (u.rawValue('benchIndex') !== null) {
+        benchIndex = u.int('benchIndex', 0);
+        if (benchIndex >= MANAGEMENT.BENCH_SIZE) u.fail('benchIndex', `${MANAGEMENT.BENCH_SIZE} 미만이어야 함`);
+        if (benches.has(benchIndex)) u.fail('benchIndex', `벤치 칸 ${benchIndex}이 중복됨`);
+        benches.add(benchIndex);
+      }
+      if ((cell === null) === (benchIndex === null)) u.fail('cell', '보드 칸과 벤치 중 정확히 하나에 있어야 함');
+      const equipment = u.array('equipment').map((item, j) => {
+        if (typeof item !== 'string' || item.trim() === '') u.fail(`equipment[${j}]`, '카드 ID 문자열이어야 함');
+        return item as string;
+      });
+      owned.push({ id, unitId, star: star as StarLevel, cell, benchIndex, equipment });
+    });
+    if (cells.size > level) r.fail('owned', `보드 유닛 ${cells.size}기가 레벨 ${level}의 인구 한도를 넘음`);
+
+    const offerList = r.array('offers');
+    if (offerList.length !== MANAGEMENT.SHOP_SIZE) r.fail('offers', `길이 ${MANAGEMENT.SHOP_SIZE}여야 함`);
+    const offers = offerList.map((raw, i) => {
+      if (raw === null) return null;
+      const o = FieldReader.of(raw, `${path}.offers[${i}]`);
+      o.onlyKeys(['id', 'unitId', 'tier', 'cost']);
+      const unitId = o.string('unitId');
+      const def = this.units.get(unitId);
+      if (!def || def.boss) o.fail('unitId', `상점에 나올 수 없는 유닛 "${unitId}"`);
+      return { id: o.int('id', 1), unitId, tier: o.int('tier', 1), cost: o.int('cost', 0) } as ShopOffer;
+    });
+
+    const poolReader = r.object('pool');
+    const poolKeys = [...this.pool.keys()];
+    poolReader.onlyKeys(poolKeys);
+    const pool = new Map<string, number>();
+    for (const unitId of poolKeys) pool.set(unitId, poolReader.int(unitId, 0));
+
+    this.levelValue = level;
+    this.xpValue = xp;
+    this.lockedValue = locked;
+    this.nextOwnedId = nextOwnedId;
+    this.nextOfferId = nextOfferId;
+    this.owned = owned;
+    this.offers = offers;
+    for (const [unitId, count] of pool) this.pool.set(unitId, count);
+  }
+
   formation(): FormationEntry[] {
     return this.owned.filter((unit) => unit.cell !== null).map((unit) => ({
       unitId: unit.unitId, star: unit.star, cell: { ...(unit.cell as Cell) },
@@ -147,6 +261,55 @@ export class Management {
     this.owned = next;
     this.nextOwnedId++;
     this.offers[slot] = null;
+    return OK;
+  }
+
+  /**
+   * 골드 없이 1성 유닛 1기를 벤치/합성 규칙대로 받는다 (이벤트 보상). 풀에서 원본 1개를 가져가며,
+   * 풀에 없거나 벤치가 가득 차면 실패하고 아무것도 바꾸지 않는다.
+   */
+  grantUnit(unitId: string): ManagementResult {
+    const def = this.units.get(unitId);
+    if (!def || def.boss) return fail('받을 수 없는 유닛입니다');
+    const remaining = this.pool.get(unitId) ?? 0;
+    if (remaining <= 0) return fail('유닛 풀에 남은 재고가 없습니다');
+    const candidate: OwnedUnit = { id: this.nextOwnedId, unitId, star: 1, cell: null, benchIndex: -1, equipment: [] };
+    const next = this.merge([...this.owned.map(copyUnit), candidate]);
+    if (!this.placeUnassigned(next)) return fail('벤치가 가득 찼습니다');
+    this.owned = next;
+    this.nextOwnedId++;
+    this.pool.set(unitId, remaining - 1);
+    return OK;
+  }
+
+  /** 벤치에 빈 칸이 있어 새 유닛을 받을 수 있는지 (합성으로 자리가 나는 경우는 고려하지 않는 보수적 판단) */
+  hasBenchSpace(): boolean {
+    return this.firstFreeBench(this.owned) >= 0;
+  }
+
+  /** 유닛 한 단계 승급 견적. 3성이거나 없는 유닛이면 null */
+  promotionQuote(id: number): PromotionQuote | null {
+    const unit = this.owned.find((entry) => entry.id === id);
+    const def = unit ? this.units.get(unit.unitId) : undefined;
+    if (!unit || !def || unit.star >= 3) return null;
+    const extraCopies = copiesAtStar((unit.star + 1) as StarLevel) - copiesAtStar(unit.star);
+    return { extraCopies, cost: MANAGEMENT.PROMOTE_BASE_COST + extraCopies * def.tier };
+  }
+
+  /**
+   * 야영지 승급: 유닛 1기를 1→2성 또는 2→3성으로 올린다. 일반 합성과 같은 원본 수를 쓰도록
+   * 승급에 필요한 추가 원본(2성 +2, 3성 +6)을 유닛 풀에서 가져온다 (재고가 모자라면 실패).
+   * 판매 시 풀에 돌려주는 개수(성급별 1/3/9)와 모순이 없다. 장비·배치는 그대로이며 올라간 뒤 3기 합성 조건이 되면 자동 합성한다.
+   */
+  promote(id: number): ManagementResult {
+    const quote = this.promotionQuote(id);
+    const unit = this.owned.find((entry) => entry.id === id);
+    if (!quote || !unit) return fail('승급할 수 없는 유닛입니다 (3성이거나 소유하지 않음)');
+    if ((this.pool.get(unit.unitId) ?? 0) < quote.extraCopies) return fail('유닛 풀에 승급에 필요한 재고가 부족합니다');
+    if (!this.economy.spend(quote.cost)) return fail('승급할 골드가 부족합니다');
+    unit.star = (unit.star + 1) as StarLevel;
+    this.pool.set(unit.unitId, (this.pool.get(unit.unitId) ?? 0) - quote.extraCopies);
+    this.owned = this.merge(this.owned);
     return OK;
   }
 

@@ -48,6 +48,12 @@ export interface CardUpgrade {
   chain?: CardChain;
 }
 
+/** 지휘관 HP 비용. waivedByTrait 특성이 아군 진영에서 활성(단계 1 이상)이면 면제된다 */
+export interface CardHpCost {
+  amount: number;
+  waivedByTrait?: string;
+}
+
 export interface Card {
   id: string;
   name: string;
@@ -58,11 +64,21 @@ export interface Card {
   target: CardTarget;
   keywords: Keyword[];
   limits?: CardLimits;
+  /** 사용 시 지휘관 HP를 잃는다 (런이 정산). 사용 후 HP가 1 이상 남아야 쓸 수 있다 */
+  commanderHpCost?: CardHpCost;
   resonance?: CardResonance;
   chain?: CardChain;
   text: string;
   effects: CardEffect[];
   upgrade?: CardUpgrade;
+}
+
+/**
+ * 카드 보상·상점·이벤트 획득 풀에 들어갈 수 있는 카드: 공용(neutral)이고 저주가 아니며 시작 전용(starter)이 아닌 것.
+ * 지휘관 고유 카드는 시작 덱 전용이다 (지휘관별 보상 풀은 M5).
+ */
+export function isRewardCard(card: Card): boolean {
+  return card.owner === 'neutral' && card.type !== 'curse' && card.rarity !== 'starter';
 }
 
 export interface CardFile {

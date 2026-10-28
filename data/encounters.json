@@ -1,0 +1,219 @@
+{
+  "version": 1,
+  "encounters": [
+    {
+      "id": "patrol_scouts",
+      "name": "관문 순찰병",
+      "kind": "normal",
+      "minFloor": 1,
+      "maxFloor": 2,
+      "text": "신병 한 기가 앞을 막고 궁수가 뒤에서 쏜다.",
+      "units": [
+        { "unitId": "arena_recruit", "star": 1, "col": 4, "row": 2 },
+        { "unitId": "grove_archer", "star": 1, "col": 6, "row": 2 }
+      ]
+    },
+    {
+      "id": "post_guard",
+      "name": "초소 경비대",
+      "kind": "normal",
+      "minFloor": 1,
+      "maxFloor": 3,
+      "text": "방패병과 신병이 전열을 서고 석궁병이 지원한다.",
+      "units": [
+        { "unitId": "iron_shieldbearer", "star": 1, "col": 4, "row": 1 },
+        { "unitId": "arena_recruit", "star": 1, "col": 4, "row": 3 },
+        { "unitId": "legion_crossbow", "star": 1, "col": 6, "row": 2 }
+      ]
+    },
+    {
+      "id": "deserter_band",
+      "name": "탈영병 무리",
+      "kind": "normal",
+      "minFloor": 2,
+      "maxFloor": 4,
+      "text": "단검을 든 암살자 둘이 빠르게 파고든다.",
+      "units": [
+        { "unitId": "shade_dagger", "star": 1, "col": 4, "row": 1 },
+        { "unitId": "shade_dagger", "star": 1, "col": 4, "row": 3 },
+        { "unitId": "ember_slinger", "star": 1, "col": 6, "row": 2 }
+      ]
+    },
+    {
+      "id": "rampart_defense",
+      "name": "방벽 수비대",
+      "kind": "normal",
+      "minFloor": 3,
+      "maxFloor": 5,
+      "text": "두 방패 뒤에서 사수 둘이 사격한다.",
+      "units": [
+        { "unitId": "iron_shieldbearer", "star": 1, "col": 4, "row": 1 },
+        { "unitId": "moss_warden", "star": 1, "col": 4, "row": 3 },
+        { "unitId": "grove_archer", "star": 1, "col": 6, "row": 1 },
+        { "unitId": "legion_crossbow", "star": 1, "col": 6, "row": 3 }
+      ]
+    },
+    {
+      "id": "ember_scouts",
+      "name": "잿불 정찰대",
+      "kind": "normal",
+      "minFloor": 4,
+      "maxFloor": 6,
+      "text": "잿불 주술사들이 화상으로 소모전을 건다.",
+      "units": [
+        { "unitId": "iron_shieldbearer", "star": 1, "col": 4, "row": 0 },
+        { "unitId": "arena_recruit", "star": 1, "col": 4, "row": 2 },
+        { "unitId": "ember_kindler", "star": 1, "col": 6, "row": 1 },
+        { "unitId": "ember_slinger", "star": 1, "col": 6, "row": 3 }
+      ]
+    },
+    {
+      "id": "rift_skirmishers",
+      "name": "균열 척후병",
+      "kind": "normal",
+      "minFloor": 5,
+      "maxFloor": 7,
+      "text": "심연의 속삭임이 침묵을 걸고 암살자가 후열을 노린다.",
+      "units": [
+        { "unitId": "shade_dagger", "star": 1, "col": 4, "row": 1 },
+        { "unitId": "shade_dagger", "star": 1, "col": 4, "row": 3 },
+        { "unitId": "abyss_whisperer", "star": 1, "col": 6, "row": 2 },
+        { "unitId": "legion_crossbow", "star": 1, "col": 7, "row": 2 }
+      ]
+    },
+    {
+      "id": "legion_company",
+      "name": "군단 중대",
+      "kind": "normal",
+      "minFloor": 6,
+      "maxFloor": 9,
+      "text": "북소리에 맞춰 단단한 전열이 전진한다.",
+      "units": [
+        { "unitId": "war_drummer", "star": 1, "col": 4, "row": 2 },
+        { "unitId": "iron_shieldbearer", "star": 1, "col": 4, "row": 0 },
+        { "unitId": "arena_recruit", "star": 1, "col": 4, "row": 4 },
+        { "unitId": "legion_crossbow", "star": 1, "col": 6, "row": 1 },
+        { "unitId": "legion_crossbow", "star": 1, "col": 6, "row": 3 }
+      ]
+    },
+    {
+      "id": "ember_charge",
+      "name": "잿불 돌격대",
+      "kind": "normal",
+      "minFloor": 7,
+      "maxFloor": 10,
+      "text": "광전사 둘이 돌격하고 잿불 사수가 불을 붙인다.",
+      "units": [
+        { "unitId": "ember_berserker", "star": 1, "col": 4, "row": 1 },
+        { "unitId": "ember_berserker", "star": 1, "col": 4, "row": 3 },
+        { "unitId": "ember_slinger", "star": 1, "col": 6, "row": 0 },
+        { "unitId": "ember_kindler", "star": 1, "col": 6, "row": 2 },
+        { "unitId": "ember_slinger", "star": 1, "col": 6, "row": 4 }
+      ]
+    },
+    {
+      "id": "abyss_hunters",
+      "name": "심연 사냥꾼",
+      "kind": "normal",
+      "minFloor": 8,
+      "maxFloor": 11,
+      "text": "포식자가 앞에서 버티고 정찰병이 틈을 찌른다.",
+      "units": [
+        { "unitId": "abyss_devourer", "star": 1, "col": 4, "row": 2 },
+        { "unitId": "legion_spy", "star": 1, "col": 4, "row": 0 },
+        { "unitId": "shade_dagger", "star": 1, "col": 5, "row": 4 },
+        { "unitId": "abyss_whisperer", "star": 1, "col": 6, "row": 1 },
+        { "unitId": "abyss_whisperer", "star": 1, "col": 6, "row": 3 }
+      ]
+    },
+    {
+      "id": "gate_defenders",
+      "name": "관문 방위군",
+      "kind": "normal",
+      "minFloor": 9,
+      "maxFloor": 11,
+      "text": "2성 방패병을 중심으로 한 관문의 정예 수비 병력.",
+      "units": [
+        { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 2 },
+        { "unitId": "war_drummer", "star": 1, "col": 4, "row": 0 },
+        { "unitId": "war_drummer", "star": 1, "col": 4, "row": 4 },
+        { "unitId": "grove_druid", "star": 1, "col": 6, "row": 2 },
+        { "unitId": "legion_crossbow", "star": 1, "col": 6, "row": 0 },
+        { "unitId": "legion_crossbow", "star": 1, "col": 6, "row": 4 }
+      ]
+    },
+    {
+      "id": "elite_shield_company",
+      "name": "정예 방패 중대",
+      "kind": "elite",
+      "minFloor": 4,
+      "maxFloor": 7,
+      "text": "2성 방패병이 이끄는 단단한 중대.",
+      "units": [
+        { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 2 },
+        { "unitId": "war_drummer", "star": 1, "col": 4, "row": 0 },
+        { "unitId": "moss_warden", "star": 1, "col": 4, "row": 4 },
+        { "unitId": "legion_crossbow", "star": 1, "col": 6, "row": 1 },
+        { "unitId": "grove_archer", "star": 1, "col": 6, "row": 3 }
+      ]
+    },
+    {
+      "id": "elite_abyss_assassins",
+      "name": "정예 심연 암살단",
+      "kind": "elite",
+      "minFloor": 6,
+      "maxFloor": 9,
+      "text": "2성 암살자들이 후열을 찢는다.",
+      "units": [
+        { "unitId": "shade_dagger", "star": 2, "col": 4, "row": 1 },
+        { "unitId": "shade_dagger", "star": 2, "col": 4, "row": 3 },
+        { "unitId": "legion_spy", "star": 1, "col": 5, "row": 2 },
+        { "unitId": "abyss_whisperer", "star": 1, "col": 6, "row": 2 },
+        { "unitId": "iron_shieldbearer", "star": 1, "col": 4, "row": 2 }
+      ]
+    },
+    {
+      "id": "elite_ember_champions",
+      "name": "정예 잿불 투사단",
+      "kind": "elite",
+      "minFloor": 8,
+      "maxFloor": 11,
+      "text": "2성 광전사와 주술사가 화염 속에서 몰아친다.",
+      "units": [
+        { "unitId": "ember_berserker", "star": 2, "col": 4, "row": 2 },
+        { "unitId": "ember_berserker", "star": 1, "col": 4, "row": 0 },
+        { "unitId": "war_drummer", "star": 1, "col": 4, "row": 4 },
+        { "unitId": "ember_kindler", "star": 2, "col": 6, "row": 1 },
+        { "unitId": "ember_slinger", "star": 2, "col": 6, "row": 3 }
+      ]
+    },
+    {
+      "id": "elite_grove_ambush",
+      "name": "정예 숲 매복조",
+      "kind": "elite",
+      "minFloor": 5,
+      "maxFloor": 10,
+      "text": "이끼 수호자 뒤에서 2성 궁수들이 쏟아붓는다.",
+      "units": [
+        { "unitId": "moss_warden", "star": 2, "col": 4, "row": 1 },
+        { "unitId": "moss_warden", "star": 1, "col": 4, "row": 3 },
+        { "unitId": "grove_archer", "star": 2, "col": 6, "row": 0 },
+        { "unitId": "grove_archer", "star": 2, "col": 6, "row": 4 },
+        { "unitId": "grove_druid", "star": 1, "col": 6, "row": 2 }
+      ]
+    },
+    {
+      "id": "boss_gate_breaker",
+      "name": "성문 파괴자",
+      "kind": "boss",
+      "minFloor": 13,
+      "maxFloor": 13,
+      "text": "공성 골렘. 10초마다 한 열을 통째로 내려친다 (2초 전 예고).",
+      "units": [
+        { "unitId": "gate_breaker", "star": 1, "col": 4, "row": 2 },
+        { "unitId": "arena_recruit", "star": 1, "col": 5, "row": 4 },
+        { "unitId": "ember_kindler", "star": 1, "col": 6, "row": 1 }
+      ]
+    }
+  ]
+}

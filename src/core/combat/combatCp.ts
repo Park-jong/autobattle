@@ -44,7 +44,7 @@ export class CombatCommandPoints implements CpGainSink {
     if (gained > 0) this.emit('combat', gained, 'regen');
   }
 
-  gainCp(amount: number, reason: 'abyss'): number {
+  gainCp(amount: number, reason: 'abyss' | 'effect'): number {
     const gained = this.points.gain(amount);
     if (gained > 0) this.emit('combat', gained, reason);
     return gained;

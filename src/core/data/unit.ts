@@ -1,5 +1,6 @@
-import type { EffectDef } from './effect';
+import type { DamageType, EffectDef } from './effect';
 
+export const PATTERN_KINDS = ['columnStrike'] as const;
 export const SKILL_TARGETINGS = ['self', 'currentTarget', 'lowestHpEnemy', 'randomEnemies'] as const;
 export type SkillTargeting = (typeof SKILL_TARGETINGS)[number];
 
@@ -27,6 +28,20 @@ export interface SkillDef {
   effects: EffectDef[];
 }
 
+/**
+ * 보스 전용 주기 패턴. 열 강타: 주기마다 telegraphSeconds 전에 대상 열을 예고하고,
+ * 발동 시점에 그 열의 상대 진영 유닛 전체에게 고정 피해를 준다 (공통 효과 flatDamage 사용).
+ */
+export interface UnitPattern {
+  kind: 'columnStrike';
+  /** 발동 간격(초). 첫 발동도 전투 시작 후 이 시각 */
+  intervalSeconds: number;
+  /** 발동 몇 초 전에 예고하는지 */
+  telegraphSeconds: number;
+  damage: number;
+  dmgType: DamageType;
+}
+
 export interface UnitDef {
   id: string;
   name: string;
@@ -39,6 +54,10 @@ export interface UnitDef {
   skill: SkillDef;
   /** 이 유닛을 보드에 배치한 동안 제공하는 카드 */
   grantedCard?: string;
+  /** true면 보스 전용 유닛: 상점 유닛 풀·징집 후보에 나오지 않는다 */
+  boss?: true;
+  /** 주기 패턴 (보스) */
+  pattern?: UnitPattern;
 }
 
 export interface UnitFile {

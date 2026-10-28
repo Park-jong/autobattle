@@ -34,3 +34,21 @@ export const COMBAT = {
   /** 안전 장치: 이 시각에 무승부로 강제 종료 */
   HARD_LIMIT_SECONDS: 90,
 } as const;
+
+/** 정예 변이 수치 (DESIGN 7-2). 적(side 1) 전체에 적용된다 */
+export const MUTATION = {
+  /** 장갑: 적 전원 ARM 고정 증가 */
+  ARMORED_ARM: 50,
+  /** 분노: HP가 이 비율(%) 이하가 되면 AS를 올린다 */
+  RAGE_HP_PCT: 50,
+  /** 분노: AS 증가율(%) — 100이면 ×2 */
+  RAGE_AS_PCT: 100,
+  /** 전파: 죽은 적 주변 이 칸 이내(체비쇼프)의 살아 있는 적을 회복 */
+  CONTAGION_RADIUS: 1,
+  /** 전파: 회복량 = 대상 최대 HP의 이 비율(%) */
+  CONTAGION_HEAL_PCT: 20,
+  /** 방해: 이 간격(초)마다 플레이어 손패 무작위 1장의 비용을 올린다 */
+  DISRUPT_INTERVAL_SECONDS: 3,
+  /** 방해: 한 번에 올리는 비용 */
+  DISRUPT_COST: 1,
+} as const;

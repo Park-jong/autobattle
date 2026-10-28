@@ -4,6 +4,20 @@ import type { Cell, Side } from './board';
 import { COMBAT } from './constants';
 import { StatusSet } from './statuses';
 
+/** 적 스탯 보정 배율 (HP·ATK). 기본은 보정 없음 */
+export interface StatScale {
+  hp: number;
+  atk: number;
+}
+export const NO_SCALE: StatScale = { hp: 1, atk: 1 };
+
+/** 성급과 보정 배율을 반영한 최대 HP·ATK. 전투 유닛과 편성 미리보기가 같은 식을 쓴다 */
+export function scaledHpAtk(def: UnitDef, star: number, scale: StatScale = NO_SCALE): { hp: number; atk: number } {
+  const mult = COMBAT.STAR_MULTIPLIER[star - 1];
+  if (mult === undefined) throw new Error(`잘못된 성급: ${star}`);
+  return { hp: Math.round(def.stats.hp * mult * scale.hp), atk: Math.round(def.stats.atk * mult * scale.atk) };
+}
+
 /** 진행 중인 1칸 이동 */
 export interface MoveInProgress {
   from: Cell;
@@ -43,13 +57,13 @@ export class CombatUnit {
     readonly star: number,
     cell: Cell,
     clock: () => number,
+    scale: StatScale = NO_SCALE,
   ) {
-    const mult = COMBAT.STAR_MULTIPLIER[star - 1];
-    if (mult === undefined) throw new Error(`잘못된 성급: ${star}`);
-    this.maxHp = Math.round(def.stats.hp * mult);
+    const scaled = scaledHpAtk(def, star, scale);
+    this.maxHp = scaled.hp;
     this.hp = this.maxHp;
     this.baseStats = {
-      atk: Math.round(def.stats.atk * mult),
+      atk: scaled.atk,
       as: def.stats.as,
       arm: def.stats.arm,
       res: def.stats.res,

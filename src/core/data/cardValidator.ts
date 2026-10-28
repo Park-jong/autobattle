@@ -6,6 +6,7 @@ import {
   type Card,
   type CardChain,
   type CardEffect,
+  type CardHpCost,
   type CardFile,
   type CardLimits,
   type CardResonance,
@@ -20,7 +21,7 @@ import { FieldReader } from './fieldReader';
 
 const CARD_KEYS = [
   'id', 'name', 'owner', 'rarity', 'type', 'cost', 'target', 'keywords',
-  'limits', 'resonance', 'chain', 'text', 'effects', 'upgrade',
+  'limits', 'commanderHpCost', 'resonance', 'chain', 'text', 'effects', 'upgrade',
 ] as const;
 const UPGRADE_KEYS = ['text', 'effects', 'cost', 'resonance', 'chain'] as const;
 
@@ -74,6 +75,7 @@ export class CardValidator {
     };
     if (card.type === 'equipment' && target.kind !== 'allyUnit') r.fail('target.kind', '장비는 아군 유닛 1명을 지정해야 함');
     if (r.has('limits')) card.limits = this.validateLimits(r.object('limits'));
+    if (r.has('commanderHpCost')) card.commanderHpCost = this.validateHpCost(r.object('commanderHpCost'));
     if (r.has('resonance')) card.resonance = this.validateResonance(r.object('resonance'), target);
     const hasChainKeyword = card.keywords.includes('chain');
     if (r.has('chain')) {
@@ -108,6 +110,13 @@ export class CardValidator {
     const limits: CardLimits = {};
     if (r.has('perCombat')) limits.perCombat = r.int('perCombat', 1);
     return limits;
+  }
+
+  private validateHpCost(r: FieldReader): CardHpCost {
+    r.onlyKeys(['amount', 'waivedByTrait']);
+    const cost: CardHpCost = { amount: r.int('amount', 1) };
+    if (r.has('waivedByTrait')) cost.waivedByTrait = r.string('waivedByTrait');
+    return cost;
   }
 
   private validateResonance(r: FieldReader, target: CardTarget): CardResonance {

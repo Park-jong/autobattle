@@ -1,9 +1,10 @@
 import { DataValidationError } from './errors';
 import { EffectValidator } from './effectValidator';
 import { FieldReader } from './fieldReader';
-import { SKILL_TARGETINGS, type SkillDef, type UnitDef, type UnitFile, type UnitStats } from './unit';
+import { DAMAGE_TYPES } from './effect';
+import { PATTERN_KINDS, SKILL_TARGETINGS, type SkillDef, type UnitDef, type UnitFile, type UnitPattern, type UnitStats } from './unit';
 
-const UNIT_KEYS = ['id', 'name', 'tier', 'origin', 'job', 'stats', 'skill', 'grantedCard'] as const;
+const UNIT_KEYS = ['id', 'name', 'tier', 'origin', 'job', 'stats', 'skill', 'grantedCard', 'boss', 'pattern'] as const;
 const STAT_KEYS = ['hp', 'atk', 'as', 'rng', 'arm', 'res', 'mana'] as const;
 const SKILL_KEYS = ['name', 'text', 'targeting', 'effects', 'targetCount'] as const;
 
@@ -47,7 +48,20 @@ export class UnitValidator {
       skill: this.validateSkill(r.object('skill')),
     };
     if (r.has('grantedCard')) unit.grantedCard = r.string('grantedCard');
+    if (r.has('boss')) {
+      if (!r.boolean('boss')) r.fail('boss', 'true만 허용됨 (보스가 아니면 필드를 생략)');
+      unit.boss = true;
+    }
+    if (r.has('pattern')) unit.pattern = this.validatePattern(r.object('pattern'));
     return unit;
+  }
+
+  private validatePattern(r: FieldReader): UnitPattern {
+    r.onlyKeys(['kind', 'intervalSeconds', 'telegraphSeconds', 'damage', 'dmgType']);
+    const intervalSeconds = r.number('intervalSeconds', 1);
+    const telegraphSeconds = r.number('telegraphSeconds', 0.1);
+    if (telegraphSeconds >= intervalSeconds) r.fail('telegraphSeconds', '예고 시간은 발동 간격보다 짧아야 함');
+    return { kind: r.enum('kind', PATTERN_KINDS), intervalSeconds, telegraphSeconds, damage: r.number('damage', 0), dmgType: r.enum('dmgType', DAMAGE_TYPES) };
   }
 
   private validateStats(r: FieldReader): UnitStats {

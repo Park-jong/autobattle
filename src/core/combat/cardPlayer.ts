@@ -7,6 +7,7 @@ import { resolveEffect, type EffectDef, type ResolvedEffect } from '../data/effe
 import { isInsideBoard, type Side } from './board';
 import type { PlayResult, PlayTarget } from './cardCommand';
 import type { CombatCommandPoints } from './combatCp';
+import { CommanderHpLedger } from './commanderHp';
 import type { EffectContext, EffectExecutor } from './effects';
 import type { ActiveTrait } from './traits';
 import type { CombatUnit } from './unit';
@@ -30,6 +31,8 @@ type TargetResolution = { ok: true; ctx: EffectContext } | { ok: false; reason: 
  */
 export class CardPlayer {
   private readonly usesByCard = new Map<string, number>();
+  /** 방해 변이로 올라간 카드 인스턴스별 추가 비용 (이번 전투 한정) */
+  private readonly surcharges = new Map<number, number>();
   private playedCount = 0;
 
   constructor(
@@ -39,7 +42,31 @@ export class CardPlayer {
     private readonly deck: Deck,
     private readonly catalog: CardCatalog,
     private readonly activeTraits: readonly ActiveTrait[],
+    private readonly hpLedger: CommanderHpLedger = new CommanderHpLedger(),
   ) {}
+
+  /** 방해 변이: 손패 카드 한 장의 비용을 올린다. 누적 추가 비용을 반환 */
+  addSurcharge(instanceId: number, amount: number): number {
+    const total = (this.surcharges.get(instanceId) ?? 0) + amount;
+    this.surcharges.set(instanceId, total);
+    return total;
+  }
+
+  /** 이 전투에서 카드로 잃은 지휘관 HP 합계 */
+  get hpSpent(): number {
+    return this.hpLedger.spent;
+  }
+
+  surchargeOf(instanceId: number): number {
+    return this.surcharges.get(instanceId) ?? 0;
+  }
+
+  /** 이 카드를 지금 쓰면 잃는 지휘관 HP (공명으로 면제되면 0) */
+  hpCostOf(card: Card): number {
+    const cost = card.commanderHpCost;
+    if (!cost) return 0;
+    return cost.waivedByTrait && this.isTraitActive(cost.waivedByTrait) ? 0 : cost.amount;
+  }
 
   /** 이번 전투에서 성공한 카드 사용 횟수 */
   get cardsPlayed(): number {
@@ -67,9 +94,14 @@ export class CardPlayer {
 
     const view = effectiveCard(card, instance.upgraded, this.playedCount);
     const pool: CpPool = card.type === 'operation' || card.type === 'equipment' ? 'prep' : 'combat';
-    if (!this.cp.canSpend(pool, view.cost)) {
+    const cost = view.cost + this.surchargeOf(instanceId);
+    if (!this.cp.canSpend(pool, cost)) {
       const label = pool === 'prep' ? '준비 단계 작전 CP가' : '지휘력이';
-      return fail(`${label} 부족합니다 (필요 ${view.cost}, 보유 ${this.cp.amount(pool)})`);
+      return fail(`${label} 부족합니다 (필요 ${cost}, 보유 ${this.cp.amount(pool)})`);
+    }
+    const hpCost = this.hpCostOf(card);
+    if (hpCost > 0 && !this.hpLedger.canSpend(hpCost)) {
+      return fail(`지휘관 HP가 부족합니다 (필요 ${hpCost}, 사용 후 1 이상 남아야 함, 사용 가능 ${this.hpLedger.remaining})`);
     }
 
     const resolution = this.resolveTarget(card.target, target);
@@ -80,7 +112,7 @@ export class CardPlayer {
     if (blocked) return fail(blocked);
 
     // ---- 검증 통과: 여기부터 상태 변경 ----
-    this.cp.spend(pool, view.cost);
+    this.cp.spend(pool, cost);
     this.usesByCard.set(card.id, this.usesOf(card.id) + 1);
     this.deck.play(instanceId, () => {
       this.world.emit({
@@ -92,6 +124,10 @@ export class CardPlayer {
         cp: this.cp.amount(pool),
         pool,
       });
+      if (hpCost > 0) {
+        this.hpLedger.spend(hpCost);
+        this.world.emit({ type: 'commanderHp', delta: -hpCost, remaining: this.hpLedger.remaining, cardId: card.id, instanceId });
+      }
       this.world.bus.emit('onCardPlay', { cardId: card.id, instanceId });
       this.executor.execute(effects, resolution.ctx);
       if (card.type === 'equipment') {
@@ -176,7 +212,7 @@ export class CardPlayer {
     return defs.map((d) => resolveEffect(d, 0));
   }
 
-  private isTraitActive(traitId: string): boolean {
+  isTraitActive(traitId: string): boolean {
     return this.activeTraits.some((t) => t.traitId === traitId && t.tier >= 1);
   }
 }

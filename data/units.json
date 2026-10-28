@@ -555,6 +555,43 @@
         ]
       },
       "grantedCard": "vine_snare"
+    },
+    {
+      "id": "gate_breaker",
+      "name": "성문 파괴자",
+      "tier": 5,
+      "origin": "abyss",
+      "job": "guardian",
+      "boss": true,
+      "stats": {
+        "hp": 2600,
+        "atk": 70,
+        "as": 0.5,
+        "rng": 1,
+        "arm": 40,
+        "res": 20,
+        "mana": 100
+      },
+      "skill": {
+        "name": "균열 강타",
+        "text": "현재 대상에게 ATK 250% 물리 피해.",
+        "targeting": "currentTarget",
+        "effects": [
+          {
+            "kind": "damage",
+            "selector": "target",
+            "pctAtk": 250,
+            "dmgType": "physical"
+          }
+        ]
+      },
+      "pattern": {
+        "kind": "columnStrike",
+        "intervalSeconds": 10,
+        "telegraphSeconds": 2,
+        "damage": 420,
+        "dmgType": "physical"
+      }
     }
   ]
 }

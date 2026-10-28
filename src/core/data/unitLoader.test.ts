@@ -33,9 +33,9 @@ function traitError(mutate: (d: any) => void): string {
 }
 
 describe('loadUnits', () => {
-  it('실제 data/units.json 14기가 통과하고 특성 참조도 유효', () => {
+  it('실제 data/units.json 15기(보스 포함)가 통과하고 특성 참조도 유효', () => {
     const catalog = loadUnits(unitsJson, traits);
-    expect(catalog.size).toBe(14);
+    expect(catalog.size).toBe(15);
     const shield = catalog.get('iron_shieldbearer');
     expect(shield?.stats).toEqual({ hp: 650, atk: 40, as: 0.6, rng: 1, arm: 40, res: 20, mana: 80 });
     expect(shield?.skill.effects).toHaveLength(2);

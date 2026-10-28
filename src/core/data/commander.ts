@@ -33,6 +33,8 @@ export interface CommanderDef {
   startingUnits: StartingUnit[];
   /** 전투 시작 CP 보정 (기본 2에 더함) */
   startCpBonus: number;
+  /** 런 시작 지휘관 최대 HP (생략하면 RUN.START_HP) */
+  maxHp?: number;
   ultimate?: CommanderUltimate;
 }
 

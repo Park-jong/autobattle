@@ -33,6 +33,7 @@ const PARAM_KEYS: Record<CombatEffectKind, readonly string[]> = {
   cpOnKill: ['amount', 'maxPerCombat'],
   manaFill: [],
   drawCards: ['count'],
+  cpGain: ['amount'],
   root: ['duration'], hpCost: ['pctMaxHp'], lifesteal: ['pct', 'duration'],
   onAttackBurn: ['pctAtk', 'duration'], killFeast: ['healPct', 'atkPct'], marksman: ['rangeBonus', 'chance'],
   attackMana: ['amount'], summon: ['count', 'tier'], scout: ['count', 'pctMaxHp'],
@@ -82,6 +83,10 @@ export class EffectValidator {
           : { kind, selector, count: r.int('count', 1), pctMaxHp: this.star(r, 'pctMaxHp', 0) };
       case 'manaFill':
         return { kind, selector };
+      case 'cpGain':
+        if (!this.options.allowCardEffects) r.fail('kind', 'cpGain은 카드 전용 효과임');
+        if (selector !== 'allAllies') r.fail('selector', 'cpGain은 selector가 allAllies여야 함');
+        return { kind, selector, amount: r.int('amount', 1) };
       case 'drawCards':
         if (!this.options.allowCardEffects) r.fail('kind', 'drawCards는 카드 전용 효과임');
         if (selector !== 'allAllies') r.fail('selector', 'drawCards는 selector가 allAllies여야 함');

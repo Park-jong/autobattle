@@ -44,6 +44,7 @@ export const COMBAT_EFFECT_KINDS = [
   'cpOnKill',
   'manaFill',
   'drawCards',
+  'cpGain',
   'root', 'hpCost', 'lifesteal', 'onAttackBurn', 'killFeast', 'marksman', 'attackMana', 'summon', 'scout',
 ] as const;
 
@@ -108,6 +109,8 @@ export type EffectOf<V> =
   | { kind: 'manaFill'; selector: EffectSelector }
   /** 플레이어 카드 전용. selector는 allAllies, 유닛 수와 무관하게 한 번 뽑는다 */
   | { kind: 'drawCards'; selector: EffectSelector; count: V }
+  /** 플레이어 카드 전용. selector는 allAllies, 유닛 수와 무관하게 한 번 전투 CP를 얻는다 (상한 6) */
+  | { kind: 'cpGain'; selector: EffectSelector; amount: V }
   | { kind: 'root'; selector: EffectSelector; duration: V }
   | { kind: 'hpCost'; selector: EffectSelector; pctMaxHp: V }
   | { kind: 'lifesteal'; selector: EffectSelector; pct: V; duration: V }

@@ -242,7 +242,7 @@
       "id": "firestorm",
       "name": "화염 폭풍",
       "owner": "neutral",
-      "rarity": "starter",
+      "rarity": "rare",
       "type": "spell",
       "cost": 3,
       "target": {
@@ -296,7 +296,7 @@
       "id": "mana_infusion",
       "name": "마나 주입",
       "owner": "neutral",
-      "rarity": "starter",
+      "rarity": "common",
       "type": "command",
       "cost": 2,
       "target": {
@@ -327,7 +327,7 @@
       "id": "tactical_reorganization",
       "name": "전술 재정비",
       "owner": "neutral",
-      "rarity": "starter",
+      "rarity": "common",
       "type": "command",
       "cost": 1,
       "target": {
@@ -363,7 +363,7 @@
       "id": "ember_arrow",
       "name": "불씨 화살",
       "owner": "neutral",
-      "rarity": "starter",
+      "rarity": "common",
       "type": "spell",
       "cost": 1,
       "target": {
@@ -409,7 +409,7 @@
       "id": "marching_song",
       "name": "행군가",
       "owner": "neutral",
-      "rarity": "starter",
+      "rarity": "common",
       "type": "command",
       "cost": 1,
       "target": {
@@ -443,7 +443,7 @@
       "id": "call_reserves",
       "name": "예비대 호출",
       "owner": "neutral",
-      "rarity": "starter",
+      "rarity": "rare",
       "type": "command",
       "cost": 3,
       "target": {
@@ -479,7 +479,7 @@
       "id": "forged_blade",
       "name": "제련된 칼날",
       "owner": "neutral",
-      "rarity": "starter",
+      "rarity": "common",
       "type": "equipment",
       "cost": 1,
       "target": {
@@ -523,7 +523,7 @@
       "id": "enemy_scout",
       "name": "적진 정찰",
       "owner": "neutral",
-      "rarity": "starter",
+      "rarity": "common",
       "type": "operation",
       "cost": 0,
       "target": {
@@ -555,7 +555,7 @@
       "id": "vine_snare",
       "name": "덩굴 속박",
       "owner": "neutral",
-      "rarity": "starter",
+      "rarity": "common",
       "type": "spell",
       "cost": 1,
       "target": {
@@ -577,6 +577,43 @@
             "kind": "root",
             "selector": "enemiesInTargetArea",
             "duration": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "abyss_pact",
+      "name": "심연의 계약",
+      "owner": "neutral",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 0,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "limits": {
+        "perCombat": 2
+      },
+      "commanderHpCost": {
+        "amount": 3,
+        "waivedByTrait": "abyss"
+      },
+      "text": "지휘관 HP 3을 잃고 CP +2. 공명 [심연]: HP 손실 없음. 전투당 2회.",
+      "effects": [
+        {
+          "kind": "cpGain",
+          "selector": "allAllies",
+          "amount": 2
+        }
+      ],
+      "upgrade": {
+        "text": "지휘관 HP 3을 잃고 CP +3. 공명 [심연]: HP 손실 없음. 전투당 2회.",
+        "effects": [
+          {
+            "kind": "cpGain",
+            "selector": "allAllies",
+            "amount": 3
           }
         ]
       }

@@ -1,3 +1,5 @@
+import { FieldReader } from '../data/fieldReader';
+
 /** 런 내에서 사용하는 골드 규칙. 모든 금액은 0 이상의 안전한 정수다. */
 export const ECONOMY = {
   START_GOLD: 10,
@@ -28,6 +30,14 @@ export interface EconomyView {
   readonly lastReward: BattleReward | null;
 }
 
+/** 저장용 상태: 잔고와 정산한 영수증 전부(중복 정산 방지 유지) */
+export interface EconomyState {
+  balance: number;
+  rewards: BattleReward[];
+  /** 가장 최근 영수증의 battleId (없으면 null) */
+  latestId: string | null;
+}
+
 function assertGold(value: number): void {
   if (!Number.isSafeInteger(value) || value < 0) throw new Error('골드는 0 이상의 안전한 정수여야 합니다');
 }
@@ -51,6 +61,38 @@ export class Economy {
 
   get gold(): number {
     return this.balance;
+  }
+
+  /** JSON 직렬화 가능한 상태. 영수증은 정산 순서를 보존한다 */
+  serialize(): EconomyState {
+    return { balance: this.balance, rewards: [...this.rewards.values()].map((r) => ({ ...r })), latestId: this.latest?.battleId ?? null };
+  }
+
+  /** 저장된 상태에서 복원한다. 잘못된 데이터는 위치가 담긴 DataValidationError */
+  static restore(data: unknown, path = 'economy'): Economy {
+    const r = FieldReader.of(data, path);
+    r.onlyKeys(['balance', 'rewards', 'latestId']);
+    const economy = new Economy(r.int('balance', 0));
+    for (const [i, raw] of r.array('rewards').entries()) {
+      const rr = FieldReader.of(raw, `${path}.rewards[${i}]`);
+      rr.onlyKeys(['battleId', 'kind', 'outcome', 'goldBefore', 'base', 'interest', 'total', 'goldAfter']);
+      const reward: BattleReward = Object.freeze({
+        battleId: rr.string('battleId'),
+        kind: rr.enum('kind', BATTLE_KINDS),
+        outcome: rr.enum('outcome', ['win', 'loss', 'draw'] as const),
+        goldBefore: rr.int('goldBefore', 0), base: rr.int('base', 0), interest: rr.int('interest', 0),
+        total: rr.int('total', 0), goldAfter: rr.int('goldAfter', 0),
+      });
+      if (economy.rewards.has(reward.battleId)) rr.fail('battleId', `중복된 전투 ID "${reward.battleId}"`);
+      economy.rewards.set(reward.battleId, reward);
+    }
+    const latestId = r.has('latestId') && r.rawValue('latestId') !== null ? r.string('latestId') : null;
+    if (latestId !== null) {
+      const latest = economy.rewards.get(latestId);
+      if (!latest) r.fail('latestId', `영수증 목록에 없는 전투 ID "${latestId}"`);
+      economy.latest = latest ?? null;
+    }
+    return economy;
   }
 
   snapshot(): EconomyView {

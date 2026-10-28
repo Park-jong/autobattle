@@ -36,6 +36,7 @@ export function loadCards(
       const refs = [
         { trait: card.resonance?.trait, where: 'resonance.trait' },
         { trait: card.upgrade?.resonance?.trait, where: 'upgrade.resonance.trait' },
+        { trait: card.commanderHpCost?.waivedByTrait, where: 'commanderHpCost.waivedByTrait' },
       ];
       for (const { trait, where } of refs) {
         if (trait !== undefined && !traits.get(trait)) {
