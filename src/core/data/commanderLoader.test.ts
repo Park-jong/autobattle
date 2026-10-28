@@ -87,8 +87,13 @@ describe('loadCommanders', () => {
     ).toContain('passive.effects[0].pctMaxHp: 이 위치에서는 성급별 배열');
     expect(errorOf((d) => (d.commanders[0].passive.effects[0].selector = 'target'))).toContain('selector');
     expect(errorOf((d) => (d.commanders[0].passive.effects[0].kind = 'nuke'))).toContain('알 수 없는 값 "nuke"');
-    // 패시브 효과가 비어도 된다 (이세라·녹스는 효과 없이 보정 필드만 쓴다)
-    expect(() => loadCommanders(structuredClone(Object.assign({}, commandersJson, { commanders: [{ ...commandersJson.commanders[0], passive: { ...commandersJson.commanders[0]!.passive, effects: [] } }] })), cards, units)).not.toThrow();
+    // 효과가 비어도 보정 필드(주문 피해·잔여 CP 골드·시작 CP)가 있으면 허용, 아무것도 없으면 거부
+    const withPassive = (passive: object, extra: object = {}) =>
+      structuredClone(Object.assign({}, commandersJson, { commanders: [{ ...commandersJson.commanders[0], ...extra, passive: { name: 'p', text: 't', ...passive } }] }));
+    expect(() => loadCommanders(withPassive({ effects: [], spellDamagePct: 10 }), cards, units)).not.toThrow();
+    expect(() => loadCommanders(withPassive({ effects: [], goldPerLeftoverCp: 1 }), cards, units)).not.toThrow();
+    expect(() => loadCommanders(withPassive({ effects: [] }, { startCpBonus: 1 }), cards, units)).not.toThrow();
+    expect(() => loadCommanders(withPassive({ effects: [] }), cards, units)).toThrow('아무 효과 없는 패시브');
   });
 
   it('궁극기는 선택 필드', () => {

@@ -16,6 +16,8 @@ import type { CombatUnit } from './unit';
  *     none / lowestHpEnemy / highestHpEnemy / lowestHpAlly / highestHpAlly
  *     (칸을 지정하는 카드는 고른 첫 유닛의 칸을 쓴다)
  * - until: 이 틱까지만 시도 (생략하면 전투 끝까지)
+ * - optional: true면 "손패에 있으면 쓴다". 아직 손패에 없으면 실패로 치지 않고 until/전투 끝까지 기다리다가
+ *   (카드를 뽑는 효과로 나중에 들어올 수 있다) 끝내 없으면 건너뜀(skipped)으로 센다. 생략하면 기존처럼 즉시 실패.
  * 작전(operation) 카드는 tick과 무관하게 준비 단계에서 한 번 시도한다.
  */
 /**
@@ -31,12 +33,16 @@ export interface PlanEntry {
   card: string;
   rule: TargetRule;
   until: number;
+  /** 손패에 없으면 실패가 아니라 건너뜀으로 처리 (생략 = false) */
+  optional?: boolean;
 }
 
 /** 계획 실행 통계. failed = 끝내 사용하지 못한 항목 수 */
 export interface PlanStats {
   played: number;
   failed: number;
+  /** optional 항목 중 끝내 손패에 없어서 건너뛴 수 (failed에 포함되지 않음) */
+  skipped: number;
   /** 실패 사유별 항목 수 */
   failureReasons: Record<string, number>;
 }
@@ -46,7 +52,7 @@ export function parseCardPlan(data: unknown, label = 'plan'): PlanEntry[] {
   if (!Array.isArray(data)) throw new DataValidationError(label, '항목 배열이어야 함');
   return data.map((raw, i) => {
     const r = FieldReader.of(raw, `${label}[${i}]`);
-    r.onlyKeys(['tick', 'card', 'target', 'until', 'ultimate']);
+    r.onlyKeys(['tick', 'card', 'target', 'until', 'ultimate', 'optional']);
     const ultimate = r.has('ultimate') && r.boolean('ultimate');
     if (ultimate && r.has('card')) r.fail('card', 'ultimate: true인 항목에는 card를 함께 쓸 수 없음');
     let rule: TargetRule = 'none';
@@ -55,16 +61,21 @@ export function parseCardPlan(data: unknown, label = 'plan'): PlanEntry[] {
       t.onlyKeys(['rule']);
       rule = t.enum('rule', TARGET_RULES);
     }
+    const optional = r.has('optional') && r.boolean('optional');
+    if (optional && ultimate) r.fail('optional', 'ultimate: true인 항목에는 optional을 쓸 수 없음');
     return {
       tick: r.int('tick', 0),
       card: ultimate ? ULTIMATE_PLAN_CARD : r.string('card'),
       rule,
       until: r.has('until') ? r.int('until', 0) : Infinity,
+      ...(optional ? { optional } : {}),
     };
   });
 }
 
-type EntryState = { phase: 'waiting' } | { phase: 'done' } | { phase: 'failed'; reason: string };
+type EntryState = { phase: 'waiting' } | { phase: 'done' } | { phase: 'failed'; reason: string } | { phase: 'skipped' };
+
+const NOT_IN_HAND = '손패에 없는 카드';
 
 /**
  * 계획대로 시뮬을 직접 진행하며 카드를 쓴다. 시뮬의 공개 API(playCard/step)만 사용하므로
@@ -107,7 +118,10 @@ export class CardPlanRunner {
     this.entries.forEach((entry, i) => {
       if (this.catalog.get(entry.card)?.type !== 'operation') return;
       this.attempt(i, entry);
-      if (this.states[i]?.phase === 'waiting') this.fail(i, this.lastReason.get(i) ?? '사용하지 못함');
+      if (this.states[i]?.phase !== 'waiting') return;
+      // 작전 카드는 준비 단계에서 한 번뿐이다: 손패에 없는 optional 항목은 건너뛴다
+      if (this.isMissingOptional(i, entry)) this.states[i] = { phase: 'skipped' };
+      else this.fail(i, this.lastReason.get(i) ?? '사용하지 못함');
     });
   }
 
@@ -118,7 +132,11 @@ export class CardPlanRunner {
       if (this.states[i]?.phase !== 'waiting') return;
       if (this.catalog.get(entry.card)?.type === 'operation') return;
       if (tick < entry.tick) return;
-      if (tick > entry.until) return this.fail(i, this.lastReason.get(i) ?? '시도 기한이 지남');
+      if (tick > entry.until) {
+        if (this.isMissingOptional(i, entry)) this.states[i] = { phase: 'skipped' };
+        else this.fail(i, this.lastReason.get(i) ?? '시도 기한이 지남');
+        return;
+      }
       this.attempt(i, entry);
     });
   }
@@ -134,7 +152,14 @@ export class CardPlanRunner {
       return;
     }
     const instance = this.sim.deck?.hand.find((c) => c.cardId === entry.card && !this.isAssignedToOther(c.instanceId, index));
-    if (!instance) return this.fail(index, '손패에 없는 카드');
+    if (!instance) {
+      // optional은 나중에 손패에 들어올 수 있으니 기다린다 (기한/전투 끝에 건너뜀으로 정산)
+      if (entry.optional) {
+        this.lastReason.set(index, NOT_IN_HAND);
+        return;
+      }
+      return this.fail(index, NOT_IN_HAND);
+    }
     this.assigned.set(instance.instanceId, index);
 
     const target = this.buildTarget(entry);
@@ -149,6 +174,11 @@ export class CardPlanRunner {
     } else {
       this.lastReason.set(index, result.reason);
     }
+  }
+
+  /** optional 항목이 마지막 시도에서 손패에 카드가 없었는가 (다른 사유로 못 쓴 것은 건너뜀이 아니라 실패) */
+  private isMissingOptional(index: number, entry: PlanEntry): boolean {
+    return entry.optional === true && this.lastReason.get(index) === NOT_IN_HAND;
   }
 
   private isAssignedToOther(instanceId: number, index: number): boolean {
@@ -190,12 +220,18 @@ export class CardPlanRunner {
   private stats(): PlanStats {
     const failureReasons: Record<string, number> = {};
     let failed = 0;
+    let skipped = 0;
     this.states.forEach((state, i) => {
       if (state.phase === 'done') return;
+      const entry = this.entries[i] as PlanEntry;
+      if (state.phase === 'skipped' || (state.phase === 'waiting' && this.isMissingOptional(i, entry))) {
+        skipped += 1;
+        return;
+      }
       failed += 1;
       const reason = state.phase === 'failed' ? state.reason : (this.lastReason.get(i) ?? '전투가 끝날 때까지 사용하지 못함');
       failureReasons[reason] = (failureReasons[reason] ?? 0) + 1;
     });
-    return { played: this.played, failed, failureReasons };
+    return { played: this.played, failed, skipped, failureReasons };
   }
 }

@@ -1,6 +1,6 @@
 import type { CardController } from '../debug/contracts';
 import { CARD_UI } from '../theme';
-import type { CardPanelView, HandCardView, PileView } from './cardPanelView';
+import { ultimateCostLabel, type CardPanelView, type HandCardView, type PileView } from './cardPanelView';
 import { clientToStage } from './stagePoint';
 import './handPanel.css';
 
@@ -220,7 +220,8 @@ export class HandPanel {
     use.dataset.testid = 'use-ultimate';
     use.disabled = !ult.ready;
     use.addEventListener('click', () => this.controller.useUltimate());
-    const cost = ult.hpCost > 0 ? el('div', 'hand-ult-cost', `지휘관 HP -${ult.hpCost}`) : null;
+    const costLabel = ultimateCostLabel(ult);
+    const cost = costLabel ? el('div', 'hand-ult-cost', costLabel) : null;
     const reason = !ult.ready && ult.reason ? el('div', 'hand-ult-reason', ult.reason) : null;
     this.ultimateBox.replaceChildren(
       el('strong', 'hand-ult-name', ult.name), gauge, this.ultimateGaugeLabel, use, ...(cost ? [cost] : []), ...(reason ? [reason] : []),

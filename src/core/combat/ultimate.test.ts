@@ -207,6 +207,8 @@ describe('대가 지불 (녹스)', () => {
       { type: 'commanderHp', t: 0, delta: -7, remaining: 58, cardId: 'ultimate:cmd_nox', instanceId: ULTIMATE_COMMAND_ID },
     ]);
     expect(sim.commanderHpSpent).toBe(7);
+    // 쓴 뒤에도 남은 HP(58)로 다시 계산하지 않고 실제 소모량을 보여준다
+    expect(sim.ultimate).toMatchObject({ used: true, hpCost: 7 });
   });
 
   it('카드로 이미 쓴 HP를 뺀 현재치를 기준으로 하고, 사용 후 HP가 1 미만이면 거부한다', () => {

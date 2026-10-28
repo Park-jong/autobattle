@@ -27,6 +27,12 @@ describe('parseCardPlan', () => {
     ]);
   });
 
+  it('optional 필드를 읽고(생략하면 항목에 없음) 궁극기 항목과는 함께 쓸 수 없다', () => {
+    expect(parseCardPlan([{ tick: 0, card: 'war_drums', optional: true }])[0]).toMatchObject({ optional: true });
+    expect(parseCardPlan([{ tick: 0, card: 'war_drums', optional: false }])[0]).not.toHaveProperty('optional');
+    expect(() => parseCardPlan([{ tick: 0, ultimate: true, optional: true }])).toThrow('plan[0].optional');
+  });
+
   it('형식 오류는 위치가 담긴 메시지', () => {
     expect(() => parseCardPlan({})).toThrow('항목 배열');
     expect(() => parseCardPlan([{ card: 'x' }])).toThrow('plan[0].tick: 필수 필드 누락');
@@ -108,6 +114,39 @@ describe('CardPlanRunner', () => {
       return;
     }
     throw new Error('war_drums가 손패에 오는 시드를 찾지 못함');
+  });
+
+  it('optional 항목은 손패에 없으면 실패가 아니라 건너뜀으로 세고, 있으면 그대로 쓴다', () => {
+    const { sim } = simWithPlan([]);
+    const inHand = new Set(sim.deck?.hand.map((c) => c.cardId));
+    const missing = ['shield_formation', 'hold_the_line', 'formation_swap', 'last_stand', 'charge_signal'].find((id) => !inHand.has(id)) as string;
+    const present = [...inHand].find((id) => cardCatalog.get(id)?.type === 'command' && cardCatalog.get(id)?.target.kind === 'none') as string;
+    const { runner } = simWithPlan([
+      { tick: 5, card: missing, optional: true },
+      { tick: 5, card: present, optional: true },
+    ]);
+    const { stats } = runner.run();
+    expect(stats).toMatchObject({ played: 1, failed: 0, skipped: 1, failureReasons: {} });
+  });
+
+  it('optional이 아닌 항목은 기존처럼 손패에 없으면 실패', () => {
+    const { sim } = simWithPlan([]);
+    const missing = ['shield_formation', 'hold_the_line', 'formation_swap', 'last_stand', 'charge_signal'].find(
+      (id) => !sim.deck?.hand.some((c) => c.cardId === id),
+    ) as string;
+    const { runner } = simWithPlan([{ tick: 5, card: missing }]);
+    expect(runner.run().stats).toMatchObject({ failed: 1, skipped: 0, failureReasons: { '손패에 없는 카드': 1 } });
+  });
+
+  it('optional 항목도 손패에 있는데 CP가 부족해 못 쓰면 건너뜀이 아니라 실패', () => {
+    const { sim } = simWithPlan([]);
+    const card = sim.deck?.hand.find((c) => cardCatalog.get(c.cardId)?.type === 'command' && cardCatalog.get(c.cardId)?.target.kind === 'none' && (cardCatalog.get(c.cardId)?.cost ?? 0) > 0)?.cardId as string;
+    const { runner } = simWithPlan([
+      { tick: 0, card, optional: true }, { tick: 0, card, optional: true }, { tick: 0, card, optional: true }, { tick: 0, card, optional: true },
+    ]);
+    const { stats } = runner.run();
+    expect(stats.skipped + stats.failed + stats.played).toBe(4);
+    expect(stats.failed + stats.played).toBeGreaterThanOrEqual(1);
   });
 
   it('알 수 없는 카드 id는 생성 시 Error', () => {

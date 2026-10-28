@@ -84,6 +84,9 @@ describe('지휘관 3명 데이터 (CHARACTERS 3장)', () => {
 
 describe('궁극기·패시브 검증', () => {
   it('음수·0·잘못된 필드를 위치와 함께 거부한다', () => {
+    // 효과 없는 궁극기(이름·설명·HP 비용만)는 거부
+    expect(errorOf((d) => { d.commanders[0].ultimate = { name: 'x', text: 'y' }; })).toContain('효과 없는 궁극기');
+    expect(errorOf((d) => { d.commanders[2].ultimate = { name: 'x', text: 'y', hpCostPct: 10 }; })).toContain('commanders[2] (cmd_nox).ultimate.effects');
     expect(errorOf((d) => { d.commanders[2].ultimate.hpCostPct = 0; })).toContain('commanders[2] (cmd_nox).ultimate.hpCostPct: 1 이상이어야 함');
     expect(errorOf((d) => { d.commanders[2].ultimate.hpCostPct = 150; })).toContain('hpCostPct: 100 이하여야 함');
     expect(errorOf((d) => { d.commanders[2].ultimate.extra = 1; })).toContain('commanders[2] (cmd_nox).ultimate.extra: 알 수 없는 필드');
