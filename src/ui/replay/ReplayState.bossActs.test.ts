@@ -56,6 +56,23 @@ describe('쌍둥이 부활 표시 (ReplayState)', () => {
     expect(replay.viewOf(SER)!.alive).toBe(false);
   });
 
+  it('빈 칸이 없어 부활이 실패하면(reviveCancel noCell) 부활 대기 표시가 사라진다', () => {
+    const s = sim(TWINS);
+    s.runUntil(5);
+    kill(s, SER);
+    for (let col = 4, uid = 900; col < 8; col++) {
+      for (let row = 0; row < 5; row++) if (s.world.board.isFree({ col, row })) s.world.board.place(uid++, { col, row });
+    }
+    s.runUntil(40);
+    const replay = new ReplayState(s.events);
+    replay.advanceTo(3.3);
+    expect(replay.reviveWatches()).toHaveLength(1);
+    replay.advanceTo(3.6);
+    expect(replay.reviveWatches()).toEqual([]);
+    expect(replay.recentEffects(0.5).map((e) => e.kind)).toContain('reviveCancel');
+    expect(replay.viewOf(SER)!.alive).toBe(false);
+  });
+
   it('reset하면 부활 대기도 처음 상태로 돌아간다', () => {
     const s = sim(TWINS);
     s.runUntil(5);

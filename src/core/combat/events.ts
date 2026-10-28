@@ -80,8 +80,8 @@ export type CombatEvent = { t: number } & (
    * 짝도 그 전에 죽으면 부활은 취소되고(reviveCancel) 둘 다 처치된 것이다
    */
   | { type: 'reviveTelegraph'; unit: number; partner: number; fireAt: number }
-  /** 쌍둥이 부활이 취소됨 (둘 다 제한 시간 안에 처치) */
-  | { type: 'reviveCancel'; unit: number }
+  /** 쌍둥이 부활이 취소됨 (둘 다 제한 시간 안에 처치). reason 'noCell' = 부활 시점에 진영에 빈 칸이 없음 (정상 경로에는 필드 없음) */
+  | { type: 'reviveCancel'; unit: number; reason?: 'noCell' }
   /** 쌍둥이 부활: unit이 hp/maxHp로 cell에 되살아났다 (상태는 모두 초기화) */
   | { type: 'revive'; unit: number; hp: number; maxHp: number; cell: Cell }
   /** 보스 페이즈 전환: phase(2부터)로 넘어갔다. summoned = 증원 유닛 uid(이어지는 spawn 이벤트), dispelled = 버프가 해제된 아군 수 */

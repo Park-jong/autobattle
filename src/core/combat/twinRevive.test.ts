@@ -124,6 +124,21 @@ describe('쌍둥이 주술사 세르·미르 (twinRevive)', () => {
     expect(eventsOf(sim, 'revive')).toHaveLength(0);
   });
 
+  it('부활 시점에 진영에 빈 칸이 없으면 부활하지 못하고 사유가 담긴 reviveCancel을 낸다', () => {
+    const sim = make([['iron_shieldbearer', 1, 4, 2]]);
+    sim.runUntil(2);
+    kill(sim, SER);
+    const board = sim.world.board;
+    let fake = 900;
+    for (let col = 4; col < 8; col++) {
+      for (let row = 0; row < 5; row++) if (board.isFree({ col, row })) board.place(fake++, { col, row });
+    }
+    sim.runUntil(40);
+    expect(eventsOf(sim, 'revive')).toHaveLength(0);
+    expect(eventsOf(sim, 'reviveCancel')).toEqual([{ type: 'reviveCancel', t: 3.2, unit: SER, reason: 'noCell' }]);
+    expect(unitOf(sim, SER).alive).toBe(false);
+  });
+
   it('짝이 편성에 없으면 평범한 유닛처럼 죽는다 (예고·부활 없음)', () => {
     const sim = makeCardSim({ a: ALLY, b: [['twin_ser', 1, 6, 1], ['iron_shieldbearer', 1, 4, 2]], hand: [] });
     sim.runUntil(3);
