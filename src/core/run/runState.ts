@@ -1,6 +1,7 @@
 import type { DeckPreset } from '../cards';
 import type { BattleKind, BattleOutcome, BattleReward } from '../economy';
 import type { ShopCardSlot } from './cardMarket';
+import type { ShopRelicSlot } from './relicRewards';
 import type { CommanderHealth } from './commanderHealth';
 import type { EventSessionState } from './eventDirector';
 import type { PlayerForces } from './forces';
@@ -23,8 +24,9 @@ export type RunOutcome = 'victory' | 'dead';
 export type NodeSession =
   /** tries: 이 노드의 전투 시도 횟수(0부터). 보스에서 지면 다시 도전하며 1씩 오른다 */
   | { kind: 'battle'; tries: number }
-  | { kind: 'reward'; source: 'normal' | 'elite'; offer: string[] }
-  | { kind: 'shop'; cards: ShopCardSlot[] }
+  /** relic: 정예 승리 보상으로 함께 받을 유물 id (없거나 일반 전투면 null). claimRelic으로 받는다 */
+  | { kind: 'reward'; source: 'normal' | 'elite'; offer: string[]; relic: string | null }
+  | { kind: 'shop'; cards: ShopCardSlot[]; relics: ShopRelicSlot[] }
   | { kind: 'event'; state: EventSessionState }
   | { kind: 'camp' };
 
@@ -50,12 +52,18 @@ export interface BattleSettlement {
   cardHpLost: number;
   /** 패배 피해 (승리하면 0) */
   defeatDamage: number;
+  /** 지휘관 패시브로 받은 골드 (녹스: 남은 CP당. 해당 없으면 0) */
+  passiveGold: number;
+  /** 유물로 회복한 지휘관 HP (승리 시 강철 심장 등. 없으면 0) */
+  healed: number;
   hpBefore: number;
   hpAfter: number;
   /** 런이 끝났으면 결과 */
   runEnded: RunOutcome | null;
   /** 승리 후 제시된 카드 보상 (없으면 null) */
   cardOffer: string[] | null;
+  /** 정예 승리로 함께 제시된 유물 (없으면 null) */
+  relicOffer: string | null;
 }
 
 /**

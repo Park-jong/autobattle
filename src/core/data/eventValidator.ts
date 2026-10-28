@@ -1,6 +1,7 @@
 import {
   EVENT_CARD_MODES,
   EVENT_PICK_MODES,
+  EVENT_RELIC_RARITIES,
   EVENT_RARITIES,
   type EventChoice,
   type EventDef,
@@ -10,9 +11,9 @@ import {
 import { DataValidationError } from './errors';
 import { FieldReader } from './fieldReader';
 
-const EFFECT_KINDS = ['gold', 'commanderHp', 'gainCard', 'removeCard', 'upgradeCard', 'gainUnit'] as const;
+const EFFECT_KINDS = ['gold', 'commanderHp', 'gainCard', 'removeCard', 'upgradeCard', 'gainUnit', 'gainRelic'] as const;
 const MIN_CHOICES = 2;
-const MAX_CHOICES = 3;
+const MAX_CHOICES = 4;
 
 /** events.json 구조를 검증한다. 카드·유닛 id 참조는 loadEvents가 확인한다. 파일 I/O는 하지 않는다. */
 export class EventValidator {
@@ -84,6 +85,9 @@ export class EventValidator {
       case 'gainUnit':
         r.onlyKeys(['kind', 'tier']);
         return { kind, tier: r.int('tier', 1) };
+      case 'gainRelic':
+        r.onlyKeys(['kind', 'rarity']);
+        return { kind, rarity: r.enum('rarity', EVENT_RELIC_RARITIES) };
     }
   }
 }

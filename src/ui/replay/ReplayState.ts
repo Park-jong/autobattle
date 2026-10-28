@@ -71,7 +71,31 @@ export type ReplayEffect =
   /** 보스 패턴 예고: t부터 fireAt까지 cells를 강조한다 */
   | { kind: 'telegraph'; seq: number; t: number; id: number; cells: Cell[]; fireAt: number }
   /** 예고된 패턴 발동 */
-  | { kind: 'strike'; seq: number; t: number; id: number; cells: Cell[] };
+  | { kind: 'strike'; seq: number; t: number; id: number; cells: Cell[] }
+  /** 궁극기 발동 (배너) */
+  | { kind: 'ultimate'; seq: number; t: number; commanderId: string; name: string; durationSeconds: number }
+  /** 궁극기 운석 착탄 (번쩍임) */
+  | { kind: 'impact'; seq: number; t: number; id: number; cell: Cell; radius: number };
+
+/** 지금 하늘에서 떨어지는 중인 궁극기 운석 한 발 */
+export interface MeteorView {
+  id: number;
+  cell: Cell;
+  /** 착탄 범위 반경(체비쇼프, 1 = 3×3) */
+  radius: number;
+  startedAt: number;
+  fireAt: number;
+  /** 낙하 진행률 0~1 */
+  progress: number;
+}
+
+/** 지속 효과가 있는 궁극기가 유지되는 동안의 표시 정보 (방진·대가 지불 등) */
+export interface UltimateAuraView {
+  commanderId: string;
+  name: string;
+  startedAt: number;
+  until: number;
+}
 
 /** 지금 화면에 강조할 보스 예고 한 건 */
 export interface TelegraphView {
@@ -149,6 +173,9 @@ export class ReplayState {
   private lastCardUnitTarget: number | null = null;
   /** 아직 발동하지 않은 보스 예고 (id 기준) */
   private openTelegraphs = new Map<number, Extract<ReplayEffect, { kind: 'telegraph' }>>();
+  /** 아직 떨어지지 않은 궁극기 운석 (id 기준) */
+  private openMeteors = new Map<number, { id: number; cell: Cell; radius: number; startedAt: number; fireAt: number }>();
+  private aura: UltimateAuraView | null = null;
 
   constructor(private readonly events: readonly CombatEvent[]) {
     this.reset();
@@ -165,6 +192,8 @@ export class ReplayState {
     this.forceMarks = [];
     this.lastCardUnitTarget = null;
     this.openTelegraphs = new Map();
+    this.openMeteors = new Map();
+    this.aura = null;
     this.advanceTo(0);
   }
 
@@ -225,6 +254,23 @@ export class ReplayState {
       out.push({ id: e.id, cells: e.cells, startedAt: e.t, fireAt: e.fireAt, progress: Math.min(1, Math.max(0, (t - e.t) / span)) });
     }
     return out;
+  }
+
+  /** 현재 시각에 떨어지는 중인 궁극기 운석 */
+  meteors(): MeteorView[] {
+    const t = this.currentTime;
+    const out: MeteorView[] = [];
+    for (const m of this.openMeteors.values()) {
+      if (t >= m.fireAt - EPS) continue;
+      const span = Math.max(EPS, m.fireAt - m.startedAt);
+      out.push({ ...m, progress: Math.min(1, Math.max(0, (t - m.startedAt) / span)) });
+    }
+    return out;
+  }
+
+  /** 지속 효과가 있는 궁극기가 아직 유지 중이면 그 정보 (없으면 null) */
+  ultimateAura(): UltimateAuraView | null {
+    return this.aura && this.currentTime < this.aura.until - EPS ? this.aura : null;
   }
 
   // ---- 이벤트 적용 ----
@@ -376,6 +422,18 @@ export class ReplayState {
       case 'strike':
         this.openTelegraphs.delete(e.id);
         this.effects.push({ kind: 'strike', seq, t: e.t, id: e.id, cells: e.cells });
+        break;
+
+      case 'ultimateUsed':
+        this.effects.push({ kind: 'ultimate', seq, t: e.t, commanderId: e.commanderId, name: e.name, durationSeconds: e.durationSeconds });
+        if (e.durationSeconds > 0) this.aura = { commanderId: e.commanderId, name: e.name, startedAt: e.t, until: e.t + e.durationSeconds };
+        break;
+      case 'ultimateTelegraph':
+        this.openMeteors.set(e.id, { id: e.id, cell: e.cell, radius: e.radius, startedAt: e.t, fireAt: e.fireAt });
+        break;
+      case 'ultimateImpact':
+        this.openMeteors.delete(e.id);
+        this.effects.push({ kind: 'impact', seq, t: e.t, id: e.id, cell: e.cell, radius: e.radius });
         break;
 
       case 'overheat':

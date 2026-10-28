@@ -1,0 +1,11 @@
+[
+  { "tick": 0, "card": "blood_price", "target": { "rule": "highestHpAlly" } },
+  { "tick": 0, "card": "focus_fire", "target": { "rule": "lowestHpEnemy" } },
+  { "tick": 10, "card": "charge_signal" },
+  { "tick": 20, "card": "blood_price", "target": { "rule": "highestHpAlly" } },
+  { "tick": 40, "card": "call_reserves" },
+  { "tick": 60, "card": "abyss_pact" },
+  { "tick": 70, "card": "focus_fire", "target": { "rule": "lowestHpEnemy" } },
+  { "tick": 80, "card": "last_stand", "target": { "rule": "lowestHpAlly" } },
+  { "tick": 120, "card": "abyss_pact" }
+]

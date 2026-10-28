@@ -1,5 +1,5 @@
 import { CARDS, CP_REGEN_TICKS, effectiveCard, type CardInstance } from '../../core/cards';
-import { COMBAT, type CombatPhase } from '../../core/combat';
+import { COMBAT, ULTIMATE, type CombatPhase, type UltimateView } from '../../core/combat';
 import type { CardType, TargetKind } from '../../core/data/card';
 import type { CardCatalog } from '../../core/data/cardLoader';
 import type { CommanderDef } from '../../core/data/commander';
@@ -65,6 +65,8 @@ export interface CardPanelView {
   passiveName: string;
   passiveText: string;
   hand: HandCardView[];
+  /** 지휘관 궁극기 (없으면 null). 시뮬이 없을 때는 게이지 0의 정적 표시 */
+  ultimate: UltimateView | null;
   cp: CpView;
   draw: PileView;
   discard: PileView;
@@ -103,6 +105,8 @@ export interface PanelInput {
   /** 모든 카드를 막는 이유 (카드 사용 금지, 편성 필요 등) */
   blockedReason: string | null;
   toast: ToastView | null;
+  /** 시뮬이 돌려준 궁극기 상태. 시뮬이 없으면 null (지휘관 정의로 정적 표시) */
+  ultimate?: UltimateView | null;
 }
 
 /** 카드 UI를 숨길 때(지휘관 없음)의 빈 표시 정보 */
@@ -115,6 +119,7 @@ export function hiddenCardPanelView(): CardPanelView {
     passiveName: '',
     passiveText: '',
     hand: [],
+    ultimate: null,
     cp: { combat: 0, max: CARDS.CP_MAX, prep: 0, prepMax: CARDS.PREP_CP, showPrep: false, regenProgress: 0 },
     draw: empty,
     discard: empty,
@@ -145,6 +150,7 @@ export class CardPanelViewBuilder {
       passiveName: input.commander.passive.name,
       passiveText: input.commander.passive.text,
       hand: input.piles.hand.map((c) => this.handCard(c, input)),
+      ultimate: input.ultimate ?? this.staticUltimate(input),
       cp: this.cpView(input),
       draw: this.pile(input.piles.drawPile),
       discard: this.pile(input.piles.discardPile),
@@ -153,6 +159,16 @@ export class CardPanelViewBuilder {
       hint: input.hint,
       notice: input.blockedReason,
       toast: input.toast,
+    };
+  }
+
+  /** 시뮬이 없을 때(편성 부족)의 궁극기 표시: 게이지 0, 쓸 수 없음 */
+  private staticUltimate(input: PanelInput): UltimateView | null {
+    const def = input.commander.ultimate;
+    if (!def) return null;
+    return {
+      commanderId: input.commander.id, name: def.name, text: def.text, charge: 0, max: ULTIMATE.GAUGE_MAX, used: false, hpCost: 0,
+      ready: false, reason: '전투가 시작되면 사용할 수 있습니다',
     };
   }
 

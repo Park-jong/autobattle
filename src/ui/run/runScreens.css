@@ -176,3 +176,39 @@
   .run-map-layout { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) 38vh; }
   .run-map-side { border-left: 0; border-top: 1px solid #2a2f3d; }
 }
+
+/* 지휘관 선택 */
+.run-start-card { width: min(980px, 100%); }
+.run-commanders-title { font-size: 13px; color: #8a93a8; font-weight: 600; margin-top: 8px; }
+.run-commander-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px; margin-top: 6px; }
+.run-commander { text-align: left; padding: 12px; background: #1b1f2d; color: inherit; border: 2px solid #323a52; border-radius: 8px; font: inherit; cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
+.run-commander:hover { background: #232940; }
+.run-commander.selected { border-color: #ffd54a; background: #2a2a1c; }
+.run-commander-name { font-size: 15px; }
+.run-commander-hp { font-size: 12px; color: #ff9a8a; }
+.run-commander-skill { margin: 0; font-size: 12px; color: #cfd6e6; }
+.run-commander-skill.ultimate { color: #ffb454; }
+.run-commander-line { margin: 0; font-size: 12px; color: #9aa3b5; }
+.run-commander-unlock { margin: 2px 0 0; font-size: 11px; color: #7a8399; }
+
+/* 유물 */
+.run-hud-relics { flex: 1 1 100%; flex-direction: row; align-items: center; gap: 8px; }
+.run-relic-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.run-relic-empty { color: #7a8399; font-size: 12px; }
+.run-relic { position: relative; display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px 2px 3px; background: #232940; color: inherit; border: 1px solid #4a5472; border-radius: 14px; font: inherit; font-size: 12px; cursor: pointer; }
+.run-relic.rarity-rare { border-color: #6fa8ff; }
+.run-relic.rarity-boss { border-color: #ffb454; background: #33281a; }
+.run-relic-icon { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: #3a4670; font-weight: 700; font-size: 12px; }
+.run-relic.rarity-rare .run-relic-icon { background: #2f5fa8; }
+.run-relic.rarity-boss .run-relic-icon { background: #a8661a; }
+.run-relic-tip { display: none; position: absolute; left: 0; top: calc(100% + 6px); z-index: 30; width: 220px; padding: 8px 10px; background: #0f1118; border: 1px solid #5b6480; border-radius: 6px; text-align: left; font-size: 12px; line-height: 1.4; box-shadow: 0 4px 16px #000a; white-space: normal; }
+.run-relic-tip strong { display: block; color: #ffd54a; margin-bottom: 2px; }
+.run-relic:hover .run-relic-tip, .run-relic:focus .run-relic-tip, .run-relic:focus-visible .run-relic-tip { display: block; }
+.run-relic-card { padding: 10px 12px; background: #1b1f2d; border: 2px solid #4a5472; border-radius: 8px; max-width: 280px; }
+.run-relic-card.rarity-rare { border-color: #6fa8ff; }
+.run-relic-card.rarity-boss { border-color: #ffb454; }
+.run-relic-card-head { display: flex; align-items: center; gap: 8px; }
+.run-reward-relic, .run-shop-relics { margin-bottom: 18px; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.run-relic-claimed { color: #9be29b; margin: 0; }
+.run-relic-shelf { display: flex; flex-wrap: wrap; gap: 14px; }
+.run-relic-offer { display: flex; flex-direction: column; gap: 6px; }

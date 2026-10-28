@@ -27,7 +27,7 @@ function errorOf(mutate: (d: any) => void): string {
 describe('loadCommanders', () => {
   it('실제 data/commanders.json: 하르텐', () => {
     const catalog = loadCommanders(commandersJson, cards, units);
-    expect(catalog.size).toBe(1);
+    expect(catalog.size).toBe(3);
     const harten = catalog.get('cmd_harten');
     expect(harten?.name).toContain('하르텐');
     expect(harten?.startCpBonus).toBe(0);
@@ -87,7 +87,8 @@ describe('loadCommanders', () => {
     ).toContain('passive.effects[0].pctMaxHp: 이 위치에서는 성급별 배열');
     expect(errorOf((d) => (d.commanders[0].passive.effects[0].selector = 'target'))).toContain('selector');
     expect(errorOf((d) => (d.commanders[0].passive.effects[0].kind = 'nuke'))).toContain('알 수 없는 값 "nuke"');
-    expect(errorOf((d) => (d.commanders[0].passive.effects = []))).toContain('효과가 최소 1개');
+    // 패시브 효과가 비어도 된다 (이세라·녹스는 효과 없이 보정 필드만 쓴다)
+    expect(() => loadCommanders(structuredClone(Object.assign({}, commandersJson, { commanders: [{ ...commandersJson.commanders[0], passive: { ...commandersJson.commanders[0]!.passive, effects: [] } }] })), cards, units)).not.toThrow();
   });
 
   it('궁극기는 선택 필드', () => {

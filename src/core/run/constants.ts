@@ -1,7 +1,12 @@
 /** 런(1액트) 조정 상수. 밸런스 조정은 여기서 한다. (전투는 combat/constants.ts, 경제는 economy.ts, 상점·로스터는 management.ts) */
 export const RUN = {
   /** 저장 형식 버전. 형식이 바뀌면 올린다 */
-  FORMAT_VERSION: 1,
+  FORMAT_VERSION: 2,
+  /** 지원하는 가장 오래된 저장 버전 (v1은 하르텐·유물 없음으로 읽는다) */
+  MIN_FORMAT_VERSION: 1,
+
+  /** 런 시작 지휘관을 고르지 않았을 때의 기본값 */
+  DEFAULT_COMMANDER_ID: 'cmd_harten',
 
   /** 지휘관 데이터에 maxHp가 없을 때의 시작·최대 HP */
   START_HP: 80,
@@ -54,6 +59,16 @@ export const RUN = {
     /** 첫 제거 가격, 제거할 때마다(런 누적) 더해지는 값 */
     REMOVE_BASE: 75,
     REMOVE_STEP: 25,
+  },
+
+  /** 유물 획득 경로: 정예 보상 1개, 상점 진열, 이벤트, 보스(선택). 희귀도 가중치와 상점 가격 */
+  RELIC: {
+    ELITE_WEIGHTS: { common: 65, rare: 35 },
+    SHOP_SLOTS: 2,
+    SHOP_WEIGHTS: { common: 60, rare: 40 },
+    PRICES: { common: 18, rare: 30 },
+    /** 보스 처치 시 제시하는 보스 유물 후보 수 (액트 1 보스 이후 런이 끝나므로 지금은 종료 화면에 표시만 한다) */
+    BOSS_CHOICES: 3,
   },
 
   CAMP: {

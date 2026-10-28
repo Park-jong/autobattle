@@ -2,9 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { Rng } from '../rng';
 import { Deck } from '../cards/deck';
 import { startingDeckSpecs } from '../cards/startingDeck';
-import { CardPlanRunner, parseCardPlan } from './cardPlan';
+import { CardPlanRunner, parseCardPlan, ULTIMATE_PLAN_CARD } from './cardPlan';
+import { ULTIMATE_COMMAND_ID } from './cardCommand';
 import { CombatSimulator } from './sim';
-import { CARD_A, CARD_B, cardCatalog, formation, harten, traits, units } from './testSupport';
+import { CARD_A, CARD_B, cardCatalog, formation, harten, makeCardSim, nox, traits, units } from './testSupport';
 
 function simWithPlan(planJson: unknown, seed = 1) {
   const deck = Deck.create(startingDeckSpecs(harten), cardCatalog, new Rng(seed));
@@ -112,5 +113,34 @@ describe('CardPlanRunner', () => {
   it('알 수 없는 카드 id는 생성 시 Error', () => {
     const { sim } = simWithPlan([]);
     expect(() => new CardPlanRunner(sim, cardCatalog, parseCardPlan([{ tick: 1, card: 'ghost' }]))).toThrow('알 수 없는 카드');
+  });
+});
+
+describe('카드 사용 계획: 궁극기 항목', () => {
+  it('{"ultimate": true}는 카드 대신 궁극기 예약어로 읽힌다', () => {
+    const [entry] = parseCardPlan([{ tick: 30, ultimate: true, until: 200 }]);
+    expect(entry).toEqual({ tick: 30, card: ULTIMATE_PLAN_CARD, rule: 'none', until: 200 });
+    expect(() => parseCardPlan([{ tick: 0, ultimate: true, card: 'focus_fire' }])).toThrow(/card: ultimate: true인 항목에는 card를 함께 쓸 수 없음/);
+  });
+
+  it('CardPlanRunner가 게이지가 찰 때까지 시도해 궁극기를 쓰고 commandLog에 남긴다', () => {
+    // 0CP 카드 7장(피의 대가)으로 게이지를 채운 뒤 궁극기: 계획만으로 전부 수행된다
+    const plan = parseCardPlan([
+      ...Array.from({ length: 7 }, (_, i) => ({ tick: i, card: 'blood_price', target: { rule: 'highestHpAlly' } })),
+      { tick: 0, ultimate: true },
+    ]);
+    const sim = makeCardSim({ commander: nox, commanderHp: 65, hand: Array(7).fill('blood_price') });
+    const { stats } = new CardPlanRunner(sim, cardCatalog, plan).run();
+    expect(stats.failed).toBe(0);
+    expect(sim.ultimate?.used).toBe(true);
+    expect(sim.commandLog.filter((c) => c.cardInstanceId === ULTIMATE_COMMAND_ID)).toHaveLength(1);
+  });
+
+  it('게이지가 차지 않으면 실패 항목으로 집계되고 사유가 남는다', () => {
+    const sim = makeCardSim({ commander: harten, hand: [] });
+    const plan = parseCardPlan([{ tick: 0, ultimate: true, until: 50 }]);
+    const { stats } = new CardPlanRunner(sim, cardCatalog, plan).run();
+    expect(stats.failed).toBe(1);
+    expect(Object.keys(stats.failureReasons)[0]).toContain('게이지가 부족합니다');
   });
 });

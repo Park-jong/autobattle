@@ -22,6 +22,10 @@ export interface EventHost {
   upgradeCard(instanceId: number): void;
   /** 해당 등급의 1성 유닛을 받을 수 없는 사유 (벤치 가득 참, 유닛 풀 재고 없음 등). 받을 수 있으면 null */
   unitGrantBlocker(tier: number): string | null;
+  /** 해당 희귀도의 유물을 받을 수 없는 사유 (남은 유물이 없음). 받을 수 있으면 null */
+  relicBlocker(rarity: 'common' | 'rare'): string | null;
+  /** 해당 희귀도의 아직 없는 유물 중 무작위 1개를 받고 그 이름을 돌려준다. 받지 못하면 null이고 아무것도 바꾸지 않는다 */
+  grantRandomRelic(rarity: 'common' | 'rare', rng: Rng): string | null;
   /** 해당 등급의 무작위 1성 유닛을 받는다. 받지 못하면 false이고 아무것도 바꾸지 않는다 */
   grantRandomUnit(tier: number, rng: Rng): boolean;
 }
@@ -48,6 +52,8 @@ export interface ChoiceView {
   enabled: boolean;
   /** 선택 불가 사유 (한국어) */
   reason?: string;
+  /** 이 선택지가 유물을 준다 (화면 표시·자동 정책용) */
+  grantsRelic?: true;
 }
 
 export type DirectorResult = { ok: true } | { ok: false; reason: string };
@@ -82,7 +88,8 @@ export class EventDirector {
   choiceViews(event: EventDef, host: EventHost): ChoiceView[] {
     return event.choices.map((choice) => {
       const reason = this.unavailableReason(choice, host);
-      return reason ? { text: choice.text, enabled: false, reason } : { text: choice.text, enabled: true };
+      const relic = choice.effects.some((e) => e.kind === 'gainRelic') ? { grantsRelic: true as const } : {};
+      return reason ? { text: choice.text, enabled: false, reason, ...relic } : { text: choice.text, enabled: true, ...relic };
     });
   }
 
@@ -165,6 +172,13 @@ export class EventDirector {
         if (!host.grantRandomUnit(effect.tier, rng)) return fail('유닛을 받을 수 없습니다');
         return OK;
       }
+      case 'gainRelic':
+      {
+        const name = host.grantRandomRelic(effect.rarity, rng);
+        if (name === null) return fail('받을 수 있는 유물이 없습니다');
+        state.messages.push(`유물 획득: ${name}`);
+        return OK;
+      }
     }
   }
 
@@ -185,6 +199,12 @@ export class EventDirector {
         case 'gainUnit':
           {
             const blocker = host.unitGrantBlocker(effect.tier);
+            if (blocker) return blocker;
+          }
+          break;
+        case 'gainRelic':
+          {
+            const blocker = host.relicBlocker(effect.rarity);
             if (blocker) return blocker;
           }
           break;

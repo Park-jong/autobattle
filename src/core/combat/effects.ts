@@ -202,6 +202,21 @@ export class EffectExecutor {
           world.emit({ type: 'maxHp', unit: u.uid, hp: u.hp, maxHp: u.maxHp });
         }
         break;
+      case 'taunt': {
+        // 실행 시점의 위치로 한 번 판정한다. 적마다 반경 안의 도발자 중 가장 가까운 쪽(동률은 uid 작은 쪽)을 우선 공격
+        for (const enemy of world.enemiesOf(ctx.side)) {
+          let nearest: CombatUnit | null = null;
+          for (const taunter of units) {
+            const distance = chebyshev(taunter.cell, enemy.cell);
+            if (distance > effect.radius) continue;
+            if (!nearest || distance < chebyshev(nearest.cell, enemy.cell)) nearest = taunter;
+          }
+          if (!nearest) continue;
+          enemy.statuses.setForcedTarget(nearest.uid, world.now + effect.duration);
+          applied(enemy, 'taunted', effect.duration);
+        }
+        break;
+      }
       case 'cpGain':
         this.cp?.gainCp(effect.amount, 'effect');
         break;

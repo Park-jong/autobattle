@@ -1,5 +1,6 @@
 import type { RunCommands, RunSnapshot } from './contracts';
 import { button, el, tagged } from './dom';
+import { relicRow } from './relicElements';
 
 /** 종료 화면: 승리/사망, 도달 층, 남은 HP, 골드, 덱·로스터 요약 */
 export class EndScreen {
@@ -31,11 +32,22 @@ export class EndScreen {
     deck.append(el('h3', '', `덱 ${end.deckCount}장`), el('p', 'run-end-list', end.deck.map((c) => `${c.name} ×${c.count}`).join(' · ') || '없음'));
     const roster = el('section', 'run-end-section');
     roster.append(el('h3', '', `유닛 ${end.roster.length}기`), el('p', 'run-end-list', end.roster.map((u) => `${u.name} ${'★'.repeat(u.star)}${u.onBoard ? '' : ' (벤치)'}`).join(' · ') || '없음'));
-    card.append(deck, roster);
+    const relics = el('section', 'run-end-section');
+    relics.append(el('h3', '', `유물 ${end.relics.length}개`), relicRow(end.relics, '없음'));
+    card.append(deck, roster, relics);
+    if (end.outcome === 'victory' && end.bossRelicOffer.length > 0) {
+      const boss = tagged(el('section', 'run-end-section'), 'boss-relic-offer');
+      boss.append(
+        el('h3', '', '보스 유물 후보'),
+        relicRow(end.bossRelicOffer),
+        el('p', 'dbg-hint', '액트 2 이후에 이어지면 이 중 하나를 고를 수 있습니다 (지금은 보기만 가능).'),
+      );
+      card.append(boss);
+    }
 
     const actions = el('div', 'run-end-actions');
     actions.append(
-      tagged(button('새 런', () => this.commands.newRun(null), 'dbg-btn dbg-primary run-big-button'), 'end-new-run'),
+      tagged(button('새 런', () => this.commands.newRun(null, end.commanderId), 'dbg-btn dbg-primary run-big-button'), 'end-new-run'),
       tagged(button('시작 화면', () => this.commands.toStart(), 'dbg-btn run-big-button'), 'end-to-start'),
     );
     card.append(actions);

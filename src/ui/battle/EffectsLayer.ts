@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { createText, type HiDpiMetrics } from '../hidpi';
-import type { ReplayEffect, TelegraphView, UnitView } from '../replay/ReplayState';
+import type { MeteorView, ReplayEffect, TelegraphView, UltimateAuraView, UnitView } from '../replay/ReplayState';
+import { BOARD_COLS, BOARD_ROWS } from '../../core/combat/board';
 import { COLORS, LAYOUT, MOTION, STAGE, TEXT_COLORS, TIMING } from '../theme';
 import type { BoardLayout } from './BoardLayout';
 
@@ -10,6 +11,21 @@ interface PooledText {
 
 /** CP 변화 이유 → 표시용 한국어 */
 const CP_REASON_LABELS = { start: '시작', regen: '회복', card: '카드', abyss: '심연', effect: '카드 효과' } as const;
+
+/** 궁극기 연출 입력: 떨어지는 운석과 지속 효과 표시 */
+export interface UltimateVisuals {
+  meteors: readonly MeteorView[];
+  aura: UltimateAuraView | null;
+}
+
+const NO_ULTIMATE: UltimateVisuals = { meteors: [], aura: null };
+
+/** 지휘관별 지속 효과 색 */
+function auraColor(commanderId: string): number {
+  if (commanderId === 'cmd_harten') return COLORS.ULTIMATE_AURA_HARTEN;
+  if (commanderId === 'cmd_nox') return COLORS.ULTIMATE_AURA_NOX;
+  return COLORS.ULTIMATE_AURA_DEFAULT;
+}
 
 /** 카드 id → 화면에 보일 카드 이름 */
 export type CardNamer = (cardId: string, upgraded: boolean) => string;
@@ -25,6 +41,7 @@ export class EffectsLayer {
   private readonly banner: Phaser.GameObjects.Text;
   private readonly cardBanner: Phaser.GameObjects.Text;
   private readonly telegraphLabel: Phaser.GameObjects.Text;
+  private readonly ultimateBanner: Phaser.GameObjects.Text;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -53,6 +70,16 @@ export class EffectsLayer {
       .setOrigin(0.5)
       .setDepth(41)
       .setVisible(false);
+    this.ultimateBanner = createText(scene, metrics, STAGE.WIDTH / 2, 118, '', {
+      fontSize: '30px',
+      fontStyle: 'bold',
+      color: TEXT_COLORS.ULTIMATE,
+      stroke: '#000000',
+      strokeThickness: 5,
+    })
+      .setOrigin(0.5)
+      .setDepth(42)
+      .setVisible(false);
     this.telegraphLabel = createText(scene, metrics, 0, 0, '', {
       fontSize: '18px',
       fontStyle: 'bold',
@@ -65,8 +92,15 @@ export class EffectsLayer {
       .setVisible(false);
   }
 
-  update(time: number, effects: readonly ReplayEffect[], views: ReadonlyMap<number, UnitView>, telegraphs: readonly TelegraphView[] = []): void {
+  update(
+    time: number,
+    effects: readonly ReplayEffect[],
+    views: ReadonlyMap<number, UnitView>,
+    telegraphs: readonly TelegraphView[] = [],
+    ultimate: UltimateVisuals = NO_ULTIMATE,
+  ): void {
     this.lines.clear();
+    let ultimateText: { text: string; alpha: number } | null = null;
     const live = new Set<number>();
     let bannerAlpha = 0;
     let cardBannerText: { text: string; alpha: number } | null = null;
@@ -125,12 +159,24 @@ export class EffectsLayer {
         case 'strike':
           if (age <= TIMING.STRIKE_FLASH) this.drawStrike(e.cells, age / TIMING.STRIKE_FLASH);
           break;
+        case 'ultimate':
+          if (age <= TIMING.ULTIMATE_BANNER) {
+            ultimateText = { text: `✦ ${e.name} ✦`, alpha: 1 - Math.max(0, age / TIMING.ULTIMATE_BANNER - 0.6) / 0.4 };
+          }
+          break;
+        case 'impact':
+          if (age <= TIMING.IMPACT_FLASH) this.drawImpact(e.cell, e.radius, age / TIMING.IMPACT_FLASH);
+          break;
         case 'telegraph':
         case 'death':
           break;
       }
     }
     this.drawTelegraphs(time, telegraphs);
+    this.drawMeteors(time, ultimate.meteors);
+    this.drawAura(time, ultimate.aura, views);
+    if (ultimateText) this.ultimateBanner.setText(ultimateText.text).setAlpha(ultimateText.alpha).setVisible(true);
+    else this.ultimateBanner.setVisible(false);
 
     this.banner.setVisible(bannerAlpha > 0).setAlpha(bannerAlpha);
     if (cardBannerText) this.cardBanner.setText(cardBannerText.text).setAlpha(cardBannerText.alpha).setVisible(true);
@@ -149,7 +195,69 @@ export class EffectsLayer {
     this.texts.clear();
     this.banner.setVisible(false);
     this.cardBanner.setVisible(false);
+    this.ultimateBanner.setVisible(false);
     this.telegraphLabel.setVisible(false);
+  }
+
+  /** 낙하 중인 운석: 착탄 범위를 주황으로 칠하고, 수축하는 링과 위에서 내려오는 불덩이를 그린다 */
+  private drawMeteors(time: number, meteors: readonly MeteorView[]): void {
+    const size = this.layout.cellSize;
+    const pulse = 0.5 + 0.5 * Math.sin(time * 12);
+    for (const m of meteors) {
+      for (let dc = -m.radius; dc <= m.radius; dc++) {
+        for (let dr = -m.radius; dr <= m.radius; dr++) {
+          const col = m.cell.col + dc;
+          const row = m.cell.row + dr;
+          if (col < 0 || col >= BOARD_COLS || row < 0 || row >= BOARD_ROWS) continue;
+          const p = this.layout.topLeft(col, row);
+          this.lines.fillStyle(COLORS.METEOR, 0.14 + 0.26 * m.progress + 0.06 * pulse);
+          this.lines.fillRect(p.x + 2, p.y + 2, size - 4, size - 4);
+          this.lines.lineStyle(2, COLORS.METEOR, 0.55 + 0.35 * pulse);
+          this.lines.strokeRect(p.x + 2, p.y + 2, size - 4, size - 4);
+        }
+      }
+      const center = this.layout.center(m.cell.col, m.cell.row);
+      const ring = (m.radius + 0.5) * size * (1.3 - 0.3 * m.progress);
+      this.lines.lineStyle(3, COLORS.METEOR, 0.8);
+      this.lines.strokeCircle(center.x, center.y, ring);
+      const fall = (1 - m.progress) * size * 3;
+      this.lines.fillStyle(COLORS.METEOR_IMPACT, 0.95);
+      this.lines.fillCircle(center.x, center.y - fall, 10 + 8 * m.progress);
+      this.lines.fillStyle(COLORS.METEOR, 0.8);
+      this.lines.fillCircle(center.x, center.y - fall, 6 + 5 * m.progress);
+    }
+  }
+
+  /** 운석 착탄 순간: 범위 전체가 번쩍이며 퍼지는 원이 사라진다 */
+  private drawImpact(cell: { col: number; row: number }, radius: number, progress: number): void {
+    const size = this.layout.cellSize;
+    for (let dc = -radius; dc <= radius; dc++) {
+      for (let dr = -radius; dr <= radius; dr++) {
+        const col = cell.col + dc;
+        const row = cell.row + dr;
+        if (col < 0 || col >= BOARD_COLS || row < 0 || row >= BOARD_ROWS) continue;
+        const p = this.layout.topLeft(col, row);
+        this.lines.fillStyle(COLORS.METEOR_IMPACT, 0.7 * (1 - progress));
+        this.lines.fillRect(p.x, p.y, size, size);
+      }
+    }
+    const center = this.layout.center(cell.col, cell.row);
+    this.lines.lineStyle(6, COLORS.METEOR, 1 - progress);
+    this.lines.strokeCircle(center.x, center.y, (radius + 0.5) * size * (0.5 + progress));
+  }
+
+  /** 지속 효과가 있는 궁극기(불굴의 방진·대가 지불): 아군 주위에 맥동하는 링 */
+  private drawAura(time: number, aura: UltimateAuraView | null, views: ReadonlyMap<number, UnitView>): void {
+    if (!aura) return;
+    const color = auraColor(aura.commanderId);
+    const pulse = 0.5 + 0.5 * Math.sin(time * 8);
+    const fade = Math.min(1, (aura.until - time) / 0.5);
+    for (const v of views.values()) {
+      if (v.side !== 0 || !v.alive) continue;
+      const p = this.layout.center(v.pos.col, v.pos.row);
+      this.lines.lineStyle(4, color, (0.55 + 0.35 * pulse) * fade);
+      this.lines.strokeCircle(p.x, p.y, LAYOUT.UNIT_RADIUS + 8 + 4 * pulse);
+    }
   }
 
   /** 보스 예고: 대상 열을 붉게 칠하고 발동까지 남은 시간을 열 위에 표시한다 (진행할수록 진해진다) */

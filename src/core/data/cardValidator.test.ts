@@ -36,8 +36,8 @@ function errorOf(cards: unknown[], withTraits = true): string {
 }
 
 describe('카드 검증기: 공통 효과 검증기 통합', () => {
-  it('cards.json 17종은 특성 참조 검증과 함께도 통과', () => {
-    expect(loadCards(cardsJson, traits).size).toBe(17);
+  it('cards.json 18종은 특성 참조 검증과 함께도 통과', () => {
+    expect(loadCards(cardsJson, traits).size).toBe(18);
   });
 
   it('전투 효과 kind 전부를 카드에서 쓸 수 있다 (시전자 불필요한 형태)', () => {

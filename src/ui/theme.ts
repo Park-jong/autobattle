@@ -51,6 +51,12 @@ export const COLORS = {
   TELEGRAPH: 0xff3b30,
   STRIKE: 0xffe0d0,
   SWAP_TRAIL: 0x9be29b,
+  /** 궁극기: 운석 예고 / 착탄 / 지휘관별 지속 효과 표시 */
+  METEOR: 0xff8a3d,
+  METEOR_IMPACT: 0xfff0c0,
+  ULTIMATE_AURA_HARTEN: 0x6fb8ff,
+  ULTIMATE_AURA_NOX: 0xc27bff,
+  ULTIMATE_AURA_DEFAULT: 0xffd54a,
   BOARD_BORDER: 0x3a4152,
   HOVER_OK: 0x9be29b,
   HOVER_BAD: 0xff7b7b,
@@ -81,6 +87,7 @@ export const TEXT_COLORS = {
   SKILL: '#fff2a8',
   OVERHEAT: '#ff5a4a',
   CARD_BANNER: '#fff2a8',
+  ULTIMATE: '#ffb454',
   CP: '#7fd6ff',
 } as const;
 
@@ -99,6 +106,9 @@ export const TIMING = {
   SWAP_TRAIL: 0.5,
   /** 보스 열 강타가 발동하는 순간 번쩍이는 시간 */
   STRIKE_FLASH: 0.45,
+  /** 궁극기 이름 배너 / 운석 착탄 번쩍임 */
+  ULTIMATE_BANNER: 2.2,
+  IMPACT_FLASH: 0.55,
   CP_TEXT: 1.2,
   /** 진형 교대 등 순간이동을 미끄러지듯 보여주는 시간 */
   SLIDE: 0.25,
@@ -141,7 +151,7 @@ export const STATUS_BADGES: readonly StatusBadge[] = [
   { label: '침', color: 0xb0b8c8, match: (n) => n === 'silence' },
   { label: '속', color: 0x91c975, match: (n) => n === 'root' },
   { label: '흡', color: 0xec91a9, match: (n) => n === 'lifesteal' },
-  { label: '도', color: 0xff6a8a, match: (n) => n === 'forceTarget' },
+  { label: '도', color: 0xff6a8a, match: (n) => n === 'forceTarget' || n === 'taunted' },
   { label: '치', color: 0x6be37a, match: (n) => n === 'healAura' },
   { label: '강', color: 0x9be29b, match: (n) => n.startsWith('statMod:') || n === 'extraShots' },
 ];

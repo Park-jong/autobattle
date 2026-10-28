@@ -1,14 +1,16 @@
 # 데이터 파일
 
 게임 콘텐츠 정의. 코드는 이 파일을 읽어 검증한 뒤 사용한다 (ROADMAP M0-4).
-파일: `cards.json` / `units.json` / `traits.json` / `commanders.json` / `encounters.json` / `events.json`.
+파일: `cards.json` / `units.json` / `traits.json` / `commanders.json` / `relics.json` / `encounters.json` / `events.json`.
 
 ## cards.json
 
-현재 수록: 카드 풀 17종(M4-A에서 심연의 계약 추가). 희귀도: 하르텐 시작 카드 7종은 `starter`, 보상·상점 풀은 `common`(마나 주입·전술 재정비·불씨 화살·행군가·제련된 칼날·적진 정찰·덩굴 속박)과 `rare`(화염 폭풍·예비대 호출·심연의 계약)이며 `epic`은 아직 없다. 철벽 장군 하르텐(`cmd_harten`)의 기본 시작 덱은 기존 7종으로 구성한 10장([CHARACTERS.md](../CHARACTERS.md) 3-1)이며, "확장 카드 테스트 덱"은 M2 추가 카드 5종과 제련된 칼날·예비대 호출을 포함한 10장이다. 테스트 덱은 경제 플레이·5연전과 헤드리스 `--deck test`에서도 사용할 수 있다.
+현재 수록: 카드 풀 18종(M4-A에서 심연의 계약, M5-A에서 녹스 고유 카드 피의 대가 추가). 희귀도: 하르텐 시작 카드 7종과 녹스 고유 카드 피의 대가는 `starter`, 보상·상점 풀은 `common`(마나 주입·전술 재정비·불씨 화살·행군가·제련된 칼날·적진 정찰·덩굴 속박)과 `rare`(화염 폭풍·예비대 호출·심연의 계약)이며 `epic`은 아직 없다. 철벽 장군 하르텐(`cmd_harten`)의 기본 시작 덱은 기존 7종으로 구성한 10장([CHARACTERS.md](../CHARACTERS.md) 3-1)이며, "확장 카드 테스트 덱"은 M2 추가 카드 5종과 제련된 칼날·예비대 호출을 포함한 10장이다. 테스트 덱은 경제 플레이·5연전과 헤드리스 `--deck test`에서도 사용할 수 있다.
 코드는 `loadCards(json, traitCatalog?)`로 읽는다. 특성 카탈로그를 주면 공명이 가리키는 특성 id도 확인한다.
 
 M2 추가 카드: `firestorm`(화염 폭풍, 범위 피해·잿불 공명), `mana_infusion`(마나 주입, 충전·보존), `tactical_reorganization`(전술 재정비, 드로우·연쇄 비용 0), `ember_arrow`(불씨 화살, 단일 피해·화상·소모), `marching_song`(행군가, 전체 ARM 증가). 잿불 공명은 잿불 투석수·점화사·광전사 중 서로 다른 2종으로 일반 플레이에서도 활성화할 수 있다.
+
+M5-A 추가 카드: `blood_price`(피의 대가, 녹스 고유 0CP 명령, `owner: cmd_nox`, `commanderHpCost { amount: 2 }`, 아군 1명 4초간 ATK +40% / 강화 5초 +60%). 이세라 덱의 불씨 화살은 기존 공용 카드를 그대로 쓴다.
 
 M3 추가 카드: `call_reserves`(예비대 호출, 3CP·강화 2CP, 후열 빈 칸 2개에 무작위 1등급 임시 유닛 소환), `forged_blade`(제련된 칼날, 준비 CP 1, 장비 ATK +15/+25 및 공격 시 마나 +5), `enemy_scout`(적진 정찰, 작전 0CP, 무작위 적 1/2명의 최대 HP -10%), `vine_snare`(덩굴 속박, 1CP, 3×3 이동 금지 2/3초). 후열 자리가 부족하면 징집은 CP·손패·로그·RNG를 전혀 바꾸지 않고 실패한다. 임시 소환은 소유 로스터와 공유 유닛 풀에 들어가지 않으며 전투를 넘겨 이어지지 않는다.
 
@@ -95,6 +97,7 @@ M3 추가 카드: `call_reserves`(예비대 호출, 3CP·강화 2CP, 후열 빈 
 | `onAttackBurn` / `killFeast` / `marksman` | 화상 비율·지속 / 회복·ATK 비율 / 사거리·확률 | 특성 전용 트리거. `traitUnits`로 해당 기원·직업 유닛만 선택 |
 | `attackMana` | `amount` | 선택한 유닛이 기본 공격하면 마나 추가. 장비에 사용 |
 | `summon` / `scout` | `count`, `tier` / `count`, `pctMaxHp` | 카드 전용 징집 / 무작위 적 최대 HP 감소 |
+| `taunt` | `radius`, `duration` | 도발: 실행 시점에 selector 유닛 반경 `radius`칸(체비쇼프) 안의 적이 `duration`초 동안 그 유닛을 우선 공격(`forceTarget`과 같은 장치, 상태 이름 `taunted`). 적마다 반경 안의 도발자 중 가장 가까운 쪽(동률은 uid 작은 쪽). 위치는 실행 시점에 한 번만 판정한다. 궁극기 불굴의 방진이 사용 |
 | `heal` | `amount` | 즉시 회복 (최대 HP 초과 불가) |
 | `healAura` | `perSecond`, `radius`, `duration` | 지속 중 1초마다 반경 `radius`칸 안의 **다른** 아군을 `perSecond`만큼 회복 |
 | `burn` | `dpsPctAtk` 또는 `dps` (정확히 하나), `duration` | 화상: 1초마다 마법 피해. `dpsPctAtk`는 시전자 ATK 비례, `dps`는 고정값(시전자 없는 카드용). 재부여 시 지속 시간 갱신 + 초당 피해는 큰 값 (중첩 없음) |
@@ -152,21 +155,48 @@ M2에서 추가된 유닛
 
 ## commanders.json
 
-지휘관 정의 (DESIGN 5장, CHARACTERS 3장). 현재 철벽 장군 하르텐 `cmd_harten` 하나. 코드는 `loadCommanders(json, cardCatalog, unitCatalog)`로 읽으며 시작 덱의 카드 id·시작 유닛 id가 실제로 있는지, 덱 카드의 `owner`가 `neutral` 또는 해당 지휘관인지 확인한다.
+지휘관 정의 (DESIGN 5장, CHARACTERS 3장). 현재 철벽 장군 하르텐 `cmd_harten`, 불꽃 마도사 이세라 `cmd_isera`, 그림자 계약자 녹스 `cmd_nox` 3명(M5-A). 코드는 `loadCommanders(json, cardCatalog, unitCatalog)`로 읽으며 시작 덱의 카드 id·시작 유닛 id가 실제로 있는지, 덱 카드의 `owner`가 `neutral` 또는 해당 지휘관인지 확인한다.
 
 | 필드 | 값 |
 |---|---|
 | `id`, `name` | 영문 키(`cmd_*`), 표시 이름 |
-| `passive` | `{ name, text, effects }`. effects는 공통 효과 형식(성급 배열 불가). 시전자·지정 대상이 없는 문맥이라 `self`/`target` 계열 selector는 쓸 수 없다 |
-| `startingDeck` | `[{ cardId, count }]` 시작 덱 (하르텐 10장) |
+| `passive` | `{ name, text, effects, spellDamagePct?, goldPerLeftoverCp? }`. effects는 공통 효과 형식(성급 배열 불가, 비어 있어도 됨). 시전자·지정 대상이 없는 문맥이라 `self`/`target` 계열 selector는 쓸 수 없다. `spellDamagePct`: 주문 카드의 고정 피해·화상 피해 +N%. `goldPerLeftoverCp`: 전투 승리 시 남은 전투 CP 1당 받는 골드(런 정산) |
+| `startingDeck` | `[{ cardId, count }]` 시작 덱 (3명 모두 10장) |
 | `startingUnits` | `[{ unitId, count }]` 시작 유닛 |
-| `startCpBonus` | 전투 시작 CP 보정 (기본 2에 더함). 하르텐 0 |
-| `maxHp` | 선택. 런 시작·최대 지휘관 HP (생략하면 80). 하르텐 80 |
-| `ultimate` | 선택. `{ name, text }` 표시용. **궁극기는 M5에서 구현** — 지금은 데이터만 있고 동작하지 않는다 |
+| `startCpBonus` | 전투 시작 CP 보정 (기본 2에 더함). 하르텐 0, 이세라 1, 녹스 0 |
+| `maxHp` | 선택. 런 시작·최대 지휘관 HP (생략하면 80). 하르텐 80, 이세라 70, 녹스 65 (이세라·녹스는 CHARACTERS에 수치가 없어 잡은 초안) |
+| `ultimate` | 선택. 궁극기 (아래) |
+| `unlock` | 선택. 해금 조건 설명 문자열. **해금은 M5-5(메타 진행) 범위라 지금은 데이터로만 두고 모든 지휘관을 선택할 수 있다** (이세라 "런 1회 완료", 녹스 "액트 2 보스 처치") |
+
+| 지휘관 | 패시브 | 시작 유닛 | 시작 덱 (10) | 궁극기 |
+|---|---|---|---|---|
+| 하르텐 | 철의 서약: 전투 시작 시 전열 아군 최대 HP 10% 보호막(전투 끝까지) | 방패병 ×2 | 방진 유지 ×2, 전열 사수 ×2, 전쟁 북 ×2, 진형 교대, 집중 포화, 최후의 저항, 돌격 신호 | 불굴의 방진 |
+| 이세라 | 화로의 불씨: 주문 카드 피해 +25%(`spellDamagePct`), 전투 시작 CP +1(`startCpBonus`) | 잿불 점화사, 숲 궁수 | 불씨 화살 ×3, 마나 주입 ×2, 전술 재정비 ×2, 화염 폭풍, 전쟁 북, 집중 포화 | 대분화 |
+| 녹스 | 미지불 잔액: 전투 승리 시 남은 CP 1당 1G(`goldPerLeftoverCp`) | 그림자 단검 ×2 | 피의 대가 ×2, 심연의 계약 ×2, 집중 포화 ×2, 돌격 신호, 예비대 호출, 전술 재정비, 최후의 저항 | 대가 지불 |
 
 **하르텐 패시브 철의 서약**: `shield` `alliesFrontRow` 최대 HP 10%, `duration: "combat"`. 전투 시작 시 전열(아군 열 3)에 있던 유닛에게 한 번 걸리고 전투 끝까지 유지된다(피해를 흡수하면 줄어든다).
+**이세라 주문 보정**: `type: spell` 카드의 `flatDamage` 양과 `burn` 초당 피해(`dps`)에 (1 + 보정%)를 곱해 반올림한다. 패시브 25%와 유물 잿불 부적 20%는 합산(45%)한다. **녹스 패시브**: 정산할 때 `sim.commandPoints.combat`(전투 종료 시 남은 CP) × 1G를 승리일 때만 `Economy.gain`으로 더한다 (`BattleSettlement.passiveGold`, 영수증과 별도).
 
----
+### 궁극기 (`ultimate`, `combat/ultimate.ts`)
+| 필드 | 값 |
+|---|---|
+| `name`, `text` | 표시용 |
+| `hpCostPct` | 선택. 사용 시 지휘관 현재 HP(전투 시작 HP에서 이 전투에서 이미 쓴 몫을 뺀 장부의 남은 HP)의 N%를 올림해 소모. 사용 후 HP가 1 이상이어야 한다. 런이 아닌 디버그 전투(HP를 안 주는 전투)는 소모 0 |
+| `effects` | 선택. 사용 즉시 아군(side 0) 기준으로 실행하는 공통 효과 (성급 배열 불가, 대상 없는 문맥) |
+| `cpRegenBoostSeconds` | 선택. 이 시간(초) 동안 CP 자연 증가가 2배 (4초 → 2초마다 +1, 상한 6 유지) |
+| `barrage` | 선택. 운석 연타 `{ count, intervalSeconds, radius, effects }`. 사용 시 sim Rng로 적이 가장 많이 겹치는 칸(반경 `radius` 안의 적 수) 상위 6곳 중에서 지점을 고르고(이미 고른 지점과 2칸 이상 떨어진 후보를 우선), `intervalSeconds` 간격으로 낙하. `effects`는 착탄 지점 기준(`enemiesInTargetArea`)으로 실행 |
+
+- **게이지**: 전투마다 0에서 시작, 최대 100(`ULTIMATE.GAUGE_MAX`). 카드 사용 +15(`CARD_CHARGE`, 준비 단계 작전 카드 포함), 아군 유닛 사망 +25(`ALLY_DEATH_CHARGE`, 소환 유닛 제외). 유물 전쟁의 기록부는 충전량 ×1.5. 가득 차면 전투당 1회 사용한다(사용 후에는 충전하지 않음). 수치는 `src/core/combat/constants.ts`의 `ULTIMATE`에 모여 있는 초안이다.
+- **사용**: 틱 사이에 `sim.useUltimate()` → `{ ok: true, ... } | { ok: false, reason }`. 전투 중(`startCombat` 이후)·게이지 가득·미사용·HP 충분 조건을 검사하고, 실패하면 상태·로그가 그대로다. `sim.ultimate`는 UI용 `UltimateView`(이름·설명·게이지·사용 여부·지금 쓰면 잃을 HP·사용 가능 여부와 사유).
+- **명령 로그**: 성공한 사용은 `sim.commandLog`에 `{ tick, cardInstanceId: -1(ULTIMATE_COMMAND_ID), target: { kind: 'none' } }`로 카드와 같은 순서로 쌓이고, `setup.cards.commands`에 그대로 넣으면 같은 로그가 재현된다(게이지를 채운 카드 사용도 같은 로그에 있으므로 결정론이 유지된다). 예약된 궁극기가 실패하면 `rejectedCommands`에 사유가 남는다.
+- **이벤트**: `ultimateUsed { commanderId, name, durationSeconds }`(지속 효과가 있으면 그 길이, 운석처럼 없으면 0), 운석마다 `ultimateTelegraph { id, cell, radius, fireAt }`(사용 시점에 예고) → `ultimateImpact { id, cell, radius }`(착탄, 피해는 이어지는 `damage`), HP 소모는 `commanderHp { cardId: "ultimate:<지휘관 id>", instanceId: -1 }`로 카드 HP 비용과 같은 장부·같은 정산 경로(`CombatSimulator.commanderHpSpent`, 런의 `cardHpLost`)를 쓴다. **게이지 변화는 이벤트로 남기지 않는다**(궁극기를 쓰지 않으면 이벤트 로그가 궁극기 도입 전과 완전히 같다). UI는 `sim.ultimate`로 읽는다.
+- **카드 사용 계획**(`tools/plans/*.json`): `{ "tick": 0, "ultimate": true, "until": 300 }` 항목은 카드 대신 궁극기를 쓴다 (`until`까지 게이지가 찰 때까지 매 틱 시도).
+
+| 궁극기 | 효과 |
+|---|---|
+| 불굴의 방진 (하르텐) | 4초간 아군 전체 받는 피해 ×0.6(−40%) + 전열 아군은 반경 2칸의 적을 4초간 도발(`taunt`) |
+| 대분화 (이세라) | 무작위 적 밀집 지점 3곳에 1초 간격(1·2·3초 뒤)으로 운석. 각 3×3 범위에 마법 고정 피해 250 + 화상(초당 30, 3초) |
+| 대가 지불 (녹스) | 지휘관 현재 HP의 10%(올림) 소모, 5초간 아군 전체 생명력 흡수 25% + CP 획득 속도 2배 |
 
 ## 카드 사용과 CP 규칙 (core)
 
@@ -197,9 +227,80 @@ M2에서 추가된 유닛
 - 공격 카드로 한쪽이 전멸하면 즉시 종료·손패 정리를 하고 이후 카드를 거부한다. 예약 명령 재생에서도 종료 이후 유닛 행동은 실행하지 않는다.
 - 이벤트: `cp { pool: 'prep'|'combat', delta, cp, reason: 'start'|'regen'|'card'|'abyss' }`, `cardPlayed { cardId, instanceId, upgraded, target, cp, pool }`.
 
+궁극기도 같은 명령 체계를 쓴다 (위 "궁극기" 절): `sim.useUltimate()`, 로그의 `cardInstanceId: -1`.
+
 ### 카드 사용 계획 (헤드리스 시뮬용)
 `tools/plans/*.json`: 배열. 항목 `{ "tick": 50, "card": "focus_fire", "target": { "rule": "lowestHpEnemy" }, "until": 200 }`.
 `tick`부터 `until`(생략 시 전투 끝까지)까지 매 틱 시도, 손패에 없으면 즉시 실패. `target.rule`은 `none`(기본) / `lowestHpEnemy` / `highestHpEnemy` / `lowestHpAlly` / `highestHpAlly` — 규칙이 가리키는 진영 유닛을 정렬해 카드가 필요한 수만큼 앞에서 고른다(칸 카드는 첫 유닛의 칸). 작전 카드는 `tick`과 무관하게 준비 단계에 한 번 시도한다. `npm run sim -- ... --commander cmd_harten --plan tools/plans/harten-basic.json`.
+
+---
+
+## relics.json
+
+유물 (DESIGN 8-1, M5-3). 코드는 `loadRelics(json)`로 읽는다(`RelicCatalog.get/ofRarity`). 검증기(`RelicValidator`)는 경로가 담긴 한국어 오류를 낸다(중복 id, 알 수 없는 희귀도·효과·필드, 1 미만·소수 수치, 100을 넘는 할인율, `combatStart` 효과의 공통 효과 검증).
+
+| 필드 | 값 |
+|---|---|
+| `id`, `name`, `text` | 영문 키, 표시 이름, 설명 |
+| `rarity` | `common`(일반) / `rare`(희귀) / `boss`(보스) |
+| `unlock` | 선택. 해금 조건 설명. **해금은 M5-5(메타 진행) 범위라 지금은 데이터로만 두고 모든 유물이 획득 후보다** |
+| `effects` | 효과 목록(최소 1개). 아래 종류 |
+
+**효과 종류** (수치는 모두 1 이상의 정수; 읽는 곳이 효과를 합산한다. `RelicInventory.sum`)
+| 범주 | kind | 파라미터 | 읽는 곳 · 의미 |
+|---|---|---|---|
+| 전투 | `startCp` | `amount` | `CombatSimulator`: 전투 시작 CP +amount |
+| 전투 | `combatStart` | `effects` | 전투 시작 시 아군 기준 공통 효과 한 번(지휘관 패시브와 같은 문맥·검증, 보호막 등) |
+| 전투 | `allyDeathCp` | `amount`, `maxPerCombat` | 아군(소환 제외) 사망 시 CP +amount (전투당 실제 획득 합계 상한) |
+| 전투 | `killMana` | `amount` | 아군이 적을 처치하면 그 유닛 마나 +amount (`onKill` 트리거) |
+| 전투 | `traitTierBonus` | `minUnits` | 같은 특성 아군 유닛(같은 유닛 중복 포함)이 minUnits기 이상이면 그 특성 단계 +1 (최대 3). `TraitEngine.compute(defs, bonusMinUnits)` |
+| 전투 | `ultimateCharge` | `pct` | 궁극기 게이지 충전량 +pct% |
+| 전투 | `hpCostReduction` | `amount` | 지휘관 HP를 잃는 카드의 소모량 −amount (최소 0) |
+| 전투 | `spellDamage` | `pct` | 주문 카드 피해 +pct% (지휘관 패시브와 합산) |
+| 덱 | `handLimit` | `amount` | 손패 상한 +amount (`Deck` 옵션) |
+| 덱 | `openingDraw` | `amount` | 전투 준비 때 카드 amount장 더 뽑기 (`PlayerForces.deckForBattle`) |
+| 덱 | `upgradeOnAcquire` | `count` | 획득 즉시 덱의 강화 가능한 카드 count장을 무작위 강화 |
+| 덱 | `rewardChoices` | `amount` | 전투 카드 보상 선택지 +amount장 |
+| 경제 | `freeReroll` | `count` | 노드마다 처음 count번의 상점 리롤 무료 (`Management` perks, 노드 입장 시 초기화) |
+| 경제 | `mirrorMerge` | `count` | 런당 count번 같은 유닛 1성 2기를 2성으로 합성. 2성은 원본 3개 몫이므로 모자란 1개를 유닛 풀에서 가져온다(풀에 없으면 합치지 않음). 구매·지급 직후 또는 획득 즉시 자동으로 적용 |
+| 경제 | `interestMax` | `amount` | 이자 상한 +amount G (`Economy.setModifiers`) |
+| 경제 | `winGold` | `amount` | 전투 승리 골드 +amount (영수증 `bonus`) |
+| 경제 | `cardDiscount` | `pct` | 상점 카드·카드 제거 가격 −pct% (올림, 진열가는 기준가로 저장하고 보기·구매 때 적용) |
+| 런 | `campHeal` | `pct` | 야영지 휴식 회복량 +pct%p (최대 HP 기준, 30% → 50%) |
+| 런 | `winHeal` | `amount` | 전투 승리 시 지휘관 HP +amount |
+| 런 | `maxHp` | `amount` | 획득 즉시 지휘관 최대 HP +amount (같은 양 회복) |
+
+**유물 20개** (획득 경로: 정예 승리 보상 / 상점 / 이벤트 선택지 → 일반·희귀 유물, 보스 처치 → 보스 유물)
+| id | 이름 | 희귀도 | 효과 | 해금 조건(데이터만) |
+|---|---|---|---|---|
+| `old_baton` | 낡은 지휘봉 | 일반 | 전투 시작 CP +1 | – |
+| `merchants_scale` | 상인의 저울 | 일반 | 노드마다 첫 상점 리롤 무료 | – |
+| `bulwark_crest` | 철벽의 인장 | 일반 | 전투 시작 시 전열 아군 최대 HP 8% 보호막 (하르텐 성향) | – |
+| `ember_charm` | 잿불 부적 | 일반 | 주문 카드 피해 +20% (이세라 성향) | – |
+| `blood_ledger` | 피의 장부 | 일반 | HP를 잃는 카드의 소모량 −1 (녹스 성향) | – |
+| `trophy_chain` | 전리품 사슬 | 일반 | 아군이 적을 처치하면 그 유닛 마나 +15 | – |
+| `loot_sack` | 전리품 자루 | 일반 | 전투 승리 골드 +2 | – |
+| `field_tent` | 야전 천막 | 일반 | 야영지 휴식 회복량 +20%p | – |
+| `veteran_manual` | 숙련자의 교본 | 일반 | 획득 즉시 덱 카드 2장 무작위 강화 | – |
+| `blood_oath` | 피의 맹세 | 희귀 | 아군 유닛이 쓰러지면 CP +1 (전투당 최대 3) | 정예 5회 처치 |
+| `fifth_banner` | 다섯 번째 깃발 | 희귀 | 같은 특성 아군 5기 이상이면 그 특성 단계 +1 | 런 1회 완료 |
+| `twin_mirror` | 쌍둥이 거울 | 희귀 | 런당 1회, 같은 유닛 2기로 2성 합성 | 유닛 3성 달성 |
+| `heralds_bag` | 전령의 가방 | 희귀 | 손패 상한 +1, 전투 준비 때 1장 더 뽑기 | 런 1회 완료 |
+| `tacticians_journal` | 전술가의 일지 | 희귀 | 카드 보상 선택지 +1장 | 덱 20장 이상으로 런 완료 |
+| `war_record` | 전쟁의 기록부 | 희귀 | 궁극기 게이지 충전량 +50% | 궁극기 10회 사용 |
+| `fat_purse` | 두둑한 전대 | 희귀 | 이자 상한 +2G | 골드 50G 이상 보유한 채 보스 도달 |
+| `wholesale_voucher` | 도매 증서 | 희귀 | 상점 카드·카드 제거 가격 −25% | 상점 5회 방문 |
+| `rift_heart` | 균열의 심장 | 보스 | 전투 시작 CP +2 | 액트 1 보스 처치 |
+| `legion_seal` | 군단장의 인장 | 보스 | 전투 시작 시 아군 전체 최대 HP 15% 보호막 | 액트 1 보스 처치 |
+| `iron_heart` | 강철 심장 | 보스 | 획득 즉시 최대 HP +20(회복), 전투 승리 시 HP +2 | 액트 1 보스 처치 |
+
+**획득 경로** (`RelicRewardGenerator`, 모든 무작위는 `deriveSeed(런 시드, 용도, 노드…)` 파생 Rng, 같은 유물 중복 획득 금지 — 후보에서 이미 가진 유물을 뺀다)
+- **정예 승리**: 카드 보상과 함께 유물 1개를 제시(`RewardSession.relic`, 일반 65 / 희귀 35, 그 희귀도가 바닥나면 다른 희귀도, 둘 다 없으면 없음). `claimRelic()`으로 받으며, UI는 카드를 고르거나 건너뛸 때 남은 유물도 자동으로 받는다. 일반 전투·패배에는 없다.
+- **상점**: 진열 2칸(일반 60 / 희귀 40), 가격 일반 18G / 희귀 30G(`RUN.RELIC`). 할인은 유물 도매 증서만 카드·제거에 적용되고 유물에는 적용되지 않는다. `buyShopRelic(slot)`.
+- **이벤트**: `gainRelic` 효과 (위 events.json).
+- **보스 처치**: 보스 유물 후보 3개를 `RunController.bossRelicOffer()`로 결정적으로 뽑는다(승리한 런에서만, 이미 가진 유물 제외). **액트 1 보스 이후 런이 끝나므로 아직 받을 수는 없고 종료 화면에 "보스 유물 후보"로 보여 주기만 한다** (선택·획득은 액트 2 연결 시 `acquireRelic` 경로로 붙일 준비만 해 둔 상태이며 저장 대상이 아니다).
+
+**저장**: 보유 유물은 `RunSave.relics`(`{ owned, mirrorUsed, freeRerollsUsed }`)에 저장한다(런 코어 절의 저장 v2).
 
 ---
 
@@ -226,7 +327,7 @@ M2에서 추가된 유닛
 | 필드 | 값 |
 |---|---|
 | `id`, `title`, `text` | 영문 키, 제목, 상황 설명 |
-| `choices` | 선택지 2~3개: `{ text, result, effects }`. `result`는 선택 뒤 보여줄 문장, `effects`는 순서대로 실행(비어 있으면 아무 일 없음) |
+| `choices` | 선택지 2~4개: `{ text, result, effects }`. `result`는 선택 뒤 보여줄 문장, `effects`는 순서대로 실행(비어 있으면 아무 일 없음) |
 
 **선택지 효과 최소 집합** (모르는 필드는 거부)
 | kind | 파라미터 | 의미 |
@@ -237,14 +338,20 @@ M2에서 추가된 유닛
 | `removeCard` | `mode: "random"\|"choose"` | 덱 카드 제거(유닛 제공 카드 제외). 제거할 카드가 없으면 선택 불가 |
 | `upgradeCard` | `mode: "random"\|"choose"` | 덱 카드 강화(이미 강화·강화 버전 없음·유닛 제공 카드 제외). 가능한 카드가 없으면 선택 불가 |
 | `gainUnit` | `tier` | 무작위 `tier`등급 1성 유닛 1기를 벤치로 받는다(유닛 풀에서 원본 1개). 벤치가 가득 차면 선택 불가 |
+| `gainRelic` | `rarity`(`common`/`rare`) | 유물 획득: 아직 없는 해당 희귀도(보스 제외) 유물 중 (런 시드·노드·효과 순번에서 파생한 Rng로) 무작위 1개. 남은 유물이 없으면 선택 불가. 결과 문장 뒤에 `유물 획득: <이름>`이 덧붙는다 |
 
-`choose` 모드는 선택 직후 `pending`(후보 목록)이 생기고 `pickEventOption(index)`로 고르면 남은 효과가 이어서 실행된다. 이벤트는 노드마다 결정적으로 고르며 이미 본 이벤트를 먼저 피한다. 현재 5개: 버려진 군수 창고 / 부상당한 정찰병 / 관문 대장장이 / 균열 제단 / 탈영병 야영지.
+`choose` 모드는 선택 직후 `pending`(후보 목록)이 생기고 `pickEventOption(index)`로 고르면 남은 효과가 이어서 실행된다. 이벤트는 노드마다 결정적으로 고르며 이미 본 이벤트를 먼저 피한다. 현재 5개: 버려진 군수 창고 / 부상당한 정찰병 / 관문 대장장이 / 균열 제단 / 탈영병 야영지. M5-A에서 관문 대장장이("낡은 휘장": 지휘관 HP −6, 일반 유물)와 균열 제단("빛나는 파편": 지휘관 HP −12, 희귀 유물)에 **4번째 선택지**를 덧붙였다(기존 선택지는 그대로라 "선택 가능한 첫 선택지" 정책의 결과가 바뀌지 않는다).
 
 ---
 
 ## 런 코어 (M4-A)
 
 `src/core/run`. 수치는 `RUN`(`run/constants.ts`)에 모여 있다. UI(M4-B)는 `RunController`만 보고 만든다.
+
+### 지휘관·유물 연동 (M5-A)
+- `RunController.create(deps, { seed, commanderId?, deckPreset? })`: `commanderId`를 생략하면 하르텐(`RUN.DEFAULT_COMMANDER_ID`). 시작 덱·시작 유닛·지휘관 최대 HP는 지휘관 데이터에서, 패시브·궁극기는 `createSimulator`가 `CombatSetup.cards.commander`로, 보유 유물 효과는 `CombatSetup.cards.relics`로 전투에 넘긴다. `RunDeps`에 `relics: RelicCatalog`가 늘었다(`loadRunDeps`의 `RawRunData.relics`).
+- 정산(`completeBattle`) 순서: 골드(유물 승리 골드·이자 상한 반영) → 카드·궁극기로 잃은 HP → 패배 피해 → (승리) 지휘관 패시브 골드(녹스) → 유물 승리 회복 → 덱·장비 이어받기 → 다음 단계. 정예 승리는 보상 단계에 유물을 함께 제시한다.
+- 유물의 즉시 효과(최대 HP, 카드 강화, 쌍둥이 거울 합성, 경제 보정)는 `RunController`가 획득 때 적용하고, 나머지는 읽는 쪽(`CombatSimulator`·`PlayerForces`·`Economy`·`Management`)이 보유 유물에서 합산한다.
 
 ### 맵 (`MapGenerator`, `RunMap`)
 - 13층. 층 1~12는 노드 2~4개, 13층은 보스 1개. 인접한 두 층은 교차하지 않는 간선으로 잇고 노드마다 다음 층 노드 1~2개와 연결한다. 모든 노드는 시작에서 도달 가능하고 보스까지 경로가 있다.
@@ -279,14 +386,16 @@ M2에서 추가된 유닛
 
 ### 카드 보상·상점·야영지
 - **보상 풀**: 공용(`neutral`)·비저주·`starter`가 아닌 카드(현재 common 7 / rare 3). 지휘관 고유 카드는 시작 덱 전용. 희귀도 가중치(일반 70/27/3, 정예·보스 40/50/10), 한 제시 안에서 중복 없음, 보스는 첫 장을 희귀 이상에서 보장. 카드 추가는 뽑을 더미에 넣고 덱 Rng로 섞는다.
-- **상점 노드**: 카드 3종(일반 보상 가중치, 희귀도별 가격 common 8 / rare 15 / epic 25G), 카드 제거 75G(상점에서 제거할 때마다 +25G, 런 누적), 유닛 상점은 입장 시 무료 갱신 후 기존 Management 그대로(리롤·잠금·구매·경험치). 이벤트·야영지의 제거/강화는 이 횟수에 포함하지 않는다.
-- **야영지(택1)**: 휴식 = 최대 HP의 30%(올림) 회복 / 단련 = 덱 카드 1장 강화(유닛 제공 카드·이미 강화된 카드 제외) / 승급 = 유닛 1기 +1성. 승급 비용 = 4 + (풀에서 추가로 가져오는 원본 수 × 유닛 등급): 1→2성은 원본 +2개(2성 = 3개), 2→3성은 +6개(3성 = 9개)를 유닛 풀에서 가져와 일반 합성과 같은 재고를 쓰므로 판매 시 돌려주는 개수(1/3/9)와 어긋나지 않는다. 재고나 골드가 모자라면 불가, 승급 뒤 같은 성급 3기가 되면 자동 합성한다.
+- **카드 보상 장수**: 기본 3장(`RUN.REWARD.CHOICES`) + 유물 전술가의 일지 등 `rewardChoices`. 정예 승리는 카드 보상과 함께 유물 1개도 제시한다(위 relics.json 획득 경로).
+- **상점 노드**: 카드 3종(일반 보상 가중치, 희귀도별 가격 common 8 / rare 15 / epic 25G), 카드 제거 75G(상점에서 제거할 때마다 +25G, 런 누적), **유물 2종 진열**(가격 일반 18G / 희귀 30G, 위 relics.json). 유닛 상점은 입장 시 무료 갱신 후 기존 Management 그대로(리롤·잠금·구매·경험치). 유물 도매 증서가 있으면 카드·제거 가격이 −25%(올림)로 보인다. 이벤트·야영지의 제거/강화는 이 횟수에 포함하지 않는다.
+- **야영지(택1)**: 휴식 = 최대 HP의 30%(올림, 유물 야전 천막 +20%p) 회복 / 단련 = 덱 카드 1장 강화(유닛 제공 카드·이미 강화된 카드 제외) / 승급 = 유닛 1기 +1성. 승급 비용 = 4 + (풀에서 추가로 가져오는 원본 수 × 유닛 등급): 1→2성은 원본 +2개(2성 = 3개), 2→3성은 +6개(3성 = 9개)를 유닛 풀에서 가져와 일반 합성과 같은 재고를 쓰므로 판매 시 돌려주는 개수(1/3/9)와 어긋나지 않는다. 재고나 골드가 모자라면 불가, 승급 뒤 같은 성급 3기가 되면 자동 합성한다.
 
 ### 저장 (`RunSave`)
-- `{ format: "autochess-run", version: 1, seed, commanderId, deckPreset, map, position, health, forces{economy, management, managementRng, carryDeck}, removals, seenEvents, phase, session, outcome, history }`.
+- `{ format: "autochess-run", version: 2, seed, commanderId, deckPreset, map, position, health, forces{economy, management, managementRng, carryDeck}, relics{owned, mirrorUsed, freeRerollsUsed}, removals, seenEvents, phase, session, outcome, history }`. **v2(M5-A)**: 지휘관 id(`commanderId`, 이미 v1에도 있었음)와 유물 상태 `relics`가 저장 형식의 일부가 되었다. 세션은 보상 `relic`(정예 보상 유물 id 또는 null)·상점 `relics`(유물 진열 `{ relicId, price, sold }`)가 늘었고, 경제 영수증에는 선택 필드 `bonus`가 생겼다.
+- **v1 마이그레이션**: 버전 1~2를 읽는다. v1 저장본은 `relics`가 없으면(있으면 오류) 유물 없음·무료 리롤·거울 사용량 0으로, 보상 `relic`·상점 `relics`가 없으면 null·빈 목록으로 읽고 지휘관은 저장된 `commanderId`(v1 시절엔 항상 하르텐)를 그대로 쓴다. 다시 저장하면 v2가 된다(`runSaveV1.fixture.json`이 M4 시절 실제 저장본으로 이를 검증한다). v3 이상은 거부한다.
 - 노드 단위 체크포인트: 맵 선택 단계, 노드 입장 직후, 상점/이벤트(카드 선택 대기 포함)/야영지/보상 화면 모두 저장할 수 있다. 전투 중간 저장은 없다 — `battle` 단계는 `battlePrep`으로 저장되어 복원하면 같은 준비 손패·같은 전투 시드로 전투 준비 단계에 돌아온다. 복원 후 같은 선택은 같은 결과를 낸다(골드 영수증·상점 Rng·덱 Rng 상태까지 저장).
-- 복원은 모든 필드를 검증하고 `run.forces.carryDeck.draw[0].cardId` 같은 경로가 담긴 한국어 오류를 던진다 (모르는 필드·버전 불일치·단계/세션 불일치 포함). 필드 간 일관성도 검사한다: `currentNodeId`=입장 기록 마지막, 1층 시작·간선 연속·13개 이하, 단계↔현재 노드 종류(보상 종류 포함), 종료 전 HP 0 금지, 전투 `tries`=그 노드의 history 수, 상점 3칸·희귀도 가격, 이벤트 id=`seenEvents` 마지막(이벤트 노드 수만큼 기록), history 노드는 입장 기록에 포함.
+- 복원은 모든 필드를 검증하고 `run.forces.carryDeck.draw[0].cardId` 같은 경로가 담긴 한국어 오류를 던진다 (모르는 필드·버전 불일치·단계/세션 불일치 포함). 필드 간 일관성도 검사한다: `currentNodeId`=입장 기록 마지막, 1층 시작·간선 연속·13개 이하, 단계↔현재 노드 종류(보상 종류 포함), 종료 전 HP 0 금지, 전투 `tries`=그 노드의 history 수, 상점 3칸·희귀도 가격, 상점 유물 칸(2칸 이하·중복 없음·가격·구매 여부=보유 여부), 유물 보상은 정예 보상에만, 지휘관 최대 HP=지휘관 기본값+보유 유물의 최대 HP 증가 합, 이벤트 id=`seenEvents` 마지막(이벤트 노드 수만큼 기록), history 노드는 입장 기록에 포함.
 - UI 저장(M4-B, `src/ui/run`): 브라우저는 `localStorage`의 `autochess-run-save` 키 하나에 `RunSave` JSON을 쓴다. 단계가 바뀔 때·전투 준비 중 로스터가 바뀔 때·전투 정산 직후마다 저장하고, 런이 끝나면(`ended`) 지운다. 새 런 시드는 core가 `seed | 0`으로 정규화하므로 UI는 32비트 정수 범위만 받는다. 저장소는 `RunStorage` 인터페이스로 주입한다(접근 실패는 알림만).
 
 ### 헤드리스 자동 런
-`npm run run -- --seed 1 --n 20 [--path first|random] [--plan 파일|--no-cards] [--deck starter|test] [--verbose]` (`tools/run.ts`, 로직은 `AutoRunner`). 정책: 보드를 채우고 가장 싼 유닛 구매(인구가 차고 골드 ≥ 8이면 경험치), 카드 보상 첫 장, 이벤트는 선택 가능한 첫 선택지, 야영지는 HP 50% 미만이면 휴식 아니면 강화, 전투는 `tools/plans/harten-basic.json` 카드 계획. i번째 런의 시드는 `seed + i`.
+`npm run run -- --seed 1 --n 20 [--commander cmd_harten|cmd_isera|cmd_nox] [--path first|random] [--plan 파일|--no-cards] [--deck starter|test] [--no-relics] [--no-ultimate] [--verbose]` (`tools/run.ts`, 로직은 `AutoRunner`). 정책: 보드를 채우고 가장 싼 유닛 구매(인구가 차고 골드 ≥ 8이면 경험치), 카드 보상 첫 장, 이벤트는 선택 가능한 첫 선택지, 야영지는 HP 50% 미만이면 휴식 아니면 강화, 전투는 지휘관별 카드 계획(`tools/plans/harten|isera|nox-basic.json`). **유물 정책**(기본 켜짐, `--no-relics`로 끔): 정예 보상 유물을 받고, 상점에서 살 수 있는 가장 싼 유물부터 사며(유닛 구매보다 먼저), 유물을 주는 이벤트 선택지를 우선 고른다. **궁극기 정책**(기본 켜짐, `--no-ultimate`로 끔): 카드 계획에 `ultimate: true` 항목을 더해 게이지가 차면 바로 쓴다. 두 정책을 모두 끄면 M4와 같은 결과를 낸다(`AutoRunner` 옵션은 기본 꺼짐, CLI 플래그가 켠다). i번째 런의 시드는 `seed + i`.

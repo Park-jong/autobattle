@@ -1,13 +1,17 @@
 import { Deck, type DeckSnapshot } from '../cards/deck';
 import type { CardCatalog } from '../data/cardLoader';
 import type { CommanderDef } from '../data/commander';
+import type { RelicEffect } from '../data/relic';
 import { resolveEffect } from '../data/effect';
 import type { TraitCatalog } from '../data/traitLoader';
 import type { UnitCatalog } from '../data/unitLoader';
 import { Rng } from '../rng';
 import type { Cell, Side } from './board';
-import type { CardCommand, PlayResult, PlayTarget, RejectedCommand } from './cardCommand';
+import { ULTIMATE_COMMAND_ID, type CardCommand, type PlayResult, type PlayTarget, type RejectedCommand } from './cardCommand';
 import { CardPlayer, type CombatPhase } from './cardPlayer';
+import { CARDS } from '../cards/constants';
+import { RelicCombatRules } from './relicRules';
+import { UltimateSystem, type UltimateView } from './ultimate';
 import { CombatCommandPoints } from './combatCp';
 import { ColumnStrikeRunner } from './bossPattern';
 import { CommanderHpLedger } from './commanderHp';
@@ -39,6 +43,8 @@ export interface CombatCardSetup {
    * 생략하면 제한 없음(디버그 전투). 실제 차감은 commanderHp 이벤트를 보고 런이 한다.
    */
   commanderHp?: number;
+  /** 보유 유물의 효과 (전투와 무관한 효과는 무시한다). 생략하면 유물 없음 */
+  relics?: readonly RelicEffect[];
 }
 
 /**
@@ -111,6 +117,7 @@ export class CombatSimulator {
   private readonly rules: StatusRules;
   private readonly controller: UnitController;
   private readonly player: CardPlayer | null = null;
+  private readonly ultimateSystem: UltimateSystem | null = null;
   private readonly cardCatalog: CardCatalog | null;
   /** 아직 실행하지 않은 예약 명령 (tick 오름차순, 같은 틱은 입력 순서) */
   private readonly pending: CardCommand[] = [];
@@ -124,8 +131,12 @@ export class CombatSimulator {
     const cardSetup = setup.cards;
     if (cardSetup && !cardCatalog) throw new Error('setup.cards를 쓰려면 카드 카탈로그가 필요함');
     this.cardCatalog = cardCatalog ?? null;
-    if (cardSetup) this.commandPoints = new CombatCommandPoints(world, cardSetup.commander?.startCpBonus ?? 0);
-    if (cardSetup && cardCatalog) this.deck = Deck.restore(cardSetup.deck, cardCatalog, new Rng(0));
+    const relics = new RelicCombatRules(cardSetup?.relics ?? []);
+    if (cardSetup) this.commandPoints = new CombatCommandPoints(world, (cardSetup.commander?.startCpBonus ?? 0) + relics.startCp);
+    if (cardSetup && cardCatalog) {
+      const deckOptions = relics.handLimitBonus > 0 ? { handLimit: CARDS.HAND_LIMIT + relics.handLimitBonus } : {};
+      this.deck = Deck.restore(cardSetup.deck, cardCatalog, new Rng(0), deckOptions);
+    }
     const executor = new EffectExecutor(world, this.commandPoints, this.deck, units);
     const enemyScale = { hp: setup.enemy?.hpMult ?? 1, atk: setup.enemy?.atkMult ?? 1 };
     new ManaSystem(world);
@@ -172,15 +183,24 @@ export class CombatSimulator {
     }
 
     const engine = new TraitEngine(traits);
-    this.activeTraits = [engine.apply(0, defsBySide[0], executor), engine.apply(1, defsBySide[1], executor)];
+    this.activeTraits = [engine.apply(0, defsBySide[0], executor, relics.traitBonusMinUnits), engine.apply(1, defsBySide[1], executor)];
 
     if (cardSetup && cardCatalog && this.commandPoints && this.deck) {
-      this.player = new CardPlayer(world, executor, this.commandPoints, this.deck, cardCatalog, this.activeTraits[0], new CommanderHpLedger(cardSetup.commanderHp));
+      const ledger = new CommanderHpLedger(cardSetup.commanderHp);
+      const passiveSpell = cardSetup.commander?.passive.spellDamagePct ?? 0;
+      const modifiers = { spellDamagePct: passiveSpell + relics.spellDamagePct, hpCostReduction: relics.hpCostReduction };
+      this.player = new CardPlayer(world, executor, this.commandPoints, this.deck, cardCatalog, this.activeTraits[0], ledger, modifiers);
       // 지휘관 패시브: 특성 효과 바로 다음, 같은 시점(틱 0 이전)에 아군 기준으로 한 번 적용
       if (cardSetup.commander) {
         const passive = cardSetup.commander.passive.effects.map((e) => resolveEffect(e, 0));
         executor.execute(passive, { side: 0, caster: null, targets: [] });
+        const ultimate = cardSetup.commander.ultimate;
+        if (ultimate) {
+          this.ultimateSystem = new UltimateSystem(world, executor, ultimate, cardSetup.commander.id, ledger, this.commandPoints, relics.ultimateChargeMult);
+          this.ultimateSystem.install();
+        }
       }
+      relics.install(world, executor, this.commandPoints);
       this.commandPoints.startPrep();
       this.scheduleCommands(cardSetup.commands ?? []);
     }
@@ -190,6 +210,26 @@ export class CombatSimulator {
       new MutationSystem(world, executor, mutations, setup.seed, disrupt).install();
     }
     this.checkEnd();
+  }
+
+  /** 궁극기 상태 (지휘관에게 궁극기가 없거나 카드 시스템이 꺼져 있으면 null) */
+  get ultimate(): UltimateView | null {
+    return this.ultimateSystem?.view(this.phaseValue) ?? null;
+  }
+
+  /**
+   * 지금 이 틱(world.tick)에 궁극기를 쓴다. 틱과 틱 사이에 호출한다. 전투 중(startCombat 이후)에 게이지가 가득 찼고
+   * 전투당 1회를 쓰지 않았으며 지휘관 HP가 모자라지 않을 때만 성공한다.
+   * 성공하면 commandLog에 ULTIMATE_COMMAND_ID 명령으로 남고, 실패하면 사유만 반환하며 상태·로그가 그대로다.
+   */
+  useUltimate(): PlayResult {
+    if (!this.ultimateSystem) return { ok: false, reason: '사용할 수 있는 궁극기가 없습니다' };
+    const result = this.ultimateSystem.use(this.phaseValue);
+    if (result.ok) {
+      this.playedCommands.push({ tick: this.world.tick, cardInstanceId: ULTIMATE_COMMAND_ID, target: { kind: 'none' } });
+      this.checkEnd();
+    }
+    return result;
   }
 
   /** 방해 변이로 이 카드에 붙은 추가 비용 (이번 전투 한정). 카드 시스템이 없으면 0 */
@@ -263,6 +303,10 @@ export class CombatSimulator {
     this.startCombat();
     this.runScheduledCommands();
     if (this.outcome) return;
+    if (this.ultimateSystem?.advance()) {
+      this.checkEnd();
+      if (this.outcome) return;
+    }
 
     if (world.tick === COMBAT.OVERHEAT_START_SECONDS * COMBAT.TICKS_PER_SECOND) world.emit({ type: 'overheat' });
     world.bus.emit('onTick', { tick: world.tick, time: world.now });
@@ -356,7 +400,7 @@ export class CombatSimulator {
   }
 
   private runCommand(command: CardCommand): void {
-    const result = this.playCard(command.cardInstanceId, command.target);
+    const result = command.cardInstanceId === ULTIMATE_COMMAND_ID ? this.useUltimate() : this.playCard(command.cardInstanceId, command.target);
     if (!result.ok) this.rejectedCommands.push({ command, reason: result.reason });
   }
 }

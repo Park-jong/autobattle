@@ -19,6 +19,16 @@ export type CombatPhase = 'prep' | 'combat' | 'ended';
 /** 카드를 쓰는 진영. 적 진영은 카드를 쓰지 않는다 */
 const PLAYER_SIDE: Side = 0;
 
+/** 카드 사용에 적용되는 지휘관 패시브·유물 보정 */
+export interface CardModifiers {
+  /** 주문 카드의 고정 피해·화상 피해 증가(%) */
+  spellDamagePct: number;
+  /** 지휘관 HP 비용 감소량 (최소 0) */
+  hpCostReduction: number;
+}
+
+const NO_MODIFIERS: CardModifiers = { spellDamagePct: 0, hpCostReduction: 0 };
+
 /** 대상 검증 결과: 실행 문맥의 일부이거나 실패 사유 */
 type TargetResolution = { ok: true; ctx: EffectContext } | { ok: false; reason: string };
 
@@ -43,6 +53,7 @@ export class CardPlayer {
     private readonly catalog: CardCatalog,
     private readonly activeTraits: readonly ActiveTrait[],
     private readonly hpLedger: CommanderHpLedger = new CommanderHpLedger(),
+    private readonly modifiers: CardModifiers = NO_MODIFIERS,
   ) {}
 
   /** 방해 변이: 손패 카드 한 장의 비용을 올린다. 누적 추가 비용을 반환 */
@@ -65,7 +76,8 @@ export class CardPlayer {
   hpCostOf(card: Card): number {
     const cost = card.commanderHpCost;
     if (!cost) return 0;
-    return cost.waivedByTrait && this.isTraitActive(cost.waivedByTrait) ? 0 : cost.amount;
+    if (cost.waivedByTrait && this.isTraitActive(cost.waivedByTrait)) return 0;
+    return Math.max(0, cost.amount - this.modifiers.hpCostReduction);
   }
 
   /** 이번 전투에서 성공한 카드 사용 횟수 */
@@ -107,7 +119,7 @@ export class CardPlayer {
     const resolution = this.resolveTarget(card.target, target);
     if (!resolution.ok) return fail(resolution.reason);
 
-    const effects = this.collectEffects(view);
+    const effects = this.collectEffects(view, card.type);
     const blocked = this.executor.checkExecutable(effects, resolution.ctx);
     if (blocked) return fail(blocked);
 
@@ -205,11 +217,20 @@ export class CardPlayer {
   // ---- 효과 모으기 ----
 
   /** 기본 효과 + (공명 활성 시) 공명 효과 + (연쇄 조건 충족 시) 연쇄 효과 */
-  private collectEffects(view: ReturnType<typeof effectiveCard>): ResolvedEffect[] {
+  private collectEffects(view: ReturnType<typeof effectiveCard>, type: Card['type']): ResolvedEffect[] {
     const defs: EffectDef[] = [...view.effects];
     if (view.resonance && this.isTraitActive(view.resonance.trait)) defs.push(...view.resonance.effects);
     if (view.chain && this.playedCount > 0) defs.push(...view.chain.effects);
-    return defs.map((d) => resolveEffect(d, 0));
+    const effects = defs.map((d) => resolveEffect(d, 0));
+    return this.modifiers.spellDamagePct > 0 && type === 'spell' ? effects.map((e) => this.boostSpell(e)) : effects;
+  }
+
+  /** 주문 카드의 피해(고정 피해·화상 초당 피해)에 spellDamagePct를 곱한다 */
+  private boostSpell(effect: ResolvedEffect): ResolvedEffect {
+    const mult = 1 + this.modifiers.spellDamagePct / 100;
+    if (effect.kind === 'flatDamage') return { ...effect, amount: Math.round(effect.amount * mult) };
+    if (effect.kind === 'burn' && effect.dps !== undefined) return { ...effect, dps: Math.round(effect.dps * mult) };
+    return effect;
   }
 
   isTraitActive(traitId: string): boolean {

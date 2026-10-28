@@ -52,3 +52,17 @@ export const MUTATION = {
   /** 방해: 한 번에 올리는 비용 */
   DISRUPT_COST: 1,
 } as const;
+
+/** 지휘관 궁극기 수치 (DESIGN 5장). 게이지는 전투마다 0에서 시작하고, 가득 차면 전투당 1회 쓴다 */
+export const ULTIMATE = {
+  /** 게이지 최대치 */
+  GAUGE_MAX: 100,
+  /** 카드를 한 장 쓸 때(준비 단계 작전 카드 포함) 충전량 */
+  CARD_CHARGE: 15,
+  /** 아군 유닛(소환 유닛 제외)이 죽을 때 충전량 */
+  ALLY_DEATH_CHARGE: 25,
+  /** 운석 낙하 지점 후보: 적이 가장 많이 겹치는 칸부터 이 개수 중에서 Rng로 고른다 */
+  BARRAGE_POOL: 6,
+  /** 운석끼리 이 칸(체비쇼프) 이상 떨어진 지점을 우선한다 */
+  BARRAGE_MIN_SPACING: 2,
+} as const;

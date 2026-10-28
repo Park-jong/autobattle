@@ -10,7 +10,12 @@ export interface ShopCardSlot {
   sold: boolean;
 }
 
-/** 희귀도별 카드 가격 */
+/** 유물(도매 증서) 할인 적용: pct%를 깎고 올림. 0%면 그대로 */
+export function discounted(price: number, discountPct: number): number {
+  return discountPct <= 0 ? price : Math.ceil((price * (100 - discountPct)) / 100);
+}
+
+/** 희귀도별 카드 가격 (진열가는 할인 전 기준가로 저장하고, 화면·구매 때 discounted로 할인을 적용한다) */
 export function cardPrice(rarity: RewardRarity): number {
   return RUN.SHOP.CARD_PRICES[rarity];
 }

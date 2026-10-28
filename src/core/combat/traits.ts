@@ -21,7 +21,7 @@ export class TraitEngine {
   constructor(private readonly traits: TraitCatalog) {}
 
   /** 편성(유닛 정의 목록, 중복 포함)에서 특성별 종류 수와 단계를 계산. 1종 이상 있는 특성만 반환 */
-  compute(defs: readonly UnitDef[]): ActiveTrait[] {
+  compute(defs: readonly UnitDef[], bonusMinUnits: number | null = null): ActiveTrait[] {
     const distinct = new Map<string, UnitDef>();
     for (const def of defs) distinct.set(def.id, def);
 
@@ -31,20 +31,28 @@ export class TraitEngine {
         counts.set(traitId, (counts.get(traitId) ?? 0) + 1);
       }
     }
+    // 유물 보정(다섯 번째 깃발)용: 같은 유닛 중복을 포함한 특성별 유닛 수
+    const heads = new Map<string, number>();
+    if (bonusMinUnits !== null) {
+      for (const def of defs) {
+        for (const traitId of new Set([def.origin, def.job])) heads.set(traitId, (heads.get(traitId) ?? 0) + 1);
+      }
+    }
 
     const result: ActiveTrait[] = [];
     for (const trait of this.traits.traits) {
       const count = counts.get(trait.id);
       if (count === undefined) continue;
-      const tier = trait.thresholds.filter((threshold) => count >= threshold).length as 0 | 1 | 2 | 3;
-      result.push({ traitId: trait.id, count, tier });
+      let tier = trait.thresholds.filter((threshold) => count >= threshold).length;
+      if (bonusMinUnits !== null && (heads.get(trait.id) ?? 0) >= bonusMinUnits) tier = Math.min(3, tier + 1);
+      result.push({ traitId: trait.id, count, tier: tier as 0 | 1 | 2 | 3 });
     }
     return result;
   }
 
   /** 단계에 도달한 특성의 효과를 해당 진영에 적용한다 (전투 시작 시 1회). */
-  apply(side: Side, defs: readonly UnitDef[], executor: EffectExecutor): ActiveTrait[] {
-    const active = this.compute(defs);
+  apply(side: Side, defs: readonly UnitDef[], executor: EffectExecutor, bonusMinUnits: number | null = null): ActiveTrait[] {
+    const active = this.compute(defs, bonusMinUnits);
     for (const { traitId, tier } of active) {
       if (tier === 0) continue;
       const trait = this.traits.get(traitId);

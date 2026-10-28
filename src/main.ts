@@ -73,6 +73,9 @@ function bootstrap(): void {
   new RunBattlePanel(battleHost, runSession, runSession, session, data.units, data.cards, gameHost);
   new RunShell(runSession, runSession, { debugHost, battleHost });
 
+  // 개발 서버 전용: 브라우저 자동화(Playwright)가 세션을 들여다볼 수 있게 한다. 프로덕션 빌드에서는 제거된다.
+  if (import.meta.env.DEV) (window as unknown as { __tactics: unknown }).__tactics = { battle: session, run: runSession };
+
   // HiDPI: 캔버스 = 1280x720 x DPR, 카메라 줌 = DPR (hidpi.ts). Scale.FIT로 화면에 맞춘다.
   const metrics = computeHiDpi();
   const labels: SceneLabels = {

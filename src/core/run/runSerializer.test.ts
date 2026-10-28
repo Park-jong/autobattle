@@ -213,7 +213,7 @@ describe('저장 데이터 검증', () => {
   it('잘못된 저장 데이터는 복원에 실패해도 다른 런에 영향을 주지 않는다', () => {
     const run = newRun(5);
     const before = json(run);
-    expect(restoreWith({ ...base(), version: 2 })).toThrow();
+    expect(restoreWith({ ...base(), version: 3 })).toThrow();
     expect(json(run)).toBe(before);
   });
 });

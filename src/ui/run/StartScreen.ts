@@ -10,6 +10,8 @@ export class StartScreen {
   /** 진행 중인 저장본이 있을 때 "새 런"을 눌러 덮어쓰기 확인을 기다리는 중인가 */
   private confirming = false;
   private lastSnapshot: RunSnapshot | null = null;
+  /** 선택한 지휘관 id (아직 고르지 않았으면 기본 지휘관) */
+  private selectedCommander: string | null = null;
 
   constructor(private readonly commands: RunCommands) {
     this.seedInput.type = 'text';
@@ -35,6 +37,7 @@ export class StartScreen {
     const card = el('div', 'run-start-card');
     card.append(el('h1', 'run-title', '전술 지휘관'), el('p', 'run-subtitle', '오토체스 + 덱빌딩 로그라이크 · 1액트 (13층)'));
 
+    card.append(this.commanderPicker(start));
     const seedRow = el('label', 'run-seed-row');
     seedRow.append(el('span', '', '시드'), this.seedInput);
     const newRun = tagged(button('새 런', () => this.startNew(), 'dbg-btn dbg-primary run-big-button'), 'new-run');
@@ -78,6 +81,40 @@ export class StartScreen {
     this.root.replaceChildren(card);
   }
 
+  private commanderId(start: NonNullable<RunSnapshot['start']>): string {
+    const known = start.commanders.some((c) => c.id === this.selectedCommander);
+    return known && this.selectedCommander ? this.selectedCommander : start.defaultCommanderId;
+  }
+
+  /** 지휘관 3명 선택: 이름·HP·패시브·궁극기·시작 유닛·시작 덱 요약 */
+  private commanderPicker(start: NonNullable<RunSnapshot['start']>): HTMLElement {
+    const selected = this.commanderId(start);
+    const box = tagged(el('div', 'run-commanders'), 'commander-picker');
+    box.append(el('h2', 'run-commanders-title', '지휘관 선택'));
+    const list = el('div', 'run-commander-list');
+    for (const c of start.commanders) {
+      const root = tagged(el('button', `run-commander${c.id === selected ? ' selected' : ''}`), `commander-${c.id}`);
+      root.type = 'button';
+      root.setAttribute('aria-pressed', String(c.id === selected));
+      root.addEventListener('click', () => {
+        this.selectedCommander = c.id;
+        if (this.lastSnapshot) this.render(this.lastSnapshot);
+      });
+      root.append(
+        el('strong', 'run-commander-name', c.name),
+        el('span', 'run-commander-hp', `지휘관 HP ${c.maxHp}`),
+        el('p', 'run-commander-skill', `패시브 ${c.passiveName}: ${c.passiveText}`),
+        el('p', 'run-commander-skill ultimate', `궁극기 ${c.ultimateName}: ${c.ultimateText}`),
+        el('p', 'run-commander-line', `시작 유닛: ${c.units.join(', ')}`),
+        el('p', 'run-commander-line', `시작 덱 ${c.deckCount}장: ${c.deck.join(', ')}`),
+      );
+      if (c.unlock) root.append(el('p', 'run-commander-unlock', `해금 조건: ${c.unlock} (메타 진행 구현 전까지 모두 선택 가능)`));
+      list.append(root);
+    }
+    box.append(list);
+    return box;
+  }
+
   /** 저장본이 있으면 덮어쓰기 확인 단계를 먼저 보여 주고, 없으면 바로 시작한다 */
   private startNew(): void {
     if (this.lastSnapshot?.start?.save.kind === 'ok' && !this.confirming) {
@@ -96,7 +133,9 @@ export class StartScreen {
   private submit(): void {
     this.confirming = false;
     const text = this.seedInput.value.trim();
-    if (text === '') return this.commands.newRun(null);
-    this.commands.newRun(/^-?\d+$/.test(text) ? Number(text) : Number.NaN);
+    const start = this.lastSnapshot?.start;
+    const commanderId = start ? this.commanderId(start) : undefined;
+    if (text === '') return this.commands.newRun(null, commanderId);
+    this.commands.newRun(/^-?\d+$/.test(text) ? Number(text) : Number.NaN, commanderId);
   }
 }

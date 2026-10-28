@@ -5,6 +5,9 @@
 import { deckCards, effectiveCard, type CardInstance } from '../../core/cards';
 import { MUTATION_INFO, type MutationId } from '../../core/combat';
 import type { Card, Rarity } from '../../core/data/card';
+import type { CommanderDef } from '../../core/data/commander';
+import type { RelicDef, RelicRarity } from '../../core/data/relic';
+import type { RelicCatalog } from '../../core/data/relicLoader';
 import type { CardCatalog } from '../../core/data/cardLoader';
 import type { UnitCatalog } from '../../core/data/unitLoader';
 import type { BattleKind } from '../../core/economy';
@@ -35,6 +38,68 @@ export const PHASE_LABELS: Readonly<Record<RunPhase, string>> = {
   map: '맵', battlePrep: '전투 준비', battle: '전투', reward: '카드 보상', shop: '상점', event: '이벤트', camp: '야영지', ended: '종료',
 };
 
+// ---- 유물 ----
+
+export const RELIC_RARITY_LABELS: Readonly<Record<RelicRarity, string>> = { common: '일반', rare: '희귀', boss: '보스' };
+
+/** 유물 한 개의 표시 정보 (아이콘은 이름 첫 글자) */
+export interface RelicView {
+  id: string;
+  name: string;
+  icon: string;
+  rarity: RelicRarity;
+  rarityLabel: string;
+  text: string;
+}
+
+export function buildRelicView(def: RelicDef): RelicView {
+  return { id: def.id, name: def.name, icon: [...def.name][0] ?? '?', rarity: def.rarity, rarityLabel: RELIC_RARITY_LABELS[def.rarity], text: def.text };
+}
+
+function relicViewById(relics: RelicCatalog, id: string): RelicView {
+  const def = relics.get(id);
+  if (!def) throw new Error(`알 수 없는 유물 "${id}"`);
+  return buildRelicView(def);
+}
+
+// ---- 지휘관 선택 ----
+
+/** 새 런 시작 화면의 지휘관 카드 */
+export interface CommanderChoiceView {
+  id: string;
+  name: string;
+  maxHp: number;
+  passiveName: string;
+  passiveText: string;
+  ultimateName: string;
+  ultimateText: string;
+  /** 시작 유닛 (예: '방패병 ×2') */
+  units: string[];
+  /** 시작 덱 요약 (예: '방진 유지 ×2') */
+  deck: string[];
+  deckCount: number;
+  /** 해금 조건 설명 (메타 진행 M5-5 전까지는 표시만 하고 모두 선택 가능) */
+  unlock: string | null;
+}
+
+export function buildCommanderChoices(
+  commanders: readonly CommanderDef[], cards: CardCatalog, units: UnitCatalog, startHp: number,
+): CommanderChoiceView[] {
+  return commanders.map((c) => ({
+    id: c.id,
+    name: c.name,
+    maxHp: c.maxHp ?? startHp,
+    passiveName: c.passive.name,
+    passiveText: c.passive.text,
+    ultimateName: c.ultimate?.name ?? '없음',
+    ultimateText: c.ultimate?.text ?? '',
+    units: c.startingUnits.map((u) => `${units.get(u.unitId)?.name ?? u.unitId} ×${u.count}`),
+    deck: c.startingDeck.map((d) => `${cards.get(d.cardId)?.name ?? d.cardId} ×${d.count}`),
+    deckCount: c.startingDeck.reduce((sum, d) => sum + d.count, 0),
+    unlock: c.unlock ?? null,
+  }));
+}
+
 // ---- 상단 정보 ----
 
 export interface RunHud {
@@ -51,6 +116,8 @@ export interface RunHud {
   phaseLabel: string;
   /** 지금 있는 노드 설명 (없으면 '출발 전') */
   location: string;
+  /** 보유 유물 (획득 순서) */
+  relics: RelicView[];
 }
 
 export function buildHud(run: RunController): RunHud {
@@ -66,6 +133,7 @@ export function buildHud(run: RunController): RunHud {
     deckCount: deckCards(run.deck).length,
     phaseLabel: PHASE_LABELS[run.phase],
     location: node ? `${node.floor}층 ${NODE_TYPE_INFO[node.type].label}` : '출발 전',
+    relics: run.relics.map(buildRelicView),
   };
 }
 
@@ -251,13 +319,20 @@ function deckViews(cards: CardCatalog, instances: readonly CardInstance[]): Deck
 export interface RewardView {
   source: 'normal' | 'elite';
   cards: CardView[];
+  /** 정예 보상으로 제시된 유물 (없으면 null) */
+  relic: RelicView | null;
+  /** 이미 받았는가 */
+  relicClaimed: boolean;
 }
 
-export function buildRewardView(run: RunController, cards: CardCatalog): RewardView {
+export function buildRewardView(run: RunController, cards: CardCatalog, relics: RelicCatalog): RewardView {
   const session = run.session;
+  const relicId = session?.kind === 'reward' ? session.relic : null;
   return {
     source: session?.kind === 'reward' ? session.source : 'normal',
     cards: run.rewardOffer().map((id) => buildCardView(cards, id)),
+    relic: relicId ? relicViewById(relics, relicId) : null,
+    relicClaimed: relicId ? run.relics.some((r) => r.id === relicId) : false,
   };
 }
 
@@ -271,13 +346,23 @@ export interface ShopCardEntry extends CardView {
   reason: string | null;
 }
 
+export interface ShopRelicEntry {
+  slot: number;
+  relic: RelicView;
+  price: number;
+  sold: boolean;
+  affordable: boolean;
+  reason: string | null;
+}
+
 export interface ShopScreenView {
   gold: number;
   cards: ShopCardEntry[];
+  relics: ShopRelicEntry[];
   removal: { price: number; affordable: boolean; reason: string | null; candidates: DeckCardView[] };
 }
 
-export function buildShopView(view: ShopView, gold: number, cards: CardCatalog): ShopScreenView {
+export function buildShopView(view: ShopView, gold: number, cards: CardCatalog, relics: RelicCatalog): ShopScreenView {
   const removalOk = gold >= view.removalPrice;
   const removalReason = view.removable.length === 0 ? '제거할 수 있는 카드가 없습니다' : removalOk ? null : '골드가 부족합니다';
   return {
@@ -287,6 +372,13 @@ export function buildShopView(view: ShopView, gold: number, cards: CardCatalog):
       return {
         ...buildCardView(cards, slot.cardId), slot: i, price: slot.price, sold: slot.sold, affordable,
         reason: slot.sold ? '판매 완료' : affordable ? null : '골드가 부족합니다',
+      };
+    }),
+    relics: view.relics.map((slot, i) => {
+      const affordable = !slot.sold && gold >= slot.price;
+      return {
+        slot: i, relic: relicViewById(relics, slot.relicId), price: slot.price, sold: slot.sold, affordable,
+        reason: slot.sold ? '구매 완료' : affordable ? null : '골드가 부족합니다',
       };
     }),
     removal: { price: view.removalPrice, affordable: removalReason === null, reason: removalReason, candidates: deckViews(cards, view.removable) },
@@ -386,7 +478,7 @@ export function buildCampView(view: CampView, run: RunController, cards: CardCat
 export interface SettlementView {
   headline: string;
   outcome: 'win' | 'loss' | 'draw';
-  /** 골드 지급 요약 (예: '+8G (기본 5G + 이자 3G)') */
+  /** 골드 지급 요약 (예: '+8G (기본 5G + 이자 3G)'; 유물 보너스가 있으면 '+ 유물 2G') */
   goldLine: string;
   /** 지휘관 HP 변화 줄들 (변화 없으면 빈 배열) */
   hpLines: string[];
@@ -399,18 +491,21 @@ export interface SettlementView {
 
 export function buildSettlementView(s: BattleSettlement): SettlementView {
   const hpLines: string[] = [];
-  if (s.cardHpLost > 0) hpLines.push(`카드 사용으로 지휘관 HP -${s.cardHpLost}`);
+  if (s.cardHpLost > 0) hpLines.push(`카드·궁극기 사용으로 지휘관 HP -${s.cardHpLost}`);
   if (s.defeatDamage > 0) hpLines.push(`패배 피해 지휘관 HP -${s.defeatDamage}`);
+  if (s.healed > 0) hpLines.push(`유물 효과로 지휘관 HP +${s.healed}`);
+  const extras: string[] = [];
+  if (s.passiveGold > 0) extras.push(`지휘관 패시브 +${s.passiveGold}G`);
   const retry = s.outcome !== 'win' && s.kind === 'boss' && s.runEnded === null;
   return {
     headline: `${BATTLE_KIND_LABELS[s.kind]} ${OUTCOME_LABELS[s.outcome]}`,
     outcome: s.outcome,
-    goldLine: `+${s.reward.total}G (기본 ${s.reward.base}G + 이자 ${s.reward.interest}G)`,
+    goldLine: `+${s.reward.total + s.passiveGold}G (기본 ${s.reward.base}G + 이자 ${s.reward.interest}G${s.reward.bonus ? ` + 유물 ${s.reward.bonus}G` : ''}${extras.length > 0 ? ` + ${extras.join(' + ')}` : ''})`,
     hpLines,
     hpBefore: s.hpBefore,
     hpAfter: s.hpAfter,
     runEnded: s.runEnded,
-    continueLabel: s.runEnded ? '결과 보기' : s.cardOffer ? '카드 보상 선택' : retry ? '보스 재도전 준비' : '맵으로',
+    continueLabel: s.runEnded ? '결과 보기' : s.cardOffer ? (s.relicOffer ? '보상 선택 (카드·유물)' : '카드 보상 선택') : retry ? '보스 재도전 준비' : '맵으로',
   };
 }
 
@@ -419,6 +514,11 @@ export interface EndScreenView {
   title: string;
   seed: number;
   commanderName: string;
+  commanderId: string;
+  /** 보유 유물 */
+  relics: RelicView[];
+  /** 보스 처치 시 받을 수 있었던 보스 유물 후보 (액트 2 연결 전이라 보여 주기만 한다. 사망이면 빈 목록) */
+  bossRelicOffer: RelicView[];
   floorReached: number;
   floorCount: number;
   hp: number;
@@ -432,7 +532,7 @@ export interface EndScreenView {
   roster: { name: string; star: number; onBoard: boolean }[];
 }
 
-export function buildEndView(run: RunController, cards: CardCatalog, units: UnitCatalog): EndScreenView {
+export function buildEndView(run: RunController, cards: CardCatalog, units: UnitCatalog, relics: RelicCatalog): EndScreenView {
   const outcome: RunOutcome = run.outcome ?? 'dead';
   const counts = new Map<string, { name: string; count: number }>();
   for (const instance of deckCards(run.deck)) {
@@ -454,6 +554,9 @@ export function buildEndView(run: RunController, cards: CardCatalog, units: Unit
     title: outcome === 'victory' ? '1액트 돌파' : '지휘관 쓰러짐',
     seed: run.seed,
     commanderName: run.commander.name,
+    commanderId: run.commander.id,
+    relics: run.relics.map(buildRelicView),
+    bossRelicOffer: run.bossRelicOffer().map((id) => relicViewById(relics, id)),
     floorReached: run.floorReached,
     floorCount: RUN.MAP.FLOORS,
     hp: run.hp,

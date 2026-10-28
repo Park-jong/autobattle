@@ -6,7 +6,7 @@ import type { CardInputMode } from '../cards/CardInteraction';
 import type { CardPanelView } from '../cards/cardPanelView';
 import type { PlaybackSpeed } from '../cards/playbackScale';
 import type { GauntletRecord, GauntletSummary } from '../live/Gauntlet';
-import type { ReplayEffect, TelegraphView, UnitView } from '../replay/ReplayState';
+import type { MeteorView, ReplayEffect, TelegraphView, UltimateAuraView, UnitView } from '../replay/ReplayState';
 
 export { PLAYBACK_SPEEDS, type PlaybackSpeed } from '../cards/playbackScale';
 
@@ -88,6 +88,10 @@ export interface BattleViewSource {
   recentEffects(maxAge: number): readonly ReplayEffect[];
   /** 지금 강조할 보스 패턴 예고 (재생 시각 기준, 발동 전까지) */
   telegraphs(): readonly TelegraphView[];
+  /** 지금 떨어지는 중인 궁극기 운석 */
+  meteors(): readonly MeteorView[];
+  /** 지속 효과가 있는 궁극기가 유지되는 동안의 표시 정보 */
+  ultimateAura(): UltimateAuraView | null;
   /** 프레임 경과 실제 시간(초, 배속·슬로모션 적용 전)만큼 재생을 진행 */
   advance(dtSeconds: number): void;
   /** 편성 중 해당 칸이 배치 가능한지 */
@@ -158,6 +162,8 @@ export interface CardController {
   /** 대상이 필요 없는 카드는 바로 사용, 그 외는 클릭 선택으로 시작 */
   useCardNow(instanceId: number): void;
   cancelCard(): void;
+  /** 궁극기를 쓴다 (게이지·HP·전투 단계 검사는 시뮬이 하고, 실패 사유는 토스트로 알린다) */
+  useUltimate(): void;
   /** 드래그 중 포인터 위치 (게임 좌표). 캔버스 밖이면 pointerLeft */
   pointerMoved(x: number, y: number): void;
   pointerLeft(): void;

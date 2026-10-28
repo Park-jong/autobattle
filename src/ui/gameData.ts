@@ -2,6 +2,7 @@ import cardsJson from '../../data/cards.json';
 import commandersJson from '../../data/commanders.json';
 import encountersJson from '../../data/encounters.json';
 import eventsJson from '../../data/events.json';
+import relicsJson from '../../data/relics.json';
 import traitsJson from '../../data/traits.json';
 import unitsJson from '../../data/units.json';
 import { parseFormation, type FormationEntry } from '../core/combat';
@@ -10,6 +11,8 @@ import type { CardCatalog, CommanderCatalog, TraitCatalog, UnitCatalog } from '.
 import formationA from '../../tools/formations/a.json';
 import formationB from '../../tools/formations/b.json';
 import hartenStart from '../../tools/formations/harten-start.json';
+import iseraStart from '../../tools/formations/isera-start.json';
+import noxStart from '../../tools/formations/nox-start.json';
 import series1 from '../../tools/formations/series-1.json';
 import series2 from '../../tools/formations/series-2.json';
 import series3 from '../../tools/formations/series-3.json';
@@ -44,7 +47,7 @@ const SERIES_FILES: readonly unknown[] = [series1, series2, series3, series4, se
 export function loadGameData(): GameData {
   // 런 코어와 같은 검증을 한 번만 거쳐 카탈로그를 공유한다 (유닛·카드 참조, 적 편성 층 커버리지 포함)
   const run = loadRunDeps({
-    traits: traitsJson, units: unitsJson, cards: cardsJson, commanders: commandersJson, encounters: encountersJson, events: eventsJson,
+    traits: traitsJson, units: unitsJson, cards: cardsJson, commanders: commandersJson, encounters: encountersJson, events: eventsJson, relics: relicsJson,
   });
   const { traits, units, cards, commanders } = run;
   const seriesStages = SERIES_FILES.map((raw, i) => {
@@ -59,7 +62,11 @@ export function loadGameData(): GameData {
     commanders,
     defaultFormations: [parseFormation(formationA, '기본 아군 편성'), parseFormation(formationB, '기본 적 편성')],
     defaultCommanderId: commanders.get(DEFAULT_COMMANDER_ID) ? DEFAULT_COMMANDER_ID : null,
-    startFormations: new Map([['cmd_harten', parseFormation(hartenStart, '하르텐 시작 편성')]]),
+    startFormations: new Map([
+      ['cmd_harten', parseFormation(hartenStart, '하르텐 시작 편성')],
+      ['cmd_isera', parseFormation(iseraStart, '이세라 시작 편성')],
+      ['cmd_nox', parseFormation(noxStart, '녹스 시작 편성')],
+    ]),
     seriesStages,
     run,
   };

@@ -46,6 +46,7 @@ export const COMBAT_EFFECT_KINDS = [
   'drawCards',
   'cpGain',
   'root', 'hpCost', 'lifesteal', 'onAttackBurn', 'killFeast', 'marksman', 'attackMana', 'summon', 'scout',
+  'taunt',
 ] as const;
 
 export type CombatStat = (typeof COMBAT_STATS)[number];
@@ -120,6 +121,8 @@ export type EffectOf<V> =
   | { kind: 'attackMana'; selector: EffectSelector; amount: V }
   | { kind: 'summon'; selector: EffectSelector; count: V; tier: V }
   | { kind: 'scout'; selector: EffectSelector; count: V; pctMaxHp: V }
+  /** 도발: 실행 시점에 selector 유닛 반경 radius칸(체비쇼프) 안의 적이 duration초 동안 그 유닛을 우선 공격. 여러 도발자가 겹치면 가장 가까운 쪽 */
+  | { kind: 'taunt'; selector: EffectSelector; radius: V; duration: V }
   /**
    * 전투 시작 시 등록되는 트리거: 효과를 적용한 진영의 유닛이 적을 처치하면 CP를 amount만큼 얻는다.
    * 실제로 얻은 CP 합계가 maxPerCombat에 도달하면 더 얻지 않는다. selector는 allAllies만 허용.

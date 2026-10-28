@@ -1,6 +1,7 @@
 import {
   CombatSimulator,
   COMBAT,
+  ULTIMATE_COMMAND_ID,
   type CombatResult,
   type CombatSetup,
   type PlayResult,
@@ -56,7 +57,7 @@ export class LiveBattle {
 
   /** 이번 전투에서 성공한 카드 사용 횟수 (준비 단계 작전 카드 포함) */
   get cardsPlayed(): number {
-    return this.sim.commandLog.length;
+    return this.sim.commandLog.filter((c) => c.cardInstanceId !== ULTIMATE_COMMAND_ID).length;
   }
 
   /** 준비 단계를 끝내고 전투 CP를 지급한다 (틱 0에서 명령 카드를 쓰려면 먼저 부른다) */
@@ -77,6 +78,13 @@ export class LiveBattle {
   /** 지금 진행된 틱에서 카드를 쓴다. 실패하면 사유만 돌려주고 아무것도 바뀌지 않는다 */
   playCard(instanceId: number, target: PlayTarget): PlayResult {
     const result = this.sim.playCard(instanceId, target);
+    if (result.ok) this.sync();
+    return result;
+  }
+
+  /** 지금 진행된 틱에서 궁극기를 쓴다. 실패하면 사유만 돌려주고 아무것도 바뀌지 않는다 */
+  useUltimate(): PlayResult {
+    const result = this.sim.useUltimate();
     if (result.ok) this.sync();
     return result;
   }

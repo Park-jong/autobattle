@@ -37,6 +37,7 @@ const PARAM_KEYS: Record<CombatEffectKind, readonly string[]> = {
   root: ['duration'], hpCost: ['pctMaxHp'], lifesteal: ['pct', 'duration'],
   onAttackBurn: ['pctAtk', 'duration'], killFeast: ['healPct', 'atkPct'], marksman: ['rangeBonus', 'chance'],
   attackMana: ['amount'], summon: ['count', 'tier'], scout: ['count', 'pctMaxHp'],
+  taunt: ['radius', 'duration'],
 };
 
 export interface EffectValidatorOptions {
@@ -73,6 +74,7 @@ export class EffectValidator {
       case 'onAttackBurn': return { kind, selector, pctAtk: this.star(r, 'pctAtk', 0), duration: this.star(r, 'duration', 0) };
       case 'killFeast': return { kind, selector, healPct: this.star(r, 'healPct', 0), atkPct: this.star(r, 'atkPct', 0) };
       case 'marksman': return { kind, selector, rangeBonus: this.star(r, 'rangeBonus', 0), chance: this.star(r, 'chance', 0) };
+      case 'taunt': return { kind, selector, radius: this.star(r, 'radius', 1), duration: this.star(r, 'duration', 0) };
       case 'attackMana': return { kind, selector, amount: this.star(r, 'amount', 0) };
       case 'summon':
       case 'scout':

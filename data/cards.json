@@ -617,6 +617,43 @@
           }
         ]
       }
+    },
+    {
+      "id": "blood_price",
+      "name": "피의 대가",
+      "owner": "cmd_nox",
+      "rarity": "starter",
+      "type": "command",
+      "cost": 0,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "commanderHpCost": {
+        "amount": 2
+      },
+      "text": "지휘관 HP 2를 잃고 아군 1명 4초간 ATK +40%.",
+      "effects": [
+        {
+          "kind": "statMod",
+          "selector": "target",
+          "stat": "atk",
+          "pct": 40,
+          "duration": 4
+        }
+      ],
+      "upgrade": {
+        "text": "지휘관 HP 2를 잃고 아군 1명 5초간 ATK +60%.",
+        "effects": [
+          {
+            "kind": "statMod",
+            "selector": "target",
+            "stat": "atk",
+            "pct": 60,
+            "duration": 5
+          }
+        ]
+      }
     }
   ]
 }

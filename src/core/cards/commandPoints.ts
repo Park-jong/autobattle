@@ -43,9 +43,14 @@ export class CommandPoints {
     return this.combatCp;
   }
 
-  /** 전투 경과 tick(0 제외)이 간격의 배수일 때 +1. 실제로 늘어난 양(0 또는 1) 반환 */
-  regen(tick: number): number {
-    if (tick <= 0 || tick % CP_REGEN_TICKS !== 0) return 0;
+  /**
+   * 전투 경과 tick(0 제외)이 간격의 배수일 때 +1. 실제로 늘어난 양(0 또는 1) 반환.
+   * boosted면 자연 증가 속도가 2배라 간격의 절반마다 +1 (궁극기 대가 지불).
+   */
+  regen(tick: number, boosted = false): number {
+    if (tick <= 0) return 0;
+    const interval = boosted ? CP_REGEN_TICKS / 2 : CP_REGEN_TICKS;
+    if (tick % interval !== 0) return 0;
     return this.gain(1);
   }
 
