@@ -29,8 +29,12 @@ export class LiveBattle {
   private scanned = 0;
   private readonly uses = new Map<string, number>();
 
-  constructor(setup: CombatSetup, units: UnitCatalog, traits: TraitCatalog, cards?: CardCatalog) {
-    this.sim = new CombatSimulator(setup, units, traits, cards);
+  /** 편성·시드로 새 시뮬을 만들어 재생한다 */
+  constructor(setup: CombatSetup, units: UnitCatalog, traits: TraitCatalog, cards?: CardCatalog);
+  /** 이미 만들어진 시뮬(런 코어가 발급한 전투)을 그대로 재생한다 */
+  constructor(sim: CombatSimulator);
+  constructor(source: CombatSetup | CombatSimulator, units?: UnitCatalog, traits?: TraitCatalog, cards?: CardCatalog) {
+    this.sim = source instanceof CombatSimulator ? source : new CombatSimulator(source, units as UnitCatalog, traits as TraitCatalog, cards);
     this.replay = new ReplayState(this.sim.events);
     this.sync();
   }

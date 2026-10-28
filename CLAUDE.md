@@ -47,8 +47,9 @@
   economy/         ManagementPanel: 상점·레벨·벤치·판매 UI와 캔버스↔벤치 유닛 드래그
   cards/           CardInteraction(카드 선택→대상 지정 상태 머신), playbackScale(배속×슬로모션/정지), cardAvailability(사용 불가 사유), cardPanelView(손패 패널 표시 정보 빌더), dealDeck, stagePoint(화면→게임 좌표) — 순수 TS, HandPanel(DOM)+handPanel.css
   battle/          BattleScene(씬), BoardLayout(칸<->좌표), BoardPicker(좌표→칸/유닛, 보간 위치 기준), BoardRenderer, UnitSprite, EffectsLayer, TargetingOverlay(대상 강조)
-  debug/           BattleSession(편성·지휘관·덱·전투·연전을 묶는 파사드, Phaser·DOM 비의존), contracts.ts(씬용 BattleViewSource / 패널용 DebugController / 손패용 CardController 인터페이스), DebugPanel(DOM) + debugPanel.css
-/src/main.ts     진입점: 데이터 검증 -> BattleSession -> DebugPanel(#panel) + HandPanel(#hand) + Phaser(#game, Scale.FIT)
+  debug/           BattleSession(편성·지휘관·덱·전투·연전·런 전투 연결을 묶는 파사드, Phaser·DOM 비의존), contracts.ts(씬용 BattleViewSource / 패널용 DebugController / 손패용 CardController 인터페이스), runLink.ts(런 전투 연결 RunBattleLink·RunBattleHost, 로스터 명령 RosterCommands), DebugPanel(DOM) + debugPanel.css
+  run/             런 1액트 UI (M4-B). RunSession(파사드: RunController + BattleSession 연결 + 자동 저장, Phaser·DOM 비의존), contracts.ts(RunViewSource/RunCommands/RunSnapshot), runViews.ts(맵·미리보기·카드·보상·상점·이벤트·야영지·결과·종료 표시 정보 순수 빌더), RunSaveStore(저장 직렬화·복원 검증·같은 내용 재저장 생략) + RunStorage(주입 가능한 저장소: BrowserRunStorage=localStorage try/catch, MemoryRunStorage), RunBattleAdapter(RunController → RunBattleLink). 화면(DOM, runScreens.css): RunShell(화면 전환·알림), StartScreen, MapScreen, NodeScreens(보상·상점·이벤트·야영지), EndScreen, RunBattlePanel(전투 오른쪽 패널), cardElements(카드·덱 카드 고르기 공통), encounterPreview, hudElement. testSupport.ts는 테스트 전용
+/src/main.ts     진입점: 데이터 검증 -> BattleSession -> DebugPanel + RunBattlePanel(#panel 안의 두 자리) + HandPanel(#hand) + Phaser(#game, Scale.FIT) -> RunSession + RunShell(시작 화면에서 시작)
 /tools           헤드리스 밸런스 시뮬레이터 (sim.ts, formations/*.json, plans/*.json 카드 사용 계획). tsconfig include에 포함되어 typecheck 대상
 ```
 테스트는 소스 옆 `*.test.ts`에 둔다.
@@ -65,9 +66,13 @@
 - 글자 많은 UI는 HTML/CSS 레이어, 보드·유닛은 Phaser. Phaser 텍스트는 `createText`(hidpi.ts)로 만들어 해상도를 맞춘다.
 - 카드 입력: 손패 카드를 **클릭하면 선택**(이후 보드에서 대상 클릭), **눌러서 8px 이상 움직이면 드래그**(캔버스에 놓으면 사용). 취소는 우클릭/ESC. 둘 다 `CardInteraction` 상태 머신을 거치며, 포인터는 게임 좌표(1280x720)로 환산해 세션에 전달한다(씬은 `camera.getWorldPoint`, 손패는 캔버스 사각형 비율 `clientToStage`). 칸/유닛 판정은 `BoardPicker`가 보간 위치 기준으로 한다. 유효 대상 강조는 `TargetingView`로 씬에 전달(`TargetingOverlay`).
 - 카드를 집은 동안 시간 배율 = 배속 × `CARD_UI.SLOWMO_FACTOR`(0.25), 옵션 "카드 선택 중 일시정지"면 0 (`playbackScale`).
-- 지휘관이 있으면 편성 단계가 곧 준비 단계: 손패 5장이 뽑혀 있고 작전 카드를 준비 CP로 쓴다(준비 단계 sim이 살아 있음). 편성·시드·지휘관을 바꾸면 준비 단계를 다시 만든다(쓴 작전 카드는 되돌려짐). 지휘관 없음이면 카드 UI는 숨겨지고 M1 동작. 처음 열면 기본 지휘관 하르텐(`gameData.ts`의 `DEFAULT_COMMANDER_ID`, 데이터에 없으면 없음)이 선택되어 있고 시작 편성은 자동 배치하지 않는다. `BattleSession`은 `extras.defaultCommanderId`를 줘야 기본 선택이 켜진다(없으면 지휘관 없음).
+- 지휘관이 있으면 편성 단계가 곧 준비 단계: 손패 5장이 뽑혀 있고 작전 카드를 준비 CP로 쓴다(준비 단계 sim이 살아 있음). 편성·시드·지휘관을 바꾸면 준비 단계를 다시 만든다(쓴 작전 카드는 되돌려짐). 지휘관 없음이면 카드 UI는 숨겨지고 M1 동작. 디버그 화면은 기본 지휘관 하르텐(`gameData.ts`의 `DEFAULT_COMMANDER_ID`, 데이터에 없으면 없음)이 선택되어 있고 시작 편성은 자동 배치하지 않는다. `BattleSession`은 `extras.defaultCommanderId`를 줘야 기본 선택이 켜진다(없으면 지휘관 없음).
 - 5연전(`Gauntlet`): 아군 편성 고정, 적은 `tools/formations/series-1~5.json`, 판별 시드 파생, 덱은 판 사이에 이어짐, "카드 사용 금지" 옵션으로 같은 시드·편성 비교.
 - 카드 풀은 17종(M4-A에서 심연의 계약 추가; 희귀도는 시작 카드 `starter`, 보상 풀 `common`/`rare`). 패널의 덱 선택에서 지휘관 기본 덱/확장 카드 테스트 덱(각 10장)을 선택한다. 테스트 덱에는 제련된 칼날·예비대 호출이 포함된다. `DeckPreset`은 단일 전투·5연전·경제 플레이·헤드리스에 공통 적용된다. `manaFill`은 공통 효과, `drawCards`·`cpGain`은 카드 전용 효과다. `chain.cost`는 연쇄 활성 시 CP 검사 전 실제 비용에 반영하고 UI도 같은 `effectiveCard`를 사용한다.
+- **런 UI (M4-B)**: 앱은 시작 화면에서 열린다 — "새 런"(시드 자동 제안·입력 가능, 6자리), "이어하기"(localStorage 저장이 온전할 때만 활성, 손상·버전 불일치면 한국어 오류 + "저장 삭제"), 테스트 모드 "경제 플레이"/"편성 디버그"(기존 화면, 왼쪽 위 "시작 화면" 버튼으로 복귀). `RunSession`이 `RunController`와 `BattleSession`을 묶고 화면(`RunShell`)은 `RunViewSource`/`RunCommands`로만 본다. 화면: 시작·맵(SVG 간선 + 노드 버튼, 호버/클릭으로 `previewNode` 미리보기, 더블클릭·"이 노드로 이동")·보상·상점(카드 구매/제거)·이벤트·야영지·종료는 전체 화면 HTML 오버레이, 전투(battlePrep/battle/결과)는 캔버스 + 손패 + 오른쪽 `RunBattlePanel`.
+- **런 전투 연결**: 전투 준비에 들어가면 `RunSession`이 `BattleSession.attachRun(RunBattleAdapter)`를 건다. 세션은 `RunBattleLink`(로스터 `RunRoster`·`createSimulator`·`beginBattle`·`abandonBattle`·`completeBattle`)만 알고 기존 `ManagementPanel`·`HandPanel`·`BattleScene`을 그대로 쓴다. 로스터·편성이 바뀌면 `createSimulator`를 다시 불러 준비 시뮬을 갱신(정산은 마지막 발급분만). 전투가 끝나면 세션이 `completeBattle`로 정산하고 결과를 보여주며(`resultPending`), "계속"을 눌러야 보상·맵·보스 재도전 준비(연결 다시 걸기)·종료 화면으로 넘어간다. "준비로 돌아가기"는 `abandonBattle`(정산 없음).
+- **자동 저장**: 노드 입장·보상·상점/이벤트/야영지 처리·전투 준비 중 로스터 변경·전투 정산 직후마다 `controller.serialize()`를 저장한다(전투 중이면 battlePrep으로). 런이 끝나면 저장을 지운다(종료 화면만 보여주고 이어하기 대상에서 제외). 저장 실패는 알림만 띄우고 게임은 계속된다. 새 런 시드는 core가 32비트 정수(`seed | 0`)로 다루므로 범위를 `-2^31~2^31-1`로 제한한다.
+- **보스 연출**: `ReplayState`가 `telegraph`/`strike`를 재생 시각 기준으로 다룬다(`telegraphs()` = 예고~발동 전, `strike`는 `recentEffects`). `EffectsLayer`가 예고 열을 붉게 칠하고 남은 시간을 표시, 발동 순간 번쩍인다. `BattleViewSource.telegraphs()`로 씬에 전달.
 - 레이아웃: 왼쪽 열 `#stage`(`#game` 캔버스 + 아래 `#hand` 손패 바, 지휘관이 없으면 숨김) + `#panel`(340px 사이드). 폭 800px 이하면 위아래로 쌓는다.
 
 ## 골드 경제 (M3-1)
@@ -78,14 +83,14 @@
 - 디버그 패널에 골드·다음 이자·최근 지급 내역과 전투 종류 선택을 표시한다. 상점 구매는 경제 플레이에서 제공하며 카드 획득 보상은 M4 범위다.
 
 ## 경제 플레이 (M3)
-- `main.ts`가 `startManagementRun()`을 호출해 지휘관의 실제 시작2기·10G·레벨3으로 연다. 경제 플레이 종료 시 기존 편성 디버그로 복귀한다. 테스트 시작 버튼은 장비·징집을 포함한 10장 덱을 사용한다.
+- 시작 화면의 "경제 플레이(5연전)"가 `startManagementRun()`을 호출해 지휘관의 실제 시작2기·10G·레벨3으로 연다. 경제 플레이 종료 시 기존 편성 디버그로 복귀한다. 테스트 시작 버튼은 장비·징집을 포함한 10장 덱을 사용한다.
 - `ManagementRun`은 `Management`와 `Economy`를 소유하며 5연전 사이에 소유 로스터·덱·장비·골드를 유지한다. 다음 전투 때 무료 상점 갱신(잠금이면 1회 유지 후 해제), 마지막 두 판은 정예/보스 보상 등급이다. 전투 진행 중 관리 명령은 거부한다.
 - 제공 카드는 `syncGrantedCards`에 보드 소유 유닛 ID를 공급한다. 기본 덱의 동명 카드와 구분해 벤치·판매·3성 합성을 동기화한다. 영구 장비는 아군 원본 formation 인덱스(시뮬 UID)와 소유 ID를 대응해 `setEquipment`로 저장하며 징집 UID는 읽지 않는다.
 - 장비 준비 카드 사용 시 원본 준비 덱에서도 해당 인스턴스만 소모 처리해 재배치/리셋으로 복제되지 않게 한다. 상점 리롤·잠금·XP처럼 편성이 바뀌지 않는 관리 동작은 준비 단계 작전 효과를 되돌리지 않는다.
 - 유닛14종(+보스 전용 성문 파괴자), 특성 효과6종(강철군단·잿불·심연·수호자·검투사·사수). 숲·주술사·암살자 정의는 유지하며 고유 특성 효과는 후속 범위다. 맵·지휘관 HP·카드 보상·런 저장의 core는 M4-A(아래 "런 코어"), 화면은 M4-B다.
 
 ## 런 코어 (M4-A, UI는 M4-B)
-`src/core/run`의 `RunController`가 1액트(13층) 한 판을 진행한다. Phaser·DOM 비의존이며 맵·노드·종료 화면 UI와 저장 버튼은 M4-B에서 이 API만 보고 만든다. 전체 규칙·수치는 [data/README.md](data/README.md)의 "런 코어" 절.
+`src/core/run`의 `RunController`가 1액트(13층) 한 판을 진행한다. Phaser·DOM 비의존이며 맵·노드·종료 화면 UI와 저장/이어하기(M4-B, `src/ui/run`)는 이 API만 보고 만들었다. UI용 읽기 전용 접근자 `RunRoster.formation()`만 core에 추가했다. 전체 규칙·수치는 [data/README.md](data/README.md)의 "런 코어" 절.
 - **상태 머신**: `map`(노드 선택) → `battlePrep`(전투 준비: 유닛 상점·배치·준비 카드) → `battle`(전투 중, 로스터 명령 거부) → `reward`(카드 3장 중 1장/건너뛰기) | `map` | `battlePrep`(보스 재도전) | `ended`(승리/사망). 상점·이벤트·야영지 노드는 `shop`/`event`/`camp` 단계. `chooseNode` → 노드 처리 → `toMap` 반복.
 - **맵**: `MapGenerator.generate(seed)` → `RunMap` (13층, 층당 2~4노드, 보스 1, 1층 전투·12층 야영지 고정, 정예 4층+, 상점/야영지 연속 금지, 교차 없는 간선, 목표 비율 개수 할당). 맵·적 편성·보상·상점 진열·이벤트는 `deriveSeed(런 시드, 용도, 노드)`로 파생한 무상태 Rng, 상점 유닛 Rng와 덱 섞기 Rng만 저장한다.
 - **전투 입력**: `controller.createSimulator()`가 편성·준비 손패·지휘관 HP·적 보정(`CombatSetup.enemy`)을 넣은 `CombatSimulator`를 만들고, 끝난 시뮬을 `completeBattle(sim)`에 넘기면 골드(일반/정예/보스) → 카드로 잃은 HP(`commanderHp` 이벤트) → 패배 피해 → 덱·장비 이어받기 → 다음 단계 순으로 정산한다 (한 번만). 전투 자체는 런 상태를 바꾸지 않아 결정론이 유지된다.

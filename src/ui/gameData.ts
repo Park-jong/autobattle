@@ -1,19 +1,12 @@
 import cardsJson from '../../data/cards.json';
 import commandersJson from '../../data/commanders.json';
+import encountersJson from '../../data/encounters.json';
+import eventsJson from '../../data/events.json';
 import traitsJson from '../../data/traits.json';
 import unitsJson from '../../data/units.json';
 import { parseFormation, type FormationEntry } from '../core/combat';
-import { assertUnitCardReferences } from '../core/cards';
-import {
-  loadCards,
-  loadCommanders,
-  loadTraits,
-  loadUnits,
-  type CardCatalog,
-  type CommanderCatalog,
-  type TraitCatalog,
-  type UnitCatalog,
-} from '../core/data';
+import { loadRunDeps, type RunDeps } from '../core/run';
+import type { CardCatalog, CommanderCatalog, TraitCatalog, UnitCatalog } from '../core/data';
 import formationA from '../../tools/formations/a.json';
 import formationB from '../../tools/formations/b.json';
 import hartenStart from '../../tools/formations/harten-start.json';
@@ -38,6 +31,8 @@ export interface GameData {
   startFormations: ReadonlyMap<string, readonly FormationEntry[]>;
   /** 5연전의 고정 적 편성 (점점 강해지는 순서) */
   seriesStages: readonly GauntletStage[];
+  /** 런 코어가 쓰는 검증된 데이터 (적 편성·이벤트 포함). 위 카탈로그와 같은 인스턴스를 공유한다 */
+  run: RunDeps;
 }
 
 /** 디버그 화면을 처음 열 때 선택되어 있는 지휘관 (데이터에 없으면 지휘관 없음으로 떨어진다) */
@@ -47,11 +42,11 @@ const SERIES_FILES: readonly unknown[] = [series1, series2, series3, series4, se
 
 /** data/*.json을 검증해 읽는다. 검증 실패 시 DataValidationError 등 한국어 메시지 Error를 던진다. */
 export function loadGameData(): GameData {
-  const traits = loadTraits(traitsJson);
-  const units = loadUnits(unitsJson, traits);
-  const cards = loadCards(cardsJson, traits);
-  assertUnitCardReferences(units, cards);
-  const commanders = loadCommanders(commandersJson, cards, units);
+  // 런 코어와 같은 검증을 한 번만 거쳐 카탈로그를 공유한다 (유닛·카드 참조, 적 편성 층 커버리지 포함)
+  const run = loadRunDeps({
+    traits: traitsJson, units: unitsJson, cards: cardsJson, commanders: commandersJson, encounters: encountersJson, events: eventsJson,
+  });
+  const { traits, units, cards, commanders } = run;
   const seriesStages = SERIES_FILES.map((raw, i) => {
     const label = `5연전 ${i + 1}전 편성`;
     const enemy = parseFormation(raw, label);
@@ -66,5 +61,6 @@ export function loadGameData(): GameData {
     defaultCommanderId: commanders.get(DEFAULT_COMMANDER_ID) ? DEFAULT_COMMANDER_ID : null,
     startFormations: new Map([['cmd_harten', parseFormation(hartenStart, '하르텐 시작 편성')]]),
     seriesStages,
+    run,
   };
 }

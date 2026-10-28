@@ -19,6 +19,13 @@ function button(text: string, action: () => void): HTMLButtonElement {
   return node;
 }
 
+/** 패널 표시 옵션: 런 전투 준비에서는 경제 플레이 시작/종료 버튼을 숨기고 제목을 바꾼다 */
+export interface ManagementPanelOptions {
+  title?: string;
+  /** 경제 플레이 시작·종료·새로 시작 버튼 표시 (기본 true) */
+  modeControls?: boolean;
+}
+
 interface UnitPress { id: number; x: number; y: number; origin: 'board' | 'bench' | 'canvas'; dragging: boolean; }
 
 /** 상점·레벨·벤치 UI. 보드와 벤치 사이의 드래그도 DOM 좌표를 게임 좌표로 바꿔 명령만 전달한다. */
@@ -32,6 +39,7 @@ export class ManagementPanel {
     private readonly units: UnitCatalog,
     private readonly cards?: CardCatalog,
     private readonly canvasHost?: HTMLElement,
+    private readonly options: ManagementPanelOptions = {},
   ) {
     this.root.className = 'management-panel';
     canvasHost?.addEventListener('pointerdown', this.onCanvasDown, true);
@@ -42,7 +50,7 @@ export class ManagementPanel {
   private render(): void {
     const snapshot = this.controller.snapshot();
     const management = snapshot.management;
-    const title = el('h2', '', management ? '경제 플레이 / 상점' : '경제 플레이');
+    const title = el('h2', '', this.options.title ?? (management ? '경제 플레이 / 상점' : '경제 플레이'));
     if (!management) {
       const start = button('경제 플레이 시작', () => this.controller.startManagementRun());
       const test = button('장비·징집 테스트 시작', () => this.controller.startManagementRun('test'));
@@ -101,12 +109,13 @@ export class ManagementPanel {
     } else {
       selection.append(el('p', 'dbg-hint', '유닛을 선택해 아군 보드의 빈 칸을 누르거나, 보드↔벤치로 드래그하세요.'));
     }
+    const showModes = this.options.modeControls !== false;
     const exit = button('경제 플레이 종료', () => this.controller.endManagementRun());
     const restart = button('새 경제 플레이', () => this.controller.startManagementRun());
     const test = button('새 장비·징집 테스트', () => this.controller.startManagementRun('test'));
     restart.disabled = test.disabled = snapshot.phase !== 'finished';
     const modes = el('div', 'dbg-row');
-    modes.append(exit, restart, test);
+    if (showModes) modes.append(exit, restart, test);
     this.root.replaceChildren(
       title, stats, controls, offers,
       el('p', 'dbg-hint', state.locked ? '다음 전투에서도 진열을 유지한 뒤 잠금이 해제됩니다.' : '다음 전투 준비 때 무료로 새 진열을 받습니다.'),

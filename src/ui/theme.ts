@@ -47,6 +47,9 @@ export const COLORS = {
   AIM_MARK: 0xff4d4d,
   UNDYING: 0xd9a6ff,
   CARD_PULSE: 0xfff2a8,
+  /** 보스 열 강타 예고 / 발동 */
+  TELEGRAPH: 0xff3b30,
+  STRIKE: 0xffe0d0,
   SWAP_TRAIL: 0x9be29b,
   BOARD_BORDER: 0x3a4152,
   HOVER_OK: 0x9be29b,
@@ -94,6 +97,8 @@ export const TIMING = {
   CARD_BANNER: 1.6,
   CARD_PULSE: 0.7,
   SWAP_TRAIL: 0.5,
+  /** 보스 열 강타가 발동하는 순간 번쩍이는 시간 */
+  STRIKE_FLASH: 0.45,
   CP_TEXT: 1.2,
   /** 진형 교대 등 순간이동을 미끄러지듯 보여주는 시간 */
   SLIDE: 0.25,

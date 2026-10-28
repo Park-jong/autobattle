@@ -1,0 +1,175 @@
+/* 런 화면 (전체 화면 오버레이) */
+.run-overlay {
+  position: fixed; inset: 0; z-index: 50; overflow: auto;
+  background: radial-gradient(ellipse at top, #1f2638 0%, #11141c 70%);
+  color: #e6e9f0;
+  font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+  font-size: 14px; line-height: 1.45;
+}
+.run-overlay[hidden], .run-toast[hidden], .run-back-button[hidden] { display: none; }
+.run-overlay h1, .run-overlay h2, .run-overlay h3, .run-overlay h4 { margin: 0; }
+.run-overlay .dbg-btn { padding: 6px 12px; background: #262b3a; color: inherit; border: 1px solid #3a4152; border-radius: 4px; font: inherit; cursor: pointer; }
+.run-overlay .dbg-btn:hover:not(:disabled) { background: #313850; }
+.run-overlay .dbg-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.run-overlay .dbg-btn.selected { border-color: #ffd54a; background: #3a3720; }
+.run-overlay .dbg-primary { background: #1f5f3a; border-color: #2f8f58; }
+.run-overlay .dbg-primary:hover:not(:disabled) { background: #28784a; }
+.run-overlay .dbg-hint { margin: 6px 0 0; color: #8a93a8; font-size: 12px; }
+.run-overlay .dbg-error { margin: 8px 0; padding: 8px 10px; background: #4a1d1d; border: 1px solid #ff7b7b; color: #ffd0d0; border-radius: 4px; }
+.run-overlay .dbg-input { padding: 6px 8px; background: #0f1118; color: inherit; border: 1px solid #3a4152; border-radius: 4px; font: inherit; }
+
+.run-big-button { padding: 10px 18px !important; font-size: 16px !important; }
+.run-title { font-size: 34px; letter-spacing: 2px; text-align: center; }
+.run-subtitle { margin: 6px 0 0; text-align: center; color: #9aa3b5; }
+
+.run-toast {
+  position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 200; max-width: min(90vw, 640px);
+  padding: 10px 16px; border-radius: 6px; background: #262b3a; border: 1px solid #5b6480; color: #fff;
+  font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; font-size: 14px; box-shadow: 0 4px 16px #0008;
+}
+.run-toast.error { background: #4a1d1d; border-color: #ff7b7b; color: #ffd0d0; }
+.run-back-button { position: fixed; right: 350px; top: 6px; z-index: 60; }
+
+/* 시작 화면 / 종료 화면 */
+.run-start, .run-end { min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box; }
+.run-start-card, .run-end-card { width: min(480px, 100%); padding: 28px; background: #151821; border: 1px solid #2f3647; border-radius: 10px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 10px 40px #0009; }
+.run-end-card { width: min(560px, 100%); }
+.run-end-card.victory .run-title { color: #ffd54a; }
+.run-end-card.dead .run-title { color: #ff7b7b; }
+.run-seed-row { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+.run-seed-row > span { color: #9aa3b5; }
+.run-seed-input { flex: 1; font-size: 16px; }
+.run-start-legacy { margin-top: 12px; padding-top: 12px; border-top: 1px solid #2a2f3d; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.run-start-legacy h2 { flex-basis: 100%; font-size: 13px; color: #8a93a8; font-weight: 600; }
+.run-save-error p { margin: 0 0 8px; white-space: pre-wrap; word-break: break-word; }
+.run-end-stats { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; margin: 14px 0 6px; }
+.run-end-stats dt { color: #9aa3b5; }
+.run-end-stats dd { margin: 0; font-weight: 600; }
+.run-end-section h3 { font-size: 13px; color: #9aa3b5; margin-top: 8px; }
+.run-end-list { margin: 4px 0 0; }
+.run-end-actions { display: flex; gap: 10px; margin-top: 16px; justify-content: center; }
+
+/* 상단 상태 줄 */
+.run-screen-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 14px; background: #151821; border-bottom: 1px solid #2a2f3d; position: sticky; top: 0; z-index: 5; }
+.run-hud { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: center; }
+.run-hud-item { display: flex; flex-direction: column; min-width: 0; }
+.run-hud-label { font-size: 11px; color: #8a93a8; }
+.run-hud-value { font-size: 15px; }
+.run-hud-gold .run-hud-value { color: #ffd54a; }
+.run-hud-hp { min-width: 110px; }
+.run-hud-hp.low .run-hud-value { color: #ff7b7b; }
+.run-hp-bar { height: 6px; margin-top: 2px; background: #0f1118; border-radius: 3px; overflow: hidden; }
+.run-hp-fill { height: 100%; background: #5fd068; }
+.run-hud-hp.low .run-hp-fill { background: #e0554a; }
+
+/* 맵 */
+.run-map-screen { height: 100%; display: flex; flex-direction: column; }
+.run-map-layout { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 340px; }
+.run-map-scroll { overflow-y: auto; padding: 8px 16px; min-height: 0; }
+.run-map { position: relative; width: min(720px, 100%); margin: 0 auto; }
+.run-map-edges { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.run-map-edges .edge { stroke: #3a4152; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.run-map-edges .edge-walked { stroke: #ffd54a; stroke-width: 4; }
+.run-map-edges .edge-available { stroke: #7dffb0; stroke-width: 3; stroke-dasharray: 5 4; }
+.run-floor-label { position: absolute; left: 0; transform: translateY(-50%); font-size: 11px; color: #6b748a; }
+.run-node {
+  position: absolute; transform: translate(-50%, -50%); width: 52px; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+}
+.run-node-icon { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; font-weight: 700; font-size: 15px; color: #fff; border: 3px solid #0b0d12; background: #555; box-sizing: border-box; }
+.run-node-label { font-size: 10px; color: #aeb6c8; white-space: nowrap; }
+.type-combat .run-node-icon, .run-node-icon.type-combat { background: #a8453a; }
+.type-elite .run-node-icon, .run-node-icon.type-elite { background: #8a3fb5; }
+.type-shop .run-node-icon, .run-node-icon.type-shop { background: #b88a1f; }
+.type-event .run-node-icon, .run-node-icon.type-event { background: #2f7fb5; }
+.type-camp .run-node-icon, .run-node-icon.type-camp { background: #3d9a5a; }
+.type-boss .run-node-icon, .run-node-icon.type-boss { background: #c01f3a; width: 42px; height: 42px; font-size: 18px; }
+.state-locked { opacity: 0.45; }
+.state-visited .run-node-icon { filter: saturate(0.5); box-shadow: 0 0 0 2px #ffd54a99; }
+.state-current .run-node-icon { box-shadow: 0 0 0 3px #ffd54a, 0 0 12px #ffd54a; }
+.state-available .run-node-icon { box-shadow: 0 0 0 3px #7dffb0, 0 0 10px #7dffb0aa; }
+.state-available { animation: run-pulse 1.6s ease-in-out infinite; }
+.run-node.selected .run-node-label { color: #fff; font-weight: 700; }
+.run-node.selected .run-node-icon { outline: 2px solid #fff; outline-offset: 2px; }
+@keyframes run-pulse { 50% { filter: brightness(1.25); } }
+.run-map-side { padding: 12px 14px; background: #151821; border-left: 1px solid #2a2f3d; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+.run-legend { margin-top: auto; padding-top: 10px; border-top: 1px solid #2a2f3d; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; }
+.run-legend h4 { grid-column: 1 / -1; font-size: 12px; color: #8a93a8; }
+.run-legend-row { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+.run-legend-row .run-node-icon { width: 22px; height: 22px; font-size: 11px; border-width: 2px; }
+
+/* 적 편성 미리보기 */
+.run-preview { padding: 10px; background: #1a1e2b; border: 1px solid #2f3647; border-radius: 6px; }
+.run-preview.kind-elite { border-color: #8a3fb5; }
+.run-preview.kind-boss { border-color: #c01f3a; }
+.run-preview-head { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.run-preview-name { color: #ffd54a; }
+.run-preview-scale { margin: 4px 0 0; font-size: 12px; color: #9be29b; }
+.run-mutation { display: flex; flex-direction: column; margin-top: 6px; padding: 4px 6px; background: #2a1d33; border-radius: 4px; font-size: 12px; }
+.run-preview-units { margin-top: 8px; display: flex; flex-direction: column; gap: 3px; }
+.run-preview-unit { display: grid; grid-template-columns: 1.4fr auto auto auto; gap: 2px 8px; font-size: 12px; padding: 3px 0; border-bottom: 1px solid #262b3a; }
+.run-preview-unit.boss strong { color: #ff7b7b; }
+.run-preview-tier { color: #ffd54a; }
+.run-preview-skill { grid-column: 1 / -1; color: #8a93a8; }
+
+/* 노드 화면 공통 */
+.run-node-main { max-width: 1040px; margin: 0 auto; padding: 20px 20px 48px; display: flex; flex-direction: column; gap: 14px; }
+.run-screen-title { font-size: 26px; }
+.run-screen-subtitle { margin: 0; color: #9aa3b5; }
+.run-node-main > .dbg-btn { align-self: flex-start; }
+
+/* 카드 */
+.run-card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 14px; }
+.run-choice { display: flex; flex-direction: column; gap: 6px; position: relative; }
+.run-choice-badge { position: absolute; top: -8px; right: -4px; z-index: 1; padding: 2px 8px; background: #b88a1f; color: #fff; border-radius: 10px; font-size: 12px; font-weight: 700; }
+.run-choice-button { width: 100%; }
+.run-choice-reason { margin: 0; font-size: 12px; color: #ff9a8a; }
+.run-card { padding: 10px 12px; background: #1c2030; border: 2px solid #3a4152; border-radius: 8px; min-height: 120px; display: flex; flex-direction: column; gap: 4px; }
+.run-card.rarity-common { border-color: #7d869a; }
+.run-card.rarity-rare { border-color: #4f8dff; }
+.run-card.rarity-epic { border-color: #c58bff; }
+.run-card.rarity-starter { border-color: #4f5b73; }
+.run-card.upgraded { box-shadow: inset 0 0 0 1px #ffd54a88; }
+.run-card-head { display: flex; align-items: center; gap: 8px; }
+.run-card-cost { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; border-radius: 50%; background: #2f6fb0; font-weight: 700; }
+.run-card-name { font-size: 15px; }
+.run-card-meta { font-size: 11px; color: #8a93a8; }
+.run-card-text { margin: 0; white-space: pre-line; font-size: 13px; }
+.run-card-tags { font-size: 11px; color: #ffd54a; }
+.run-card-upgrade { margin: 0; font-size: 12px; color: #9be29b; }
+.run-picker { padding: 12px; background: #151821; border: 1px solid #3a4152; border-radius: 8px; }
+.run-picker-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.run-shop-removal { padding: 12px; background: #151821; border: 1px solid #2a2f3d; border-radius: 8px; }
+.run-shop-removal h3 { margin-bottom: 4px; }
+
+/* 이벤트 / 야영지 */
+.run-event-text { margin: 0; padding: 12px 14px; background: #151821; border-left: 3px solid #2f7fb5; white-space: pre-line; }
+.run-event-choices, .run-camp-actions { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+.run-event-button, .run-camp-button { text-align: left; min-width: 260px; }
+.run-event-result { padding: 10px 12px; background: #1a2a1f; border-left: 3px solid #5fd068; }
+.run-event-result p { margin: 2px 0; }
+.run-promotions { display: flex; flex-direction: column; gap: 6px; }
+.run-promotion { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; padding: 8px 10px; background: #151821; border: 1px solid #2f3647; border-radius: 6px; }
+
+/* 전투 패널 (오른쪽) */
+.run-battle-panel { box-sizing: border-box; padding: 12px 14px 24px; background: #151821; color: #e6e9f0; font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; font-size: 14px; line-height: 1.4; }
+.run-battle-panel[hidden], #debug-host[hidden] { display: none; }
+.run-battle-panel .run-hud { margin-top: 6px; gap: 6px 12px; }
+.run-battle-panel .run-hud-value { font-size: 13px; }
+.run-battle-panel .run-preview { margin-top: 10px; }
+.run-battle-controls { margin-top: 10px; }
+.run-battle-result { margin-top: 10px; }
+.run-settlement { padding: 12px; border-radius: 6px; background: #1c2030; border: 1px solid #3a4152; }
+.run-settlement.win { border-color: #5fd068; }
+.run-settlement.loss, .run-settlement.draw { border-color: #e0554a; }
+.run-settlement h2 { margin: 0 0 6px; font-size: 18px; }
+.run-settlement p { margin: 3px 0; }
+.run-settlement-hp { color: #ff9a8a; }
+.run-settlement-win { color: #ffd54a; }
+.run-settlement .run-big-button { margin-top: 10px; width: 100%; padding: 10px; font-size: 15px; }
+
+@media (max-width: 800px) {
+  /* 미리보기 유무로 맵 영역 크기가 흔들리지 않게 아래 패널 높이를 고정한다 */
+  .run-map-layout { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) 38vh; }
+  .run-map-side { border-left: 0; border-top: 1px solid #2a2f3d; }
+}

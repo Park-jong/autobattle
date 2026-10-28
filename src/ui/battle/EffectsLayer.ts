@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { createText, type HiDpiMetrics } from '../hidpi';
-import type { ReplayEffect, UnitView } from '../replay/ReplayState';
+import type { ReplayEffect, TelegraphView, UnitView } from '../replay/ReplayState';
 import { COLORS, LAYOUT, MOTION, STAGE, TEXT_COLORS, TIMING } from '../theme';
 import type { BoardLayout } from './BoardLayout';
 
@@ -24,6 +24,7 @@ export class EffectsLayer {
   private readonly texts = new Map<number, PooledText>();
   private readonly banner: Phaser.GameObjects.Text;
   private readonly cardBanner: Phaser.GameObjects.Text;
+  private readonly telegraphLabel: Phaser.GameObjects.Text;
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -52,9 +53,19 @@ export class EffectsLayer {
       .setOrigin(0.5)
       .setDepth(41)
       .setVisible(false);
+    this.telegraphLabel = createText(scene, metrics, 0, 0, '', {
+      fontSize: '18px',
+      fontStyle: 'bold',
+      color: TEXT_COLORS.OVERHEAT,
+      stroke: '#000000',
+      strokeThickness: 4,
+    })
+      .setOrigin(0.5)
+      .setDepth(25)
+      .setVisible(false);
   }
 
-  update(time: number, effects: readonly ReplayEffect[], views: ReadonlyMap<number, UnitView>): void {
+  update(time: number, effects: readonly ReplayEffect[], views: ReadonlyMap<number, UnitView>, telegraphs: readonly TelegraphView[] = []): void {
     this.lines.clear();
     const live = new Set<number>();
     let bannerAlpha = 0;
@@ -111,10 +122,15 @@ export class EffectsLayer {
         case 'cp':
           if (age <= TIMING.CP_TEXT && e.reason !== 'start' && e.delta !== 0) this.showCp(e, live, age / TIMING.CP_TEXT);
           break;
+        case 'strike':
+          if (age <= TIMING.STRIKE_FLASH) this.drawStrike(e.cells, age / TIMING.STRIKE_FLASH);
+          break;
+        case 'telegraph':
         case 'death':
           break;
       }
     }
+    this.drawTelegraphs(time, telegraphs);
 
     this.banner.setVisible(bannerAlpha > 0).setAlpha(bannerAlpha);
     if (cardBannerText) this.cardBanner.setText(cardBannerText.text).setAlpha(cardBannerText.alpha).setVisible(true);
@@ -133,6 +149,42 @@ export class EffectsLayer {
     this.texts.clear();
     this.banner.setVisible(false);
     this.cardBanner.setVisible(false);
+    this.telegraphLabel.setVisible(false);
+  }
+
+  /** 보스 예고: 대상 열을 붉게 칠하고 발동까지 남은 시간을 열 위에 표시한다 (진행할수록 진해진다) */
+  private drawTelegraphs(time: number, telegraphs: readonly TelegraphView[]): void {
+    const first = telegraphs[0];
+    this.telegraphLabel.setVisible(first !== undefined);
+    if (!first) return;
+    const size = this.layout.cellSize;
+    const pulse = 0.5 + 0.5 * Math.sin(time * 10);
+    for (const t of telegraphs) {
+      for (const cell of t.cells) {
+        const p = this.layout.topLeft(cell.col, cell.row);
+        this.lines.fillStyle(COLORS.TELEGRAPH, 0.16 + 0.3 * t.progress + 0.08 * pulse);
+        this.lines.fillRect(p.x + 2, p.y + 2, size - 4, size - 4);
+        this.lines.lineStyle(3, COLORS.TELEGRAPH, 0.6 + 0.4 * pulse);
+        this.lines.strokeRect(p.x + 2, p.y + 2, size - 4, size - 4);
+      }
+    }
+    const top = first.cells[0];
+    if (top) {
+      const p = this.layout.center(top.col, 0);
+      this.telegraphLabel.setPosition(p.x, this.layout.originY - 14).setText(`열 강타 ${Math.max(0, first.fireAt - time).toFixed(1)}초`);
+    }
+  }
+
+  /** 발동 순간의 번쩍임: 열 전체가 밝게 번쩍이며 사라진다 */
+  private drawStrike(cells: readonly { col: number; row: number }[], progress: number): void {
+    const size = this.layout.cellSize;
+    for (const cell of cells) {
+      const p = this.layout.topLeft(cell.col, cell.row);
+      this.lines.fillStyle(COLORS.STRIKE, 0.75 * (1 - progress));
+      this.lines.fillRect(p.x, p.y, size, size);
+      this.lines.lineStyle(5, COLORS.TELEGRAPH, 1 - progress);
+      this.lines.strokeRect(p.x + 2, p.y + 2, size - 4, size - 4);
+    }
   }
 
   private drawAttack(

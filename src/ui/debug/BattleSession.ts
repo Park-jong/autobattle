@@ -23,6 +23,7 @@ import type { UnitCatalog } from '../../core/data/unitLoader';
 import { Rng } from '../../core/rng';
 import { Economy, type BattleKind } from '../../core/economy';
 import type { ManagementResult } from '../../core/management';
+import type { BattleSettlement } from '../../core/run';
 import { BoardLayout } from '../battle/BoardLayout';
 import { BoardPicker, type BoardPick } from '../battle/BoardPicker';
 import { CardInteraction, type CardInputMode, type InteractionOutcome } from '../cards/CardInteraction';
@@ -32,8 +33,9 @@ import { playbackScale } from '../cards/playbackScale';
 import { Gauntlet, type GauntletStage } from '../live/Gauntlet';
 import { LiveBattle } from '../live/LiveBattle';
 import { ManagementRun } from '../live/ManagementRun';
-import { ReplayState, type ReplayEffect, type UnitView } from '../replay/ReplayState';
+import { ReplayState, type ReplayEffect, type TelegraphView, type UnitView } from '../replay/ReplayState';
 import { CARD_UI, LAYOUT } from '../theme';
+import type { RosterCommands, RunBattleHost, RunBattleLink } from './runLink';
 import type {
   BattleViewSource,
   Brush,
@@ -80,7 +82,7 @@ export interface SessionExtras {
  * 지휘관이 있으면 편성 단계가 곧 준비 단계다: 손패가 뽑혀 있고 작전 카드를 준비 CP로 쓸 수 있으며,
  * 이때의 sim은 전투 시작 직전 상태(LiveBattle, startCombat 전)로 살아 있다. 편성·시드·지휘관이 바뀌면 다시 만든다.
  */
-export class BattleSession implements BattleViewSource, DebugController, CardController {
+export class BattleSession implements BattleViewSource, DebugController, CardController, RunBattleHost {
   private formations: [FormationEntry[], FormationEntry[]];
   private brush: Brush;
   private currentPhase: SessionPhase = 'edit';
@@ -94,8 +96,12 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
   private battleKind: BattleKind = 'normal';
   private singleBattleId = 1;
   private managementRun: ManagementRun | null = null;
+  /** 런 코어의 전투를 재생 중이면 그 연결 (경제 플레이와 배타) */
+  private runLink: RunBattleLink | null = null;
+  private runResult: BattleSettlement | null = null;
   private selectedOwnedId: number | null = null;
   private savedManagementFormations: [FormationEntry[], FormationEntry[]] | null = null;
+  private savedCommander: CommanderDef | null = null;
   /** 단일 전투의 준비 덱 (손패가 뽑힌 상태). 연전 중에는 Gauntlet이 덱을 관리한다 */
   private deckSnapshot: DeckSnapshot | null = null;
   private live: LiveBattle | null = null;
@@ -174,6 +180,10 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
     return this.currentPhase === 'edit' || !this.live ? [] : this.live.replay.recentEffects(maxAge);
   }
 
+  telegraphs(): readonly TelegraphView[] {
+    return this.currentPhase === 'edit' || !this.live ? [] : this.live.replay.telegraphs();
+  }
+
   advance(dtSeconds: number): void {
     if (this.currentPhase !== 'playing' || !this.live) return;
     this.live.advance(dtSeconds * this.timeScale);
@@ -181,7 +191,7 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
   }
 
   canPlaceAt(cell: Cell): boolean {
-    if (this.managementRun) return this.canManage() && isInsideBoard(cell) && cell.col < 4;
+    if (this.roster) return this.canManage() && isInsideBoard(cell) && cell.col < 4;
     return this.isEditable() && isInsideBoard(cell);
   }
 
@@ -236,9 +246,9 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
       seed: this.seed,
       commanderId: this.commander?.id ?? null,
       deckPreset: this.deckPreset,
-      battleKind: this.managementRun?.stage?.kind ?? this.gauntlet?.stage?.kind ?? (this.gauntlet || this.managementRun ? 'normal' : this.battleKind),
-      economy: this.managementRun?.economyView ?? this.gauntlet?.economyView ?? this.economy.snapshot(),
-      management: this.managementRun ? { state: this.managementRun.management.snapshot(), selectedUnitId: this.selectedOwnedId, canManage: this.canManage() } : null,
+      battleKind: this.runLink?.kind ?? this.managementRun?.stage?.kind ?? this.gauntlet?.stage?.kind ?? (this.gauntlet || this.managementRun ? 'normal' : this.battleKind),
+      economy: this.runLink?.economyView ?? this.managementRun?.economyView ?? this.gauntlet?.economyView ?? this.economy.snapshot(),
+      management: this.roster ? { state: this.roster.snapshot(), selectedUnitId: this.selectedOwnedId, canManage: this.canManage() } : null,
       timeScale: this.timeScale,
       pauseOnCardHold: this.pauseOnCardHold,
       editable: this.isEditable(),
@@ -253,7 +263,7 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
 
   setSeed(seed: number): void {
     if (!Number.isInteger(seed) || seed === this.seed) return;
-    if (this.currentPhase !== 'edit' || this.gauntlet || this.managementRun) return;
+    if (this.currentPhase !== 'edit' || this.gauntlet || this.managementRun || this.runLink) return;
     this.seed = seed;
     this.redeal();
     this.rebuildPrep();
@@ -266,16 +276,22 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
     if (this.formations[0].length === 0 || this.formations[1].length === 0) {
       return this.fail('양쪽 진영에 유닛을 1기 이상 배치하세요.');
     }
-    if (!this.gauntlet && !this.managementRun && seed !== this.seed) {
+    if (!this.gauntlet && !this.managementRun && !this.runLink && seed !== this.seed) {
       this.seed = seed;
       this.redeal();
       this.rebuildPrep();
+    }
+    const link = this.runLink;
+    if (link) {
+      const begun = link.begin();
+      if (!begun.ok) return this.fail(begun.reason);
     }
     try {
       const live = this.live ?? this.createLive();
       live.startCombat();
       this.live = live;
     } catch (e) {
+      link?.abandon();
       return this.fail(`전투 계산 실패: ${(e as Error).message}`);
     }
     this.interaction.cancel();
@@ -304,13 +320,13 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
 
   /** 편성(준비) 상태로 돌아간다. 편성·시드·손패는 유지, 연전 중에는 같은 판의 준비 단계로 돌아간다 */
   reset(): void {
-    if ((this.gauntlet || this.managementRun) && this.currentPhase === 'finished') return; // 결과가 기록된 판은 "다음 전투"로 넘어간다
+    if ((this.gauntlet || this.managementRun || this.runLink) && this.currentPhase === 'finished') return; // 결과가 기록된 판은 "다음 전투"로 넘어간다
     this.toBattlePrep();
   }
 
   nextBattle(): void {
     if (this.managementRun) return this.nextSeriesBattle();
-    if (this.gauntlet || this.currentPhase !== 'finished') return;
+    if (this.gauntlet || this.runLink || this.currentPhase !== 'finished') return;
     this.singleBattleId += 1;
     this.toBattlePrep();
   }
@@ -330,7 +346,7 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
   }
 
   startManagementRun(preset: DeckPreset = this.deckPreset): void {
-    if (this.gauntlet || (this.currentPhase !== 'edit' && this.currentPhase !== 'finished')) return;
+    if (this.gauntlet || this.runLink || (this.currentPhase !== 'edit' && this.currentPhase !== 'finished')) return;
     const commander = this.commander;
     const cards = this.extras.cards;
     const stages = this.extras.seriesStages;
@@ -358,46 +374,46 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
   }
 
   buyUnit(slot: number): void {
-    this.manage(() => this.managementRun!.management.buy(slot));
+    this.manage((roster) => roster.buy(slot));
   }
 
   rerollShop(): void {
-    this.manage(() => this.managementRun!.management.reroll());
+    this.manage((roster) => roster.reroll());
   }
 
   buyExperience(): void {
-    this.manage(() => this.managementRun!.management.buyXp());
+    this.manage((roster) => roster.buyXp());
   }
 
   toggleShopLock(): void {
-    this.manage(() => this.managementRun!.management.toggleLock());
+    this.manage((roster) => roster.toggleLock());
   }
 
   selectManagedUnit(id: number | null): void {
     if (!this.canManage()) return;
-    const snapshot = this.managementRun!.management.snapshot();
+    const snapshot = this.roster!.snapshot();
     if (id !== null && ![...snapshot.board, ...snapshot.bench].some((unit) => unit?.id === id)) return;
     this.selectedOwnedId = this.selectedOwnedId === id ? null : id;
     this.notify();
   }
 
   moveManagedToBoard(id: number, cell: Cell): void {
-    this.manage(() => this.managementRun!.management.moveToBoard(id, cell));
+    this.manage((roster) => roster.moveToBoard(id, cell));
   }
 
   moveManagedToBench(id: number, index?: number): void {
-    this.manage(() => this.managementRun!.management.moveToBench(id, index));
+    this.manage((roster) => roster.moveToBench(id, index));
   }
 
   sellManagedUnit(id: number): void {
-    this.manage(() => this.managementRun!.management.sell(id));
+    this.manage((roster) => roster.sell(id));
   }
 
   managedUnitAtStage(x: number, y: number): number | null {
     if (!this.canManage() || this.interaction.active) return null;
     const cell = this.picker.pick(x, y, this.views()).cell;
     if (!cell) return null;
-    return this.managementRun!.management.snapshot().board.find((unit) => unit.cell && sameCell(unit.cell, cell))?.id ?? null;
+    return this.roster!.snapshot().board.find((unit) => unit.cell && sameCell(unit.cell, cell))?.id ?? null;
   }
 
   dropManagedToBoard(id: number, x: number, y: number): void {
@@ -407,16 +423,22 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
     this.moveManagedToBoard(id, cell);
   }
 
-  private canManage(): boolean {
-    return this.managementRun !== null && this.currentPhase === 'edit' && !this.managementRun.done;
+  /** 지금 유닛 관리 명령을 받는 쪽: 경제 플레이의 Management 또는 런의 RunRoster */
+  private get roster(): RosterCommands | null {
+    return this.runLink?.roster ?? this.managementRun?.management ?? null;
   }
 
-  private manage(action: () => ManagementResult): void {
-    if (!this.canManage()) return;
+  private canManage(): boolean {
+    return this.roster !== null && this.currentPhase === 'edit' && !(this.managementRun?.done ?? false);
+  }
+
+  private manage(action: (roster: RosterCommands) => ManagementResult): void {
+    const roster = this.roster;
+    if (!roster || !this.canManage()) return;
     const formationBefore = JSON.stringify(this.formations[0]);
-    const result = action();
+    const result = action(roster);
     if (!result.ok) return this.showToast(result.reason);
-    const snapshot = this.managementRun!.management.snapshot();
+    const snapshot = roster.snapshot();
     if (![...snapshot.board, ...snapshot.bench].some((unit) => unit?.id === this.selectedOwnedId)) this.selectedOwnedId = null;
     this.syncManagementFormation();
     if (JSON.stringify(this.formations[0]) !== formationBefore) this.formationChanged();
@@ -424,6 +446,12 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
   }
 
   private syncManagementFormation(): void {
+    const link = this.runLink;
+    if (link) {
+      this.formations[0] = link.allyFormation();
+      this.formations[1] = link.enemyFormation();
+      return;
+    }
     const run = this.managementRun;
     if (!run) return;
     this.formations[0] = run.formation();
@@ -504,7 +532,7 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
   }
 
   startSeries(cardsEnabled: boolean): void {
-    if (this.currentPhase !== 'edit' || this.gauntlet || this.managementRun) return;
+    if (this.currentPhase !== 'edit' || this.gauntlet || this.managementRun || this.runLink) return;
     const stages = this.extras.seriesStages;
     const catalog = this.extras.cards;
     if (!stages || stages.length === 0 || !catalog) return this.fail('연전 편성이 준비되지 않았습니다.');
@@ -632,7 +660,10 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
     const equipment = instance && this.extras.cards?.get(instance.cardId)?.type === 'equipment';
     const result = live.playCard(instanceId, target);
     if (result.ok) {
-      if (equipment && this.managementRun) {
+      if (equipment && this.runLink) {
+        this.runLink.commitPreparedEquipment(live.sim);
+        this.formations[0] = this.runLink.allyFormation();
+      } else if (equipment && this.managementRun) {
         const owned = this.managementRun.management.snapshot().board;
         // 시뮬의 원본 아군 UID만 영구 로스터로 환원한다. 징집 UID는 포함하지 않는다.
         owned.forEach((unit, uid) => {
@@ -664,11 +695,13 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
   // ---- 내부: 흐름 ----
 
   private isEditable(): boolean {
-    return this.currentPhase === 'edit' && this.gauntlet === null && this.managementRun === null;
+    return this.currentPhase === 'edit' && this.gauntlet === null && this.managementRun === null && this.runLink === null;
   }
 
   /** 시작 직전 상태(편성 단계)로 돌아가 준비 화면을 다시 만든다 */
   private toBattlePrep(): void {
+    if (this.runLink && (this.currentPhase === 'playing' || this.currentPhase === 'paused')) this.runLink.abandon();
+    this.runResult = null;
     this.interaction.cancel();
     this.currentPhase = 'edit';
     this.result = null;
@@ -689,7 +722,11 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
     this.result = live.result();
     this.currentPhase = 'finished';
     this.interaction.cancel();
-    if (this.managementRun && live.sim.deck) this.managementRun.complete(this.result, live.cardsPlayed, live.sim.deck.serialize());
+    if (this.runLink) {
+      const settled = this.runLink.complete(live.sim);
+      if (settled.ok) this.runResult = settled.settlement;
+      else this.error = settled.reason;
+    } else if (this.managementRun && live.sim.deck) this.managementRun.complete(this.result, live.cardsPlayed, live.sim.deck.serialize());
     else if (this.gauntlet) this.gauntlet.complete(this.result, live.cardsPlayed, live.sim.deck?.serialize() ?? null);
     else this.economy.settleBattle(`single:${this.singleBattleId}`, this.battleKind, this.result.winner === 0 ? 'win' : this.result.winner === 1 ? 'loss' : 'draw');
     this.notify();
@@ -703,7 +740,7 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
   }
 
   private currentDeckSnapshot(): DeckSnapshot | null {
-    return this.managementRun ? this.managementRun.deckForBattle() : this.gauntlet ? this.gauntlet.deckForBattle() : this.deckSnapshot;
+    return this.runLink ? this.runLink.deck() : this.managementRun ? this.managementRun.deckForBattle() : this.gauntlet ? this.gauntlet.deckForBattle() : this.deckSnapshot;
   }
 
   private effectiveSeed(): number {
@@ -712,6 +749,7 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
 
   /** 지금 편성·덱·시드로 전투(준비 상태)를 만든다. 카드 시스템이 꺼져 있으면 카드 없는 전투 */
   private createLive(): LiveBattle {
+    if (this.runLink) return new LiveBattle(this.runLink.createSimulator());
     const deck = this.currentDeckSnapshot();
     const catalog = this.extras.cards;
     const formations: [FormationEntry[], FormationEntry[]] = [this.formations[0], this.formations[1]];
@@ -808,6 +846,42 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
       this.toast = { id: ++this.toastSeq, message: '편성이 바뀌어 준비 단계에서 쓴 작전 카드가 되돌려졌습니다.' };
     }
     this.notify();
+  }
+
+  // ---- RunBattleHost: 런 코어 전투 연결 ----
+
+  attachRun(link: RunBattleLink): void {
+    if (this.gauntlet) this.endSeries();
+    if (this.managementRun) this.endManagementRun();
+    if (!this.runLink) {
+      this.savedManagementFormations = [[...this.formations[0]], [...this.formations[1]]];
+      this.savedCommander = this.commander;
+    }
+    this.runLink = link;
+    this.commander = link.commander;
+    this.selectedOwnedId = null;
+    this.syncManagementFormation();
+    this.toBattlePrep();
+  }
+
+  detachRun(): void {
+    const link = this.runLink;
+    if (!link) return;
+    if (this.currentPhase === 'playing' || this.currentPhase === 'paused') link.abandon();
+    this.runLink = null;
+    this.runResult = null;
+    this.selectedOwnedId = null;
+    this.commander = this.savedCommander;
+    if (this.savedManagementFormations) this.formations = this.savedManagementFormations;
+    this.savedManagementFormations = null;
+    this.savedCommander = null;
+    this.currentPhase = 'edit';
+    this.redeal();
+    this.toBattlePrep();
+  }
+
+  runSettlement(): BattleSettlement | null {
+    return this.runResult;
   }
 
   private fail(message: string): void {
