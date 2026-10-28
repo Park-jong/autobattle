@@ -35,7 +35,7 @@ const OUTCOME_LABELS = { win: '승리', loss: '패배', draw: '무승부' } as c
 
 /** 단계 이름 (저장본 요약·헤더용) */
 export const PHASE_LABELS: Readonly<Record<RunPhase, string>> = {
-  map: '맵', battlePrep: '전투 준비', battle: '전투', reward: '카드 보상', shop: '상점', event: '이벤트', camp: '야영지', ended: '종료',
+  map: '맵', battlePrep: '전투 준비', battle: '전투', reward: '카드 보상', bossRelic: '보스 유물', actIntro: '액트 소개', shop: '상점', event: '이벤트', camp: '야영지', ended: '종료',
 };
 
 // ---- 유물 ----
@@ -105,7 +105,11 @@ export function buildCommanderChoices(
 export interface RunHud {
   seed: number;
   commanderName: string;
-  /** 도달한 최고 층 (노드 입장 전이면 0) */
+  /** 지금 액트 (1부터) / 전체 액트 수 / 이름 ("액트 N — 이름" 표기에 쓴다) */
+  act: number;
+  actCount: number;
+  actName: string;
+  /** 지금 액트에서 도달한 최고 층 (이 액트에서 노드 입장 전이면 0) */
   floor: number;
   floorCount: number;
   hp: number;
@@ -125,6 +129,9 @@ export function buildHud(run: RunController): RunHud {
   return {
     seed: run.seed,
     commanderName: run.commander.name,
+    act: run.act,
+    actCount: run.totalActs,
+    actName: run.actInfo.name,
     floor: run.floorReached,
     floorCount: RUN.MAP.FLOORS,
     hp: run.hp,
@@ -166,6 +173,12 @@ export interface MapEdgeView {
 }
 
 export interface MapView {
+  /** 지금 액트 번호·전체 액트 수·이름·지역·소개 */
+  act: number;
+  actCount: number;
+  actName: string;
+  region: string;
+  actText: string;
   /** 1층부터 순서대로 */
   floors: MapNodeView[][];
   edges: MapEdgeView[];
@@ -199,7 +212,8 @@ export function buildMapView(run: RunController): MapView {
     }
   }
   // 시작 직전에는 1층 노드 전부가 후보이므로 간선이 없다 (표시할 것 없음)
-  return { floors, edges, currentId, availableIds: [...available] };
+  const info = run.actInfo;
+  return { act: run.act, actCount: run.totalActs, actName: info.name, region: info.region, actText: info.text, floors, edges, currentId, availableIds: [...available] };
 }
 
 // ---- 적 편성 미리보기 ----
@@ -222,8 +236,17 @@ export interface PreviewUnitView {
   boss: boolean;
 }
 
+/** 보스 패턴 설명 (미리보기·액트 소개에 표시) */
+export interface BossPatternView {
+  unitName: string;
+  title: string;
+  lines: string[];
+}
+
 export interface EncounterPreviewView {
   nodeId: string;
+  /** 액트 번호와 액트 안의 층 (1~13) */
+  act: number;
   floor: number;
   kind: BattleKind;
   kindLabel: string;
@@ -233,12 +256,15 @@ export interface EncounterPreviewView {
   scaleLabel: string;
   mutations: MutationView[];
   units: PreviewUnitView[];
+  /** 보스 패턴 설명 (보스 편성만) */
+  bossPatterns: BossPatternView[];
 }
 
 export function buildEncounterPreview(plan: EncounterPlan): EncounterPreviewView {
   const bonus = Math.round((plan.scale - 1) * 100);
   return {
     nodeId: plan.nodeId,
+    act: plan.act,
     floor: plan.floor,
     kind: plan.kind,
     kindLabel: BATTLE_KIND_LABELS[plan.kind],
@@ -249,6 +275,7 @@ export function buildEncounterPreview(plan: EncounterPlan): EncounterPreviewView
     units: plan.units.map((u) => ({
       unitId: u.unitId, name: u.name, tier: u.tier, star: u.star, hp: u.hp, atk: u.atk, skillName: u.skillName, boss: u.boss,
     })),
+    bossPatterns: plan.bossPatterns.map((p) => ({ unitName: p.unitName, title: p.title, lines: [...p.lines] })),
   };
 }
 
@@ -485,6 +512,8 @@ export interface SettlementView {
   hpBefore: number;
   hpAfter: number;
   runEnded: RunOutcome | null;
+  /** 마지막 액트가 아닌 보스를 쓰러뜨렸다면 방금 끝낸 액트 번호 */
+  actCleared: number | null;
   /** 결과 확인 뒤 버튼 문구 */
   continueLabel: string;
 }
@@ -505,7 +534,8 @@ export function buildSettlementView(s: BattleSettlement): SettlementView {
     hpBefore: s.hpBefore,
     hpAfter: s.hpAfter,
     runEnded: s.runEnded,
-    continueLabel: s.runEnded ? '결과 보기' : s.cardOffer ? (s.relicOffer ? '보상 선택 (카드·유물)' : '카드 보상 선택') : retry ? '보스 재도전 준비' : '맵으로',
+    actCleared: s.actCleared,
+    continueLabel: s.runEnded ? '결과 보기' : s.actCleared !== null ? (s.bossRelicOffer ? '보스 유물 선택' : '다음 액트로') : s.cardOffer ? (s.relicOffer ? '보상 선택 (카드·유물)' : '카드 보상 선택') : retry ? '보스 재도전 준비' : '맵으로',
   };
 }
 
@@ -517,8 +547,13 @@ export interface EndScreenView {
   commanderId: string;
   /** 보유 유물 */
   relics: RelicView[];
-  /** 보스 처치 시 받을 수 있었던 보스 유물 후보 (액트 2 연결 전이라 보여 주기만 한다. 사망이면 빈 목록) */
+  /** 마지막 보스 처치 때 받을 수 있었던 보스 유물 후보 (런이 끝났으므로 보여 주기만 한다. 사망이면 빈 목록) */
   bossRelicOffer: RelicView[];
+  /** 도달한 액트 (1부터)와 전체 액트 수, 액트 이름 */
+  act: number;
+  actCount: number;
+  actName: string;
+  /** 그 액트에서 도달한 최고 층 */
   floorReached: number;
   floorCount: number;
   hp: number;
@@ -551,12 +586,15 @@ export function buildEndView(run: RunController, cards: CardCatalog, units: Unit
   }
   return {
     outcome,
-    title: outcome === 'victory' ? '1액트 돌파' : '지휘관 쓰러짐',
+    title: outcome === 'victory' ? `${run.totalActs}액트 돌파` : '지휘관 쓰러짐',
     seed: run.seed,
     commanderName: run.commander.name,
     commanderId: run.commander.id,
     relics: run.relics.map(buildRelicView),
     bossRelicOffer: run.bossRelicOffer().map((id) => relicViewById(relics, id)),
+    act: run.act,
+    actCount: run.totalActs,
+    actName: run.actInfo.name,
     floorReached: run.floorReached,
     floorCount: RUN.MAP.FLOORS,
     hp: run.hp,
@@ -569,5 +607,63 @@ export function buildEndView(run: RunController, cards: CardCatalog, units: Unit
       ...roster.board.map((u) => ({ name: unitName(u.unitId), star: u.star, onBoard: true })),
       ...roster.bench.flatMap((u) => (u ? [{ name: unitName(u.unitId), star: u.star, onBoard: false }] : [])),
     ],
+  };
+}
+
+// ---- 보스 유물 선택 / 액트 소개 ----
+
+export interface BossRelicView {
+  /** 방금 끝낸 액트와 이름 */
+  act: number;
+  actName: string;
+  actCount: number;
+  /** 고를 수 있는 보스 유물 */
+  relics: RelicView[];
+  /** 이미 가진 유물 */
+  owned: RelicView[];
+}
+
+export function buildBossRelicView(run: RunController, relics: RelicCatalog): BossRelicView {
+  return {
+    act: run.act,
+    actName: run.actInfo.name,
+    actCount: run.totalActs,
+    relics: run.bossRelicChoices().map((id) => relicViewById(relics, id)),
+    owned: run.relics.map(buildRelicView),
+  };
+}
+
+export interface ActIntroView {
+  /** 새로 시작하는 액트 */
+  act: number;
+  actCount: number;
+  name: string;
+  region: string;
+  text: string;
+  /** 액트 전환 회복: 회복 전 HP → 회복 후 HP (회복량) */
+  hpBefore: number;
+  hpAfter: number;
+  healed: number;
+  maxHp: number;
+  /** 이 액트의 보스 (이름과 패턴 설명) */
+  boss: EncounterPreviewView | null;
+}
+
+export function buildActIntroView(run: RunController): ActIntroView {
+  const session = run.session;
+  const intro = session?.kind === 'actIntro' ? session : { hpBefore: run.hp, healed: 0 };
+  const info = run.actInfo;
+  const plan = run.previewNode(run.map.bossNode.id);
+  return {
+    act: run.act,
+    actCount: run.totalActs,
+    name: info.name,
+    region: info.region,
+    text: info.text,
+    hpBefore: intro.hpBefore,
+    hpAfter: run.hp,
+    healed: intro.healed,
+    maxHp: run.maxHp,
+    boss: plan ? buildEncounterPreview(plan) : null,
   };
 }

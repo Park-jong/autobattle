@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Board, backCol, chebyshev, frontCol, isInOwnHalf, rayCells, sideOfCol } from './board';
+import { Board, backCol, chebyshev, frontCol, isInOwnHalf, nearestFreeCell, rayCells, sideOfCol } from './board';
 
 describe('보드 기하', () => {
   it('진영은 열 0~3 / 4~7', () => {
@@ -60,5 +60,26 @@ describe('Board 점유와 예약', () => {
   });
   it('보드 밖은 비어 있지 않은 것으로 취급', () => {
     expect(new Board().isFree({ col: 8, row: 0 })).toBe(false);
+  });
+});
+
+describe('nearestFreeCell (보스 부활·증원 칸 찾기)', () => {
+  it('비어 있으면 그 칸, 차 있으면 같은 진영 안에서 가장 가까운 빈 칸 ((열, 행) 오름차순)', () => {
+    const board = new Board();
+    expect(nearestFreeCell(board, { col: 6, row: 2 }, 1)).toEqual({ col: 6, row: 2 });
+    board.place(1, { col: 6, row: 2 });
+    expect(nearestFreeCell(board, { col: 6, row: 2 }, 1)).toEqual({ col: 5, row: 1 });
+    board.place(2, { col: 5, row: 1 });
+    expect(nearestFreeCell(board, { col: 6, row: 2 }, 1)).toEqual({ col: 5, row: 2 });
+  });
+
+  it('진영 경계를 넘지 않고, 진영이 가득 차면 null', () => {
+    const board = new Board();
+    board.place(1, { col: 4, row: 2 });
+    expect(nearestFreeCell(board, { col: 4, row: 2 }, 1)?.col).toBeGreaterThanOrEqual(4);
+    let uid = 10;
+    for (let col = 4; col < 8; col++) for (let row = 0; row < 5; row++) if (board.isFree({ col, row })) board.place(uid++, { col, row });
+    expect(nearestFreeCell(board, { col: 5, row: 2 }, 1)).toBeNull();
+    expect(nearestFreeCell(board, { col: 5, row: 2 }, 0)).not.toBeNull();
   });
 });

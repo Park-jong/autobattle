@@ -483,7 +483,7 @@ describe('저장 v2와 v1 마이그레이션', () => {
     run.chooseNode(run.availableNodes()[0]!.id);
     run.roster.reroll(); // 무료 리롤 사용량 1
     const save = run.serialize();
-    expect(save.version).toBe(2);
+    expect(save.version).toBe(RUN.FORMAT_VERSION);
     expect(save.relics).toEqual({ owned: ['twin_mirror', 'merchants_scale', 'iron_heart'], mirrorUsed: 1, freeRerollsUsed: 1 });
     const restored = roundtrip(run);
     expect(jsonOf(restored)).toBe(jsonOf(run));
@@ -517,7 +517,7 @@ describe('저장 v2와 v1 마이그레이션', () => {
       expect(run.commander.id).toBe('cmd_harten');
       expect(run.relics).toEqual([]);
       const save = run.serialize();
-      expect(save.version).toBe(2);
+      expect(save.version).toBe(RUN.FORMAT_VERSION);
       expect(save.relics).toEqual({ owned: [], mirrorUsed: 0, freeRerollsUsed: 0 });
       expect(jsonOf(roundtrip(run))).toBe(jsonOf(run));
     }
@@ -533,6 +533,10 @@ describe('저장 v2와 v1 마이그레이션', () => {
   it('v1 저장본에 v2 필드(relics)가 섞여 있으면 거부한다', () => {
     const save = JSON.parse(jsonOf(newRun(1)));
     save.version = 1;
+    // v1에는 v3 필드(maps·totalActs)도 없어야 하지만 가장 먼저 걸리는 필드를 확인한다
+    delete save.maps;
+    delete save.totalActs;
+    save.map = JSON.parse(jsonOf(newRun(1))).maps[0];
     expect(() => RunController.restore(runDeps, save)).toThrow(/run\.relics: 알 수 없는 필드/);
   });
 

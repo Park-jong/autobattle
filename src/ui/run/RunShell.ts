@@ -2,7 +2,7 @@ import type { RunCommands, RunScreenId, RunSnapshot, RunViewSource } from './con
 import { button, el, tagged } from './dom';
 import { EndScreen } from './EndScreen';
 import { MapScreen } from './MapScreen';
-import { CampScreen, EventScreen, RewardScreen, ShopScreen } from './NodeScreens';
+import { ActIntroScreen, BossRelicScreen, CampScreen, EventScreen, RewardScreen, ShopScreen } from './NodeScreens';
 import { StartScreen } from './StartScreen';
 import './runScreens.css';
 
@@ -43,6 +43,8 @@ export class RunShell {
       start: new StartScreen(commands),
       map: new MapScreen(view, commands),
       reward: new RewardScreen(commands),
+      bossRelic: new BossRelicScreen(commands),
+      actIntro: new ActIntroScreen(commands),
       shop: new ShopScreen(commands),
       event: new EventScreen(commands),
       camp: new CampScreen(commands),

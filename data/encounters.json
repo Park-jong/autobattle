@@ -214,6 +214,367 @@
         { "unitId": "arena_recruit", "star": 1, "col": 5, "row": 4 },
         { "unitId": "ember_kindler", "star": 1, "col": 6, "row": 1 }
       ]
+    },
+    {
+      "id": "ash_vanguard",
+      "name": "재의 선봉대",
+      "kind": "normal",
+      "minFloor": 14,
+      "maxFloor": 18,
+      "text": "광전사 둘이 달려들고 투석수들이 뒤에서 불을 붙인다.",
+      "units": [
+        { "unitId": "ember_berserker", "star": 1, "col": 4, "row": 1 },
+        { "unitId": "ember_berserker", "star": 1, "col": 4, "row": 3 },
+        { "unitId": "ember_slinger", "star": 1, "col": 6, "row": 0 },
+        { "unitId": "ember_kindler", "star": 1, "col": 6, "row": 2 },
+        { "unitId": "ember_slinger", "star": 1, "col": 6, "row": 4 }
+      ]
+    },
+    {
+      "id": "cinder_ritualists",
+      "name": "화로 의식단",
+      "kind": "normal",
+      "minFloor": 14,
+      "maxFloor": 19,
+      "text": "방패 뒤에서 점화사 둘이 불을 지피고 속삭임꾼이 침묵을 건다.",
+      "units": [
+        { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 2 },
+        { "unitId": "ember_kindler", "star": 1, "col": 6, "row": 1 },
+        { "unitId": "ember_kindler", "star": 1, "col": 6, "row": 3 },
+        { "unitId": "abyss_whisperer", "star": 1, "col": 7, "row": 2 }
+      ]
+    },
+    {
+      "id": "highland_hunters",
+      "name": "고원 사냥꾼",
+      "kind": "normal",
+      "minFloor": 15,
+      "maxFloor": 20,
+      "text": "숲의 사수들이 고원 능선에서 후열을 노린다.",
+      "units": [
+        { "unitId": "moss_warden", "star": 1, "col": 4, "row": 1 },
+        { "unitId": "shade_dagger", "star": 1, "col": 4, "row": 3 },
+        { "unitId": "grove_archer", "star": 2, "col": 6, "row": 0 },
+        { "unitId": "grove_archer", "star": 2, "col": 6, "row": 4 },
+        { "unitId": "grove_druid", "star": 1, "col": 7, "row": 2 }
+      ]
+    },
+    {
+      "id": "pyre_guards",
+      "name": "화장단 경비",
+      "kind": "normal",
+      "minFloor": 16,
+      "maxFloor": 21,
+      "text": "북소리로 사기를 올린 전열 뒤에서 잿불 주술이 쏟아진다.",
+      "units": [
+        { "unitId": "war_drummer", "star": 1, "col": 4, "row": 0 },
+        { "unitId": "ember_berserker", "star": 2, "col": 4, "row": 2 },
+        { "unitId": "war_drummer", "star": 1, "col": 4, "row": 4 },
+        { "unitId": "ember_slinger", "star": 2, "col": 6, "row": 1 },
+        { "unitId": "ember_kindler", "star": 2, "col": 6, "row": 3 }
+      ]
+    },
+    {
+      "id": "ash_walkers",
+      "name": "재 위를 걷는 자들",
+      "kind": "normal",
+      "minFloor": 17,
+      "maxFloor": 22,
+      "text": "첩보원이 후열을 파고드는 사이 점화사가 화상을 쌓는다.",
+      "units": [
+        { "unitId": "legion_spy", "star": 1, "col": 4, "row": 1 },
+        { "unitId": "ember_berserker", "star": 1, "col": 4, "row": 3 },
+        { "unitId": "ember_slinger", "star": 1, "col": 6, "row": 0 },
+        { "unitId": "ember_kindler", "star": 2, "col": 6, "row": 2 },
+        { "unitId": "ember_slinger", "star": 1, "col": 6, "row": 4 }
+      ]
+    },
+    {
+      "id": "scorched_pilgrims",
+      "name": "그을린 순례자",
+      "kind": "normal",
+      "minFloor": 18,
+      "maxFloor": 24,
+      "text": "심연에 물든 순례자들이 화상과 침묵으로 압박한다.",
+      "units": [
+        { "unitId": "abyss_devourer", "star": 1, "col": 4, "row": 1 },
+        { "unitId": "ember_berserker", "star": 2, "col": 4, "row": 3 },
+        { "unitId": "ember_slinger", "star": 2, "col": 6, "row": 0 },
+        { "unitId": "abyss_whisperer", "star": 2, "col": 6, "row": 2 },
+        { "unitId": "ember_kindler", "star": 1, "col": 6, "row": 4 }
+      ]
+    },
+    {
+      "id": "ember_phalanx",
+      "name": "잿불 방진",
+      "kind": "normal",
+      "minFloor": 19,
+      "maxFloor": 24,
+      "text": "두 겹의 방패 뒤에서 잿불 주술사 셋이 쉬지 않고 불을 던진다.",
+      "units": [
+        { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 1 },
+        { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 3 },
+        { "unitId": "ember_kindler", "star": 2, "col": 6, "row": 1 },
+        { "unitId": "ember_kindler", "star": 2, "col": 6, "row": 3 },
+        { "unitId": "ember_slinger", "star": 2, "col": 7, "row": 2 }
+      ]
+    },
+    {
+      "id": "twin_acolytes",
+      "name": "쌍둥이의 시종",
+      "kind": "normal",
+      "minFloor": 20,
+      "maxFloor": 24,
+      "text": "대사제를 모시던 시종들. 북소리와 광전사가 길을 연다.",
+      "units": [
+        { "unitId": "ember_berserker", "star": 2, "col": 4, "row": 1 },
+        { "unitId": "ember_berserker", "star": 2, "col": 4, "row": 3 },
+        { "unitId": "war_drummer", "star": 2, "col": 5, "row": 2 },
+        { "unitId": "ember_kindler", "star": 2, "col": 6, "row": 0 },
+        { "unitId": "abyss_whisperer", "star": 2, "col": 6, "row": 4 }
+      ]
+    },
+    {
+      "id": "elite_ember_pyre",
+      "name": "대화로 사제단",
+      "kind": "elite",
+      "minFloor": 17,
+      "maxFloor": 24,
+      "text": "3성 점화사를 중심으로 한 사제단. 후열 화력이 매섭다.",
+      "units": [
+        { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 3 },
+        { "unitId": "ember_berserker", "star": 2, "col": 4, "row": 1 },
+        { "unitId": "ember_slinger", "star": 2, "col": 6, "row": 0 },
+        { "unitId": "ember_kindler", "star": 3, "col": 6, "row": 2 },
+        { "unitId": "ember_slinger", "star": 2, "col": 6, "row": 4 }
+      ]
+    },
+    {
+      "id": "elite_ash_wardens",
+      "name": "재의 수호대",
+      "kind": "elite",
+      "minFloor": 17,
+      "maxFloor": 22,
+      "text": "3성 수호목이 전열을 막고 북소리와 드루이드가 지원한다.",
+      "units": [
+        { "unitId": "war_drummer", "star": 2, "col": 4, "row": 0 },
+        { "unitId": "moss_warden", "star": 3, "col": 4, "row": 2 },
+        { "unitId": "war_drummer", "star": 2, "col": 4, "row": 4 },
+        { "unitId": "grove_druid", "star": 2, "col": 6, "row": 1 },
+        { "unitId": "ember_kindler", "star": 2, "col": 6, "row": 3 }
+      ]
+    },
+    {
+      "id": "elite_cinder_blades",
+      "name": "잿불 검무단",
+      "kind": "elite",
+      "minFloor": 19,
+      "maxFloor": 24,
+      "text": "광전사 셋이 한꺼번에 돌진한다. 화상이 쌓이기 전에 막아야 한다.",
+      "units": [
+        { "unitId": "ember_berserker", "star": 2, "col": 4, "row": 0 },
+        { "unitId": "ember_berserker", "star": 3, "col": 4, "row": 2 },
+        { "unitId": "ember_berserker", "star": 2, "col": 4, "row": 4 },
+        { "unitId": "ember_kindler", "star": 2, "col": 6, "row": 1 },
+        { "unitId": "ember_slinger", "star": 2, "col": 6, "row": 3 }
+      ]
+    },
+    {
+      "id": "boss_twin_sorcerers",
+      "name": "쌍둥이 주술사 세르·미르",
+      "kind": "boss",
+      "minFloor": 26,
+      "maxFloor": 26,
+      "text": "세르와 미르는 서로를 되살린다. 한쪽을 쓰러뜨리면 3초 안에 나머지도 쓰러뜨려야 한다.",
+      "units": [
+        { "unitId": "twin_ser", "star": 1, "col": 6, "row": 1 },
+        { "unitId": "twin_mir", "star": 1, "col": 6, "row": 3 },
+        { "unitId": "ember_berserker", "star": 2, "col": 4, "row": 1 },
+        { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 2 },
+        { "unitId": "ember_berserker", "star": 2, "col": 4, "row": 3 }
+      ]
+    },
+    {
+      "id": "fallen_sentries",
+      "name": "무너진 성문 보초",
+      "kind": "normal",
+      "minFloor": 27,
+      "maxFloor": 30,
+      "text": "폐허가 된 성문을 지키는 방패병과 석궁병들.",
+      "units": [
+        { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 1 },
+        { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 3 },
+        { "unitId": "legion_crossbow", "star": 2, "col": 6, "row": 0 },
+        { "unitId": "legion_crossbow", "star": 2, "col": 6, "row": 2 },
+        { "unitId": "legion_crossbow", "star": 2, "col": 6, "row": 4 }
+      ]
+    },
+    {
+      "id": "rift_stalkers",
+      "name": "균열 추적자",
+      "kind": "normal",
+      "minFloor": 27,
+      "maxFloor": 31,
+      "text": "암살자들이 균열 사이를 누비며 후열을 노린다.",
+      "units": [
+        { "unitId": "shade_dagger", "star": 2, "col": 4, "row": 1 },
+        { "unitId": "shade_dagger", "star": 2, "col": 4, "row": 3 },
+        { "unitId": "legion_spy", "star": 2, "col": 5, "row": 2 },
+        { "unitId": "abyss_whisperer", "star": 2, "col": 6, "row": 0 },
+        { "unitId": "abyss_whisperer", "star": 2, "col": 6, "row": 4 }
+      ]
+    },
+    {
+      "id": "legion_remnants",
+      "name": "군단 잔당",
+      "kind": "normal",
+      "minFloor": 28,
+      "maxFloor": 32,
+      "text": "군주에게 삼켜지지 않은 군단의 잔당. 북소리 아래 전열이 단단하다.",
+      "units": [
+        { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 0 },
+        { "unitId": "war_drummer", "star": 2, "col": 4, "row": 2 },
+        { "unitId": "arena_recruit", "star": 2, "col": 4, "row": 4 },
+        { "unitId": "legion_crossbow", "star": 2, "col": 6, "row": 1 },
+        { "unitId": "legion_crossbow", "star": 2, "col": 6, "row": 3 }
+      ]
+    },
+    {
+      "id": "abyssal_pack",
+      "name": "심연 사냥무리",
+      "kind": "normal",
+      "minFloor": 29,
+      "maxFloor": 33,
+      "text": "포식자 둘이 먹이를 문다. 처치할 때마다 몸집이 커진다.",
+      "units": [
+        { "unitId": "abyss_devourer", "star": 2, "col": 4, "row": 1 },
+        { "unitId": "abyss_devourer", "star": 2, "col": 4, "row": 3 },
+        { "unitId": "abyss_whisperer", "star": 2, "col": 6, "row": 2 },
+        { "unitId": "legion_spy", "star": 2, "col": 5, "row": 4 }
+      ]
+    },
+    {
+      "id": "iron_vanguard",
+      "name": "강철 선봉",
+      "kind": "normal",
+      "minFloor": 30,
+      "maxFloor": 35,
+      "text": "3성 방패병이 선두에 서고 북소리와 석궁이 뒤를 받친다.",
+      "units": [
+        { "unitId": "war_drummer", "star": 2, "col": 4, "row": 0 },
+        { "unitId": "iron_shieldbearer", "star": 3, "col": 4, "row": 2 },
+        { "unitId": "war_drummer", "star": 2, "col": 4, "row": 4 },
+        { "unitId": "legion_crossbow", "star": 2, "col": 6, "row": 1 },
+        { "unitId": "legion_crossbow", "star": 2, "col": 6, "row": 3 },
+        { "unitId": "abyss_whisperer", "star": 2, "col": 7, "row": 2 }
+      ]
+    },
+    {
+      "id": "ruined_court",
+      "name": "폐허의 근위대",
+      "kind": "normal",
+      "minFloor": 31,
+      "maxFloor": 36,
+      "text": "수도 궁정을 지키던 근위대. 포식자가 양 날개를 맡는다.",
+      "units": [
+        { "unitId": "abyss_devourer", "star": 2, "col": 4, "row": 0 },
+        { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 2 },
+        { "unitId": "abyss_devourer", "star": 2, "col": 4, "row": 4 },
+        { "unitId": "legion_spy", "star": 2, "col": 5, "row": 1 },
+        { "unitId": "abyss_whisperer", "star": 3, "col": 6, "row": 3 }
+      ]
+    },
+    {
+      "id": "hollow_legion",
+      "name": "공허 군단",
+      "kind": "normal",
+      "minFloor": 33,
+      "maxFloor": 37,
+      "text": "속이 빈 갑옷에 심연이 깃든 군단. 3성 유닛이 섞여 있다.",
+      "units": [
+        { "unitId": "abyss_devourer", "star": 3, "col": 4, "row": 0 },
+        { "unitId": "war_drummer", "star": 3, "col": 4, "row": 2 },
+        { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 4 },
+        { "unitId": "legion_crossbow", "star": 3, "col": 6, "row": 1 },
+        { "unitId": "abyss_whisperer", "star": 2, "col": 6, "row": 3 },
+        { "unitId": "legion_spy", "star": 2, "col": 5, "row": 2 }
+      ]
+    },
+    {
+      "id": "capital_garrison",
+      "name": "수도 수비대",
+      "kind": "normal",
+      "minFloor": 34,
+      "maxFloor": 37,
+      "text": "수도 마지막 방어선. 3성 방패병 둘과 석궁병 둘이 길을 막는다.",
+      "units": [
+        { "unitId": "iron_shieldbearer", "star": 3, "col": 4, "row": 1 },
+        { "unitId": "iron_shieldbearer", "star": 3, "col": 4, "row": 3 },
+        { "unitId": "war_drummer", "star": 2, "col": 5, "row": 2 },
+        { "unitId": "legion_crossbow", "star": 3, "col": 6, "row": 0 },
+        { "unitId": "legion_crossbow", "star": 3, "col": 6, "row": 4 },
+        { "unitId": "abyss_whisperer", "star": 2, "col": 7, "row": 2 }
+      ]
+    },
+    {
+      "id": "elite_legion_wall",
+      "name": "군단의 장벽",
+      "kind": "elite",
+      "minFloor": 30,
+      "maxFloor": 37,
+      "text": "3성 방패병 둘이 만든 장벽 뒤에서 석궁이 쏟아진다.",
+      "units": [
+        { "unitId": "iron_shieldbearer", "star": 3, "col": 4, "row": 1 },
+        { "unitId": "war_drummer", "star": 2, "col": 4, "row": 2 },
+        { "unitId": "iron_shieldbearer", "star": 3, "col": 4, "row": 3 },
+        { "unitId": "legion_crossbow", "star": 3, "col": 6, "row": 1 },
+        { "unitId": "legion_crossbow", "star": 3, "col": 6, "row": 3 }
+      ]
+    },
+    {
+      "id": "elite_abyss_court",
+      "name": "심연의 집행관",
+      "kind": "elite",
+      "minFloor": 30,
+      "maxFloor": 37,
+      "text": "포식자와 암살자가 앞을 열고 속삭임꾼이 침묵을 쏟는다.",
+      "units": [
+        { "unitId": "shade_dagger", "star": 2, "col": 4, "row": 0 },
+        { "unitId": "abyss_devourer", "star": 3, "col": 4, "row": 2 },
+        { "unitId": "shade_dagger", "star": 2, "col": 4, "row": 4 },
+        { "unitId": "abyss_whisperer", "star": 3, "col": 6, "row": 1 },
+        { "unitId": "abyss_whisperer", "star": 2, "col": 6, "row": 3 }
+      ]
+    },
+    {
+      "id": "elite_oathbreakers",
+      "name": "서약 파기자",
+      "kind": "elite",
+      "minFloor": 32,
+      "maxFloor": 37,
+      "text": "군주에게 맹세를 판 첩보원들. 급소 공격이 연달아 들어온다.",
+      "units": [
+        { "unitId": "abyss_devourer", "star": 2, "col": 4, "row": 0 },
+        { "unitId": "legion_spy", "star": 3, "col": 4, "row": 1 },
+        { "unitId": "legion_spy", "star": 2, "col": 4, "row": 3 },
+        { "unitId": "war_drummer", "star": 3, "col": 5, "row": 2 },
+        { "unitId": "legion_crossbow", "star": 2, "col": 6, "row": 2 }
+      ]
+    },
+    {
+      "id": "boss_legion_lord",
+      "name": "군단의 군주 바르칸",
+      "kind": "boss",
+      "minFloor": 39,
+      "maxFloor": 39,
+      "text": "전 강철군단 원수. HP 66%·33%에서 증원을 부르고 아군의 보호막과 버프를 지운다.",
+      "units": [
+        { "unitId": "legion_lord", "star": 1, "col": 4, "row": 2 },
+        { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 1 },
+        { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 3 },
+        { "unitId": "legion_crossbow", "star": 2, "col": 6, "row": 1 },
+        { "unitId": "legion_crossbow", "star": 2, "col": 6, "row": 3 }
+      ]
     }
   ]
 }

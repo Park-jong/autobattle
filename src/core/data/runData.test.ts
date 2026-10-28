@@ -76,19 +76,25 @@ describe('지휘관 데이터: maxHp', () => {
 });
 
 describe('encounters.json', () => {
+  // 편성의 층 범위는 전체 층(= (액트 − 1) × 13 + 층): 액트마다 일반 1~11층, 정예 4~11층, 보스 13층
+  const acts = [1, 2, 3];
+  const floorsOf = (from: number, to: number) => acts.flatMap((act) => Array.from({ length: to - from + 1 }, (_, i) => (act - 1) * 13 + from + i));
   const coverage = {
-    normalFloors: Array.from({ length: 11 }, (_, i) => i + 1),
-    eliteFloors: [4, 5, 6, 7, 8, 9, 10, 11],
-    bossFloors: [13],
+    normalFloors: floorsOf(1, 11),
+    eliteFloors: floorsOf(4, 11),
+    bossFloors: acts.map((act) => act * 13),
+    floorsPerAct: 13,
   };
 
-  it('실제 데이터: 일반 8개 이상, 정예 3개 이상, 보스 1개이며 모든 층을 덮는다', () => {
+  it('실제 데이터: 일반 8개 이상, 정예 3개 이상, 보스 3개(액트마다 1개)이며 모든 액트의 모든 층을 덮는다', () => {
     const catalog = loadEncounters(encountersJson, units, coverage);
     const count = (kind: string) => catalog.encounters.filter((e) => e.kind === kind).length;
     expect(count('normal')).toBeGreaterThanOrEqual(8);
     expect(count('elite')).toBeGreaterThanOrEqual(3);
-    expect(count('boss')).toBe(1);
+    expect(count('boss')).toBe(3);
     expect(catalog.candidates('boss', 13)[0]?.units.some((u) => u.unitId === 'gate_breaker')).toBe(true);
+    expect(catalog.candidates('boss', 26)[0]?.units.map((u) => u.unitId)).toEqual(expect.arrayContaining(['twin_ser', 'twin_mir']));
+    expect(catalog.candidates('boss', 39)[0]?.units.some((u) => u.unitId === 'legion_lord')).toBe(true);
   });
 
   it('적 진영 밖 칸·중복 칸·모르는 필드·모르는 유닛은 위치가 담긴 오류로 거부한다', () => {
@@ -114,6 +120,15 @@ describe('encounters.json', () => {
     const data = clone(encountersJson) as { encounters: { kind: string }[] };
     data.encounters = data.encounters.filter((e) => e.kind !== 'boss');
     expect(() => loadEncounters(data, units, coverage)).toThrow(/13층에 쓸 boss 편성이 없음/);
+  });
+
+  it('액트 2·3 층이 비면 전체 층과 액트 안 층을 함께 알려 준다', () => {
+    const data = clone(encountersJson) as { encounters: { id: string; kind: string; minFloor: number }[] };
+    data.encounters = data.encounters.filter((e) => e.id !== 'boss_twin_sorcerers');
+    expect(() => loadEncounters(data, units, coverage)).toThrow(/전체 26층\(액트 2 13층\)에 쓸 boss 편성이 없음/);
+    const normal = clone(encountersJson) as { encounters: { id: string; kind: string; minFloor: number; maxFloor: number }[] };
+    normal.encounters = normal.encounters.filter((e) => !(e.kind === 'normal' && e.maxFloor >= 37));
+    expect(() => loadEncounters(normal, units, coverage)).toThrow(/전체 37층\(액트 3 11층\)에 쓸 normal 편성이 없음/);
   });
 });
 

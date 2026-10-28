@@ -236,6 +236,64 @@ export class StatusSet {
     return refreshed;
   }
 
+  /**
+   * 보스 페이즈 전환의 버프 해제: 카드·스킬이 건 시간제(만료 시각이 유한한) 이로운 상태와 보호막 전부를 지운다.
+   * 지우는 것 = 보호막(전부), 스탯 증가(pct/flat > 0), 받는 피해 감소(mult < 1), 흡혈, 불사, 회복 오라, 연발 충전.
+   * 지우지 않는 것 = 기절·침묵·속박·화상·도발 등 불리한 상태, 스탯 감소, 받는 피해 증가,
+   * 전투 내내 지속되는(만료 시각 Infinity) 특성·장비·유물·패시브 효과. 지운 상태 이름(중복 없음)을 반환한다.
+   */
+  dispelBuffs(): string[] {
+    const removed = new Set<string>();
+    const timed = (expiresAt: number): boolean => Number.isFinite(expiresAt);
+    if (this.shields.some((s) => this.isActive(s.expiresAt))) removed.add('shield');
+    this.shields = [];
+    this.statMods = this.statMods.filter((m) => {
+      if (!timed(m.expiresAt) || (m.pct <= 0 && m.flat <= 0)) return true;
+      if (this.isActive(m.expiresAt)) removed.add(`statMod:${m.stat}`);
+      return false;
+    });
+    this.takenMults = this.takenMults.filter((m) => {
+      if (!timed(m.expiresAt) || m.mult >= 1) return true;
+      if (this.isActive(m.expiresAt)) removed.add('damageTakenMult');
+      return false;
+    });
+    this.leeches.splice(0, this.leeches.length, ...this.leeches.filter((l) => {
+      if (!timed(l.expiresAt)) return true;
+      if (this.isActive(l.expiresAt)) removed.add('lifesteal');
+      return false;
+    }));
+    if (this.undyingUntil > 0 && timed(this.undyingUntil)) {
+      if (this.isActive(this.undyingUntil)) removed.add('undying');
+      this.undyingUntil = 0;
+    }
+    this.auras = this.auras.filter((a) => {
+      if (!timed(a.expiresAt)) return true;
+      if (this.isActive(a.expiresAt)) removed.add('healAura');
+      return false;
+    });
+    if (this.extraShotCharges > 0) {
+      removed.add('extraShots');
+      this.extraShotCharges = 0;
+    }
+    return [...removed];
+  }
+
+  /** 모든 상태를 지운다 (쌍둥이 부활: 되살아난 유닛은 깨끗한 상태로 시작) */
+  clear(): void {
+    this.stunUntil = 0;
+    this.silenceUntil = 0;
+    this.rootUntil = 0;
+    this.undyingUntil = 0;
+    this.leeches.length = 0;
+    this.burn = null;
+    this.shields = [];
+    this.takenMults = [];
+    this.statMods = [];
+    this.forced = null;
+    this.auras = [];
+    this.extraShotCharges = 0;
+  }
+
   /** 만료된 상태를 제거하고 제거된 상태 이름 목록을 반환 */
   expire(): string[] {
     const removed: string[] = [];

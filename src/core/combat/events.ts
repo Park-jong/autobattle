@@ -75,6 +75,19 @@ export type CombatEvent = { t: number } & (
   | { type: 'telegraph'; id: number; source: number; pattern: string; cells: Cell[]; fireAt: number }
   /** 예고된 패턴 발동 (피해는 이어지는 damage 이벤트) */
   | { type: 'strike'; id: number; source: number; cells: Cell[] }
+  /**
+   * 쌍둥이 보스 한쪽(unit)이 죽었다: 짝(partner)이 fireAt(초)까지 죽지 않으면 unit이 부활한다.
+   * 짝도 그 전에 죽으면 부활은 취소되고(reviveCancel) 둘 다 처치된 것이다
+   */
+  | { type: 'reviveTelegraph'; unit: number; partner: number; fireAt: number }
+  /** 쌍둥이 부활이 취소됨 (둘 다 제한 시간 안에 처치) */
+  | { type: 'reviveCancel'; unit: number }
+  /** 쌍둥이 부활: unit이 hp/maxHp로 cell에 되살아났다 (상태는 모두 초기화) */
+  | { type: 'revive'; unit: number; hp: number; maxHp: number; cell: Cell }
+  /** 보스 페이즈 전환: phase(2부터)로 넘어갔다. summoned = 증원 유닛 uid(이어지는 spawn 이벤트), dispelled = 버프가 해제된 아군 수 */
+  | { type: 'bossPhase'; unit: number; phase: number; hpPct: number; summoned: number[]; dispelled: number }
+  /** 버프 해제(보스 페이즈 전환): unit에서 statuses(상태 이름)의 버프가 사라졌다. 'shield'는 보호막 전부 */
+  | { type: 'dispel'; unit: number; statuses: string[] }
   /** 카드로 지휘관 HP를 잃었다 (런이 정산). remaining은 이 전투에서 아직 쓸 수 있는 HP */
   | { type: 'commanderHp'; delta: number; remaining: number; cardId: string; instanceId: number }
   /** 궁극기 발동. durationSeconds = 지속 효과(받는 피해 감소·흡수·CP 가속 등)가 이어지는 길이. 운석처럼 지속 효과가 없으면 0 */

@@ -6,7 +6,7 @@ import type { CardInputMode } from '../cards/CardInteraction';
 import type { CardPanelView } from '../cards/cardPanelView';
 import type { PlaybackSpeed } from '../cards/playbackScale';
 import type { GauntletRecord, GauntletSummary } from '../live/Gauntlet';
-import type { MeteorView, ReplayEffect, TelegraphView, UltimateAuraView, UnitView } from '../replay/ReplayState';
+import type { MeteorView, ReplayEffect, ReviveWatchView, TelegraphView, UltimateAuraView, UnitView } from '../replay/ReplayState';
 
 export { PLAYBACK_SPEEDS, type PlaybackSpeed } from '../cards/playbackScale';
 
@@ -92,6 +92,8 @@ export interface BattleViewSource {
   meteors(): readonly MeteorView[];
   /** 지속 효과가 있는 궁극기가 유지되는 동안의 표시 정보 */
   ultimateAura(): UltimateAuraView | null;
+  /** 부활 대기 중인 쌍둥이 보스 (남은 시간 표시) */
+  reviveWatches(): readonly ReviveWatchView[];
   /** 프레임 경과 실제 시간(초, 배속·슬로모션 적용 전)만큼 재생을 진행 */
   advance(dtSeconds: number): void;
   /** 편성 중 해당 칸이 배치 가능한지 */

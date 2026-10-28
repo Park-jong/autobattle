@@ -1,6 +1,6 @@
 export { RUN } from './constants';
 export { deriveSeed } from './seeds';
-export { NODE_TYPES, RunMap, nodeId, isRestType, type MapNode, type NodeType, type SerializedMap } from './runMap';
+export { NODE_TYPES, RunMap, nodeId, globalFloor, isRestType, type MapNode, type NodeType, type SerializedMap } from './runMap';
 export { MapGenerator } from './mapGenerator';
 export { EncounterPlanner, floorScale, type EncounterPlan, type PlannedUnit } from './encounterPlanner';
 export { CommanderHealth, defeatDamage, type DefeatDamageInput } from './commanderHealth';

@@ -5,7 +5,7 @@ import type { EncounterPreviewView } from './runViews';
 export function encounterPreviewElement(view: EncounterPreviewView): HTMLElement {
   const root = tagged(el('section', `run-preview kind-${view.kind}`), 'encounter-preview');
   const head = el('div', 'run-preview-head');
-  head.append(el('strong', '', `${view.floor}층 ${view.kindLabel}`), el('span', 'run-preview-name', view.name));
+  head.append(el('strong', '', `액트 ${view.act} · ${view.floor}층 ${view.kindLabel}`), el('span', 'run-preview-name', view.name));
   root.append(head, el('p', 'dbg-hint', view.text), el('p', 'run-preview-scale', `층 보정: ${view.scaleLabel}`));
   if (view.mutations.length > 0) {
     const box = el('div', 'run-preview-mutations');
@@ -29,5 +29,15 @@ export function encounterPreviewElement(view: EncounterPreviewView): HTMLElement
     table.append(row);
   }
   root.append(table);
+  if (view.bossPatterns.length > 0) {
+    const box = tagged(el('div', 'run-preview-patterns'), 'boss-patterns');
+    for (const pattern of view.bossPatterns) {
+      const row = el('div', 'run-boss-pattern');
+      row.append(el('strong', '', `보스 패턴 [${pattern.title}] — ${pattern.unitName}`));
+      for (const line of pattern.lines) row.append(el('span', '', line));
+      box.append(row);
+    }
+    root.append(box);
+  }
   return root;
 }

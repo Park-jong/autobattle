@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { createText, type HiDpiMetrics } from '../hidpi';
-import type { MeteorView, ReplayEffect, TelegraphView, UltimateAuraView, UnitView } from '../replay/ReplayState';
+import type { MeteorView, ReplayEffect, ReviveWatchView, TelegraphView, UltimateAuraView, UnitView } from '../replay/ReplayState';
 import { BOARD_COLS, BOARD_ROWS } from '../../core/combat/board';
 import { COLORS, LAYOUT, MOTION, STAGE, TEXT_COLORS, TIMING } from '../theme';
 import type { BoardLayout } from './BoardLayout';
@@ -19,6 +19,13 @@ export interface UltimateVisuals {
 }
 
 const NO_ULTIMATE: UltimateVisuals = { meteors: [], aura: null };
+
+/** 보스 연출 입력: 부활 대기 중인 쌍둥이 (남은 시간 표시) */
+export interface BossVisuals {
+  revives: readonly ReviveWatchView[];
+}
+
+const NO_BOSS: BossVisuals = { revives: [] };
 
 /** 지휘관별 지속 효과 색 */
 function auraColor(commanderId: string): number {
@@ -42,6 +49,9 @@ export class EffectsLayer {
   private readonly cardBanner: Phaser.GameObjects.Text;
   private readonly telegraphLabel: Phaser.GameObjects.Text;
   private readonly ultimateBanner: Phaser.GameObjects.Text;
+  private readonly phaseBanner: Phaser.GameObjects.Text;
+  /** 부활 대기 쌍둥이마다 하나씩: 죽은 쪽 위의 남은 시간, 짝 위의 "처치" 표시 */
+  private readonly reviveLabels = new Map<string, Phaser.GameObjects.Text>();
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -80,6 +90,16 @@ export class EffectsLayer {
       .setOrigin(0.5)
       .setDepth(42)
       .setVisible(false);
+    this.phaseBanner = createText(scene, metrics, STAGE.WIDTH / 2, 152, '', {
+      fontSize: '26px',
+      fontStyle: 'bold',
+      color: TEXT_COLORS.PHASE,
+      stroke: '#000000',
+      strokeThickness: 5,
+    })
+      .setOrigin(0.5)
+      .setDepth(42)
+      .setVisible(false);
     this.telegraphLabel = createText(scene, metrics, 0, 0, '', {
       fontSize: '18px',
       fontStyle: 'bold',
@@ -98,9 +118,11 @@ export class EffectsLayer {
     views: ReadonlyMap<number, UnitView>,
     telegraphs: readonly TelegraphView[] = [],
     ultimate: UltimateVisuals = NO_ULTIMATE,
+    boss: BossVisuals = NO_BOSS,
   ): void {
     this.lines.clear();
     let ultimateText: { text: string; alpha: number } | null = null;
+    let phaseText: { text: string; alpha: number } | null = null;
     const live = new Set<number>();
     let bannerAlpha = 0;
     let cardBannerText: { text: string; alpha: number } | null = null;
@@ -167,6 +189,25 @@ export class EffectsLayer {
         case 'impact':
           if (age <= TIMING.IMPACT_FLASH) this.drawImpact(e.cell, e.radius, age / TIMING.IMPACT_FLASH);
           break;
+        case 'revive':
+          if (age <= TIMING.REVIVE_FLASH) this.drawReviveFlash(e.unit, views, age / TIMING.REVIVE_FLASH);
+          break;
+        case 'reviveCancel':
+          if (age <= TIMING.REVIVE_CANCEL_TEXT) {
+            this.showFloating(e.seq, live, e.unit, views, '처치 확정!', TEXT_COLORS.HEAL, age / TIMING.REVIVE_CANCEL_TEXT, {
+              lift: MOTION.DAMAGE_RISE_PX, baseY: -30, jitter: 0, size: '22px',
+            });
+          }
+          break;
+        case 'phase':
+          if (age <= TIMING.PHASE_BANNER) {
+            const extra = [e.summoned > 0 ? `증원 ${e.summoned}기` : '', e.dispelled > 0 ? `아군 버프 해제 (${e.dispelled}기)` : '아군 버프 해제'].filter(Boolean).join(' · ');
+            phaseText = { text: `⚔ ${e.phase}페이즈 — ${extra}`, alpha: 1 - Math.max(0, age / TIMING.PHASE_BANNER - 0.7) / 0.3 };
+          }
+          break;
+        case 'dispel':
+          if (age <= TIMING.DISPEL_FLASH) this.drawDispel(e.unit, views, age / TIMING.DISPEL_FLASH);
+          break;
         case 'telegraph':
         case 'death':
           break;
@@ -175,6 +216,9 @@ export class EffectsLayer {
     this.drawTelegraphs(time, telegraphs);
     this.drawMeteors(time, ultimate.meteors);
     this.drawAura(time, ultimate.aura, views);
+    this.drawRevives(time, boss.revives, views);
+    if (phaseText) this.phaseBanner.setText(phaseText.text).setAlpha(phaseText.alpha).setVisible(true);
+    else this.phaseBanner.setVisible(false);
     if (ultimateText) this.ultimateBanner.setText(ultimateText.text).setAlpha(ultimateText.alpha).setVisible(true);
     else this.ultimateBanner.setVisible(false);
 
@@ -196,7 +240,82 @@ export class EffectsLayer {
     this.banner.setVisible(false);
     this.cardBanner.setVisible(false);
     this.ultimateBanner.setVisible(false);
+    this.phaseBanner.setVisible(false);
+    for (const label of this.reviveLabels.values()) label.destroy();
+    this.reviveLabels.clear();
     this.telegraphLabel.setVisible(false);
+  }
+
+  /**
+   * 쌍둥이 부활 대기: 죽은 쪽에는 줄어드는 링과 부활까지 남은 시간, 짝에는 "N초 안에 처치!" 표시와 붉은 조준 링을 그린다.
+   * 부활 대기가 끝나면(부활·처치 확정) 글자는 사라진다.
+   */
+  private drawRevives(time: number, watches: readonly ReviveWatchView[], views: ReadonlyMap<number, UnitView>): void {
+    const shown = new Set<string>();
+    const pulse = 0.5 + 0.5 * Math.sin(time * 10);
+    for (const w of watches) {
+      const dead = views.get(w.unit);
+      const partner = views.get(w.partner);
+      if (dead) {
+        const p = this.layout.center(dead.pos.col, dead.pos.row);
+        this.lines.lineStyle(4, COLORS.REVIVE, 0.9);
+        this.lines.strokeCircle(p.x, p.y, LAYOUT.UNIT_RADIUS * (1.6 - 0.6 * w.progress));
+        this.lines.lineStyle(2, COLORS.REVIVE, 0.5 + 0.3 * pulse);
+        this.lines.strokeCircle(p.x, p.y, LAYOUT.UNIT_RADIUS + 6);
+        this.reviveLabel(`dead:${w.unit}`, shown, p.x, p.y - 56, `부활까지 ${w.remaining.toFixed(1)}초`, TEXT_COLORS.REVIVE);
+      }
+      if (partner && partner.alive) {
+        const p = this.layout.center(partner.pos.col, partner.pos.row);
+        this.lines.lineStyle(4, COLORS.TELEGRAPH, 0.6 + 0.4 * pulse);
+        this.lines.strokeCircle(p.x, p.y, LAYOUT.UNIT_RADIUS + 12 + 3 * pulse);
+        this.reviveLabel(`partner:${w.unit}`, shown, p.x, p.y - 70, `${w.remaining.toFixed(1)}초 안에 처치!`, TEXT_COLORS.OVERHEAT);
+      }
+    }
+    for (const [key, label] of this.reviveLabels) {
+      if (shown.has(key)) continue;
+      label.destroy();
+      this.reviveLabels.delete(key);
+    }
+  }
+
+  private reviveLabel(key: string, shown: Set<string>, x: number, y: number, text: string, color: string): void {
+    shown.add(key);
+    let label = this.reviveLabels.get(key);
+    if (!label) {
+      label = createText(this.scene, this.metrics, 0, 0, text, {
+        fontSize: '18px',
+        fontStyle: 'bold',
+        color,
+        stroke: '#000000',
+        strokeThickness: 4,
+      })
+        .setOrigin(0.5)
+        .setDepth(26);
+      this.reviveLabels.set(key, label);
+    }
+    label.setText(text).setColor(color).setPosition(x, y);
+  }
+
+  /** 부활 순간: 되살아난 자리에서 퍼지는 보라색 링과 번쩍임 */
+  private drawReviveFlash(uid: number, views: ReadonlyMap<number, UnitView>, progress: number): void {
+    const v = views.get(uid);
+    if (!v) return;
+    const p = this.layout.center(v.pos.col, v.pos.row);
+    this.lines.fillStyle(COLORS.REVIVE_FLASH, 0.55 * (1 - progress));
+    this.lines.fillCircle(p.x, p.y, LAYOUT.UNIT_RADIUS + 6);
+    this.lines.lineStyle(6, COLORS.REVIVE, 1 - progress);
+    this.lines.strokeCircle(p.x, p.y, LAYOUT.UNIT_RADIUS + 10 + 46 * progress);
+  }
+
+  /** 버프 해제: 아군 위에서 바깥으로 흩어지는 하늘색 링 */
+  private drawDispel(uid: number, views: ReadonlyMap<number, UnitView>, progress: number): void {
+    const v = views.get(uid);
+    if (!v) return;
+    const p = this.layout.center(v.pos.col, v.pos.row);
+    this.lines.lineStyle(5, COLORS.DISPEL, 1 - progress);
+    this.lines.strokeCircle(p.x, p.y, LAYOUT.UNIT_RADIUS + 4 + 36 * progress);
+    this.lines.lineStyle(2, COLORS.DISPEL, 0.8 * (1 - progress));
+    this.lines.strokeCircle(p.x, p.y, LAYOUT.UNIT_RADIUS + 18 + 20 * progress);
   }
 
   /** 낙하 중인 운석: 착탄 범위를 주황으로 칠하고, 수축하는 링과 위에서 내려오는 불덩이를 그린다 */

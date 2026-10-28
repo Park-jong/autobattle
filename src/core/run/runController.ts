@@ -22,7 +22,7 @@ import { EncounterPlanner, type EncounterPlan } from './encounterPlanner';
 import { EventDirector, type ChoiceView, type EventHost, type EventSessionState, type PendingPick } from './eventDirector';
 import { PlayerForces } from './forces';
 import { MapGenerator } from './mapGenerator';
-import type { MapNode, RunMap } from './runMap';
+import { globalFloor, type MapNode, type RunMap } from './runMap';
 import { RelicRewardGenerator, type ShopRelicSlot } from './relicRewards';
 import { RunRoster } from './runRoster';
 import { RunSerializer, type RunSave } from './runSerializer';
@@ -45,6 +45,8 @@ export interface RunOptions {
   /** 시작 지휘관 (생략하면 하르텐) */
   commanderId?: string;
   deckPreset?: DeckPreset;
+  /** 전체 액트 수 (기본 3, 1이면 액트 1 보스 처치가 곧 승리 — 헤드리스 회귀 비교용) */
+  acts?: number;
 }
 
 export type RunResult = { ok: true } | { ok: false; reason: string };
@@ -99,11 +101,13 @@ export interface CampView {
 const kindOf = (node: MapNode): BattleKind => (node.type === 'combat' ? 'normal' : node.type === 'elite' ? 'elite' : 'boss');
 
 /**
- * 1액트 런의 상태 머신. 맵 선택 → 노드 입장 → 노드 처리 → 결과 적용 → 다음 선택을 진행한다.
+ * 3액트 런의 상태 머신. 맵 선택 → 노드 입장 → 노드 처리 → 결과 적용 → 다음 선택을 진행한다.
+ * 액트 보스를 쓰러뜨리면 (마지막 액트가 아닐 때) 보스 유물 선택 → 다음 액트 소개 → 새 액트의 맵으로 이어지고,
+ * 마지막 액트의 보스를 쓰러뜨리면 승리로 끝난다. 경제(골드·로스터·덱·장비·유물)는 액트 사이에 그대로 유지된다.
  * 전투 실행은 CombatSimulator가 맡고, 이 클래스는 전투 입력(편성·덱·적 보정·시드)을 만들어 주고
  * 끝난 시뮬을 받아 골드·지휘관 HP·덱·장비·다음 단계에 반영한다. Phaser·DOM 비의존.
  *
- * 단계: map → (battlePrep → battle → reward | map | battlePrep(보스 재도전) | ended) / shop / event / camp → map … → ended
+ * 단계: map → (battlePrep → battle → reward | map | battlePrep(보스 재도전) | bossRelic → actIntro → map | ended) / shop / event / camp → map … → ended
  * 저장은 단계가 map일 때와 노드 입장 직후를 포함한 모든 비전투 시점에 할 수 있다 (battle은 battlePrep으로 저장).
  */
 export class RunController {
@@ -139,6 +143,10 @@ export class RunController {
     if (!commander) throw new Error(`알 수 없는 지휘관 "${commanderId}"`);
     const preset = options.deckPreset ?? 'starter';
     const seed = normalizeRunSeed(options.seed); // 이후 모든 파생은 저장되는 값과 같은 시드를 쓴다
+    const totalActs = options.acts ?? RUN.ACTS.COUNT;
+    if (!Number.isInteger(totalActs) || totalActs < 1 || totalActs > RUN.ACTS.COUNT) {
+      throw new Error(`액트 수는 1~${RUN.ACTS.COUNT}의 정수여야 합니다 (실제: ${totalActs})`);
+    }
     const forces = PlayerForces.create(
       deps.units, deps.cards, commander,
       { management: deriveSeed(seed, 'management'), deck: deriveSeed(seed, 'deck') },
@@ -146,7 +154,7 @@ export class RunController {
       deps.relics,
     );
     const health = new CommanderHealth(commander.maxHp ?? RUN.START_HP);
-    const state = new RunState(seed, commander.id, preset, new MapGenerator().generate(seed), health, forces);
+    const state = new RunState(seed, commander.id, preset, [new MapGenerator().generate(seed, 1)], health, forces, totalActs);
     return new RunController(deps, state);
   }
 
@@ -165,7 +173,14 @@ export class RunController {
   get phase(): RunPhase { return this.state.phase; }
   get outcome(): RunOutcome | null { return this.state.outcome; }
   get seed(): number { return this.state.seed; }
+  /** 지금 액트의 맵 */
   get map(): RunMap { return this.state.map; }
+  /** 지금 액트 (1부터) */
+  get act(): number { return this.state.act; }
+  /** 이 런의 전체 액트 수 */
+  get totalActs(): number { return this.state.totalActs; }
+  /** 지금 액트의 이름·지역 */
+  get actInfo(): { name: string; region: string; text: string } { return RUN.ACTS.INFO[this.state.act - 1] as { name: string; region: string; text: string }; }
   get commander(): CommanderDef { return this.deps.commanders.get(this.state.commanderId) as CommanderDef; }
   get hp(): number { return this.state.health.hp; }
   get maxHp(): number { return this.state.health.max; }
@@ -180,12 +195,18 @@ export class RunController {
   get relics(): RelicDef[] { return this.state.forces.relics.defs(); }
 
   /**
-   * 보스를 쓰러뜨린 런에서 고를 수 있는 보스 유물 후보 (런 시드에서 결정적, 없는 유물만).
-   * 액트 1 보스 이후 런이 끝나므로 지금은 종료 화면에 보여 줄 뿐 받을 수는 없다 (액트 2부터 연결 예정).
+   * 승리로 끝난 런에서 마지막 보스 처치 때 받을 수 있었던 보스 유물 후보 (런 시드에서 결정적, 없는 유물만).
+   * 런이 끝났으므로 받을 수는 없고 종료 화면에 보여 줄 뿐이다. 마지막이 아닌 액트의 보스는 bossRelic 단계에서 실제로 고른다.
    */
   bossRelicOffer(): string[] {
     if (this.state.outcome !== 'victory') return [];
-    return this.relicRewards.offerBoss(this.state.forces.relics.ids, new Rng(deriveSeed(this.state.seed, 'bossrelic')));
+    return this.relicRewards.offerBoss(this.state.forces.relics.ids, this.bossRelicRng());
+  }
+
+  /** 보스 유물 후보 뽑기용 Rng: 액트 1은 기존 파생 그대로, 액트 2부터는 액트 번호를 더한다 */
+  private bossRelicRng(): Rng {
+    const { seed, act } = this.state;
+    return new Rng(act === 1 ? deriveSeed(seed, 'bossrelic') : deriveSeed(seed, 'bossrelic', act));
   }
 
   /** 현재(마지막으로 입장한) 노드. 시작 직후는 null */
@@ -193,7 +214,7 @@ export class RunController {
     return this.state.currentNodeId === null ? null : (this.state.map.node(this.state.currentNodeId) ?? null);
   }
 
-  /** 도달한 최고 층 (아직 입장 전이면 0) */
+  /** 지금 액트에서 도달한 최고 층 (이 액트에서 입장한 노드가 아직 없으면 0) */
   get floorReached(): number {
     return this.state.visited.reduce((max, id) => Math.max(max, this.state.map.node(id)?.floor ?? 0), 0);
   }
@@ -203,18 +224,20 @@ export class RunController {
   /** 지금 고를 수 있는 노드 (map 단계에서만) */
   availableNodes(): MapNode[] {
     if (this.state.phase !== 'map') return [];
-    return this.state.currentNodeId === null ? [...this.state.map.startNodes()] : this.state.map.nextNodes(this.state.currentNodeId);
+    // 현재 위치가 지금 맵에 없으면(시작 전, 또는 지난 액트의 보스) 지금 맵의 1층에서 고른다
+    const here = this.currentNode;
+    return here === null ? [...this.state.map.startNodes()] : this.state.map.nextNodes(here.id);
   }
 
   /** 노드의 적 편성 미리보기 (전투·정예·보스가 아니면 null). 실제 전투가 쓰는 계획과 같다 */
   previewNode(nodeId: string): EncounterPlan | null {
     const node = this.state.map.node(nodeId);
-    return node ? this.planner.plan(node) : null;
+    return node ? this.planner.plan(node, this.state.act) : null;
   }
 
   /** 다음에 고를 수 있는 노드들의 미리보기 */
   previewAvailable(): { node: MapNode; plan: EncounterPlan | null }[] {
-    return this.availableNodes().map((node) => ({ node, plan: this.planner.plan(node) }));
+    return this.availableNodes().map((node) => ({ node, plan: this.planner.plan(node, this.state.act) }));
   }
 
   chooseNode(nodeId: string): RunResult {
@@ -233,7 +256,7 @@ export class RunController {
   /** 현재 전투 노드의 적 편성 계획 */
   battlePlan(): EncounterPlan {
     const node = this.requireBattleNode();
-    return this.planner.plan(node) as EncounterPlan;
+    return this.planner.plan(node, this.state.act) as EncounterPlan;
   }
 
   /** 현재 전투의 시드: (런 시드, 노드, 시도 횟수)에서 파생 */
@@ -279,7 +302,8 @@ export class RunController {
   /**
    * 끝난 전투를 런에 정산한다. 같은 전투는 한 번만 정산된다 (단계가 바뀌고 전투 ID가 골드 계정에도 기록됨).
    * 골드(전투 종류별) → 카드로 잃은 HP → 패배/무승부면 패배 피해 → 덱·장비 이어받기 → 다음 단계:
-   * 사망 → ended / 보스 승리 → ended(승리) / 승리 → reward / 보스 패배 → battlePrep(재도전) / 그 외 패배 → map
+   * 사망 → ended / 마지막 액트의 보스 승리 → ended(승리) / 그 외 보스 승리 → bossRelic(후보가 없으면 바로 actIntro) /
+   * 승리 → reward / 보스 패배 → battlePrep(재도전) / 그 외 패배 → map
    * createSimulator가 현재 노드·시도에 발급한 시뮬만 받는다 (다른 노드·이전 시도·다른 컨트롤러의 시뮬, 이미 정산한 시뮬은 거부).
    */
   completeBattle(sim: CombatSimulator): SettleResult {
@@ -310,7 +334,7 @@ export class RunController {
       const survivorTierSum = result.survivors
         .filter((u) => u.side === 1 && !u.temporary)
         .reduce((sum, u) => sum + (this.deps.units.get(u.unitId)?.tier ?? 0), 0);
-      defeat = defeatDamage({ survivorTierSum, floor: node.floor, kind });
+      defeat = defeatDamage({ survivorTierSum, floor: globalFloor(this.state.act, node.floor), kind });
       health.damage(defeat);
     }
     // 지휘관 패시브(녹스): 승리하면 남은 CP 1당 골드. 유물(강철 심장): 승리하면 HP 회복
@@ -330,14 +354,26 @@ export class RunController {
     });
 
     let runEnded: RunOutcome | null = null;
+    let actCleared: number | null = null;
+    let bossOffer: string[] | null = null;
     let cardOffer: string[] | null = null;
     let relicOffer: string | null = null;
     if (health.dead) {
       runEnded = 'dead';
       this.finish('dead');
-    } else if (outcome === 'win' && kind === 'boss') {
+    } else if (outcome === 'win' && kind === 'boss' && this.state.act >= this.state.totalActs) {
       runEnded = 'victory';
       this.finish('victory');
+    } else if (outcome === 'win' && kind === 'boss') {
+      actCleared = this.state.act;
+      const offer = this.relicRewards.offerBoss(forces.relics.ids, this.bossRelicRng());
+      if (offer.length > 0) {
+        bossOffer = [...offer];
+        this.state.session = { kind: 'bossRelic', offer };
+        this.state.phase = 'bossRelic';
+      } else {
+        this.advanceAct();
+      }
     } else if (outcome === 'win') {
       const choices = RUN.REWARD.CHOICES + forces.relics.sum('rewardChoices', (e) => e.amount);
       cardOffer = this.rewards.offer(kind, new Rng(deriveSeed(this.state.seed, 'reward', node.id, session.tries)), choices);
@@ -352,7 +388,7 @@ export class RunController {
     } else {
       this.toMap();
     }
-    return { ok: true, settlement: { nodeId: node.id, kind, outcome, reward, cardHpLost, defeatDamage: defeat, passiveGold, healed, hpBefore, hpAfter: health.hp, runEnded, cardOffer, relicOffer } };
+    return { ok: true, settlement: { nodeId: node.id, kind, outcome, reward, cardHpLost, defeatDamage: defeat, passiveGold, healed, hpBefore, hpAfter: health.hp, runEnded, actCleared, bossRelicOffer: bossOffer, cardOffer, relicOffer } };
   }
 
   /** 준비 단계에서 장비·카드 사용으로 바뀐 장비를 로스터에 확정한다 (준비 화면 재구성 시 카드가 복구되지 않도록) */
@@ -363,6 +399,40 @@ export class RunController {
       }
     }
     this.state.forces.syncEquipment(sim.equippedItems);
+  }
+
+  // ---- 보스 유물 / 액트 전환 ----
+
+  /** 보스 유물 후보 (bossRelic 단계에서만) */
+  bossRelicChoices(): string[] {
+    const session = this.state.session;
+    return session?.kind === 'bossRelic' ? [...session.offer] : [];
+  }
+
+  /** 보스 유물 후보 중 하나를 받고 다음 액트로 넘어간다 (회복 → actIntro) */
+  claimBossRelic(index: number): RunResult {
+    const session = this.state.session;
+    if (session?.kind !== 'bossRelic') return fail('고를 보스 유물이 없습니다');
+    const relicId = session.offer[index];
+    if (relicId === undefined) return fail('올바른 보스 유물을 고르세요');
+    if (this.state.forces.relics.has(relicId)) return fail('이미 가진 유물입니다');
+    this.acquireRelic(relicId);
+    this.advanceAct();
+    return OK;
+  }
+
+  /** 보스 유물을 받지 않고 다음 액트로 넘어간다 */
+  skipBossRelic(): RunResult {
+    if (this.state.session?.kind !== 'bossRelic') return fail('건너뛸 보스 유물 선택이 없습니다');
+    this.advanceAct();
+    return OK;
+  }
+
+  /** 액트 소개를 확인하고 새 액트의 맵으로 간다 */
+  continueAct(): RunResult {
+    if (this.state.session?.kind !== 'actIntro') return fail('액트 소개 화면이 아닙니다');
+    this.toMap();
+    return OK;
   }
 
   // ---- 카드 보상 ----
@@ -591,6 +661,19 @@ export class RunController {
   private toMap(): void {
     this.state.session = null;
     this.state.phase = 'map';
+  }
+
+  /**
+   * 다음 액트로 넘어간다: 새 맵(시드·액트에서 파생)을 붙이고 지휘관 HP를 최대 HP의 TRANSITION_HEAL_PCT%(올림)만큼 회복한다.
+   * 골드·로스터·덱·장비·유물은 그대로다. 회복 결과는 actIntro 세션에 담겨 소개 화면에 표시된다.
+   */
+  private advanceAct(): void {
+    const { health, maps } = this.state;
+    maps.push(new MapGenerator().generate(this.state.seed, maps.length + 1));
+    const hpBefore = health.hp;
+    const healed = health.heal(Math.ceil((health.max * RUN.ACTS.TRANSITION_HEAL_PCT) / 100));
+    this.state.session = { kind: 'actIntro', hpBefore, healed };
+    this.state.phase = 'actIntro';
   }
 
   private finish(outcome: RunOutcome): void {

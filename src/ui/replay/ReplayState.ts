@@ -75,7 +75,15 @@ export type ReplayEffect =
   /** 궁극기 발동 (배너) */
   | { kind: 'ultimate'; seq: number; t: number; commanderId: string; name: string; durationSeconds: number }
   /** 궁극기 운석 착탄 (번쩍임) */
-  | { kind: 'impact'; seq: number; t: number; id: number; cell: Cell; radius: number };
+  | { kind: 'impact'; seq: number; t: number; id: number; cell: Cell; radius: number }
+  /** 쌍둥이 보스 부활 (되살아난 유닛 자리에 링) */
+  | { kind: 'revive'; seq: number; t: number; unit: number }
+  /** 쌍둥이 보스를 제한 시간 안에 둘 다 처치해 부활이 취소됨 */
+  | { kind: 'reviveCancel'; seq: number; t: number; unit: number }
+  /** 보스 페이즈 전환 (배너): 증원 수와 버프가 해제된 아군 수 */
+  | { kind: 'phase'; seq: number; t: number; unit: number; phase: number; hpPct: number; summoned: number; dispelled: number }
+  /** 페이즈 전환으로 유닛의 버프가 해제됨 (유닛 위 링) */
+  | { kind: 'dispel'; seq: number; t: number; unit: number };
 
 /** 지금 하늘에서 떨어지는 중인 궁극기 운석 한 발 */
 export interface MeteorView {
@@ -105,6 +113,20 @@ export interface TelegraphView {
   startedAt: number;
   fireAt: number;
   /** 예고 진행률 0~1 (발동 시 1) */
+  progress: number;
+}
+
+/** 지금 부활 대기 중인 쌍둥이 보스 한쪽: 짝(partner)을 fireAt까지 쓰러뜨리지 못하면 unit이 부활한다 */
+export interface ReviveWatchView {
+  /** 죽어 있는 쪽 */
+  unit: number;
+  /** 제한 시간 안에 처치해야 하는 짝 */
+  partner: number;
+  startedAt: number;
+  fireAt: number;
+  /** 남은 시간(초) */
+  remaining: number;
+  /** 경과 비율 0~1 */
   progress: number;
 }
 
@@ -175,6 +197,8 @@ export class ReplayState {
   private openTelegraphs = new Map<number, Extract<ReplayEffect, { kind: 'telegraph' }>>();
   /** 아직 떨어지지 않은 궁극기 운석 (id 기준) */
   private openMeteors = new Map<number, { id: number; cell: Cell; radius: number; startedAt: number; fireAt: number }>();
+  /** 부활 대기 중인 쌍둥이 (죽은 쪽 uid 기준) */
+  private openRevives = new Map<number, { unit: number; partner: number; startedAt: number; fireAt: number }>();
   private aura: UltimateAuraView | null = null;
 
   constructor(private readonly events: readonly CombatEvent[]) {
@@ -193,6 +217,7 @@ export class ReplayState {
     this.lastCardUnitTarget = null;
     this.openTelegraphs = new Map();
     this.openMeteors = new Map();
+    this.openRevives = new Map();
     this.aura = null;
     this.advanceTo(0);
   }
@@ -264,6 +289,18 @@ export class ReplayState {
       if (t >= m.fireAt - EPS) continue;
       const span = Math.max(EPS, m.fireAt - m.startedAt);
       out.push({ ...m, progress: Math.min(1, Math.max(0, (t - m.startedAt) / span)) });
+    }
+    return out;
+  }
+
+  /** 현재 시각에 부활 대기 중인 쌍둥이 (제한 시간 안에 짝을 처치해야 한다). 남은 시간이 0이 되면 목록에서 빠진다 */
+  reviveWatches(): ReviveWatchView[] {
+    const t = this.currentTime;
+    const out: ReviveWatchView[] = [];
+    for (const w of this.openRevives.values()) {
+      if (t >= w.fireAt - EPS) continue;
+      const span = Math.max(EPS, w.fireAt - w.startedAt);
+      out.push({ ...w, remaining: w.fireAt - t, progress: Math.min(1, Math.max(0, (t - w.startedAt) / span)) });
     }
     return out;
   }
@@ -436,6 +473,42 @@ export class ReplayState {
         this.effects.push({ kind: 'impact', seq, t: e.t, id: e.id, cell: e.cell, radius: e.radius });
         break;
 
+      case 'reviveTelegraph':
+        this.openRevives.set(e.unit, { unit: e.unit, partner: e.partner, startedAt: e.t, fireAt: e.fireAt });
+        break;
+      case 'reviveCancel':
+        this.openRevives.delete(e.unit);
+        this.effects.push({ kind: 'reviveCancel', seq, t: e.t, unit: e.unit });
+        break;
+      case 'revive': {
+        this.openRevives.delete(e.unit);
+        const u = this.units.get(e.unit);
+        if (u) {
+          u.alive = true;
+          u.deadAt = null;
+          u.deathPos = null;
+          u.hp = e.hp;
+          u.maxHp = e.maxHp;
+          u.mana = 0;
+          u.cell = e.cell;
+          u.move = null;
+          u.slide = null;
+          u.shields = [];
+          u.statuses.clear();
+        }
+        this.effects.push({ kind: 'revive', seq, t: e.t, unit: e.unit });
+        break;
+      }
+      case 'bossPhase':
+        this.effects.push({ kind: 'phase', seq, t: e.t, unit: e.unit, phase: e.phase, hpPct: e.hpPct, summoned: e.summoned.length, dispelled: e.dispelled });
+        break;
+      case 'dispel': {
+        const u = this.units.get(e.unit);
+        if (u) this.dispel(u, e.statuses);
+        this.effects.push({ kind: 'dispel', seq, t: e.t, unit: e.unit });
+        break;
+      }
+
       case 'overheat':
         this.overheatStarted = true;
         this.effects.push({ kind: 'overheat', seq, t: e.t });
@@ -457,6 +530,28 @@ export class ReplayState {
       left -= used;
     }
     u.shields = u.shields.filter((s) => s.amount > 0);
+  }
+
+  /**
+   * 버프 해제: 보호막은 전부, 나머지는 이로운 항목만 지운다 (스탯 감소·받는 피해 증가 같은 불리한 항목은 남긴다).
+   * statusApplied의 value가 증가 폭(stat 증감 > 0)·배율(< 1)이므로 그 기준으로 가른다.
+   */
+  private dispel(u: MutableUnit, statuses: readonly string[]): void {
+    for (const name of statuses) {
+      if (name === 'shield') {
+        u.shields = [];
+        continue;
+      }
+      const list = u.statuses.get(name);
+      if (!list) continue;
+      const kept = list.filter((s) => {
+        if (name.startsWith('statMod:')) return s.value !== undefined && s.value <= 0;
+        if (name === 'damageTakenMult') return s.value !== undefined && s.value >= 1;
+        return false;
+      });
+      if (kept.length === 0) u.statuses.delete(name);
+      else u.statuses.set(name, kept);
+    }
   }
 
   private removeStatus(u: MutableUnit, status: string, t: number): void {

@@ -145,3 +145,24 @@ export class Board {
     }
   }
 }
+
+/**
+ * from에 가장 가까운(체비쇼프) 빈 칸을 side 진영 영역 안에서 찾는다. from이 비어 있으면 from.
+ * 같은 거리면 (열, 행) 오름차순 — 결정론. 빈 칸이 없으면 null.
+ */
+export function nearestFreeCell(board: Board, from: Cell, side: Side): Cell | null {
+  let best: Cell | null = null;
+  let bestDistance = Infinity;
+  for (let col = 0; col < BOARD_COLS; col++) {
+    for (let row = 0; row < BOARD_ROWS; row++) {
+      const cell = { col, row };
+      if (!isInOwnHalf(side, cell) || !board.isFree(cell)) continue;
+      const distance = chebyshev(cell, from);
+      if (distance < bestDistance) {
+        best = cell;
+        bestDistance = distance;
+      }
+    }
+  }
+  return best;
+}

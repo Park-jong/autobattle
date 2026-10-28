@@ -8,7 +8,7 @@ import type {
   BattleScreenInfo, BattleStage, RunCommands, RunNotice, RunScreenId, RunSnapshot, RunViewSource, StartInfo,
 } from './contracts';
 import {
-  buildCampView, buildCommanderChoices, buildEncounterPreview, buildEndView, buildEventView, buildHud, buildMapView, buildRewardView, buildSettlementView,
+  buildActIntroView, buildBossRelicView, buildCampView, buildCommanderChoices, buildEncounterPreview, buildEndView, buildEventView, buildHud, buildMapView, buildRewardView, buildSettlementView,
   buildShopView, type EncounterPreviewView,
 } from './runViews';
 
@@ -85,6 +85,8 @@ export class RunSession implements RunViewSource, RunCommands {
       case 'battlePrep':
       case 'battle': return 'battle';
       case 'reward': return 'reward';
+      case 'bossRelic': return 'bossRelic';
+      case 'actIntro': return 'actIntro';
       case 'shop': return 'shop';
       case 'event': return 'event';
       case 'camp': return 'camp';
@@ -107,6 +109,8 @@ export class RunSession implements RunViewSource, RunCommands {
       map: live && screen === 'map' ? buildMapView(run) : null,
       battle: live && screen === 'battle' ? this.battleInfo(run) : null,
       reward: live && screen === 'reward' ? buildRewardView(run, this.cards, this.o.deps.relics) : null,
+      bossRelic: live && screen === 'bossRelic' ? buildBossRelicView(run, this.o.deps.relics) : null,
+      actIntro: live && screen === 'actIntro' ? buildActIntroView(run) : null,
       shop: live && shopView ? buildShopView(shopView, run.gold, this.cards, this.o.deps.relics) : null,
       event: live && eventView ? buildEventView(eventView, run, this.cards) : null,
       camp: live && campView ? buildCampView(campView, run, this.cards, this.units) : null,
@@ -205,6 +209,9 @@ export class RunSession implements RunViewSource, RunCommands {
   claimReward(index: number): void { this.run((run) => this.withRelic(run, () => run.claimReward(index))); }
   skipReward(): void { this.run((run) => this.withRelic(run, () => run.skipReward())); }
   claimRelic(): void { this.run((run) => run.claimRelic()); }
+  claimBossRelic(index: number): void { this.run((run) => run.claimBossRelic(index)); }
+  skipBossRelic(): void { this.run((run) => run.skipBossRelic()); }
+  continueAct(): void { this.run((run) => run.continueAct()); }
   buyShopCard(slot: number): void { this.run((run) => run.buyShopCard(slot)); }
   buyShopRelic(slot: number): void { this.run((run) => run.buyShopRelic(slot)); }
   removeCard(instanceId: number): void { this.run((run) => run.removeCardForGold(instanceId)); }

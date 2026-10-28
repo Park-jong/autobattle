@@ -7,7 +7,7 @@ type FreeType = Exclude<NodeType, 'boss'>;
 const FREE_TYPES: readonly FreeType[] = ['combat', 'elite', 'shop', 'event', 'camp'];
 
 /**
- * 13층 분기 맵 생성기. 같은 시드면 같은 맵이다 (맵 전용 Rng 사용).
+ * 한 액트의 13층 분기 맵 생성기. 같은 (시드, 액트)면 같은 맵이다 (맵 전용 Rng 사용).
  *
  * 구조: 층 1~12는 노드 2~4개, 13층은 보스 1개. 인접한 두 층은 가로 순서를 유지하는(교차 없는) 간선으로 잇는다.
  * 노드 수가 많은 쪽의 노드마다 반대쪽 노드 하나에 연결하는 단조 전사(全射)로 모든 노드의 연결을 보장하고
@@ -18,8 +18,9 @@ const FREE_TYPES: readonly FreeType[] = ['combat', 'elite', 'shop', 'event', 'ca
  * 정예는 4층 이상, 간선으로 이어진 두 노드가 모두 상점/야영지인 경우 금지 (할당이 막히면 규칙을 지키는 다른 종류로 대체).
  */
 export class MapGenerator {
-  generate(seed: number): RunMap {
-    const rng = new Rng(deriveSeed(seed, 'map'));
+  /** act 1은 기존과 같은 시드 파생(deriveSeed(seed, 'map')), 액트 2부터는 액트 번호를 더해 파생한다 */
+  generate(seed: number, act = 1): RunMap {
+    const rng = new Rng(act === 1 ? deriveSeed(seed, 'map') : deriveSeed(seed, 'map', act));
     const { FLOORS, MIN_NODES, MAX_NODES, CAMP_FLOOR, BOSS_FLOOR } = RUN.MAP;
 
     const counts = Array.from({ length: FLOORS }, (_, f) => (f + 1 === BOSS_FLOOR ? 1 : rng.int(MIN_NODES, MAX_NODES)));
@@ -35,15 +36,15 @@ export class MapGenerator {
 
     const floors: MapNode[][] = counts.map((count, f) =>
       Array.from({ length: count }, (_, i) => ({
-        id: nodeId(f + 1, i),
+        id: nodeId(f + 1, i, act),
         floor: f + 1,
         index: i,
         x: (i + 0.5) / count,
         type: types[f]?.[i] as NodeType,
-        next: (edges[f]?.[i] ?? []).map((j) => nodeId(f + 2, j)),
+        next: (edges[f]?.[i] ?? []).map((j) => nodeId(f + 2, j, act)),
       })),
     );
-    const map = new RunMap(floors);
+    const map = new RunMap(floors, act);
     map.assertValid();
     return map;
   }

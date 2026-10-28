@@ -212,3 +212,13 @@
 .run-relic-claimed { color: #9be29b; margin: 0; }
 .run-relic-shelf { display: flex; flex-wrap: wrap; gap: 14px; }
 .run-relic-offer { display: flex; flex-direction: column; gap: 6px; }
+
+/* 액트 (M5-1): 맵 위 액트 제목, HUD 액트 칸, 액트 소개, 보스 패턴 설명 */
+.run-hud-act .run-hud-value { color: #ffd54a; }
+.run-act-bar { padding: 4px 12px 0; }
+.run-act-name { font-size: 18px; margin: 0; color: #ffd54a; }
+.run-act-intro { max-width: 760px; padding: 14px 16px; background: #1a1e2b; border: 1px solid #3a4152; border-radius: 8px; display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.run-act-heal { margin: 0; color: #9be29b; font-weight: 600; }
+.run-preview-patterns { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+.run-boss-pattern { display: flex; flex-direction: column; gap: 2px; padding: 6px 8px; background: #331a22; border: 1px solid #c01f3a; border-radius: 4px; font-size: 12px; }
+.run-boss-pattern strong { color: #ff8a8a; }

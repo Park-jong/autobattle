@@ -51,6 +51,10 @@ export const COLORS = {
   TELEGRAPH: 0xff3b30,
   STRIKE: 0xffe0d0,
   SWAP_TRAIL: 0x9be29b,
+  /** 쌍둥이 보스 부활 대기 / 부활, 군주 페이즈 전환의 버프 해제 */
+  REVIVE: 0xc27bff,
+  REVIVE_FLASH: 0xf0d9ff,
+  DISPEL: 0x9ad1ff,
   /** 궁극기: 운석 예고 / 착탄 / 지휘관별 지속 효과 표시 */
   METEOR: 0xff8a3d,
   METEOR_IMPACT: 0xfff0c0,
@@ -88,6 +92,8 @@ export const TEXT_COLORS = {
   OVERHEAT: '#ff5a4a',
   CARD_BANNER: '#fff2a8',
   ULTIMATE: '#ffb454',
+  REVIVE: '#d9a6ff',
+  PHASE: '#ff8a8a',
   CP: '#7fd6ff',
 } as const;
 
@@ -109,6 +115,11 @@ export const TIMING = {
   /** 궁극기 이름 배너 / 운석 착탄 번쩍임 */
   ULTIMATE_BANNER: 2.2,
   IMPACT_FLASH: 0.55,
+  /** 쌍둥이 부활 번쩍임 / 처치 확정 글자 / 군주 페이즈 배너 / 버프 해제 링 (EFFECT_WINDOW 이하) */
+  REVIVE_FLASH: 0.8,
+  REVIVE_CANCEL_TEXT: 1.4,
+  PHASE_BANNER: 2.4,
+  DISPEL_FLASH: 0.7,
   CP_TEXT: 1.2,
   /** 진형 교대 등 순간이동을 미끄러지듯 보여주는 시간 */
   SLIDE: 0.25,

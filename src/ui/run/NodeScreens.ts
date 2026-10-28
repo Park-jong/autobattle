@@ -2,7 +2,8 @@ import { deckPicker, cardChoice } from './cardElements';
 import type { RunCommands, RunSnapshot } from './contracts';
 import { button, el, tagged } from './dom';
 import { hudElement } from './hudElement';
-import { relicCard } from './relicElements';
+import { encounterPreviewElement } from './encounterPreview';
+import { relicCard, relicRow } from './relicElements';
 
 /** 노드 화면들이 공유하는 틀: 상단 상태 줄 + 제목 + 본문 */
 abstract class NodeScreen {
@@ -45,6 +46,47 @@ export class RewardScreen extends NodeScreen {
     }
     body.push(grid, skip);
     this.frame(snap, '보상', reward.source === 'elite' ? '정예를 쓰러뜨렸습니다. 유물과 카드 1장을 얻으세요.' : '승리! 카드 1장을 덱에 추가하세요.', body);
+  }
+}
+
+/** 보스 유물 선택: 후보 중 하나를 받고 다음 액트로 (건너뛸 수도 있다) */
+export class BossRelicScreen extends NodeScreen {
+  render(snap: RunSnapshot): void {
+    const view = snap.bossRelic;
+    if (!view) return;
+    const grid = tagged(el('div', 'run-relic-shelf'), 'boss-relic-choices');
+    view.relics.forEach((relic, index) => {
+      const box = el('div', 'run-relic-offer');
+      box.append(relicCard(relic), tagged(button('이 유물 받기', () => this.commands.claimBossRelic(index), 'dbg-btn dbg-primary run-choice-button'), `boss-relic-${index}`));
+      grid.append(box);
+    });
+    const owned = el('section', 'run-end-section');
+    owned.append(el('h3', '', `보유 유물 ${view.owned.length}개`), relicRow(view.owned, '없음'));
+    const body = [
+      grid,
+      tagged(button('받지 않고 다음 액트로', () => this.commands.skipBossRelic(), 'dbg-btn'), 'skip-boss-relic'),
+      owned,
+    ];
+    this.frame(snap, `액트 ${view.act} 클리어 — ${view.actName}`, '보스를 쓰러뜨렸습니다. 보스 유물을 하나 고르세요. 이 선택은 되돌릴 수 없습니다.', body);
+  }
+}
+
+/** 액트 소개: 새 액트의 지역·보스 소개와 액트 전환 회복 결과를 보여 주고 계속한다 */
+export class ActIntroScreen extends NodeScreen {
+  render(snap: RunSnapshot): void {
+    const view = snap.actIntro;
+    if (!view) return;
+    const card = tagged(el('div', 'run-act-intro'), 'act-intro');
+    card.append(
+      el('h3', 'run-act-name', `액트 ${view.act} / ${view.actCount} — ${view.name}`),
+      el('p', 'dbg-hint', `${view.region} · ${view.text}`),
+      tagged(el('p', 'run-act-heal', view.healed > 0
+        ? `야영을 마치고 숨을 돌렸습니다: 지휘관 HP ${view.hpBefore} → ${view.hpAfter} / ${view.maxHp} (+${view.healed})`
+        : `지휘관 HP ${view.hpAfter} / ${view.maxHp} (이미 가득 찼습니다)`), 'act-heal'),
+    );
+    if (view.boss) card.append(el('h4', '', '이 액트의 보스'), encounterPreviewElement(view.boss));
+    const go = tagged(button(`액트 ${view.act} 시작`, () => this.commands.continueAct(), 'dbg-btn dbg-primary run-big-button'), 'continue-act');
+    this.frame(snap, `액트 ${view.act} — ${view.name}`, '골드·유닛·덱·장비·유물은 그대로 이어집니다.', [card, go]);
   }
 }
 

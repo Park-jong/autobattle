@@ -46,7 +46,7 @@ export class StartScreen {
       const s = start.save.summary;
       const box = tagged(el('div', 'run-confirm'), 'confirm-new-run');
       box.append(
-        el('p', '', `진행 중인 런이 있습니다 (${s.floor}층 · HP ${s.hp}/${s.maxHp} · 시드 ${s.seed}). 새로 시작하면 저장본이 지워집니다.`),
+        el('p', '', `진행 중인 런이 있습니다 (액트 ${s.act} ${s.floor}층 · HP ${s.hp}/${s.maxHp} · 시드 ${s.seed}). 새로 시작하면 저장본이 지워집니다.`),
         tagged(button('진행 중인 런을 지우고 새로 시작', () => this.submit(), 'dbg-btn dbg-primary run-big-button'), 'confirm-new-run-yes'),
         tagged(button('취소', () => this.cancelConfirm(), 'dbg-btn run-big-button'), 'confirm-new-run-no'),
       );
@@ -61,7 +61,7 @@ export class StartScreen {
     card.append(resume);
     if (save.kind === 'ok') {
       const s = save.summary;
-      card.append(el('p', 'dbg-hint', `${s.commanderName} · 시드 ${s.seed} · ${s.floor}층 · HP ${s.hp}/${s.maxHp} · ${s.gold}G`));
+      card.append(el('p', 'dbg-hint', `${s.commanderName} · 시드 ${s.seed} · 액트 ${s.act} ${s.floor}층 · HP ${s.hp}/${s.maxHp} · ${s.gold}G`));
     } else if (save.kind === 'none') {
       card.append(el('p', 'dbg-hint', '저장된 런이 없습니다.'));
     } else {

@@ -44,7 +44,7 @@ export class RunBattlePanel {
     const stage = info.stage;
 
     this.top.replaceChildren(
-      el('h1', 'dbg-title', `${info.plan.floor}층 ${info.plan.kindLabel}${info.attempt > 1 ? ` (${info.attempt}번째 도전)` : ''}`),
+      el('h1', 'dbg-title', `액트 ${info.plan.act} · ${info.plan.floor}층 ${info.plan.kindLabel}${info.attempt > 1 ? ` (${info.attempt}번째 도전)` : ''}`),
       hudElement(snap.hud),
     );
     this.errorBox.hidden = session.error === null;
@@ -91,6 +91,7 @@ export class RunBattlePanel {
     box.append(el('p', '', `지휘관 HP ${settlement.hpBefore} → ${settlement.hpAfter}`));
     if (settlement.runEnded === 'dead') box.append(el('p', 'run-settlement-hp', '지휘관이 쓰러졌습니다.'));
     if (settlement.runEnded === 'victory') box.append(el('p', 'run-settlement-win', '보스를 쓰러뜨렸습니다!'));
+    if (settlement.actCleared !== null) box.append(tagged(el('p', 'run-settlement-win', `액트 ${settlement.actCleared} 보스를 쓰러뜨렸습니다!`), 'act-cleared'));
     box.append(tagged(button(settlement.continueLabel, () => this.commands.continueAfterBattle(), 'dbg-btn dbg-primary run-big-button'), 'continue-battle'));
     this.result.replaceChildren(box);
   }

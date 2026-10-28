@@ -1,10 +1,11 @@
 import type { SaveStatus } from './RunSaveStore';
 import type {
-  CommanderChoiceView, CampScreenView, EncounterPreviewView, EndScreenView, EventScreenView, MapView, RewardView, RunHud, SettlementView, ShopScreenView,
+  ActIntroView, BossRelicView, CommanderChoiceView, CampScreenView, EncounterPreviewView, EndScreenView, EventScreenView, MapView, RewardView, RunHud,
+  SettlementView, ShopScreenView,
 } from './runViews';
 
 /** 지금 보여줄 화면 */
-export type RunScreenId = 'start' | 'map' | 'battle' | 'reward' | 'shop' | 'event' | 'camp' | 'ended' | 'debug';
+export type RunScreenId = 'start' | 'map' | 'battle' | 'reward' | 'bossRelic' | 'actIntro' | 'shop' | 'event' | 'camp' | 'ended' | 'debug';
 
 /** 전투 화면의 진행: 준비 → 재생 → 결과 */
 export type BattleStage = 'prep' | 'playing' | 'result';
@@ -45,6 +46,8 @@ export interface RunSnapshot {
   map: MapView | null;
   battle: BattleScreenInfo | null;
   reward: RewardView | null;
+  bossRelic: BossRelicView | null;
+  actIntro: ActIntroView | null;
   shop: ShopScreenView | null;
   event: EventScreenView | null;
   camp: CampScreenView | null;
@@ -80,6 +83,13 @@ export interface RunCommands {
   skipReward(): void;
   /** 정예 보상 유물을 받는다 (카드 보상을 고르거나 건너뛸 때도 함께 받는다) */
   claimRelic(): void;
+  // 보스 유물 선택 / 액트 소개
+  /** 보스 유물 후보 중 하나를 받고 다음 액트로 넘어간다 */
+  claimBossRelic(index: number): void;
+  /** 보스 유물을 받지 않고 다음 액트로 넘어간다 */
+  skipBossRelic(): void;
+  /** 액트 소개를 확인하고 새 액트의 맵으로 간다 */
+  continueAct(): void;
   // 상점
   buyShopCard(slot: number): void;
   buyShopRelic(slot: number): void;

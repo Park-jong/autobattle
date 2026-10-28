@@ -137,8 +137,8 @@ describe('저장 데이터 검증', () => {
     expect(restoreWith({ ...base(), format: 'other' })).toThrow(/run\.format/);
     expect(restoreWith({ ...base(), version: 99 })).toThrow(/run\.version: 지원하지 않는 저장 버전 99/);
     const missing = base();
-    delete missing.map;
-    expect(restoreWith(missing)).toThrow(/run\.map: 필수 필드 누락/);
+    delete missing.maps;
+    expect(restoreWith(missing)).toThrow(/run\.maps: 필수 필드 누락/);
     expect(restoreWith({ ...base(), extra: 1 })).toThrow(/run\.extra: 알 수 없는 필드/);
   });
 
@@ -169,8 +169,8 @@ describe('저장 데이터 검증', () => {
     badUnit.forces.management.owned[0].unitId = 'ghost';
     expect(restoreWith(badUnit)).toThrow(/run\.forces\.management\.owned\[0\]\.unitId/);
     const badMap = base();
-    badMap.map.floors[0][0].type = 'camp';
-    expect(restoreWith(badMap)).toThrow(/run\.map: 1층은 전투만/);
+    badMap.maps[0].floors[0][0].type = 'camp';
+    expect(restoreWith(badMap)).toThrow(/run\.maps\[0\]: 1층은 전투만/);
     const badSession = withBattle();
     badSession.session = { kind: 'battle', tries: -1 };
     expect(restoreWith(badSession)).toThrow(/run\.session\.tries/);
@@ -213,7 +213,7 @@ describe('저장 데이터 검증', () => {
   it('잘못된 저장 데이터는 복원에 실패해도 다른 런에 영향을 주지 않는다', () => {
     const run = newRun(5);
     const before = json(run);
-    expect(restoreWith({ ...base(), version: 3 })).toThrow();
+    expect(restoreWith({ ...base(), version: 4 })).toThrow();
     expect(json(run)).toBe(before);
   });
 });
@@ -232,7 +232,7 @@ describe('저장 데이터 일관성 검증', () => {
     return dump(run);
   };
   const otherNode = (save: any, excludeIds: string[], floor: number): string =>
-    save.map.floors[floor - 1].find((n: any) => !excludeIds.includes(n.id)).id;
+    save.maps[0].floors[floor - 1].find((n: any) => !excludeIds.includes(n.id)).id;
 
   it('위치: 현재 노드는 입장 기록의 마지막, 첫 노드는 1층, 연속 노드는 간선으로 이어진다', () => {
     const empty = firstBattle();
@@ -244,7 +244,7 @@ describe('저장 데이터 일관성 검증', () => {
     expect(restoreWith(mismatch)).toThrow(/run\.position\.currentNodeId/);
 
     const notFirstFloor = firstBattle();
-    const second = notFirstFloor.map.floors[1][0].id;
+    const second = notFirstFloor.maps[0].floors[1][0].id;
     notFirstFloor.position = { currentNodeId: second, visited: [second] };
     expect(restoreWith(notFirstFloor)).toThrow(/run\.position\.visited\[0\].*1층/);
 
@@ -254,8 +254,8 @@ describe('저장 데이터 일관성 검증', () => {
     run.skipReward();
     run.chooseNode(run.availableNodes()[0]!.id);
     const jump = dump(run);
-    const first = jump.map.floors[0].find((n: any) => n.id === jump.position.visited[0]);
-    const unreachable = jump.map.floors[1].find((n: any) => !first.next.includes(n.id));
+    const first = jump.maps[0].floors[0].find((n: any) => n.id === jump.position.visited[0]);
+    const unreachable = jump.maps[0].floors[1].find((n: any) => !first.next.includes(n.id));
     if (unreachable) {
       jump.position.visited[1] = unreachable.id;
       jump.position.currentNodeId = unreachable.id;

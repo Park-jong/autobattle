@@ -1,6 +1,6 @@
 import type { DamageType, EffectDef } from './effect';
 
-export const PATTERN_KINDS = ['columnStrike'] as const;
+export const PATTERN_KINDS = ['columnStrike', 'twinRevive', 'phaseSummon'] as const;
 export const SKILL_TARGETINGS = ['self', 'currentTarget', 'lowestHpEnemy', 'randomEnemies'] as const;
 export type SkillTargeting = (typeof SKILL_TARGETINGS)[number];
 
@@ -29,10 +29,18 @@ export interface SkillDef {
 }
 
 /**
- * 보스 전용 주기 패턴. 열 강타: 주기마다 telegraphSeconds 전에 대상 열을 예고하고,
+ * 보스 전용 패턴 (units.json의 `pattern`). 종류마다 필드가 다르다.
+ * - columnStrike: 주기 열 강타 (성문 파괴자)
+ * - twinRevive: 짝 유닛과 서로 부활시킴 (쌍둥이 주술사)
+ * - phaseSummon: HP 임계치마다 증원 소환 + 아군 버프 해제 (군단의 군주)
+ */
+export type UnitPattern = ColumnStrikePattern | TwinRevivePattern | PhaseSummonPattern;
+
+/**
+ * 열 강타: 주기마다 telegraphSeconds 전에 대상 열을 예고하고,
  * 발동 시점에 그 열의 상대 진영 유닛 전체에게 고정 피해를 준다 (공통 효과 flatDamage 사용).
  */
-export interface UnitPattern {
+export interface ColumnStrikePattern {
   kind: 'columnStrike';
   /** 발동 간격(초). 첫 발동도 전투 시작 후 이 시각 */
   intervalSeconds: number;
@@ -40,6 +48,37 @@ export interface UnitPattern {
   telegraphSeconds: number;
   damage: number;
   dmgType: DamageType;
+}
+
+/**
+ * 쌍둥이 부활: 이 유닛과 `partner`(같은 진영의 유닛 id)가 한 쌍이다. 한쪽이 죽으면 windowSeconds 안에
+ * 짝도 죽지 않는 한 죽은 쪽이 최대 HP의 reviveHpPct%로 부활한다. 둘 다 그 안에 죽어야 처치다.
+ */
+export interface TwinRevivePattern {
+  kind: 'twinRevive';
+  partner: string;
+  windowSeconds: number;
+  reviveHpPct: number;
+}
+
+/** 증원 한 기: 적 진영 칸에 소환된다 (칸이 차 있으면 가까운 빈 칸) */
+export interface PhaseSummonUnit {
+  unitId: string;
+  star: 1 | 2 | 3;
+  col: number;
+  row: number;
+}
+
+/** 보스 HP가 최대 HP의 hpPct% 이하가 되면 전환: 증원 소환 + 상대 진영의 버프 해제 */
+export interface BossPhase {
+  hpPct: number;
+  summon: PhaseSummonUnit[];
+}
+
+/** 페이즈 소환: phases는 hpPct 내림차순. 전투 시작이 1페이즈, 첫 임계치를 넘으면 2페이즈 … */
+export interface PhaseSummonPattern {
+  kind: 'phaseSummon';
+  phases: BossPhase[];
 }
 
 export interface UnitDef {
