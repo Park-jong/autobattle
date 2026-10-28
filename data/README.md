@@ -254,7 +254,7 @@ M2에서 추가된 유닛
 
 ### 단계(`RunPhase`)와 노드 처리
 `map → battlePrep → battle → reward | map | battlePrep(보스 재도전) | ended`, `map → shop | event | camp → map`.
-- 전투/정예/보스: 입장 시 유닛 상점 무료 갱신(잠금이면 1회 유지). 준비 단계에서 상점·배치·준비 카드 → `createSimulator()` → `beginBattle()` → 시뮬 실행 → `completeBattle(sim)`. 골드는 기존 `Economy`(일반/정예/보스 승리 5/8/15G, 패배·무승부 3G, 이자)로 전투 ID `노드#시도`당 한 번 정산.
+- 전투/정예/보스: 입장 시 유닛 상점 무료 갱신(잠금이면 1회 유지). 준비 단계에서 상점·배치·준비 카드 → `createSimulator()` → `beginBattle()` → 시뮬 실행 → `completeBattle(sim)`. 골드는 기존 `Economy`(일반/정예/보스 승리 5/8/15G, 패배·무승부 3G, 이자)로 전투 ID `노드#시도`당 한 번 정산. `completeBattle`은 `createSimulator`가 현재 노드·시도에 발급한 시뮬만 받는다 (발급 기록 없음·다른 노드/시도·이미 정산한 시뮬은 상태 변화 없이 거부).
 - 보스에서 지고 살아 있으면 같은 보스 노드에서 다시 도전(전투 시드·정산 ID가 달라짐). 일반·정예 패배는 보상 없이 다음 선택으로 넘어간다.
 - 승리 보상(보스 제외): 카드 3장 중 1장 선택/건너뛰기. 보스 처치 = 런 승리(`ended`, outcome `victory`), 지휘관 HP 0 = 사망(`dead`).
 
@@ -285,7 +285,7 @@ M2에서 추가된 유닛
 ### 저장 (`RunSave`)
 - `{ format: "autochess-run", version: 1, seed, commanderId, deckPreset, map, position, health, forces{economy, management, managementRng, carryDeck}, removals, seenEvents, phase, session, outcome, history }`.
 - 노드 단위 체크포인트: 맵 선택 단계, 노드 입장 직후, 상점/이벤트(카드 선택 대기 포함)/야영지/보상 화면 모두 저장할 수 있다. 전투 중간 저장은 없다 — `battle` 단계는 `battlePrep`으로 저장되어 복원하면 같은 준비 손패·같은 전투 시드로 전투 준비 단계에 돌아온다. 복원 후 같은 선택은 같은 결과를 낸다(골드 영수증·상점 Rng·덱 Rng 상태까지 저장).
-- 복원은 모든 필드를 검증하고 `run.forces.carryDeck.draw[0].cardId` 같은 경로가 담긴 한국어 오류를 던진다 (모르는 필드·버전 불일치·단계/세션 불일치 포함).
+- 복원은 모든 필드를 검증하고 `run.forces.carryDeck.draw[0].cardId` 같은 경로가 담긴 한국어 오류를 던진다 (모르는 필드·버전 불일치·단계/세션 불일치 포함). 필드 간 일관성도 검사한다: `currentNodeId`=입장 기록 마지막, 1층 시작·간선 연속·13개 이하, 단계↔현재 노드 종류(보상 종류 포함), 종료 전 HP 0 금지, 전투 `tries`=그 노드의 history 수, 상점 3칸·희귀도 가격, 이벤트 id=`seenEvents` 마지막(이벤트 노드 수만큼 기록), history 노드는 입장 기록에 포함.
 
 ### 헤드리스 자동 런
 `npm run run -- --seed 1 --n 20 [--path first|random] [--plan 파일|--no-cards] [--deck starter|test] [--verbose]` (`tools/run.ts`, 로직은 `AutoRunner`). 정책: 보드를 채우고 가장 싼 유닛 구매(인구가 차고 골드 ≥ 8이면 경험치), 카드 보상 첫 장, 이벤트는 선택 가능한 첫 선택지, 야영지는 HP 50% 미만이면 휴식 아니면 강화, 전투는 `tools/plans/harten-basic.json` 카드 계획. i번째 런의 시드는 `seed + i`.

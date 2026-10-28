@@ -262,23 +262,23 @@ describe('전투 정산', () => {
   });
 });
 
+/** 테스트 전용: 덱에 카드를 직접 넣는다 */
+const addDeckCard = (run: RunController, cardId: string): void => {
+  (run as unknown as { state: { forces: { addCard(id: string): void } } }).state.forces.addCard(cardId);
+};
+
 describe('심연의 계약 정산', () => {
   it('전투 중 카드로 잃은 지휘관 HP는 승리해도 런에서 차감된다', () => {
     const run = newRun(2);
     run.chooseNode(run.availableNodes()[0]!.id);
-    const plan = run.battlePlan();
-    const sim = new CombatSimulator(
-      {
-        seed: run.battleSeed(),
-        formations: [[{ unitId: 'iron_shieldbearer', star: 1, cell: { col: 3, row: 1 } }], plan.formation],
-        cards: { commander: harten, deck: handSnapshot(['abyss_pact']), commanderHp: run.hp },
-        enemy: plan.enemy,
-      },
-      units, traits, runDeps.cards,
-    );
+    // 발급된 시뮬만 정산되므로, 덱에 심연의 계약을 넉넉히 넣어 준비 손패에 들어오게 한다
+    for (let i = 0; i < 6; i++) addDeckCard(run, 'abyss_pact');
+    const sim = run.createSimulator();
+    const pact = sim.deck!.hand.find((card) => card.cardId === 'abyss_pact');
+    if (!pact) throw new Error('준비 손패에 심연의 계약이 없음');
     run.beginBattle();
     sim.startCombat();
-    expect(sim.playCard(1, { kind: 'none' }).ok).toBe(true);
+    expect(sim.playCard(pact.instanceId, { kind: 'none' }).ok).toBe(true);
     forceResult(sim, 'win');
     const result = run.completeBattle(sim);
     if (!result.ok) throw new Error(result.reason);
@@ -546,5 +546,121 @@ describe('야영지 노드 (택1)', () => {
     expect(run.campPromote(1).ok).toBe(false);
     expect(run.leaveCamp().ok).toBe(false);
     expect(RUN.CAMP.HEAL_PCT).toBe(30);
+  });
+});
+
+describe('정산 바인딩', () => {
+  /** 현재 전투를 끝낸 시뮬을 돌려준다 (정산 전) */
+  const finished = (run: RunController, result: 'win' | 'loss' | 'draw'): CombatSimulator => {
+    const sim = run.createSimulator();
+    run.beginBattle();
+    forceResult(sim, result);
+    return sim;
+  };
+  const snapshot = (run: RunController) => ({ hp: run.hp, gold: run.gold, history: run.history.length, phase: run.phase, tries: run.session });
+
+  it('보스 패배 sim을 재도전 준비 단계에서 다시 내도 HP·골드·기록이 바뀌지 않는다', () => {
+    const run = newRun(6);
+    driveTo(run, 'boss');
+    const sim = finished(run, 'loss');
+    expect(run.completeBattle(sim).ok).toBe(true);
+    expect(run.phase).toBe('battlePrep');
+    const before = snapshot(run);
+    const again = run.completeBattle(sim);
+    expect(again).toEqual({ ok: false, reason: '이미 정산한 전투입니다' });
+    expect(snapshot(run)).toEqual(before);
+  });
+
+  it('같은 sim을 3번 내도 HP는 한 번만 줄어든다', () => {
+    const run = newRun(6);
+    driveTo(run, 'boss');
+    const sim = finished(run, 'loss');
+    const hp = run.hp;
+    const records = run.history.length;
+    expect(run.completeBattle(sim).ok).toBe(true);
+    const afterFirst = run.hp;
+    expect(afterFirst).toBeLessThan(hp);
+    expect(run.completeBattle(sim).ok).toBe(false);
+    expect(run.completeBattle(sim).ok).toBe(false);
+    expect(run.hp).toBe(afterFirst);
+    expect(run.history).toHaveLength(records + 1);
+  });
+
+  it('다른 노드·이전 시도·다른 컨트롤러·복원 이전에 만든 sim은 거부한다', () => {
+    // 이전 노드(1층)에서 끝난 sim을 다른 전투 노드에서 제출
+    const run = newRun(2);
+    run.chooseNode(run.availableNodes()[0]!.id);
+    const firstNodeSim = finished(run, 'win');
+    const early = newRun(2);
+    early.chooseNode(early.availableNodes()[0]!.id);
+    const early1 = finished(early, 'win');
+    expect(early.completeBattle(early1).ok).toBe(true);
+    driveTo(early, 'boss');
+    const beforeBoss = snapshot(early);
+    expect(early.completeBattle(early1).ok).toBe(false);
+    expect(snapshot(early)).toEqual(beforeBoss);
+
+    // 같은 노드의 이전 시도 sim
+    const boss = newRun(6);
+    driveTo(boss, 'boss');
+    const firstTry = boss.createSimulator();
+    boss.beginBattle();
+    forceResult(firstTry, 'loss');
+    expect(boss.completeBattle(firstTry).ok).toBe(true);
+    const secondTry = boss.createSimulator();
+    boss.beginBattle();
+    forceResult(secondTry, 'loss');
+    const bossBefore = snapshot(boss);
+    const staleResult = boss.completeBattle(firstTry);
+    expect(staleResult.ok).toBe(false);
+    expect(snapshot(boss)).toEqual(bossBefore);
+    expect(boss.completeBattle(secondTry).ok).toBe(true);
+
+    // 다른 컨트롤러가 만든 sim
+    const other = newRun(2);
+    other.chooseNode(other.availableNodes()[0]!.id);
+    const foreign = finished(other, 'win');
+    const mine = newRun(2);
+    mine.chooseNode(mine.availableNodes()[0]!.id);
+    mine.beginBattle();
+    const mineBefore = snapshot(mine);
+    const foreignResult = mine.completeBattle(foreign);
+    expect(foreignResult.ok).toBe(false);
+    if (!foreignResult.ok) expect(foreignResult.reason).toContain('발급한 전투가 아닙니다');
+    expect(snapshot(mine)).toEqual(mineBefore);
+
+    // 복원 이전에 만든 sim
+    const restored = RunController.restore(runDeps, JSON.parse(JSON.stringify(run.serialize())));
+    restored.beginBattle();
+    const restoredBefore = snapshot(restored);
+    expect(restored.completeBattle(firstNodeSim).ok).toBe(false);
+    expect(snapshot(restored)).toEqual(restoredBefore);
+  });
+
+  it('같은 노드·시도에서 만든 sim이 여럿이어도 하나로 정산하면 나머지는 거부된다', () => {
+    const run = newRun(2);
+    run.chooseNode(run.availableNodes()[0]!.id);
+    const a = run.createSimulator();
+    const b = run.createSimulator();
+    run.beginBattle();
+    forceResult(a, 'win');
+    forceResult(b, 'win');
+    expect(run.completeBattle(a).ok).toBe(true);
+    const before = snapshot(run);
+    expect(run.completeBattle(b).ok).toBe(false);
+    expect(snapshot(run)).toEqual(before);
+
+    // 보스 재도전: 같은 시도의 형제 sim은 시도 횟수가 달라져 거부된다
+    const boss = newRun(6);
+    driveTo(boss, 'boss');
+    const c = boss.createSimulator();
+    const d = boss.createSimulator();
+    boss.beginBattle();
+    forceResult(c, 'loss');
+    forceResult(d, 'loss');
+    expect(boss.completeBattle(c).ok).toBe(true);
+    const bossBefore = snapshot(boss);
+    expect(boss.completeBattle(d).ok).toBe(false);
+    expect(snapshot(boss)).toEqual(bossBefore);
   });
 });

@@ -3,7 +3,7 @@ import { AutoRunner } from './autoRunner';
 import { RUN } from './constants';
 import { RunController } from './runController';
 import { SAVE_FORMAT } from './runSerializer';
-import { basicPlan, driveTo, finishBattle, newRun, runDeps } from './testSupport';
+import { basicPlan, damageCommander, driveTo, finishBattle, newRun, runDeps } from './testSupport';
 
 const roundtrip = (run: RunController): RunController => RunController.restore(runDeps, JSON.parse(JSON.stringify(run.serialize())));
 const json = (run: RunController): string => JSON.stringify(run.serialize());
@@ -215,5 +215,215 @@ describe('저장 데이터 검증', () => {
     const before = json(run);
     expect(restoreWith({ ...base(), version: 2 })).toThrow();
     expect(json(run)).toBe(before);
+  });
+});
+
+describe('저장 데이터 일관성 검증', () => {
+  const dump = (run: RunController) => JSON.parse(JSON.stringify(run.serialize())) as any;
+  const restoreWith = (data: unknown) => () => RunController.restore(runDeps, data);
+  const at = (seed: number, type: Parameters<typeof driveTo>[1]) => {
+    const run = newRun(seed);
+    driveTo(run, type);
+    return dump(run);
+  };
+  const firstBattle = () => {
+    const run = newRun(5);
+    run.chooseNode(run.availableNodes()[0]!.id);
+    return dump(run);
+  };
+  const otherNode = (save: any, excludeIds: string[], floor: number): string =>
+    save.map.floors[floor - 1].find((n: any) => !excludeIds.includes(n.id)).id;
+
+  it('위치: 현재 노드는 입장 기록의 마지막, 첫 노드는 1층, 연속 노드는 간선으로 이어진다', () => {
+    const empty = firstBattle();
+    empty.position.visited = [];
+    expect(restoreWith(empty)).toThrow(/run\.position\.currentNodeId/);
+
+    const mismatch = firstBattle();
+    mismatch.position.currentNodeId = otherNode(mismatch, [mismatch.position.currentNodeId], 1);
+    expect(restoreWith(mismatch)).toThrow(/run\.position\.currentNodeId/);
+
+    const notFirstFloor = firstBattle();
+    const second = notFirstFloor.map.floors[1][0].id;
+    notFirstFloor.position = { currentNodeId: second, visited: [second] };
+    expect(restoreWith(notFirstFloor)).toThrow(/run\.position\.visited\[0\].*1층/);
+
+    const run = newRun(5);
+    run.chooseNode(run.availableNodes()[0]!.id);
+    finishBattle(run, 'win');
+    run.skipReward();
+    run.chooseNode(run.availableNodes()[0]!.id);
+    const jump = dump(run);
+    const first = jump.map.floors[0].find((n: any) => n.id === jump.position.visited[0]);
+    const unreachable = jump.map.floors[1].find((n: any) => !first.next.includes(n.id));
+    if (unreachable) {
+      jump.position.visited[1] = unreachable.id;
+      jump.position.currentNodeId = unreachable.id;
+      expect(restoreWith(jump)).toThrow(/run\.position\.visited\[1\].*이어진 노드가 아님/);
+    }
+
+    const tooLong = firstBattle();
+    tooLong.position.visited = Array.from({ length: RUN.MAP.FLOORS + 1 }, () => tooLong.position.currentNodeId);
+    expect(restoreWith(tooLong)).toThrow(/run\.position\.visited/);
+  });
+
+  it('단계와 현재 노드 종류가 맞아야 한다', () => {
+    const shop = at(1, 'shop');
+    const battleWithShop = firstBattle();
+    battleWithShop.phase = 'shop';
+    battleWithShop.session = shop.session;
+    expect(restoreWith(battleWithShop)).toThrow(/run\.phase.*shop/);
+
+    const event = at(1, 'event');
+    event.phase = 'battlePrep';
+    event.session = { kind: 'battle', tries: 0 };
+    expect(restoreWith(event)).toThrow(/run\.phase.*battlePrep/);
+
+    const camp = at(1, 'camp');
+    camp.phase = 'shop';
+    camp.session = shop.session;
+    expect(restoreWith(camp)).toThrow(/run\.phase/);
+
+    const rewardRun = newRun(1);
+    rewardRun.chooseNode(rewardRun.availableNodes()[0]!.id);
+    finishBattle(rewardRun, 'win');
+    const reward = dump(rewardRun);
+    reward.session.source = 'elite';
+    expect(restoreWith(reward)).toThrow(/run\.session\.source/);
+    const rewardOnShop = at(1, 'shop');
+    rewardOnShop.phase = 'reward';
+    rewardOnShop.session = { kind: 'reward', source: 'normal', offer: dump(rewardRun).session.offer };
+    expect(restoreWith(rewardOnShop)).toThrow(/run\.session/);
+
+    const bossMap = at(6, 'boss');
+    bossMap.phase = 'map';
+    bossMap.session = null;
+    expect(restoreWith(bossMap)).toThrow(/run\.phase.*보스/);
+  });
+
+  it('종료 결과는 현재 노드와 HP에 맞아야 한다', () => {
+    const zeroMap = dump(newRun(5));
+    zeroMap.health.hp = 0;
+    expect(restoreWith(zeroMap)).toThrow(/run\.health/);
+
+    const victoryRun = newRun(6);
+    driveTo(victoryRun, 'boss');
+    finishBattle(victoryRun, 'win');
+    const victory = dump(victoryRun);
+    expect(RunController.restore(runDeps, victory).outcome).toBe('victory');
+    const zeroVictory = structuredClone(victory);
+    zeroVictory.health.hp = 0;
+    expect(restoreWith(zeroVictory)).toThrow(/run\.health|run\.outcome/);
+    const victoryAtCombat = structuredClone(victory);
+    victoryAtCombat.position.currentNodeId = victoryAtCombat.position.visited[0];
+    victoryAtCombat.position.visited = [victoryAtCombat.position.visited[0]];
+    expect(restoreWith(victoryAtCombat)).toThrow(/run\.outcome/);
+
+    const deadRun = newRun(2);
+    deadRun.chooseNode(deadRun.availableNodes()[0]!.id);
+    damageCommander(deadRun, 79);
+    finishBattle(deadRun, 'loss');
+    const dead = dump(deadRun);
+    expect(RunController.restore(runDeps, dead).outcome).toBe('dead');
+    const deadAtShop = at(1, 'shop');
+    deadAtShop.phase = 'ended';
+    deadAtShop.session = null;
+    deadAtShop.outcome = 'dead';
+    deadAtShop.health.hp = 0;
+    expect(restoreWith(deadAtShop)).toThrow(/run\.outcome.*전투 노드/);
+  });
+
+  it('보스 재도전 저장본은 정상 복원되고, 전투 시도 횟수는 기록과 맞아야 한다', () => {
+    const run = newRun(6);
+    driveTo(run, 'boss');
+    finishBattle(run, 'loss');
+    expect(run.session).toEqual({ kind: 'battle', tries: 1 });
+    const save = dump(run);
+    expect(json(RunController.restore(runDeps, save))).toBe(json(run));
+
+    const noRecord = structuredClone(save);
+    noRecord.session.tries = 0;
+    expect(restoreWith(noRecord)).toThrow(/run\.session\.tries/);
+    const huge = firstBattle();
+    huge.session.tries = 1e9;
+    expect(restoreWith(huge)).toThrow(/run\.session\.tries/);
+    const combatRetry = firstBattle();
+    combatRetry.session.tries = 1;
+    expect(restoreWith(combatRetry)).toThrow(/run\.session\.tries/);
+  });
+
+  it('상점 진열은 3칸이고 가격은 희귀도 가격표와 같다', () => {
+    const free = at(1, 'shop');
+    free.session.cards[0].price = 0;
+    expect(restoreWith(free)).toThrow(/run\.session\.cards\[0\]\.price/);
+    const fewer = at(1, 'shop');
+    fewer.session.cards.pop();
+    expect(restoreWith(fewer)).toThrow(/run\.session\.cards.*3칸/);
+  });
+
+  it('이벤트: 세션 이벤트는 가장 최근에 나온 것이고, 입장한 이벤트 노드 수만큼 기록된다', () => {
+    const event = at(1, 'event');
+    const other = runDeps.events.events.find((e) => e.id !== event.session.state.eventId)!;
+    const wrongId = structuredClone(event);
+    wrongId.session.state.eventId = other.id;
+    wrongId.session.state.chosen = null;
+    expect(restoreWith(wrongId)).toThrow(/run\.session\.state\.eventId/);
+    const dup = structuredClone(event);
+    dup.seenEvents = [event.session.state.eventId, event.session.state.eventId];
+    expect(restoreWith(dup)).toThrow(/run\.seenEvents/);
+    const missing = structuredClone(event);
+    missing.seenEvents = [];
+    expect(restoreWith(missing)).toThrow(/run\.seenEvents/);
+  });
+
+  it('기록(history)은 입장한 노드의 것이어야 한다', () => {
+    const run = newRun(5);
+    run.chooseNode(run.availableNodes()[0]!.id);
+    finishBattle(run, 'win');
+    const save = dump(run);
+    save.history[0].nodeId = otherNode(save, [save.position.visited[0]], 1);
+    expect(restoreWith(save)).toThrow(/run\.history\[0\]\.nodeId/);
+  });
+
+  it('실제 진행이 만드는 모든 비전투 시점의 저장본은 복원된다 (여러 시드, 패배·재도전·사망 포함)', () => {
+    let checkpoints = 0;
+    const check = (run: RunController): void => {
+      expect(json(roundtrip(run))).toBe(json(run));
+      checkpoints++;
+    };
+    for (let seed = 1; seed <= 8; seed++) {
+      const run = newRun(seed, seed % 2 === 0 ? 'test' : 'starter');
+      for (let guard = 0; guard < 300 && run.phase !== 'ended'; guard++) {
+        check(run);
+        switch (run.phase) {
+          case 'map': {
+            const options = run.availableNodes();
+            run.chooseNode(options[(seed + guard) % options.length]!.id);
+            break;
+          }
+          case 'battlePrep': {
+            if (run.currentNode?.type === 'boss' && run.session?.kind === 'battle' && run.session.tries === 0) finishBattle(run, 'loss');
+            else if (seed === 8 && run.floorReached === 6) { damageCommander(run, run.hp - 1); finishBattle(run, 'loss'); }
+            else finishBattle(run, (seed + guard) % 5 === 0 ? 'loss' : 'win');
+            break;
+          }
+          case 'reward': guard % 2 === 0 ? run.claimReward(0) : run.skipReward(); break;
+          case 'shop': run.leaveShop(); break;
+          case 'camp': run.leaveCamp(); break;
+          case 'event': {
+            const view = run.eventView()!;
+            run.chooseEventOption(Math.max(0, view.choices.findIndex((c) => c.enabled)));
+            check(run);
+            while (run.eventView()?.pending) run.pickEventOption(0);
+            run.finishEvent();
+            break;
+          }
+          default: throw new Error(`예상 밖 단계 ${run.phase}`);
+        }
+      }
+      check(run);
+      expect(run.phase).toBe('ended');
+    }
+    expect(checkpoints).toBeGreaterThan(100);
   });
 });
