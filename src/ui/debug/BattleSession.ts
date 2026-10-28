@@ -33,7 +33,7 @@ import { playbackScale } from '../cards/playbackScale';
 import { Gauntlet, type GauntletStage } from '../live/Gauntlet';
 import { LiveBattle } from '../live/LiveBattle';
 import { ManagementRun } from '../live/ManagementRun';
-import { ReplayState, type ReplayEffect, type TelegraphView, type UnitView } from '../replay/ReplayState';
+import { ReplayState, type MeteorView, type ReplayEffect, type TelegraphView, type UltimateAuraView, type UnitView } from '../replay/ReplayState';
 import { CARD_UI, LAYOUT } from '../theme';
 import type { RosterCommands, RunBattleHost, RunBattleLink } from './runLink';
 import type {
@@ -180,7 +180,15 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
     if (this.currentPhase === 'edit' || !this.live) return [];
     const effects = this.live.replay.recentEffects(maxAge);
     // 전투가 끝나면 재생 시각이 멈추므로, 강타 번쩍임이 결과 화면에 남지 않게 보스 연출은 걷어 낸다
-    return this.currentPhase === 'finished' ? effects.filter((e) => e.kind !== 'strike' && e.kind !== 'telegraph') : effects;
+    return this.currentPhase === 'finished' ? effects.filter((e) => e.kind !== 'strike' && e.kind !== 'telegraph' && e.kind !== 'impact' && e.kind !== 'ultimate') : effects;
+  }
+
+  meteors(): readonly MeteorView[] {
+    return this.currentPhase === 'edit' || this.currentPhase === 'finished' || !this.live ? [] : this.live.replay.meteors();
+  }
+
+  ultimateAura(): UltimateAuraView | null {
+    return this.currentPhase === 'edit' || this.currentPhase === 'finished' || !this.live ? null : this.live.replay.ultimateAura();
   }
 
   telegraphs(): readonly TelegraphView[] {
@@ -596,7 +604,18 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
       hint: this.interaction.hint(),
       blockedReason: blocked,
       toast: this.toast,
+      ultimate: live ? live.sim.ultimate : null,
     });
+  }
+
+  useUltimate(): void {
+    const live = this.live;
+    if (!live) return this.showToast('편성이 필요합니다. 양쪽 진영에 유닛을 배치하세요.');
+    const blocked = this.gauntlet && !this.gauntlet.cardsEnabled ? '카드 사용 금지 (5연전 옵션)' : null;
+    if (blocked) return this.showToast(blocked);
+    const result = live.useUltimate();
+    if (result.ok) this.notify();
+    else this.showToast(result.reason);
   }
 
   beginCard(instanceId: number, mode: CardInputMode): void {

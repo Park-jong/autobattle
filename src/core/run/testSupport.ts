@@ -3,6 +3,7 @@ import cardsJson from '../../../data/cards.json';
 import commandersJson from '../../../data/commanders.json';
 import encountersJson from '../../../data/encounters.json';
 import eventsJson from '../../../data/events.json';
+import relicsJson from '../../../data/relics.json';
 import traitsJson from '../../../data/traits.json';
 import unitsJson from '../../../data/units.json';
 import { parseCardPlan, type CombatSimulator } from '../combat';
@@ -13,7 +14,7 @@ import { loadRunDeps } from './runData';
 
 export const rawRunData = {
   traits: traitsJson, units: unitsJson, cards: cardsJson,
-  commanders: commandersJson, encounters: encountersJson, events: eventsJson,
+  commanders: commandersJson, encounters: encountersJson, events: eventsJson, relics: relicsJson,
 };
 
 export const runDeps = loadRunDeps(rawRunData);
@@ -21,6 +22,23 @@ export const basicPlan = parseCardPlan(hartenPlan, 'harten-basic');
 
 export function newRun(seed = 1, deckPreset: 'starter' | 'test' = 'starter'): RunController {
   return RunController.create(runDeps, { seed, commanderId: 'cmd_harten', deckPreset });
+}
+
+/** 지휘관을 골라 새 런 */
+export function newRunAs(commanderId: string, seed = 1): RunController {
+  return RunController.create(runDeps, { seed, commanderId });
+}
+
+/** 테스트 전용: 유물을 곧바로 얻는다 (즉시 효과 포함, 획득 경로를 거치지 않음) */
+export function grantRelic(run: RunController, relicId: string): void {
+  (run as unknown as { acquireRelic(id: string): void }).acquireRelic(relicId);
+}
+
+/** 테스트 전용: 이벤트 노드에 입장한 상태에서 나온 이벤트를 지정한 이벤트로 바꾼다 (저장 일관성 유지) */
+export function forceEvent(run: RunController, eventId: string): void {
+  const state = (run as unknown as { state: { session: { state: { eventId: string } }; seenEvents: string[] } }).state;
+  state.session.state.eventId = eventId;
+  state.seenEvents[state.seenEvents.length - 1] = eventId;
 }
 
 // ---- 진행 도우미 ----

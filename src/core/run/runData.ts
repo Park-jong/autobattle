@@ -1,6 +1,6 @@
 import { assertUnitCardReferences } from '../cards';
 import {
-  loadCards, loadCommanders, loadEncounters, loadEvents, loadTraits, loadUnits,
+  loadCards, loadCommanders, loadEncounters, loadEvents, loadRelics, loadTraits, loadUnits,
 } from '../data';
 import { RUN } from './constants';
 import type { RunDeps } from './runController';
@@ -13,6 +13,7 @@ export interface RawRunData {
   commanders: unknown;
   encounters: unknown;
   events: unknown;
+  relics: unknown;
 }
 
 const range = (from: number, to: number): number[] => Array.from({ length: to - from + 1 }, (_, i) => from + i);
@@ -34,5 +35,6 @@ export function loadRunDeps(raw: RawRunData): RunDeps {
     bossFloors: [BOSS_FLOOR],
   });
   const events = loadEvents(raw.events, cards, units);
-  return { units, traits, cards, commanders, encounters, events };
+  const relics = loadRelics(raw.relics);
+  return { units, traits, cards, commanders, encounters, events, relics };
 }

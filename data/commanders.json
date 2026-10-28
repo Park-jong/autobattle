@@ -8,26 +8,204 @@
         "name": "철의 서약",
         "text": "전투 시작 시 전열 아군에게 최대 HP 10% 보호막 (전투 끝까지).",
         "effects": [
-          { "kind": "shield", "selector": "alliesFrontRow", "pctMaxHp": 10, "duration": "combat" }
+          {
+            "kind": "shield",
+            "selector": "alliesFrontRow",
+            "pctMaxHp": 10,
+            "duration": "combat"
+          }
         ]
       },
       "startingDeck": [
-        { "cardId": "shield_formation", "count": 2 },
-        { "cardId": "hold_the_line", "count": 2 },
-        { "cardId": "war_drums", "count": 2 },
-        { "cardId": "formation_swap", "count": 1 },
-        { "cardId": "focus_fire", "count": 1 },
-        { "cardId": "last_stand", "count": 1 },
-        { "cardId": "charge_signal", "count": 1 }
+        {
+          "cardId": "shield_formation",
+          "count": 2
+        },
+        {
+          "cardId": "hold_the_line",
+          "count": 2
+        },
+        {
+          "cardId": "war_drums",
+          "count": 2
+        },
+        {
+          "cardId": "formation_swap",
+          "count": 1
+        },
+        {
+          "cardId": "focus_fire",
+          "count": 1
+        },
+        {
+          "cardId": "last_stand",
+          "count": 1
+        },
+        {
+          "cardId": "charge_signal",
+          "count": 1
+        }
       ],
       "startingUnits": [
-        { "unitId": "iron_shieldbearer", "count": 2 }
+        {
+          "unitId": "iron_shieldbearer",
+          "count": 2
+        }
       ],
       "startCpBonus": 0,
       "maxHp": 80,
       "ultimate": {
         "name": "불굴의 방진",
-        "text": "4초간 아군 전체 받는 피해 -40%, 전열 아군은 주변 적을 도발. (M5 구현 예정)"
+        "text": "4초간 아군 전체 받는 피해 -40%, 전열 아군은 주변 2칸의 적을 도발.",
+        "effects": [
+          {
+            "kind": "damageTakenMult",
+            "selector": "allAllies",
+            "mult": 0.6,
+            "duration": 4
+          },
+          {
+            "kind": "taunt",
+            "selector": "alliesFrontRow",
+            "radius": 2,
+            "duration": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "cmd_isera",
+      "name": "불꽃 마도사 이세라 칸델",
+      "passive": {
+        "name": "화로의 불씨",
+        "text": "주문 카드 피해 +25%, 전투 시작 CP +1.",
+        "effects": [],
+        "spellDamagePct": 25
+      },
+      "startingDeck": [
+        {
+          "cardId": "ember_arrow",
+          "count": 3
+        },
+        {
+          "cardId": "mana_infusion",
+          "count": 2
+        },
+        {
+          "cardId": "tactical_reorganization",
+          "count": 2
+        },
+        {
+          "cardId": "firestorm",
+          "count": 1
+        },
+        {
+          "cardId": "war_drums",
+          "count": 1
+        },
+        {
+          "cardId": "focus_fire",
+          "count": 1
+        }
+      ],
+      "startingUnits": [
+        {
+          "unitId": "ember_kindler",
+          "count": 1
+        },
+        {
+          "unitId": "grove_archer",
+          "count": 1
+        }
+      ],
+      "startCpBonus": 1,
+      "maxHp": 70,
+      "unlock": "런 1회 완료 (승패 무관)",
+      "ultimate": {
+        "name": "대분화",
+        "text": "무작위 적 밀집 지점 3곳에 1초 간격으로 운석 낙하. 각 3×3 범위에 마법 피해 250 + 화상 (초당 30, 3초).",
+        "barrage": {
+          "count": 3,
+          "intervalSeconds": 1,
+          "radius": 1,
+          "effects": [
+            {
+              "kind": "flatDamage",
+              "selector": "enemiesInTargetArea",
+              "amount": 250,
+              "dmgType": "magic"
+            },
+            {
+              "kind": "burn",
+              "selector": "enemiesInTargetArea",
+              "dps": 30,
+              "duration": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "cmd_nox",
+      "name": "그림자 계약자 녹스",
+      "passive": {
+        "name": "미지불 잔액",
+        "text": "전투 승리 시 남은 CP 1당 1G.",
+        "effects": [],
+        "goldPerLeftoverCp": 1
+      },
+      "startingDeck": [
+        {
+          "cardId": "blood_price",
+          "count": 2
+        },
+        {
+          "cardId": "abyss_pact",
+          "count": 2
+        },
+        {
+          "cardId": "focus_fire",
+          "count": 2
+        },
+        {
+          "cardId": "charge_signal",
+          "count": 1
+        },
+        {
+          "cardId": "call_reserves",
+          "count": 1
+        },
+        {
+          "cardId": "tactical_reorganization",
+          "count": 1
+        },
+        {
+          "cardId": "last_stand",
+          "count": 1
+        }
+      ],
+      "startingUnits": [
+        {
+          "unitId": "shade_dagger",
+          "count": 2
+        }
+      ],
+      "startCpBonus": 0,
+      "maxHp": 65,
+      "unlock": "액트 2 보스 처치",
+      "ultimate": {
+        "name": "대가 지불",
+        "text": "지휘관 현재 HP의 10%(올림)를 소모. 5초간 아군 전체 생명력 흡수 25%, CP 획득 속도 2배.",
+        "hpCostPct": 10,
+        "cpRegenBoostSeconds": 5,
+        "effects": [
+          {
+            "kind": "lifesteal",
+            "selector": "allAllies",
+            "pct": 25,
+            "duration": 5
+          }
+        ]
       }
     }
   ]

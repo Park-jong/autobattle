@@ -409,8 +409,9 @@ export class DebugPanel {
     this.commanderSelect.disabled = !snap.editable;
     this.deckSelect.value = snap.deckPreset;
     this.deckSelect.disabled = !snap.editable || !commander;
+    this.passiveBox.style.whiteSpace = 'pre-line';
     this.passiveBox.textContent = commander
-      ? `패시브 [${commander.passive.name}] ${commander.passive.text}`
+      ? `패시브 [${commander.passive.name}] ${commander.passive.text}${commander.ultimate ? `\n궁극기 [${commander.ultimate.name}] ${commander.ultimate.text}` : ''}`
       : '지휘관이 없으면 카드 UI가 숨겨지고 M1 디버그 전투와 같습니다.';
     this.startFormationButton.disabled = !snap.editable || !commander;
     this.pauseOnHoldBox.checked = snap.pauseOnCardHold;

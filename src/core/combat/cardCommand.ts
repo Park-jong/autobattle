@@ -15,6 +15,12 @@ export type PlayTarget =
   | { kind: 'cell'; cell: Cell };
 
 /**
+ * 궁극기 사용 명령을 나타내는 cardInstanceId (카드 인스턴스 id는 1부터라 겹치지 않는다).
+ * 궁극기도 카드와 같은 명령 로그(commandLog)·예약(setup.cards.commands)에 target { kind: 'none' }으로 쌓인다.
+ */
+export const ULTIMATE_COMMAND_ID = -1;
+
+/**
  * 카드 사용 명령. tick = 전투 시작부터의 틱 번호이며 그 틱의 모든 유닛 행동보다 먼저 실행된다.
  * 작전(operation) 카드는 tick 0으로 적으면 준비 단계(전투 시작 전)에 사용된다.
  */

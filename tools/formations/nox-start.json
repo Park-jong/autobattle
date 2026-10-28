@@ -1,0 +1,7 @@
+{
+  "name": "녹스 시작 편성 (아군 쪽): 그림자 단검 2기",
+  "units": [
+    { "unitId": "shade_dagger", "star": 1, "col": 3, "row": 1 },
+    { "unitId": "shade_dagger", "star": 1, "col": 3, "row": 3 }
+  ]
+}

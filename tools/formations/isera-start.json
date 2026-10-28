@@ -1,0 +1,7 @@
+{
+  "name": "이세라 시작 편성 (아군 쪽): 잿불 점화사 + 숲 궁수",
+  "units": [
+    { "unitId": "ember_kindler", "star": 1, "col": 1, "row": 1 },
+    { "unitId": "grove_archer", "star": 1, "col": 0, "row": 3 }
+  ]
+}

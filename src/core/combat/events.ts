@@ -77,6 +77,12 @@ export type CombatEvent = { t: number } & (
   | { type: 'strike'; id: number; source: number; cells: Cell[] }
   /** 카드로 지휘관 HP를 잃었다 (런이 정산). remaining은 이 전투에서 아직 쓸 수 있는 HP */
   | { type: 'commanderHp'; delta: number; remaining: number; cardId: string; instanceId: number }
+  /** 궁극기 발동. durationSeconds = 지속 효과(받는 피해 감소·흡수·CP 가속 등)가 이어지는 길이. 운석처럼 지속 효과가 없으면 0 */
+  | { type: 'ultimateUsed'; commanderId: string; name: string; durationSeconds: number }
+  /** 궁극기 운석 예고: fireAt(초)에 cell 중심 radius칸 범위에 떨어진다. id는 같은 낙하의 ultimateImpact와 짝 */
+  | { type: 'ultimateTelegraph'; id: number; cell: Cell; radius: number; fireAt: number }
+  /** 궁극기 운석 착탄 (피해는 이어지는 damage 이벤트) */
+  | { type: 'ultimateImpact'; id: number; cell: Cell; radius: number }
   | { type: 'end'; winner: Winner; reason: 'annihilation' | 'timeout' }
 );
 

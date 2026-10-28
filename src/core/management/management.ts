@@ -33,6 +33,16 @@ export const LEVEL_ODDS: Readonly<Record<number, readonly number[]>> = {
   9: [5, 10, 20, 35, 30],
 };
 
+/** 유물이 관리 규칙에 끼어드는 지점 (쌍둥이 거울·상인의 저울). 없으면 기본 규칙 그대로 */
+export interface ManagementPerks {
+  /** 이번 노드의 무료 리롤이 남았으면 하나 쓰고 true */
+  consumeFreeReroll(): boolean;
+  /** 같은 유닛 2기 합성 기회가 남았는가 */
+  mirrorMergeAvailable(): boolean;
+  /** 합성 기회를 하나 쓴다 */
+  consumeMirrorMerge(): void;
+}
+
 export type ManagementResult = { ok: true } | { ok: false; reason: string };
 export interface OwnedUnit {
   id: number;
@@ -115,6 +125,7 @@ export class Management {
     private readonly economy: Economy,
     private readonly rng: Rng,
     startingUnits: readonly StartingUnit[] = [],
+    private readonly perks: ManagementPerks | null = null,
   ) {
     for (const unit of units.units) {
       if (unit.boss) continue; // 보스 전용 유닛은 상점 풀에 넣지 않는다
@@ -261,6 +272,7 @@ export class Management {
     this.owned = next;
     this.nextOwnedId++;
     this.offers[slot] = null;
+    this.applyMirrorMerge();
     return OK;
   }
 
@@ -279,7 +291,33 @@ export class Management {
     this.owned = next;
     this.nextOwnedId++;
     this.pool.set(unitId, remaining - 1);
+    this.applyMirrorMerge();
     return OK;
+  }
+
+  /**
+   * 쌍둥이 거울: 같은 유닛 1성 2기를 2성으로 합친다 (런당 기회가 남았을 때 한 번).
+   * 2성은 원본 3개 몫이므로 모자란 1개를 유닛 풀에서 가져온다(판매 시 3개를 돌려주는 규칙과 맞춘다). 풀에 없으면 합치지 않는다.
+   * 보드에 있는 유닛과 낮은 id가 살아남고 장비는 모은다. 합쳐졌으면 true.
+   */
+  applyMirrorMerge(): boolean {
+    if (!this.perks?.mirrorMergeAvailable()) return false;
+    const unitIds = [...new Set(this.owned.filter((u) => u.star === 1).map((u) => u.unitId))].sort();
+    for (const unitId of unitIds) {
+      const group = this.owned.filter((u) => u.star === 1 && u.unitId === unitId)
+        .sort((a, b) => Number(b.cell !== null) - Number(a.cell !== null) || a.id - b.id);
+      const remaining = this.pool.get(unitId) ?? 0;
+      if (group.length < 2 || remaining < 1) continue;
+      const [survivor, consumed] = group as [OwnedUnit, OwnedUnit];
+      survivor.star = 2;
+      survivor.equipment = [...survivor.equipment, ...consumed.equipment];
+      this.owned = this.owned.filter((u) => u !== consumed);
+      this.pool.set(unitId, remaining - 1);
+      this.perks.consumeMirrorMerge();
+      this.owned = this.merge(this.owned);
+      return true;
+    }
+    return false;
   }
 
   /** 벤치에 빈 칸이 있어 새 유닛을 받을 수 있는지 (합성으로 자리가 나는 경우는 고려하지 않는 보수적 판단) */
@@ -314,7 +352,8 @@ export class Management {
   }
 
   reroll(): ManagementResult {
-    if (!this.economy.spend(MANAGEMENT.REROLL_COST)) return fail('리롤할 골드가 부족합니다');
+    const free = this.perks?.consumeFreeReroll() === true;
+    if (!free && !this.economy.spend(MANAGEMENT.REROLL_COST)) return fail('리롤할 골드가 부족합니다');
     this.refreshOffers();
     return OK;
   }

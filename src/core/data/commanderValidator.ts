@@ -1,10 +1,10 @@
-import type { CommanderDef, CommanderFile, CommanderPassive, CommanderUltimate, StartingCard, StartingUnit } from './commander';
+import type { CommanderDef, CommanderFile, CommanderPassive, CommanderUltimate, StartingCard, StartingUnit, UltimateBarrage } from './commander';
 import { assertEffectsUsable } from './effectUsage';
 import { EffectValidator } from './effectValidator';
 import { DataValidationError } from './errors';
 import { FieldReader } from './fieldReader';
 
-const COMMANDER_KEYS = ['id', 'name', 'passive', 'startingDeck', 'startingUnits', 'startCpBonus', 'maxHp', 'ultimate'] as const;
+const COMMANDER_KEYS = ['id', 'name', 'passive', 'startingDeck', 'startingUnits', 'startCpBonus', 'maxHp', 'ultimate', 'unlock'] as const;
 
 /** commanders.json 구조를 검증한다. 카드·유닛 id 참조는 loadCommanders가 확인한다. 파일 I/O는 하지 않는다. */
 export class CommanderValidator {
@@ -46,16 +46,20 @@ export class CommanderValidator {
       startCpBonus: r.int('startCpBonus', 0),
     };
     if (r.has('maxHp')) commander.maxHp = r.int('maxHp', 1);
+    if (r.has('unlock')) commander.unlock = r.string('unlock');
     if (r.has('ultimate')) commander.ultimate = this.validateUltimate(r.object('ultimate'));
     return commander;
   }
 
   private validatePassive(r: FieldReader): CommanderPassive {
-    r.onlyKeys(['name', 'text', 'effects']);
-    const effects = this.effects.validateList(r, 'effects');
+    r.onlyKeys(['name', 'text', 'effects', 'spellDamagePct', 'goldPerLeftoverCp']);
+    const effects = this.effects.validateList(r, 'effects', true);
     // 패시브는 시전자도 지정 대상도 없는 문맥에서 실행된다
     assertEffectsUsable(r, 'effects', effects, { targetKind: 'none' });
-    return { name: r.string('name'), text: r.string('text'), effects };
+    const passive: CommanderPassive = { name: r.string('name'), text: r.string('text'), effects };
+    if (r.has('spellDamagePct')) passive.spellDamagePct = r.int('spellDamagePct', 1);
+    if (r.has('goldPerLeftoverCp')) passive.goldPerLeftoverCp = r.int('goldPerLeftoverCp', 1);
+    return passive;
   }
 
   private validateDeck(r: FieldReader): StartingCard[] {
@@ -86,7 +90,26 @@ export class CommanderValidator {
   }
 
   private validateUltimate(r: FieldReader): CommanderUltimate {
-    r.onlyKeys(['name', 'text']);
-    return { name: r.string('name'), text: r.string('text') };
+    r.onlyKeys(['name', 'text', 'hpCostPct', 'effects', 'cpRegenBoostSeconds', 'barrage']);
+    const ultimate: CommanderUltimate = { name: r.string('name'), text: r.string('text') };
+    if (r.has('hpCostPct')) {
+      ultimate.hpCostPct = r.int('hpCostPct', 1);
+      if (ultimate.hpCostPct > 100) r.fail('hpCostPct', '100 이하여야 함');
+    }
+    if (r.has('effects')) {
+      ultimate.effects = this.effects.validateList(r, 'effects', true);
+      assertEffectsUsable(r, 'effects', ultimate.effects, { targetKind: 'none' });
+    }
+    if (r.has('cpRegenBoostSeconds')) ultimate.cpRegenBoostSeconds = r.int('cpRegenBoostSeconds', 1);
+    if (r.has('barrage')) ultimate.barrage = this.validateBarrage(r.object('barrage'));
+    return ultimate;
+  }
+
+  private validateBarrage(r: FieldReader): UltimateBarrage {
+    r.onlyKeys(['count', 'intervalSeconds', 'radius', 'effects']);
+    const effects = this.effects.validateList(r, 'effects');
+    // 착탄 효과는 3×3 같은 범위를 지정한 문맥에서 실행된다
+    assertEffectsUsable(r, 'effects', effects, { targetKind: 'area3x3' });
+    return { count: r.int('count', 1), intervalSeconds: r.number('intervalSeconds', 0.1), radius: r.int('radius', 0), effects };
   }
 }

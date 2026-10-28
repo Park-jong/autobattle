@@ -8,10 +8,11 @@ import { CombatSimulator } from './sim';
 import type { CombatUnit } from './unit';
 import cardsJson from '../../../data/cards.json';
 import commandersJson from '../../../data/commanders.json';
+import relicsJson from '../../../data/relics.json';
 import { Rng } from '../rng';
 import type { CardInstance } from '../cards/cardInstance';
 import type { DeckSnapshot } from '../cards/deck';
-import { loadCards, loadCommanders, type CardCatalog, type CommanderDef } from '../data';
+import { loadCards, loadCommanders, loadRelics, type CardCatalog, type CommanderDef, type RelicEffect } from '../data';
 import type { CardCommand } from './cardCommand';
 
 export const traits = loadTraits(traitsJson);
@@ -75,6 +76,28 @@ export const harten: CommanderDef = (() => {
   return found;
 })();
 
+export const isera: CommanderDef = (() => {
+  const found = commanders.get('cmd_isera');
+  if (!found) throw new Error('cmd_isera 없음');
+  return found;
+})();
+export const nox: CommanderDef = (() => {
+  const found = commanders.get('cmd_nox');
+  if (!found) throw new Error('cmd_nox 없음');
+  return found;
+})();
+
+export const relicCatalog = loadRelics(relicsJson);
+
+/** 유물 id들의 효과를 펼친 목록 (CombatCardSetup.relics에 넣는다) */
+export function relicEffects(...ids: string[]): RelicEffect[] {
+  return ids.flatMap((id) => {
+    const def = relicCatalog.get(id);
+    if (!def) throw new Error(`유물 ${id} 없음`);
+    return def.effects;
+  });
+}
+
 /** 지정한 카드들이 손패에 (인스턴스 id 1, 2, 3 … 순서로) 들어 있는 덱 상태. draw 등 나머지는 비어 있음 */
 export function handSnapshot(cardIds: readonly string[], upgraded: readonly number[] = []): DeckSnapshot {
   const hand: CardInstance[] = cardIds.map((cardId, i) => ({ instanceId: i + 1, cardId, upgraded: upgraded.includes(i + 1) }));
@@ -92,6 +115,8 @@ export interface CardSimOptions {
   catalog?: CardCatalog;
   unitCatalog?: UnitCatalog;
   deck?: DeckSnapshot;
+  commanderHp?: number;
+  relics?: readonly RelicEffect[];
 }
 
 /** 기본 편성: 아군 방패병(3,1) 방패병(3,3) 투기장 신병(2,2) vs 적 방패병(4,2) 석궁병(6,2) */
@@ -115,12 +140,21 @@ export function makeCardSim(options: CardSimOptions = {}): CombatSimulator {
         commander: options.commander === undefined ? null : options.commander,
         deck: options.deck ?? handSnapshot(options.hand ?? [], options.upgraded),
         ...(options.commands ? { commands: options.commands } : {}),
+        ...(options.commanderHp === undefined ? {} : { commanderHp: options.commanderHp }),
+        ...(options.relics ? { relics: options.relics } : {}),
       },
     },
     options.unitCatalog ?? units,
     traits,
     catalog,
   );
+}
+
+/** 궁극기 게이지를 가득 채운다 (카드 사용 트리거를 흉내 낸다: 카드 1장당 15) */
+export function fillUltimateGauge(sim: CombatSimulator): void {
+  for (let i = 0; i < 20 && !sim.ultimate?.ready && sim.ultimate?.charge !== 100; i++) {
+    sim.world.bus.emit('onCardPlay', { cardId: 'test', instanceId: 0 });
+  }
 }
 
 export const newRng = (seed = 1): Rng => new Rng(seed);

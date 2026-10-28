@@ -82,6 +82,14 @@ class FakeHost implements EventHost {
     if (!this.benchSpace) return '벤치에 빈 자리가 없습니다';
     return this.poolEmpty ? '유닛 풀 재고가 없습니다' : null;
   }
+  relics: string[] = [];
+  relicsLeft = true;
+  relicBlocker(_rarity: 'common' | 'rare'): string | null { return this.relicsLeft ? null : '더 받을 수 있는 유물이 없습니다'; }
+  grantRandomRelic(rarity: 'common' | 'rare', _rng: Rng): string | null {
+    if (!this.relicsLeft) return null;
+    this.relics.push(rarity);
+    return `${rarity} 유물`;
+  }
   grantRandomUnit(tier: number, _rng: Rng): boolean {
     if (!this.benchSpace || this.poolEmpty) return false;
     this.units.push(tier);

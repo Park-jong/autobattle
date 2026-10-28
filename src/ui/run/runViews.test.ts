@@ -95,12 +95,12 @@ describe('카드·HUD·보상·상점', () => {
     const run = newRun(6);
     driveTo(run, 'combat');
     finishBattle(run, 'win');
-    expect(buildRewardView(run, cards).cards).toHaveLength(3);
+    expect(buildRewardView(run, cards, runDeps.relics).cards).toHaveLength(3);
     run.skipReward();
 
     const shopRun = newRun(7);
     driveTo(shopRun, 'shop');
-    const shop = buildShopView(shopRun.shopView()!, shopRun.gold, cards);
+    const shop = buildShopView(shopRun.shopView()!, shopRun.gold, cards, runDeps.relics);
     expect(shop.cards).toHaveLength(3);
     expect(shop.removal.price).toBe(75);
     for (const entry of shop.cards) expect(entry.affordable).toBe(entry.price <= shopRun.gold);
@@ -109,13 +109,13 @@ describe('카드·HUD·보상·상점', () => {
       expect(shop.removal.reason).toBe('골드가 부족합니다');
     }
     grantGold(shopRun, 500);
-    const rich = buildShopView(shopRun.shopView()!, shopRun.gold, cards);
+    const rich = buildShopView(shopRun.shopView()!, shopRun.gold, cards, runDeps.relics);
     expect(rich.cards.every((c) => c.affordable)).toBe(true);
     expect(rich.removal.affordable).toBe(true);
     expect(rich.removal.candidates.length).toBeGreaterThan(0);
     // 구매한 카드는 판매 완료로 바뀐다
     shopRun.buyShopCard(0);
-    const after = buildShopView(shopRun.shopView()!, shopRun.gold, cards);
+    const after = buildShopView(shopRun.shopView()!, shopRun.gold, cards, runDeps.relics);
     expect(after.cards[0]).toMatchObject({ sold: true, affordable: false, reason: '판매 완료' });
   });
 });
@@ -200,7 +200,7 @@ describe('전투 결과·종료 화면', () => {
     const run = newRun(12);
     driveTo(run, 'boss');
     finishBattle(run, 'win');
-    const win = buildEndView(run, cards, units);
+    const win = buildEndView(run, cards, units, runDeps.relics);
     expect(win).toMatchObject({ outcome: 'victory', title: '1액트 돌파', floorReached: 13, floorCount: 13 });
     expect(win.deck.reduce((sum, c) => sum + c.count, 0)).toBe(win.deckCount);
     expect(win.battles.played).toBe(win.battles.wins + win.battles.losses + win.battles.draws);
@@ -210,6 +210,6 @@ describe('전투 결과·종료 화면', () => {
     damageCommander(dead, 79);
     dead.chooseNode(dead.availableNodes()[0]!.id);
     finishBattle(dead, 'loss');
-    expect(buildEndView(dead, cards, units)).toMatchObject({ outcome: 'dead', hp: 0, floorReached: 1 });
+    expect(buildEndView(dead, cards, units, runDeps.relics)).toMatchObject({ outcome: 'dead', hp: 0, floorReached: 1 });
   });
 });

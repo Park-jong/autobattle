@@ -1,0 +1,279 @@
+{
+  "version": 1,
+  "relics": [
+    {
+      "id": "old_baton",
+      "name": "낡은 지휘봉",
+      "rarity": "common",
+      "text": "전투 시작 CP +1.",
+      "effects": [
+        {
+          "kind": "startCp",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "id": "merchants_scale",
+      "name": "상인의 저울",
+      "rarity": "common",
+      "text": "노드마다 첫 상점 리롤이 무료.",
+      "effects": [
+        {
+          "kind": "freeReroll",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "bulwark_crest",
+      "name": "철벽의 인장",
+      "rarity": "common",
+      "text": "전투 시작 시 전열 아군에게 최대 HP 8% 보호막 (전투 끝까지).",
+      "effects": [
+        {
+          "kind": "combatStart",
+          "effects": [
+            {
+              "kind": "shield",
+              "selector": "alliesFrontRow",
+              "pctMaxHp": 8,
+              "duration": "combat"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ember_charm",
+      "name": "잿불 부적",
+      "rarity": "common",
+      "text": "주문 카드 피해 +20%.",
+      "effects": [
+        {
+          "kind": "spellDamage",
+          "pct": 20
+        }
+      ]
+    },
+    {
+      "id": "blood_ledger",
+      "name": "피의 장부",
+      "rarity": "common",
+      "text": "지휘관 HP를 잃는 카드의 소모량 -1.",
+      "effects": [
+        {
+          "kind": "hpCostReduction",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "id": "trophy_chain",
+      "name": "전리품 사슬",
+      "rarity": "common",
+      "text": "아군이 적을 처치하면 그 유닛의 마나 +15.",
+      "effects": [
+        {
+          "kind": "killMana",
+          "amount": 15
+        }
+      ]
+    },
+    {
+      "id": "loot_sack",
+      "name": "전리품 자루",
+      "rarity": "common",
+      "text": "전투 승리 골드 +2.",
+      "effects": [
+        {
+          "kind": "winGold",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "field_tent",
+      "name": "야전 천막",
+      "rarity": "common",
+      "text": "야영지 휴식의 회복량 +20%p (최대 HP 기준).",
+      "effects": [
+        {
+          "kind": "campHeal",
+          "pct": 20
+        }
+      ]
+    },
+    {
+      "id": "veteran_manual",
+      "name": "숙련자의 교본",
+      "rarity": "common",
+      "text": "획득 즉시 덱의 카드 2장을 무작위로 강화.",
+      "effects": [
+        {
+          "kind": "upgradeOnAcquire",
+          "count": 2
+        }
+      ]
+    },
+    {
+      "id": "blood_oath",
+      "name": "피의 맹세",
+      "rarity": "rare",
+      "text": "아군 유닛이 쓰러지면 CP +1 (전투당 최대 3).",
+      "unlock": "정예 5회 처치",
+      "effects": [
+        {
+          "kind": "allyDeathCp",
+          "amount": 1,
+          "maxPerCombat": 3
+        }
+      ]
+    },
+    {
+      "id": "fifth_banner",
+      "name": "다섯 번째 깃발",
+      "rarity": "rare",
+      "text": "같은 특성의 아군 유닛이 5기 이상이면 그 특성 단계 +1.",
+      "unlock": "런 1회 완료",
+      "effects": [
+        {
+          "kind": "traitTierBonus",
+          "minUnits": 5
+        }
+      ]
+    },
+    {
+      "id": "twin_mirror",
+      "name": "쌍둥이 거울",
+      "rarity": "rare",
+      "text": "런당 1회, 같은 유닛 2기로 2성 합성.",
+      "unlock": "유닛 3성 달성",
+      "effects": [
+        {
+          "kind": "mirrorMerge",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "heralds_bag",
+      "name": "전령의 가방",
+      "rarity": "rare",
+      "text": "손패 상한 +1, 전투 준비 때 카드 1장 더 뽑기.",
+      "unlock": "런 1회 완료",
+      "effects": [
+        {
+          "kind": "handLimit",
+          "amount": 1
+        },
+        {
+          "kind": "openingDraw",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "id": "tacticians_journal",
+      "name": "전술가의 일지",
+      "rarity": "rare",
+      "text": "카드 보상 선택지 +1장.",
+      "unlock": "덱 20장 이상으로 런 완료",
+      "effects": [
+        {
+          "kind": "rewardChoices",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "id": "war_record",
+      "name": "전쟁의 기록부",
+      "rarity": "rare",
+      "text": "궁극기 게이지 충전량 +50%.",
+      "unlock": "궁극기 10회 사용",
+      "effects": [
+        {
+          "kind": "ultimateCharge",
+          "pct": 50
+        }
+      ]
+    },
+    {
+      "id": "fat_purse",
+      "name": "두둑한 전대",
+      "rarity": "rare",
+      "text": "이자 상한 +2G.",
+      "unlock": "골드 50G 이상 보유한 채 보스 도달",
+      "effects": [
+        {
+          "kind": "interestMax",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "wholesale_voucher",
+      "name": "도매 증서",
+      "rarity": "rare",
+      "text": "상점의 카드·카드 제거 가격 -25%.",
+      "unlock": "상점 5회 방문",
+      "effects": [
+        {
+          "kind": "cardDiscount",
+          "pct": 25
+        }
+      ]
+    },
+    {
+      "id": "rift_heart",
+      "name": "균열의 심장",
+      "rarity": "boss",
+      "text": "전투 시작 CP +2.",
+      "unlock": "액트 1 보스 처치",
+      "effects": [
+        {
+          "kind": "startCp",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "legion_seal",
+      "name": "군단장의 인장",
+      "rarity": "boss",
+      "text": "전투 시작 시 아군 전체에게 최대 HP 15% 보호막 (전투 끝까지).",
+      "unlock": "액트 1 보스 처치",
+      "effects": [
+        {
+          "kind": "combatStart",
+          "effects": [
+            {
+              "kind": "shield",
+              "selector": "allAllies",
+              "pctMaxHp": 15,
+              "duration": "combat"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "iron_heart",
+      "name": "강철 심장",
+      "rarity": "boss",
+      "text": "획득 즉시 지휘관 최대 HP +20 (같은 양 회복), 전투 승리 시 HP +2.",
+      "unlock": "액트 1 보스 처치",
+      "effects": [
+        {
+          "kind": "maxHp",
+          "amount": 20
+        },
+        {
+          "kind": "winHeal",
+          "amount": 2
+        }
+      ]
+    }
+  ]
+}

@@ -44,6 +44,10 @@ export class HandPanel {
   private readonly prepLabel = el('div', 'hand-prep');
   private readonly hintBox = el('div', 'hand-hint');
   private readonly pileButtons = new Map<PileKey, HTMLButtonElement>();
+  /** 궁극기 영역: 이름 + 게이지 + 사용 버튼 */
+  private readonly ultimateBox = el('div', 'hand-ultimate');
+  private readonly ultimateFill = el('div', 'hand-ult-fill');
+  private readonly ultimateGaugeLabel = el('div', 'hand-ult-label');
 
   private press: Press | null = null;
   private ghost: HTMLElement | null = null;
@@ -62,10 +66,14 @@ export class HandPanel {
     this.root.classList.add('hand-bar');
     this.root.style.setProperty('--hand-height', `${CARD_UI.HAND_HEIGHT}px`);
     this.buildSide();
-    this.root.replaceChildren(this.side, this.cards, this.pileList, this.toastBox);
+    this.root.replaceChildren(this.side, this.ultimateBox, this.cards, this.pileList, this.toastBox);
     this.root.hidden = true;
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') this.cancelAll();
+      // 궁극기 단축키 U (입력칸에 글자를 쓰는 중에는 무시)
+      const target = e.target as HTMLElement | null;
+      const typing = target !== null && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
+      if ((e.key === 'u' || e.key === 'U') && !typing && !e.ctrlKey && !e.metaKey && !e.altKey && this.visible) this.controller.useUltimate();
     });
     this.loop();
   }
@@ -105,6 +113,7 @@ export class HandPanel {
       view.phaseLabel,
       view.commanderName,
       view.hand,
+      view.ultimate && [view.ultimate.name, view.ultimate.used, view.ultimate.ready, view.ultimate.reason, view.ultimate.hpCost],
       view.draw,
       view.discard,
       view.exhaust,
@@ -121,6 +130,7 @@ export class HandPanel {
       this.render(view);
     }
     this.updateGauge(view);
+    this.updateUltimateGauge(view);
     this.updateToast(view);
   };
 
@@ -142,6 +152,7 @@ export class HandPanel {
     this.phaseLabel.textContent = view.phaseLabel;
     this.commanderBox.replaceChildren(el('strong', undefined, view.commanderName), el('span', 'hand-passive', `패시브 ${view.passiveName}`));
     this.commanderBox.title = `${view.passiveName}: ${view.passiveText}`;
+    this.renderUltimate(view);
     this.hintBox.textContent = view.holding ? view.hint : '';
     this.hintBox.hidden = !view.holding;
 
@@ -192,6 +203,36 @@ export class HandPanel {
     }
     node.addEventListener('pointerdown', (e) => this.onCardDown(e, card));
     return node;
+  }
+
+  /** 궁극기 영역: 이름·설명(툴팁), 게이지, 사용 버튼(사유는 툴팁과 아래 줄) */
+  private renderUltimate(view: CardPanelView): void {
+    const ult = view.ultimate;
+    this.ultimateBox.hidden = ult === null;
+    if (!ult) return;
+    this.ultimateBox.title = `${ult.name}: ${ult.text}`;
+    this.ultimateBox.classList.toggle('ready', ult.ready);
+    this.ultimateBox.classList.toggle('used', ult.used);
+    const gauge = el('div', 'hand-ult-gauge');
+    gauge.append(this.ultimateFill);
+    const use = el('button', 'hand-ult-use', ult.used ? '사용함' : ult.ready ? `궁극기 사용 (U)` : '궁극기');
+    use.type = 'button';
+    use.dataset.testid = 'use-ultimate';
+    use.disabled = !ult.ready;
+    use.addEventListener('click', () => this.controller.useUltimate());
+    const cost = ult.hpCost > 0 ? el('div', 'hand-ult-cost', `지휘관 HP -${ult.hpCost}`) : null;
+    const reason = !ult.ready && ult.reason ? el('div', 'hand-ult-reason', ult.reason) : null;
+    this.ultimateBox.replaceChildren(
+      el('strong', 'hand-ult-name', ult.name), gauge, this.ultimateGaugeLabel, use, ...(cost ? [cost] : []), ...(reason ? [reason] : []),
+    );
+  }
+
+  private updateUltimateGauge(view: CardPanelView): void {
+    const ult = view.ultimate;
+    if (!ult) return;
+    const ratio = Math.max(0, Math.min(1, ult.charge / ult.max));
+    this.ultimateFill.style.width = `${Math.round(ratio * 100)}%`;
+    this.ultimateGaugeLabel.textContent = ult.used ? '게이지 소진' : `게이지 ${ult.charge} / ${ult.max}`;
   }
 
   private renderPileList(view: CardPanelView): void {

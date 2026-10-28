@@ -3,6 +3,8 @@ import { CombatSimulator, type CardCommand, type CombatSetup } from '../combat';
 import type { CardCatalog } from '../data/cardLoader';
 import type { CommanderDef } from '../data/commander';
 import type { CommanderCatalog } from '../data/commanderLoader';
+import type { RelicDef } from '../data/relic';
+import type { RelicCatalog } from '../data/relicLoader';
 import type { UnitDef } from '../data/unit';
 import type { EncounterCatalog } from '../data/encounterLoader';
 import type { EventDef } from '../data/event';
@@ -12,7 +14,7 @@ import type { UnitCatalog } from '../data/unitLoader';
 import type { BattleKind, BattleOutcome, EconomyView } from '../economy';
 import type { PromotionQuote } from '../management';
 import { Rng } from '../rng';
-import { generateCardStock, removalPrice, type ShopCardSlot } from './cardMarket';
+import { discounted, generateCardStock, removalPrice, type ShopCardSlot } from './cardMarket';
 import { CardRewardGenerator } from './cardRewards';
 import { CommanderHealth, defeatDamage } from './commanderHealth';
 import { RUN } from './constants';
@@ -21,6 +23,7 @@ import { EventDirector, type ChoiceView, type EventHost, type EventSessionState,
 import { PlayerForces } from './forces';
 import { MapGenerator } from './mapGenerator';
 import type { MapNode, RunMap } from './runMap';
+import { RelicRewardGenerator, type ShopRelicSlot } from './relicRewards';
 import { RunRoster } from './runRoster';
 import { RunSerializer, type RunSave } from './runSerializer';
 import { RunState, type BattleSettlement, type NodeSession, type RunOutcome, type RunPhase, type RunRecord } from './runState';
@@ -34,11 +37,13 @@ export interface RunDeps {
   commanders: CommanderCatalog;
   encounters: EncounterCatalog;
   events: EventCatalog;
+  relics: RelicCatalog;
 }
 
 export interface RunOptions {
   seed: number;
-  commanderId: string;
+  /** 시작 지휘관 (생략하면 하르텐) */
+  commanderId?: string;
   deckPreset?: DeckPreset;
 }
 
@@ -49,7 +54,10 @@ const fail = (reason: string): { ok: false; reason: string } => ({ ok: false, re
 
 /** 상점 노드 화면 정보 */
 export interface ShopView {
+  /** price는 보유 유물(도매 증서)의 할인이 적용된 실제 가격 */
   cards: ShopCardSlot[];
+  /** 유물 진열 (할인 없음) */
+  relics: ShopRelicSlot[];
   removalPrice: number;
   /** 제거할 수 있는 덱 카드 (유닛 제공 카드 제외) */
   removable: CardInstance[];
@@ -101,6 +109,7 @@ const kindOf = (node: MapNode): BattleKind => (node.type === 'combat' ? 'normal'
 export class RunController {
   private readonly planner: EncounterPlanner;
   private readonly rewards: CardRewardGenerator;
+  private readonly relicRewards: RelicRewardGenerator;
   private readonly director: EventDirector;
   private readonly serializer: RunSerializer;
   /** 이 컨트롤러가 발급한 전투 시뮬 → 발급 당시 노드·시도·정산 여부. completeBattle이 현재 전투의 결과만 받게 묶는다 */
@@ -114,6 +123,7 @@ export class RunController {
   ) {
     this.planner = new EncounterPlanner(deps.units, deps.encounters, state.seed);
     this.rewards = new CardRewardGenerator(deps.cards);
+    this.relicRewards = new RelicRewardGenerator(deps.relics);
     this.director = new EventDirector(deps.events, this.rewards, state.seed);
     this.serializer = new RunSerializer(deps);
     this.roster = new RunRoster(state.forces.management, {
@@ -124,14 +134,16 @@ export class RunController {
 
   /** 새 런: 시드 하나로 맵·지휘관 시작 전력이 결정된다 */
   static create(deps: RunDeps, options: RunOptions): RunController {
-    const commander = deps.commanders.get(options.commanderId);
-    if (!commander) throw new Error(`알 수 없는 지휘관 "${options.commanderId}"`);
+    const commanderId = options.commanderId ?? RUN.DEFAULT_COMMANDER_ID;
+    const commander = deps.commanders.get(commanderId);
+    if (!commander) throw new Error(`알 수 없는 지휘관 "${commanderId}"`);
     const preset = options.deckPreset ?? 'starter';
     const seed = normalizeRunSeed(options.seed); // 이후 모든 파생은 저장되는 값과 같은 시드를 쓴다
     const forces = PlayerForces.create(
       deps.units, deps.cards, commander,
       { management: deriveSeed(seed, 'management'), deck: deriveSeed(seed, 'deck') },
       preset,
+      deps.relics,
     );
     const health = new CommanderHealth(commander.maxHp ?? RUN.START_HP);
     const state = new RunState(seed, commander.id, preset, new MapGenerator().generate(seed), health, forces);
@@ -164,6 +176,17 @@ export class RunController {
   get removals(): number { return this.state.removals; }
   get deck(): DeckSnapshot { return this.state.forces.deck; }
   get session(): Readonly<NodeSession> | null { return this.state.session; }
+  /** 보유 유물 정의 (획득 순서) */
+  get relics(): RelicDef[] { return this.state.forces.relics.defs(); }
+
+  /**
+   * 보스를 쓰러뜨린 런에서 고를 수 있는 보스 유물 후보 (런 시드에서 결정적, 없는 유물만).
+   * 액트 1 보스 이후 런이 끝나므로 지금은 종료 화면에 보여 줄 뿐 받을 수는 없다 (액트 2부터 연결 예정).
+   */
+  bossRelicOffer(): string[] {
+    if (this.state.outcome !== 'victory') return [];
+    return this.relicRewards.offerBoss(this.state.forces.relics.ids, new Rng(deriveSeed(this.state.seed, 'bossrelic')));
+  }
 
   /** 현재(마지막으로 입장한) 노드. 시작 직후는 null */
   get currentNode(): MapNode | null {
@@ -200,6 +223,7 @@ export class RunController {
     if (!node) return fail('고를 수 없는 노드입니다 (현재 위치에서 이어진 다음 층 노드만 선택 가능)');
     this.state.currentNodeId = node.id;
     this.state.visited.push(node.id);
+    this.state.forces.relics.beginNode();
     this.enter(node);
     return OK;
   }
@@ -227,7 +251,10 @@ export class RunController {
     const setup: CombatSetup = {
       seed: this.battleSeed(),
       formations: [this.state.forces.formation(), plan.formation],
-      cards: { commander: this.commander, deck: this.state.forces.deckForBattle(), commands, commanderHp: this.state.health.hp },
+      cards: {
+        commander: this.commander, deck: this.state.forces.deckForBattle(), commands, commanderHp: this.state.health.hp,
+        relics: this.state.forces.relics.effects(),
+      },
       enemy: plan.enemy,
     };
     const sim = new CombatSimulator(setup, this.deps.units, this.deps.traits, this.deps.cards);
@@ -286,6 +313,14 @@ export class RunController {
       defeat = defeatDamage({ survivorTierSum, floor: node.floor, kind });
       health.damage(defeat);
     }
+    // 지휘관 패시브(녹스): 승리하면 남은 CP 1당 골드. 유물(강철 심장): 승리하면 HP 회복
+    let passiveGold = 0;
+    let healed = 0;
+    if (outcome === 'win') {
+      passiveGold = (sim.commandPoints?.combat ?? 0) * (this.commander.passive.goldPerLeftoverCp ?? 0);
+      if (passiveGold > 0) forces.economy.gain(passiveGold);
+      if (!health.dead) healed = health.heal(forces.relics.sum('winHeal', (e) => e.amount));
+    }
     forces.finishBattle(sim.deck.serialize(), sim.equippedItems);
     ticket.settled = true;
 
@@ -296,6 +331,7 @@ export class RunController {
 
     let runEnded: RunOutcome | null = null;
     let cardOffer: string[] | null = null;
+    let relicOffer: string | null = null;
     if (health.dead) {
       runEnded = 'dead';
       this.finish('dead');
@@ -303,8 +339,12 @@ export class RunController {
       runEnded = 'victory';
       this.finish('victory');
     } else if (outcome === 'win') {
-      cardOffer = this.rewards.offer(kind, new Rng(deriveSeed(this.state.seed, 'reward', node.id, session.tries)));
-      this.state.session = { kind: 'reward', source: kind === 'elite' ? 'elite' : 'normal', offer: cardOffer };
+      const choices = RUN.REWARD.CHOICES + forces.relics.sum('rewardChoices', (e) => e.amount);
+      cardOffer = this.rewards.offer(kind, new Rng(deriveSeed(this.state.seed, 'reward', node.id, session.tries)), choices);
+      if (kind === 'elite') {
+        relicOffer = this.relicRewards.offerElite(forces.relics.ids, new Rng(deriveSeed(this.state.seed, 'relicreward', node.id, session.tries)));
+      }
+      this.state.session = { kind: 'reward', source: kind === 'elite' ? 'elite' : 'normal', offer: cardOffer, relic: relicOffer };
       this.state.phase = 'reward';
     } else if (kind === 'boss') {
       this.state.session = { kind: 'battle', tries: session.tries + 1 };
@@ -312,7 +352,7 @@ export class RunController {
     } else {
       this.toMap();
     }
-    return { ok: true, settlement: { nodeId: node.id, kind, outcome, reward, cardHpLost, defeatDamage: defeat, hpBefore, hpAfter: health.hp, runEnded, cardOffer } };
+    return { ok: true, settlement: { nodeId: node.id, kind, outcome, reward, cardHpLost, defeatDamage: defeat, passiveGold, healed, hpBefore, hpAfter: health.hp, runEnded, cardOffer, relicOffer } };
   }
 
   /** 준비 단계에서 장비·카드 사용으로 바뀐 장비를 로스터에 확정한다 (준비 화면 재구성 시 카드가 복구되지 않도록) */
@@ -343,6 +383,15 @@ export class RunController {
     return OK;
   }
 
+  /** 정예 보상으로 제시된 유물을 받는다. 이미 받았으면 아무것도 하지 않고 성공 (카드 보상을 고르거나 건너뛰기 전에 부른다) */
+  claimRelic(): RunResult {
+    const session = this.state.session;
+    if (session?.kind !== 'reward') return fail('받을 유물 보상이 없습니다');
+    if (session.relic === null) return fail('이번 보상에는 유물이 없습니다');
+    if (!this.state.forces.relics.has(session.relic)) this.acquireRelic(session.relic);
+    return OK;
+  }
+
   skipReward(): RunResult {
     if (this.state.session?.kind !== 'reward') return fail('건너뛸 카드 보상이 없습니다');
     this.toMap();
@@ -354,9 +403,11 @@ export class RunController {
   shopView(): ShopView | null {
     const session = this.state.session;
     if (session?.kind !== 'shop') return null;
+    const discount = this.cardDiscountPct();
     return {
-      cards: session.cards.map((slot) => ({ ...slot })),
-      removalPrice: removalPrice(this.state.removals),
+      cards: session.cards.map((slot) => ({ ...slot, price: discounted(slot.price, discount) })),
+      relics: session.relics.map((slot) => ({ ...slot })),
+      removalPrice: discounted(removalPrice(this.state.removals), discount),
       removable: removableCards(this.state.forces.deck),
     };
   }
@@ -367,9 +418,23 @@ export class RunController {
     const entry = session.cards[slot];
     if (!entry) return fail('올바른 카드 슬롯을 고르세요');
     if (entry.sold) return fail('이미 구매한 카드입니다');
-    if (!this.state.forces.economy.spend(entry.price)) return fail('카드를 구매할 골드가 부족합니다');
+    if (!this.state.forces.economy.spend(discounted(entry.price, this.cardDiscountPct()))) return fail('카드를 구매할 골드가 부족합니다');
     this.state.forces.addCard(entry.cardId);
     entry.sold = true;
+    return OK;
+  }
+
+  /** 상점 유물 구매 */
+  buyShopRelic(slot: number): RunResult {
+    const session = this.state.session;
+    if (session?.kind !== 'shop') return fail('상점이 아닙니다');
+    const entry = session.relics[slot];
+    if (!entry) return fail('올바른 유물 슬롯을 고르세요');
+    if (entry.sold) return fail('이미 구매한 유물입니다');
+    if (this.state.forces.relics.has(entry.relicId)) return fail('이미 가진 유물입니다');
+    if (!this.state.forces.economy.spend(entry.price)) return fail('유물을 구매할 골드가 부족합니다');
+    entry.sold = true;
+    this.acquireRelic(entry.relicId);
     return OK;
   }
 
@@ -377,7 +442,7 @@ export class RunController {
   removeCardForGold(instanceId: number): RunResult {
     if (this.state.session?.kind !== 'shop') return fail('상점이 아닙니다');
     if (!removableCards(this.state.forces.deck).some((card) => card.instanceId === instanceId)) return fail('제거할 수 없는 카드입니다');
-    if (!this.state.forces.economy.spend(removalPrice(this.state.removals))) return fail('카드를 제거할 골드가 부족합니다');
+    if (!this.state.forces.economy.spend(discounted(removalPrice(this.state.removals), this.cardDiscountPct()))) return fail('카드를 제거할 골드가 부족합니다');
     this.state.forces.removeCard(instanceId);
     this.state.removals += 1;
     return OK;
@@ -442,7 +507,7 @@ export class RunController {
       promotions.push({ id: unit.id, unitId: unit.unitId, star: unit.star, quote, available: reason === undefined, ...(reason ? { reason } : {}) });
     }
     return {
-      healAmount: Math.min(health.max - health.hp, Math.ceil((health.max * RUN.CAMP.HEAL_PCT) / 100)),
+      healAmount: Math.min(health.max - health.hp, Math.ceil((health.max * this.campHealPct()) / 100)),
       canHeal: health.hp < health.max,
       upgradable: upgradableCards(forces.deck, this.deps.cards),
       promotions,
@@ -500,7 +565,12 @@ export class RunController {
       case 'shop': {
         forces.refreshShop();
         const rng = new Rng(deriveSeed(this.state.seed, 'shopcards', node.id));
-        this.state.session = { kind: 'shop', cards: generateCardStock(this.deps.cards, this.rewards, rng) };
+        const relicRng = new Rng(deriveSeed(this.state.seed, 'shoprelics', node.id));
+        this.state.session = {
+          kind: 'shop',
+          cards: generateCardStock(this.deps.cards, this.rewards, rng),
+          relics: this.relicRewards.stock(forces.relics.ids, relicRng),
+        };
         this.state.phase = 'shop';
         break;
       }
@@ -547,6 +617,26 @@ export class RunController {
     return session;
   }
 
+  /** 유물을 얻고 즉시 효과(최대 HP, 카드 강화, 쌍둥이 거울 합성, 경제 보정)를 적용한다. 같은 유물은 받을 수 없다 */
+  private acquireRelic(relicId: string): void {
+    const { forces, health } = this.state;
+    const def = forces.relics.add(relicId);
+    for (const effect of def.effects) {
+      if (effect.kind === 'maxHp') health.raiseMax(effect.amount);
+      else if (effect.kind === 'upgradeOnAcquire') forces.upgradeRandomCards(effect.count, new Rng(deriveSeed(this.state.seed, 'relicupgrade', relicId)));
+    }
+    forces.syncRelicEffects();
+    forces.management.applyMirrorMerge();
+  }
+
+  private cardDiscountPct(): number {
+    return Math.min(100, this.state.forces.relics.sum('cardDiscount', (e) => e.pct));
+  }
+
+  private campHealPct(): number {
+    return RUN.CAMP.HEAL_PCT + this.state.forces.relics.sum('campHeal', (e) => e.pct);
+  }
+
   private eventDef(session: EventSessionState): EventDef {
     const event = this.deps.events.get(session.eventId);
     if (!event) throw new Error(`알 수 없는 이벤트 "${session.eventId}"`);
@@ -577,6 +667,14 @@ export class RunController {
       upgradableCards: () => upgradableCards(forces.deck, cards).map((c) => c.instanceId),
       removeCard: (id) => forces.removeCard(id),
       upgradeCard: (id) => forces.upgradeCard(id),
+      relicBlocker: (rarity) =>
+        this.relicRewards.available(forces.relics.ids, rarity).length === 0 ? '더 받을 수 있는 유물이 없습니다' : null,
+      grantRandomRelic: (rarity, rng) => {
+        const relicId = this.relicRewards.pickRandom(forces.relics.ids, rarity, rng);
+        if (relicId === null) return null;
+        this.acquireRelic(relicId);
+        return this.deps.relics.get(relicId)?.name ?? relicId;
+      },
       unitGrantBlocker: (tier) => {
         if (!forces.management.hasBenchSpace()) return '벤치에 빈 자리가 없습니다';
         return this.grantableUnits(tier).length === 0 ? `유닛 풀에 ${tier}등급 유닛 재고가 없습니다` : null;

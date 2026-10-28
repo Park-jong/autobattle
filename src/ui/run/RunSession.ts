@@ -1,14 +1,14 @@
-import { RunController, type RunDeps, type RunResult } from '../../core/run';
+import { RUN, RunController, type RunDeps, type RunResult } from '../../core/run';
 import type { CardCatalog } from '../../core/data/cardLoader';
 import type { UnitCatalog } from '../../core/data/unitLoader';
 import type { RunBattleHost } from '../debug/runLink';
 import { RunBattleAdapter } from './RunBattleAdapter';
 import type { RunSaveStore } from './RunSaveStore';
 import type {
-  BattleScreenInfo, BattleStage, RunCommands, RunNotice, RunScreenId, RunSnapshot, RunViewSource,
+  BattleScreenInfo, BattleStage, RunCommands, RunNotice, RunScreenId, RunSnapshot, RunViewSource, StartInfo,
 } from './contracts';
 import {
-  buildCampView, buildEncounterPreview, buildEndView, buildEventView, buildHud, buildMapView, buildRewardView, buildSettlementView,
+  buildCampView, buildCommanderChoices, buildEncounterPreview, buildEndView, buildEventView, buildHud, buildMapView, buildRewardView, buildSettlementView,
   buildShopView, type EncounterPreviewView,
 } from './runViews';
 
@@ -102,15 +102,24 @@ export class RunSession implements RunViewSource, RunCommands {
     return {
       screen,
       notice: this.notice,
-      start: screen === 'start' ? { save: this.o.store.status(), suggestedSeed: this.suggestedSeed } : null,
+      start: screen === 'start' ? this.startInfo() : null,
       hud: live ? buildHud(run) : null,
       map: live && screen === 'map' ? buildMapView(run) : null,
       battle: live && screen === 'battle' ? this.battleInfo(run) : null,
-      reward: live && screen === 'reward' ? buildRewardView(run, this.cards) : null,
-      shop: live && shopView ? buildShopView(shopView, run.gold, this.cards) : null,
+      reward: live && screen === 'reward' ? buildRewardView(run, this.cards, this.o.deps.relics) : null,
+      shop: live && shopView ? buildShopView(shopView, run.gold, this.cards, this.o.deps.relics) : null,
       event: live && eventView ? buildEventView(eventView, run, this.cards) : null,
       camp: live && campView ? buildCampView(campView, run, this.cards, this.units) : null,
-      ended: live && screen === 'ended' ? buildEndView(run, this.cards, this.units) : null,
+      ended: live && screen === 'ended' ? buildEndView(run, this.cards, this.units, this.o.deps.relics) : null,
+    };
+  }
+
+  private startInfo(): StartInfo {
+    return {
+      save: this.o.store.status(),
+      suggestedSeed: this.suggestedSeed,
+      commanders: buildCommanderChoices(this.o.deps.commanders.commanders, this.cards, this.units, RUN.START_HP),
+      defaultCommanderId: this.o.commanderId,
     };
   }
 
@@ -121,13 +130,13 @@ export class RunSession implements RunViewSource, RunCommands {
 
   // ---- RunCommands: 시작 화면 ----
 
-  newRun(seed: number | null): void {
+  newRun(seed: number | null, commanderId?: string): void {
     const value = seed ?? this.suggestedSeed;
     if (!Number.isInteger(value) || value < SEED_MIN || value > SEED_MAX) {
       return this.fail(`시드는 ${SEED_MIN}~${SEED_MAX} 사이의 정수여야 합니다.`);
     }
     try {
-      this.adopt(RunController.create(this.o.deps, { seed: value, commanderId: this.o.commanderId }));
+      this.adopt(RunController.create(this.o.deps, { seed: value, commanderId: commanderId ?? this.o.commanderId }));
     } catch (e) {
       return this.fail(`새 런을 만들 수 없습니다: ${(e as Error).message}`);
     }
@@ -193,9 +202,11 @@ export class RunSession implements RunViewSource, RunCommands {
 
   // ---- RunCommands: 노드 화면 ----
 
-  claimReward(index: number): void { this.run((run) => run.claimReward(index)); }
-  skipReward(): void { this.run((run) => run.skipReward()); }
+  claimReward(index: number): void { this.run((run) => this.withRelic(run, () => run.claimReward(index))); }
+  skipReward(): void { this.run((run) => this.withRelic(run, () => run.skipReward())); }
+  claimRelic(): void { this.run((run) => run.claimRelic()); }
   buyShopCard(slot: number): void { this.run((run) => run.buyShopCard(slot)); }
+  buyShopRelic(slot: number): void { this.run((run) => run.buyShopRelic(slot)); }
   removeCard(instanceId: number): void { this.run((run) => run.removeCardForGold(instanceId)); }
   leaveShop(): void { this.run((run) => run.leaveShop()); }
   chooseEventOption(index: number): void { this.run((run) => run.chooseEventOption(index)); }
@@ -207,6 +218,16 @@ export class RunSession implements RunViewSource, RunCommands {
   leaveCamp(): void { this.run((run) => run.leaveCamp()); }
 
   // ---- 내부 ----
+
+  /** 정예 보상 유물이 남아 있으면 먼저 받고 카드 보상을 처리한다 (카드만 고르고 유물을 놓치지 않게) */
+  private withRelic(run: RunController, command: () => RunResult): RunResult {
+    const session = run.session;
+    if (session?.kind === 'reward' && session.relic !== null) {
+      const claimed = run.claimRelic();
+      if (!claimed.ok) return claimed;
+    }
+    return command();
+  }
 
   /** 컨트롤러 명령 한 건: 실패하면 사유를 알리고, 성공하면 저장·전투 연결을 갱신한다 */
   private run(command: (run: RunController) => RunResult): void {

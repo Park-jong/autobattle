@@ -89,7 +89,10 @@ export class BattleScene extends Phaser.Scene {
       byUid.set(view.uid, view);
       this.sprites.get(view.uid)?.update(view, time);
     }
-    this.effects.update(time, this.source.recentEffects(TIMING.EFFECT_WINDOW), byUid, this.source.telegraphs());
+    this.effects.update(time, this.source.recentEffects(TIMING.EFFECT_WINDOW), byUid, this.source.telegraphs(), {
+      meteors: this.source.meteors(),
+      aura: this.source.ultimateAura(),
+    });
 
     const targeting = this.source.targeting();
     this.targetingOverlay.update(targeting, byUid, performance.now());

@@ -22,8 +22,10 @@ export function defeatDamage(input: DefeatDamageInput): number {
 /** 지휘관 HP. 0 이하가 되면 런 종료(사망). 최대치를 넘게 회복할 수 없다 */
 export class CommanderHealth {
   private current: number;
+  private maxValue: number;
 
-  constructor(readonly max: number, hp: number = max) {
+  constructor(max: number, hp: number = max) {
+    this.maxValue = max;
     if (!Number.isInteger(max) || max < 1) throw new Error(`지휘관 최대 HP는 1 이상의 정수여야 합니다 (실제: ${max})`);
     if (!Number.isInteger(hp) || hp < 0 || hp > max) throw new Error(`지휘관 HP는 0 이상 최대 HP(${max}) 이하의 정수여야 합니다 (실제: ${hp})`);
     this.current = hp;
@@ -31,6 +33,17 @@ export class CommanderHealth {
 
   get hp(): number {
     return this.current;
+  }
+
+  get max(): number {
+    return this.maxValue;
+  }
+
+  /** 최대 HP를 올리고 같은 양을 회복한다 (유물 강철 심장) */
+  raiseMax(amount: number): void {
+    if (!Number.isInteger(amount) || amount < 0) throw new Error('최대 HP 증가량은 0 이상의 정수여야 합니다');
+    this.maxValue += amount;
+    this.current += amount;
   }
 
   get dead(): boolean {
@@ -59,7 +72,7 @@ export class CommanderHealth {
   }
 
   serialize(): { hp: number; maxHp: number } {
-    return { hp: this.current, maxHp: this.max };
+    return { hp: this.current, maxHp: this.maxValue };
   }
 
   static restore(data: unknown, path: string): CommanderHealth {

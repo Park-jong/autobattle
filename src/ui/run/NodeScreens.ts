@@ -2,6 +2,7 @@ import { deckPicker, cardChoice } from './cardElements';
 import type { RunCommands, RunSnapshot } from './contracts';
 import { button, el, tagged } from './dom';
 import { hudElement } from './hudElement';
+import { relicCard } from './relicElements';
 
 /** 노드 화면들이 공유하는 틀: 상단 상태 줄 + 제목 + 본문 */
 abstract class NodeScreen {
@@ -29,7 +30,21 @@ export class RewardScreen extends NodeScreen {
       grid.append(cardChoice(card, { label: '이 카드 받기', onChoose: () => this.commands.claimReward(index), testId: `reward-${index}` }));
     });
     const skip = tagged(button('건너뛰기', () => this.commands.skipReward()), 'skip-reward');
-    this.frame(snap, '카드 보상', reward.source === 'elite' ? '정예를 쓰러뜨렸습니다. 카드 1장을 덱에 추가하세요.' : '승리! 카드 1장을 덱에 추가하세요.', [grid, skip]);
+    const body: HTMLElement[] = [];
+    if (reward.relic) {
+      const box = tagged(el('section', 'run-reward-relic'), 'reward-relic');
+      box.append(el('h3', '', '정예 보상: 유물'), relicCard(reward.relic));
+      if (reward.relicClaimed) box.append(el('p', 'run-relic-claimed', '유물을 획득했습니다.'));
+      else {
+        box.append(
+          tagged(button('유물 받기', () => this.commands.claimRelic(), 'dbg-btn dbg-primary'), 'claim-relic'),
+          el('p', 'dbg-hint', '카드를 고르거나 건너뛰면 유물도 함께 받습니다.'),
+        );
+      }
+      body.push(box);
+    }
+    body.push(grid, skip);
+    this.frame(snap, '보상', reward.source === 'elite' ? '정예를 쓰러뜨렸습니다. 유물과 카드 1장을 얻으세요.' : '승리! 카드 1장을 덱에 추가하세요.', body);
   }
 }
 
@@ -51,12 +66,24 @@ export class ShopScreen extends NodeScreen {
         testId: `buy-card-${entry.slot}`,
       }));
     }
+    const relicGrid = tagged(el('div', 'run-relic-shelf'), 'shop-relics');
+    for (const entry of shop.relics) {
+      const box = el('div', 'run-relic-offer');
+      box.append(relicCard(entry.relic));
+      const buy = tagged(button(entry.sold ? '구매 완료' : `유물 구매 ${entry.price}G`, () => this.commands.buyShopRelic(entry.slot), 'dbg-btn run-choice-button'), `buy-relic-${entry.slot}`);
+      buy.disabled = !entry.affordable;
+      box.append(buy);
+      if (!entry.sold && entry.reason) box.append(el('p', 'run-choice-reason', entry.reason));
+      relicGrid.append(box);
+    }
+    const relicSection = el('section', 'run-shop-relics');
+    relicSection.append(el('h3', '', '유물'), shop.relics.length > 0 ? relicGrid : el('p', 'dbg-hint', '진열된 유물이 없습니다.'));
     const removal = el('section', 'run-shop-removal');
     const open = tagged(button(`카드 제거 ${shop.removal.price}G`, () => { this.removing = !this.removing; this.render(this.currentSnap); }), 'open-removal');
     open.disabled = !shop.removal.affordable;
     removal.append(el('h3', '', '카드 제거'), el('p', 'dbg-hint', '덱에서 카드 1장을 영구히 없앱니다. 제거할 때마다 가격이 25G 오릅니다.'), open);
     if (shop.removal.reason) removal.append(el('p', 'run-choice-reason', shop.removal.reason));
-    const body: HTMLElement[] = [grid, removal];
+    const body: HTMLElement[] = [grid, relicSection, removal];
     if (this.removing && shop.removal.affordable) {
       body.push(deckPicker({
         title: '제거할 카드를 고르세요',

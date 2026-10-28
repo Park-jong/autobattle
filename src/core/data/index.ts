@@ -21,3 +21,6 @@ export * from './commanderLoader';
 export { CommanderValidator } from './commanderValidator';
 export { assertEffectsUsable, type EffectUsageContext } from './effectUsage';
 export { EffectValidator, type EffectValidatorOptions } from './effectValidator';
+export * from './relic';
+export * from './relicLoader';
+export { RelicValidator } from './relicValidator';

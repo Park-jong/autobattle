@@ -9,6 +9,7 @@ import type { CombatWorld } from './world';
  */
 export class CombatCommandPoints implements CpGainSink {
   private readonly points: CommandPoints;
+  private boostUntilTick = 0;
 
   constructor(
     private readonly world: CombatWorld,
@@ -38,10 +39,15 @@ export class CombatCommandPoints implements CpGainSink {
     this.emit('combat', gained, 'start');
   }
 
-  /** 틱이 바뀐 직후 호출: 간격마다 +1 */
+  /** 틱이 바뀐 직후 호출: 간격마다 +1 (가속 중이면 2배 빠르게) */
   regen(tick: number): void {
-    const gained = this.points.regen(tick);
+    const gained = this.points.regen(tick, tick < this.boostUntilTick);
     if (gained > 0) this.emit('combat', gained, 'regen');
+  }
+
+  /** 이 틱 전까지 자연 증가 속도 2배 */
+  boostUntil(tick: number): void {
+    this.boostUntilTick = Math.max(this.boostUntilTick, tick);
   }
 
   gainCp(amount: number, reason: 'abyss' | 'effect'): number {

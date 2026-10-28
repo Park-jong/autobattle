@@ -1,6 +1,6 @@
 import type { SaveStatus } from './RunSaveStore';
 import type {
-  CampScreenView, EncounterPreviewView, EndScreenView, EventScreenView, MapView, RewardView, RunHud, SettlementView, ShopScreenView,
+  CommanderChoiceView, CampScreenView, EncounterPreviewView, EndScreenView, EventScreenView, MapView, RewardView, RunHud, SettlementView, ShopScreenView,
 } from './runViews';
 
 /** 지금 보여줄 화면 */
@@ -13,6 +13,10 @@ export interface StartInfo {
   save: SaveStatus;
   /** 새 런 입력칸에 미리 채울 시드 */
   suggestedSeed: number;
+  /** 고를 수 있는 지휘관 (해금은 M5-5 전까지 적용하지 않아 모두 선택 가능) */
+  commanders: CommanderChoiceView[];
+  /** 처음 선택해 둘 지휘관 id */
+  defaultCommanderId: string;
 }
 
 export interface BattleScreenInfo {
@@ -58,7 +62,8 @@ export interface RunViewSource {
 /** 화면이 내리는 명령. 실패하면 상태는 그대로이고 사유가 알림으로 나온다 */
 export interface RunCommands {
   // 시작 화면
-  newRun(seed: number | null): void;
+  /** commanderId를 생략하면 기본 지휘관 */
+  newRun(seed: number | null, commanderId?: string): void;
   continueRun(): void;
   deleteSave(): void;
   openManagement(): void;
@@ -73,8 +78,11 @@ export interface RunCommands {
   // 보상
   claimReward(index: number): void;
   skipReward(): void;
+  /** 정예 보상 유물을 받는다 (카드 보상을 고르거나 건너뛸 때도 함께 받는다) */
+  claimRelic(): void;
   // 상점
   buyShopCard(slot: number): void;
+  buyShopRelic(slot: number): void;
   removeCard(instanceId: number): void;
   leaveShop(): void;
   // 이벤트

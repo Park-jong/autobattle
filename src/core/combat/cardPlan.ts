@@ -18,6 +18,11 @@ import type { CombatUnit } from './unit';
  * - until: 이 틱까지만 시도 (생략하면 전투 끝까지)
  * 작전(operation) 카드는 tick과 무관하게 준비 단계에서 한 번 시도한다.
  */
+/**
+ * 계획 항목 `{ "tick": 100, "ultimate": true }`는 카드 대신 궁극기를 쓴다 (게이지가 찰 때까지 until까지 매 틱 시도).
+ * PlanEntry.card에는 이 예약어가 들어가며, 카드 id와 겹치지 않는다.
+ */
+export const ULTIMATE_PLAN_CARD = '@ultimate';
 export const TARGET_RULES = ['none', 'lowestHpEnemy', 'highestHpEnemy', 'lowestHpAlly', 'highestHpAlly'] as const;
 export type TargetRule = (typeof TARGET_RULES)[number];
 
@@ -41,7 +46,9 @@ export function parseCardPlan(data: unknown, label = 'plan'): PlanEntry[] {
   if (!Array.isArray(data)) throw new DataValidationError(label, '항목 배열이어야 함');
   return data.map((raw, i) => {
     const r = FieldReader.of(raw, `${label}[${i}]`);
-    r.onlyKeys(['tick', 'card', 'target', 'until']);
+    r.onlyKeys(['tick', 'card', 'target', 'until', 'ultimate']);
+    const ultimate = r.has('ultimate') && r.boolean('ultimate');
+    if (ultimate && r.has('card')) r.fail('card', 'ultimate: true인 항목에는 card를 함께 쓸 수 없음');
     let rule: TargetRule = 'none';
     if (r.has('target')) {
       const t = r.object('target');
@@ -50,7 +57,7 @@ export function parseCardPlan(data: unknown, label = 'plan'): PlanEntry[] {
     }
     return {
       tick: r.int('tick', 0),
-      card: r.string('card'),
+      card: ultimate ? ULTIMATE_PLAN_CARD : r.string('card'),
       rule,
       until: r.has('until') ? r.int('until', 0) : Infinity,
     };
@@ -77,7 +84,7 @@ export class CardPlanRunner {
     plan: readonly PlanEntry[],
   ) {
     for (const entry of plan) {
-      if (!catalog.get(entry.card)) throw new Error(`계획에 알 수 없는 카드 "${entry.card}"`);
+      if (entry.card !== ULTIMATE_PLAN_CARD && !catalog.get(entry.card)) throw new Error(`계획에 알 수 없는 카드 "${entry.card}"`);
     }
     // 틱 순서(같은 틱은 입력 순서)로 처리해 카드 배정이 결정적이도록 정렬
     this.entries = plan.map((e, i) => ({ e, i })).sort((a, b) => a.e.tick - b.e.tick || a.i - b.i).map((x) => x.e);
@@ -117,6 +124,15 @@ export class CardPlanRunner {
   }
 
   private attempt(index: number, entry: PlanEntry): void {
+    if (entry.card === ULTIMATE_PLAN_CARD) {
+      if (this.sim.useUltimate().ok) {
+        this.states[index] = { phase: 'done' };
+        this.played += 1;
+      } else {
+        this.lastReason.set(index, this.sim.ultimate?.reason ?? '궁극기를 쓸 수 없음');
+      }
+      return;
+    }
     const instance = this.sim.deck?.hand.find((c) => c.cardId === entry.card && !this.isAssignedToOther(c.instanceId, index));
     if (!instance) return this.fail(index, '손패에 없는 카드');
     this.assigned.set(instance.instanceId, index);

@@ -7,9 +7,12 @@
 export class CommanderHpLedger {
   private left: number;
   private lost = 0;
+  /** 런에서 현재 HP를 받았는가 (디버그 전투는 false) */
+  readonly tracked: boolean;
 
-  constructor(available: number = Number.MAX_SAFE_INTEGER) {
-    this.left = available;
+  constructor(available?: number) {
+    this.tracked = available !== undefined;
+    this.left = available ?? Number.MAX_SAFE_INTEGER;
   }
 
   /** 이 전투에서 아직 쓸 수 있는 HP */

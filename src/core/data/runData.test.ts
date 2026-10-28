@@ -118,23 +118,23 @@ describe('encounters.json', () => {
 });
 
 describe('events.json', () => {
-  it('실제 데이터: 이벤트 5개, 각 선택지 2~3개, 효과는 정해진 집합만 쓴다', () => {
+  it('실제 데이터: 이벤트 5개, 각 선택지 2~4개, 효과는 정해진 집합만 쓴다', () => {
     const catalog = loadEvents(eventsJson, cards, units);
     expect(catalog.size).toBe(5);
     const kinds = new Set<string>();
     for (const event of catalog.events) {
       expect(event.choices.length).toBeGreaterThanOrEqual(2);
-      expect(event.choices.length).toBeLessThanOrEqual(3);
+      expect(event.choices.length).toBeLessThanOrEqual(4);
       for (const choice of event.choices) for (const effect of choice.effects) kinds.add(effect.kind);
     }
-    expect([...kinds].sort()).toEqual(['commanderHp', 'gainCard', 'gainUnit', 'gold', 'removeCard', 'upgradeCard']);
+    expect([...kinds].sort()).toEqual(['commanderHp', 'gainCard', 'gainRelic', 'gainUnit', 'gold', 'removeCard', 'upgradeCard']);
   });
 
   it('선택지 개수·효과 형식 오류를 위치와 함께 거부한다', () => {
     const data = clone(eventsJson) as { events: { choices: { effects: Record<string, unknown>[] }[] }[] };
     data.events[0]!.choices.pop();
     data.events[0]!.choices.pop();
-    expect(() => loadEvents(data, cards, units)).toThrow(/events\[0\] \(abandoned_depot\)\.choices.*2~3개/);
+    expect(() => loadEvents(data, cards, units)).toThrow(/events\[0\] \(abandoned_depot\)\.choices.*2~4개/);
 
     const zero = clone(eventsJson) as typeof data;
     zero.events[0]!.choices[0]!.effects[0]!.amount = 0;

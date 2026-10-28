@@ -4,6 +4,8 @@
  */
 import type { Rarity } from './card';
 
+/** 이벤트로 얻는 유물 희귀도 (보스 유물은 제외) */
+export const EVENT_RELIC_RARITIES = ['common', 'rare'] as const;
 export const EVENT_CARD_MODES = ['random', 'choose', 'fixed'] as const;
 export const EVENT_PICK_MODES = ['random', 'choose'] as const;
 /** 이벤트로 얻는 카드 희귀도 (starter는 제외) */
@@ -24,7 +26,9 @@ export type EventEffect =
   /** 카드 강화 (이미 강화된 카드·강화 버전이 없는 카드·유닛 제공 카드 제외). 가능한 카드가 없으면 선택 불가 */
   | { kind: 'upgradeCard'; mode: 'random' | 'choose' }
   /** 무작위 tier등급 1성 유닛 1기를 벤치로 받는다. 벤치가 가득 차면 선택 불가 */
-  | { kind: 'gainUnit'; tier: number };
+  | { kind: 'gainUnit'; tier: number }
+  /** 유물 획득: 아직 없는 해당 희귀도(보스 제외)의 유물 중 무작위 1개. 남은 유물이 없으면 선택 불가 */
+  | { kind: 'gainRelic'; rarity: 'common' | 'rare' };
 
 export type EventEffectKind = EventEffect['kind'];
 

@@ -84,6 +84,14 @@
           "text": "그냥 떠난다",
           "result": "대장장이는 어깨를 으쓱하고 다시 망치를 들었다.",
           "effects": []
+        },
+        {
+          "text": "대장간 벽에 걸린 낡은 휘장을 가져간다 (지휘관 HP -6, 유물 1개)",
+          "result": "대장장이가 못 본 척 고개를 돌렸다. 휘장에는 이름 모를 병사의 온기가 남아 있었다.",
+          "effects": [
+            { "kind": "commanderHp", "amount": -6 },
+            { "kind": "gainRelic", "rarity": "common" }
+          ]
         }
       ]
     },
@@ -112,6 +120,14 @@
           "text": "눈을 돌리고 지나간다",
           "result": "속삭임은 등 뒤에서 한참을 따라왔지만 곧 잦아들었다.",
           "effects": []
+        },
+        {
+          "text": "균열 속에서 빛나는 파편을 움켜쥔다 (지휘관 HP -12, 희귀 유물 1개)",
+          "result": "손바닥이 타들어 가는 동안 파편은 조용히 당신의 것이 되었다.",
+          "effects": [
+            { "kind": "commanderHp", "amount": -12 },
+            { "kind": "gainRelic", "rarity": "rare" }
+          ]
         }
       ]
     },

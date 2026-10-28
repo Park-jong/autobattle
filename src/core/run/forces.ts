@@ -1,16 +1,18 @@
 import {
   addCardToDeck, createStartingDeck, dealOpeningHand, exhaustCardInDeck, removeCardFromDeck,
-  syncGrantedCards, upgradeCardInDeck, type DeckPreset, type DeckSnapshot,
+  syncGrantedCards, upgradableCards, upgradeCardInDeck, type DeckPreset, type DeckSnapshot,
 } from '../cards';
 import { parseDeckSnapshot } from '../cards/deckSnapshot';
 import type { FormationEntry } from '../combat';
 import type { CardCatalog } from '../data/cardLoader';
 import type { CommanderDef } from '../data/commander';
 import { FieldReader } from '../data/fieldReader';
+import { RelicCatalog } from '../data/relicLoader';
 import type { UnitCatalog } from '../data/unitLoader';
 import { Economy, type EconomyState } from '../economy';
 import { Management, type ManagementState } from '../management';
 import { Rng } from '../rng';
+import { RelicInventory } from './relicInventory';
 
 /** 저장용 상태: 골드·로스터/상점·상점 RNG·덱 */
 export interface ForcesState {
@@ -37,6 +39,8 @@ export class PlayerForces {
     readonly management: Management,
     private readonly managementRng: Rng,
     private carryDeck: DeckSnapshot,
+    /** 보유 유물. 경제 플레이처럼 유물이 없는 곳에서는 비어 있다 */
+    readonly relics: RelicInventory,
   ) {}
 
   /** 지휘관의 시작 2기·시작 덱으로 새로 만든다. 상점 난수와 덱 섞기 난수의 시드는 따로 받는다 */
@@ -46,24 +50,29 @@ export class PlayerForces {
     commander: CommanderDef,
     seeds: { management: number; deck: number },
     preset: DeckPreset,
+    relicCatalog: RelicCatalog = new RelicCatalog([]),
   ): PlayerForces {
     const economy = new Economy();
     const rng = new Rng(seeds.management);
-    const management = new Management(units, economy, rng, commander.startingUnits);
-    return new PlayerForces(units, cards, economy, management, rng, createStartingDeck(commander, cards, seeds.deck, preset));
+    const relics = new RelicInventory(relicCatalog);
+    const management = new Management(units, economy, rng, commander.startingUnits, relics);
+    return new PlayerForces(units, cards, economy, management, rng, createStartingDeck(commander, cards, seeds.deck, preset), relics);
   }
 
   /** 저장된 상태를 검증해 복원한다 */
-  static restore(units: UnitCatalog, cards: CardCatalog, data: unknown, path = 'forces'): PlayerForces {
+  static restore(
+    units: UnitCatalog, cards: CardCatalog, data: unknown, path = 'forces', relicCatalog: RelicCatalog = new RelicCatalog([]),
+  ): PlayerForces {
     const r = FieldReader.of(data, path);
     r.onlyKeys(['economy', 'management', 'managementRng', 'carryDeck']);
     const economy = Economy.restore(r.rawValue('economy'), `${path}.economy`);
     const rng = new Rng(0);
-    const management = new Management(units, economy, rng, []);
+    const relics = new RelicInventory(relicCatalog);
+    const management = new Management(units, economy, rng, [], relics);
     management.restoreState(r.rawValue('management'), `${path}.management`);
     rng.setState(r.int('managementRng', 0));
     const deck = parseDeckSnapshot(r.rawValue('carryDeck'), `${path}.carryDeck`, cards);
-    return new PlayerForces(units, cards, economy, management, rng, deck);
+    return new PlayerForces(units, cards, economy, management, rng, deck, relics);
   }
 
   serialize(): ForcesState {
@@ -91,7 +100,8 @@ export class PlayerForces {
   deckForBattle(): DeckSnapshot {
     const providers = this.management.snapshot().board.map((unit) => ({ sourceId: String(unit.id), unitId: unit.unitId, star: unit.star }));
     if (!this.preparedDeck) {
-      this.preparedDeck = dealOpeningHand(syncGrantedCards(this.carryDeck, this.cards, providers, this.units), this.cards);
+      const synced = syncGrantedCards(this.carryDeck, this.cards, providers, this.units);
+      this.preparedDeck = dealOpeningHand(synced, this.cards, this.relics.sum('openingDraw', (e) => e.amount), this.relics.sum('handLimit', (e) => e.amount));
     } else {
       this.preparedDeck = syncGrantedCards(this.preparedDeck, this.cards, providers, this.units);
     }
@@ -130,6 +140,27 @@ export class PlayerForces {
   /** 새 전투(노드) 입장 때의 무료 상점 갱신. 잠금이면 1회 유지하고 해제 */
   refreshShop(): void {
     this.management.advanceBattle();
+  }
+
+  // ---- 유물 ----
+
+  /** 보유 유물에서 경제 규칙(이자 상한, 승리 골드)을 다시 계산해 Economy에 넣는다. 유물을 얻거나 복원한 뒤 부른다 */
+  syncRelicEffects(): void {
+    this.economy.setModifiers({
+      interestMaxBonus: this.relics.sum('interestMax', (e) => e.amount),
+      winBonus: this.relics.sum('winGold', (e) => e.amount),
+    });
+  }
+
+  /** 덱에서 강화할 수 있는 카드를 최대 count장 골라 강화한다 (유물 숙련자의 교본). 강화한 장수 반환 */
+  upgradeRandomCards(count: number, rng: Rng): number {
+    let upgraded = 0;
+    for (; upgraded < count; upgraded++) {
+      const candidates = upgradableCards(this.carryDeck, this.cards);
+      if (candidates.length === 0) break;
+      this.upgradeCard(rng.pick(candidates).instanceId);
+    }
+    return upgraded;
   }
 
   // ---- 덱 편집 (런 보상·상점·이벤트·야영지) ----

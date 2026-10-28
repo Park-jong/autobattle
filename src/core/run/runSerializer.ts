@@ -3,11 +3,14 @@ import type { CardCatalog } from '../data/cardLoader';
 import type { CommanderCatalog } from '../data/commanderLoader';
 import { FieldReader } from '../data/fieldReader';
 import type { EventCatalog } from '../data/eventLoader';
+import type { RelicCatalog } from '../data/relicLoader';
 import type { UnitCatalog } from '../data/unitLoader';
 import type { BattleOutcome } from '../economy';
 import { cardPrice } from './cardMarket';
 import type { RewardRarity } from './cardRewards';
 import { CommanderHealth } from './commanderHealth';
+import type { RelicInventoryState } from './relicInventory';
+import { relicPrice, type DroppableRarity } from './relicRewards';
 import { RUN } from './constants';
 import type { EventSessionState, PendingPick } from './eventDirector';
 import { PlayerForces, type ForcesState } from './forces';
@@ -30,6 +33,8 @@ export interface RunSave {
   position: { currentNodeId: string | null; visited: string[] };
   health: { hp: number; maxHp: number };
   forces: ForcesState;
+  /** v2부터. v1 저장본에는 없고, 읽을 때 유물 없음으로 취급한다 */
+  relics: RelicInventoryState;
   removals: number;
   seenEvents: string[];
   phase: SavedPhase;
@@ -44,6 +49,7 @@ export interface SerializerDeps {
   cards: CardCatalog;
   commanders: CommanderCatalog;
   events: EventCatalog;
+  relics: RelicCatalog;
 }
 
 const SESSION_BY_PHASE: Readonly<Record<SavedPhase, NodeSession['kind'] | null>> = {
@@ -65,6 +71,7 @@ export class RunSerializer {
       position: { currentNodeId: state.currentNodeId, visited: [...state.visited] },
       health: state.health.serialize(),
       forces: state.forces.serialize(),
+      relics: state.forces.relics.serialize(),
       removals: state.removals,
       seenEvents: [...state.seenEvents],
       phase: state.phase === 'battle' ? 'battlePrep' : state.phase,
@@ -76,10 +83,14 @@ export class RunSerializer {
 
   parse(data: unknown): RunState {
     const r = FieldReader.of(data, 'run');
-    r.onlyKeys(['format', 'version', 'seed', 'commanderId', 'deckPreset', 'map', 'position', 'health', 'forces', 'removals', 'seenEvents', 'phase', 'session', 'outcome', 'history']);
     if (r.rawValue('format') !== SAVE_FORMAT) r.fail('format', `"${SAVE_FORMAT}"여야 함 (런 저장 파일이 아님)`);
     const version = r.int('version', 1);
-    if (version !== RUN.FORMAT_VERSION) r.fail('version', `지원하지 않는 저장 버전 ${version} (지원: ${RUN.FORMAT_VERSION})`);
+    if (version < RUN.MIN_FORMAT_VERSION || version > RUN.FORMAT_VERSION) {
+      r.fail('version', `지원하지 않는 저장 버전 ${version} (지원: ${RUN.MIN_FORMAT_VERSION}~${RUN.FORMAT_VERSION})`);
+    }
+    // v1에는 유물 필드가 없다: 하르텐(commanderId는 v1에도 있음)·유물 없음으로 읽는다
+    const keys = ['format', 'version', 'seed', 'commanderId', 'deckPreset', 'map', 'position', 'health', 'forces', 'removals', 'seenEvents', 'phase', 'session', 'outcome', 'history'];
+    r.onlyKeys(version >= 2 ? [...keys, 'relics'] : keys);
 
     const seed = r.number('seed');
     if (!Number.isInteger(seed) || seed !== (seed | 0)) r.fail('seed', `부호 있는 32비트 정수여야 함 (실제: ${seed})`);
@@ -89,7 +100,9 @@ export class RunSerializer {
 
     const map = RunMap.parse(r.rawValue('map'), 'run.map');
     const health = CommanderHealth.restore(r.rawValue('health'), 'run.health');
-    const forces = PlayerForces.restore(this.deps.units, this.deps.cards, r.rawValue('forces'), 'run.forces');
+    const forces = PlayerForces.restore(this.deps.units, this.deps.cards, r.rawValue('forces'), 'run.forces', this.deps.relics);
+    if (version >= 2) forces.relics.load(r.rawValue('relics'), 'run.relics');
+    forces.syncRelicEffects();
     const state = new RunState(seed, commanderId, deckPreset, map, health, forces);
 
     const position = r.object('position');
@@ -137,6 +150,11 @@ export class RunSerializer {
     const { map, visited, session } = state;
     const current = state.currentNodeId === null ? undefined : map.node(state.currentNodeId);
 
+    // 유물: 최대 HP는 지휘관 기본값 + 보유 유물의 최대 HP 증가의 합
+    const commander = this.deps.commanders.get(state.commanderId);
+    const expectedMax = (commander?.maxHp ?? RUN.START_HP) + state.forces.relics.sum('maxHp', (e) => e.amount);
+    if (state.health.max !== expectedMax) r.fail('health.maxHp', `지휘관 기본 최대 HP와 보유 유물에서 계산한 ${expectedMax}여야 함 (실제: ${state.health.max})`);
+
     // 위치: 입장한 노드는 1층부터 간선을 따라 한 층씩 이어진다
     if (visited.length > RUN.MAP.FLOORS) position.fail('visited', `${RUN.MAP.FLOORS}개 이하여야 함 (실제: ${visited.length})`);
     if (visited.length === 0 ? state.currentNodeId !== null : state.currentNodeId !== visited[visited.length - 1]) {
@@ -159,6 +177,7 @@ export class RunSerializer {
     if (session?.kind === 'reward') {
       if (type !== 'combat' && type !== 'elite') r.fail('session', `카드 보상은 일반·정예 전투 노드에서만 가능함 (현재 노드: ${type ?? '없음'})`);
       if (session.source !== (type === 'elite' ? 'elite' : 'normal')) r.fail('session.source', `현재 노드(${type})와 보상 종류(${session.source})가 맞지 않음`);
+      if (session.relic !== null && session.source !== 'elite') r.fail('session.relic', '유물 보상은 정예 전투에서만 나옴');
     }
     if (phase === 'ended') {
       if (state.outcome === 'victory' && type !== 'boss') r.fail('outcome', '승리는 보스 노드에서만 가능함');
@@ -183,6 +202,19 @@ export class RunSerializer {
         if (rarity !== 'common' && rarity !== 'rare' && rarity !== 'epic') r.fail(`session.cards[${i}].cardId`, `상점에 진열할 수 없는 카드 "${slot.cardId}"`);
         const price = cardPrice(rarity as RewardRarity);
         if (slot.price !== price) r.fail(`session.cards[${i}].price`, `희귀도 ${rarity}의 가격 ${price}G여야 함 (실제: ${slot.price})`);
+      });
+      if (session.relics.length > RUN.RELIC.SHOP_SLOTS) r.fail('session.relics', `${RUN.RELIC.SHOP_SLOTS}칸 이하여야 함 (실제: ${session.relics.length})`);
+      const shelved = new Set<string>();
+      session.relics.forEach((slot, i) => {
+        const rarity = this.deps.relics.get(slot.relicId)?.rarity;
+        if (rarity !== 'common' && rarity !== 'rare') r.fail(`session.relics[${i}].relicId`, `상점에 진열할 수 없는 유물 "${slot.relicId}"`);
+        if (shelved.has(slot.relicId)) r.fail(`session.relics[${i}].relicId`, `같은 유물이 두 칸에 진열됨 ("${slot.relicId}")`);
+        shelved.add(slot.relicId);
+        const price = relicPrice(rarity as DroppableRarity);
+        if (slot.price !== price) r.fail(`session.relics[${i}].price`, `희귀도 ${rarity}의 가격 ${price}G여야 함 (실제: ${slot.price})`);
+        if (slot.sold !== state.forces.relics.has(slot.relicId)) {
+          r.fail(`session.relics[${i}].sold`, slot.sold ? '구매했다면 보유 유물에 있어야 함' : '아직 팔리지 않은 유물을 이미 보유하고 있음');
+        }
       });
     }
 
@@ -234,11 +266,16 @@ export class RunSerializer {
         r.onlyKeys(['kind']);
         return { kind };
       case 'reward': {
-        r.onlyKeys(['kind', 'source', 'offer']);
-        return { kind, source: r.enum('source', ['normal', 'elite'] as const), offer: this.cardIds(r, 'offer') };
+        r.onlyKeys(['kind', 'source', 'offer', 'relic']);
+        let relic: string | null = null;
+        if (r.has('relic') && r.rawValue('relic') !== null) {
+          relic = r.string('relic');
+          if (!this.deps.relics.get(relic)) r.fail('relic', `relics.json에 없는 유물 id "${relic}"`);
+        }
+        return { kind, source: r.enum('source', ['normal', 'elite'] as const), offer: this.cardIds(r, 'offer'), relic };
       }
       case 'shop': {
-        r.onlyKeys(['kind', 'cards']);
+        r.onlyKeys(['kind', 'cards', 'relics']);
         const cards = r.array('cards').map((slot, i) => {
           const s = FieldReader.of(slot, `${path}.cards[${i}]`);
           s.onlyKeys(['cardId', 'price', 'sold']);
@@ -246,7 +283,14 @@ export class RunSerializer {
           if (!this.deps.cards.get(cardId)) s.fail('cardId', `cards.json에 없는 카드 id "${cardId}"`);
           return { cardId, price: s.int('price', 0), sold: s.boolean('sold') };
         });
-        return { kind, cards };
+        const relics = (r.has('relics') ? r.array('relics') : []).map((slot, i) => {
+          const s = FieldReader.of(slot, `${path}.relics[${i}]`);
+          s.onlyKeys(['relicId', 'price', 'sold']);
+          const relicId = s.string('relicId');
+          if (!this.deps.relics.get(relicId)) s.fail('relicId', `relics.json에 없는 유물 id "${relicId}"`);
+          return { relicId, price: s.int('price', 0), sold: s.boolean('sold') };
+        });
+        return { kind, cards, relics };
       }
       case 'event': {
         r.onlyKeys(['kind', 'state']);

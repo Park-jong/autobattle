@@ -20,6 +20,8 @@ export interface BattleReward {
   readonly goldBefore: number;
   readonly base: number;
   readonly interest: number;
+  /** 유물 등 추가 승리 골드 (없으면 키 자체가 없다) */
+  readonly bonus?: number;
   readonly total: number;
   readonly goldAfter: number;
 }
@@ -43,9 +45,17 @@ function assertGold(value: number): void {
 }
 
 /** 전투 보상을 받기 전 잔고로 계산한다. 보상 자체에는 이자가 붙지 않는다. */
-export function goldInterest(gold: number): number {
+export function goldInterest(gold: number, maxBonus = 0): number {
   assertGold(gold);
-  return Math.min(ECONOMY.INTEREST_MAX, Math.floor(gold / ECONOMY.INTEREST_STEP));
+  return Math.min(ECONOMY.INTEREST_MAX + maxBonus, Math.floor(gold / ECONOMY.INTEREST_STEP));
+}
+
+/** 유물이 바꾸는 골드 규칙 */
+export interface EconomyModifiers {
+  /** 이자 상한 증가 */
+  interestMaxBonus: number;
+  /** 전투 승리 보상 증가 */
+  winBonus: number;
 }
 
 /** 전투와 렌더러를 모르는 골드 계정. 같은 전투 ID의 보상은 한 번만 지급한다. */
@@ -53,6 +63,7 @@ export class Economy {
   private balance: number;
   private readonly rewards = new Map<string, BattleReward>();
   private latest: BattleReward | null = null;
+  private modifiers: EconomyModifiers = { interestMaxBonus: 0, winBonus: 0 };
 
   constructor(startGold: number = ECONOMY.START_GOLD) {
     assertGold(startGold);
@@ -61,6 +72,11 @@ export class Economy {
 
   get gold(): number {
     return this.balance;
+  }
+
+  /** 유물 보정 (저장 대상이 아니라 보유 유물에서 매번 다시 계산해 넣는다) */
+  setModifiers(modifiers: EconomyModifiers): void {
+    this.modifiers = { ...modifiers };
   }
 
   /** JSON 직렬화 가능한 상태. 영수증은 정산 순서를 보존한다 */
@@ -75,12 +91,13 @@ export class Economy {
     const economy = new Economy(r.int('balance', 0));
     for (const [i, raw] of r.array('rewards').entries()) {
       const rr = FieldReader.of(raw, `${path}.rewards[${i}]`);
-      rr.onlyKeys(['battleId', 'kind', 'outcome', 'goldBefore', 'base', 'interest', 'total', 'goldAfter']);
+      rr.onlyKeys(['battleId', 'kind', 'outcome', 'goldBefore', 'base', 'interest', 'bonus', 'total', 'goldAfter']);
       const reward: BattleReward = Object.freeze({
         battleId: rr.string('battleId'),
         kind: rr.enum('kind', BATTLE_KINDS),
         outcome: rr.enum('outcome', ['win', 'loss', 'draw'] as const),
         goldBefore: rr.int('goldBefore', 0), base: rr.int('base', 0), interest: rr.int('interest', 0),
+        ...(rr.has('bonus') ? { bonus: rr.int('bonus', 1) } : {}),
         total: rr.int('total', 0), goldAfter: rr.int('goldAfter', 0),
       });
       if (economy.rewards.has(reward.battleId)) rr.fail('battleId', `중복된 전투 ID "${reward.battleId}"`);
@@ -96,7 +113,7 @@ export class Economy {
   }
 
   snapshot(): EconomyView {
-    return { gold: this.balance, nextInterest: goldInterest(this.balance), lastReward: this.latest };
+    return { gold: this.balance, nextInterest: goldInterest(this.balance, this.modifiers.interestMaxBonus), lastReward: this.latest };
   }
 
   /** 재생·리셋으로 동일 전투가 다시 끝나도 최초 영수증을 돌려주며 재지급하지 않는다. */
@@ -107,11 +124,14 @@ export class Economy {
     const previous = this.rewards.get(battleId);
     if (previous) return previous;
     const base = outcome === 'win' ? ECONOMY.WIN_REWARDS[kind] : ECONOMY.LOSS_REWARD;
-    const interest = goldInterest(this.balance);
-    const total = base + interest;
+    const interest = goldInterest(this.balance, this.modifiers.interestMaxBonus);
+    const bonus = outcome === 'win' ? this.modifiers.winBonus : 0;
+    const total = base + interest + bonus;
     const goldAfter = this.balance + total;
     assertGold(goldAfter);
-    const reward = Object.freeze({ battleId, kind, outcome, goldBefore: this.balance, base, interest, total, goldAfter });
+    const reward: BattleReward = Object.freeze({
+      battleId, kind, outcome, goldBefore: this.balance, base, interest, ...(bonus > 0 ? { bonus } : {}), total, goldAfter,
+    });
     this.balance = goldAfter;
     this.rewards.set(battleId, reward);
     this.latest = reward;

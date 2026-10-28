@@ -1,4 +1,4 @@
-import { CardPlanRunner, type PlanEntry } from '../combat';
+import { CardPlanRunner, ULTIMATE_COMMAND_ID, ULTIMATE_PLAN_CARD, type PlanEntry } from '../combat';
 import { HALF_COLS, BOARD_ROWS, type Cell } from '../combat/board';
 import type { CardCatalog } from '../data/cardLoader';
 import type { UnitCatalog } from '../data/unitLoader';
@@ -14,6 +14,10 @@ export interface AutoRunOptions {
   policySeed: number;
   /** 전투 중 카드 사용 계획 (null이면 카드를 쓰지 않는다) */
   plan: readonly PlanEntry[] | null;
+  /** 유물 정책: 정예 보상 유물 획득, 상점에서 살 수 있는 유물 구매, 유물을 주는 이벤트 선택지 우선 (기본 꺼짐) */
+  relics?: boolean;
+  /** 궁극기 정책: 전투 계획에 궁극기를 더해 게이지가 차면 바로 쓴다 (기본 꺼짐) */
+  ultimate?: boolean;
   /** 안전 장치: 이 횟수만큼 행동해도 끝나지 않으면 Error */
   maxSteps?: number;
 }
@@ -32,6 +36,10 @@ export interface AutoRunSummary {
   /** 사망한 노드 (승리하면 null) */
   diedAt: { nodeId: string; floor: number; type: string } | null;
   steps: number;
+  /** 런이 끝났을 때 보유한 유물 수 */
+  relics: number;
+  /** 궁극기를 쓴 전투 수 */
+  ultimatesUsed: number;
 }
 
 /** 후열(원거리)과 전열(근접) 배치 선호 열 */
@@ -44,6 +52,8 @@ const ROW_ORDER = [2, 1, 3, 0, 4];
  * - 경로: 첫 노드 또는 무작위
  * - 준비/상점: 보드가 비면 벤치 유닛부터 올리고, 가장 싼 유닛을 사서 보드를 채운다. 인구가 찼고 골드가 넉넉하면 경험치를 산다
  * - 전투: 카드 사용 계획이 있으면 CardPlanRunner로, 없으면 카드 없이 진행
+ * - 유물(옵션): 정예 보상 유물을 받고, 상점에서 살 수 있는 가장 싼 유물을 사며, 유물을 주는 이벤트 선택지를 고른다
+ * - 궁극기(옵션): 카드 계획에 궁극기 항목을 더해 게이지가 차면 쓴다
  * - 보상: 첫 카드 / 이벤트: 선택 가능한 첫 선택지(카드 선택은 첫 후보) / 야영지: HP 50% 미만이면 휴식, 아니면 첫 강화 가능 카드 강화
  * 모든 결정은 컨트롤러의 공개 API만 쓰므로 UI가 같은 순서로 호출한 것과 같다.
  */
@@ -67,6 +77,7 @@ export class AutoRunner {
     let losses = 0;
     let draws = 0;
     let seconds = 0;
+    let ultimatesUsed = 0;
     const controller = this.controller;
     while (controller.phase !== 'ended') {
       if (++this.steps > limit) throw new Error(`자동 런이 ${limit}번 행동해도 끝나지 않았습니다 (단계: ${controller.phase})`);
@@ -79,15 +90,18 @@ export class AutoRunner {
           const settlement = this.fight();
           battles++;
           seconds += settlement.seconds;
+          if (settlement.ultimate) ultimatesUsed++;
           if (settlement.outcome === 'win') wins++;
           else if (settlement.outcome === 'loss') losses++;
           else draws++;
           break;
         }
         case 'reward':
+          if (this.options.relics && controller.session?.kind === 'reward' && controller.session.relic !== null) this.expect(controller.claimRelic());
           this.expect(controller.claimReward(0));
           break;
         case 'shop':
+          if (this.options.relics) this.buyRelics();
           this.manageRoster();
           this.expect(controller.leaveShop());
           break;
@@ -113,6 +127,8 @@ export class AutoRunner {
       averageBattleSeconds: battles === 0 ? 0 : seconds / battles,
       diedAt: controller.outcome === 'dead' && node ? { nodeId: node.id, floor: node.floor, type: last?.type ?? node.type } : null,
       steps: this.steps,
+      relics: controller.relics.length,
+      ultimatesUsed,
     };
   }
 
@@ -125,15 +141,41 @@ export class AutoRunner {
     this.expect(this.controller.chooseNode(node.id));
   }
 
-  private fight(): { outcome: string; seconds: number } {
+  private fight(): { outcome: string; seconds: number; ultimate: boolean } {
     const controller = this.controller;
     const sim = controller.createSimulator();
     this.expect(controller.beginBattle());
-    if (this.options.plan) new CardPlanRunner(sim, this.cards, this.options.plan).run();
+    const plan = this.battlePlan();
+    if (plan) new CardPlanRunner(sim, this.cards, plan).run();
     else sim.run();
     const done = controller.completeBattle(sim);
     if (!done.ok) throw new Error(done.reason);
-    return { outcome: done.settlement.outcome, seconds: sim.result().endTime };
+    return {
+      outcome: done.settlement.outcome,
+      seconds: sim.result().endTime,
+      ultimate: sim.commandLog.some((c) => c.cardInstanceId === ULTIMATE_COMMAND_ID),
+    };
+  }
+
+  /** 카드 계획 (+ 궁극기 정책이 켜져 있으면 궁극기 항목). 둘 다 없으면 null */
+  private battlePlan(): readonly PlanEntry[] | null {
+    const base = this.options.plan;
+    if (!this.options.ultimate) return base;
+    return [...(base ?? []), { tick: 0, card: ULTIMATE_PLAN_CARD, rule: 'none', until: Infinity }];
+  }
+
+  /** 상점 유물: 살 수 있는 것 중 가장 싼 것부터 반복 구매 */
+  private buyRelics(): void {
+    for (let guard = 0; guard < 4; guard++) {
+      const view = this.controller.shopView();
+      const slots = (view?.relics ?? [])
+        .map((relic, slot) => ({ relic, slot }))
+        .filter((e) => !e.relic.sold && e.relic.price <= this.controller.gold)
+        .sort((a, b) => a.relic.price - b.relic.price || a.slot - b.slot);
+      const pick = slots[0];
+      if (!pick) return;
+      this.expect(this.controller.buyShopRelic(pick.slot));
+    }
   }
 
   /** 보드 채우기 → 가장 싼 유닛 구매 → (인구가 찼고 골드가 넉넉하면) 경험치 */
@@ -172,7 +214,8 @@ export class AutoRunner {
     let view = controller.eventView();
     if (!view) throw new Error('이벤트 화면이 없습니다');
     if (view.chosen === null) {
-      const index = view.choices.findIndex((choice) => choice.enabled);
+      const relicIndex = this.options.relics ? view.choices.findIndex((choice) => choice.enabled && choice.grantsRelic) : -1;
+      const index = relicIndex >= 0 ? relicIndex : view.choices.findIndex((choice) => choice.enabled);
       if (index < 0) throw new Error('선택 가능한 이벤트 선택지가 없습니다');
       this.expect(controller.chooseEventOption(index));
       view = controller.eventView();

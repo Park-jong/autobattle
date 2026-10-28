@@ -1,4 +1,5 @@
 import { el, tagged } from './dom';
+import { relicRow } from './relicElements';
 import type { RunHud } from './runViews';
 
 /** 상단 상태 줄: 층 · 지휘관 HP · 골드 · 덱 장수 · 시드 */
@@ -25,5 +26,8 @@ export function hudElement(hud: RunHud): HTMLElement {
     item('위치', hud.location),
     item('시드', String(hud.seed)),
   );
+  const relics = el('div', 'run-hud-item run-hud-relics');
+  relics.append(el('span', 'run-hud-label', `유물 ${hud.relics.length}개`), relicRow(hud.relics, '없음'));
+  root.append(relics);
   return root;
 }
