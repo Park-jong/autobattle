@@ -2,7 +2,7 @@ import type { RunCommands, RunSnapshot } from './contracts';
 import { button, el, tagged } from './dom';
 import { relicRow } from './relicElements';
 
-/** 종료 화면: 승리/사망, 도달 층, 남은 HP, 골드, 덱·로스터 요약 */
+/** 종료 화면: 승리/사망, 도달 액트·층, 남은 HP, 골드, 덱·로스터 요약 */
 export class EndScreen {
   readonly root = el('div', 'run-end');
 
@@ -22,6 +22,7 @@ export class EndScreen {
     };
     stat('지휘관', end.commanderName);
     stat('시드', String(end.seed));
+    stat('도달 액트', `${end.act} / ${end.actCount} — ${end.actName}`);
     stat('도달 층', `${end.floorReached} / ${end.floorCount}`);
     stat('남은 HP', `${end.hp} / ${end.maxHp}`);
     stat('골드', `${end.gold}G`);
@@ -40,7 +41,7 @@ export class EndScreen {
       boss.append(
         el('h3', '', '보스 유물 후보'),
         relicRow(end.bossRelicOffer),
-        el('p', 'dbg-hint', '액트 2 이후에 이어지면 이 중 하나를 고를 수 있습니다 (지금은 보기만 가능).'),
+        el('p', 'dbg-hint', '런이 끝나 받을 수는 없습니다 (마지막 보스 처치 때 남아 있던 후보).'),
       );
       card.append(boss);
     }

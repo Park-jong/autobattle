@@ -18,20 +18,24 @@ export interface SerializedMap {
   floors: MapNode[][];
 }
 
-export const nodeId = (floor: number, index: number): string => `${floor}-${index}`;
+/** 노드 id. 액트 1은 `층-인덱스`(예: 3-1), 액트 2부터는 액트 접두사가 붙는다(예: a2-3-1) — 액트가 달라도 id가 겹치지 않는다 */
+export const nodeId = (floor: number, index: number, act = 1): string => (act === 1 ? `${floor}-${index}` : `a${act}-${floor}-${index}`);
+
+/** 액트와 액트 안 층(1~13)에서 만든 전체 층 번호 (층 보정·패배 피해·적 편성 층 범위의 기준). 액트 1은 층과 같다 */
+export const globalFloor = (act: number, floor: number): number => (act - 1) * RUN.MAP.FLOORS + floor;
 
 /** 상점·야영지처럼 연속하면 안 되는 "휴식형" 노드 */
 export const isRestType = (type: NodeType): boolean => type === 'shop' || type === 'camp';
 
 /**
- * 13층 분기 맵 (읽기 전용 구조). 구조 불변식은 assertValid가 검사한다:
+ * 한 액트의 13층 분기 맵 (읽기 전용 구조). 구조 불변식은 assertValid가 검사한다:
  * 층 수·층당 노드 수, 고정 층(1층 전투, 12층 야영지, 13층 보스 1개), 정예 층 제한,
  * 간선(다음 층으로만, 노드당 1~2개)·도달 가능성, 상점/야영지 연속 금지.
  */
 export class RunMap {
   private readonly byId = new Map<string, MapNode>();
 
-  constructor(readonly floors: readonly (readonly MapNode[])[]) {
+  constructor(readonly floors: readonly (readonly MapNode[])[], readonly act = 1) {
     for (const floor of floors) for (const node of floor) this.byId.set(node.id, node);
   }
 
@@ -113,7 +117,7 @@ export class RunMap {
         fail(`${floor}층 노드 수는 ${MIN_NODES}~${MAX_NODES}여야 함 (실제: ${nodes.length})`);
       }
       nodes.forEach((node, index) => {
-        if (node.floor !== floor || node.index !== index || node.id !== nodeId(floor, index)) fail(`노드 ${node.id}의 id/floor/index가 위치와 맞지 않음`);
+        if (node.floor !== floor || node.index !== index || node.id !== nodeId(floor, index, this.act)) fail(`노드 ${node.id}의 id/floor/index가 위치와 맞지 않음`);
         if (!NODE_TYPES.includes(node.type)) fail(`노드 ${node.id}의 종류 "${node.type}"를 알 수 없음`);
         if (node.type === 'boss' && floor !== BOSS_FLOOR) fail(`보스는 ${BOSS_FLOOR}층에만 있어야 함 (${node.id})`);
         if (floor === 1 && node.type !== 'combat') fail(`1층은 전투만 허용됨 (${node.id}: ${node.type})`);
@@ -139,7 +143,7 @@ export class RunMap {
   }
 
   /** 저장된 맵을 읽어 검증한다. 형식이 틀리면 위치가 담긴 DataValidationError, 불변식이 깨지면 Error */
-  static parse(data: unknown, path = 'map'): RunMap {
+  static parse(data: unknown, path = 'map', act = 1): RunMap {
     const root = FieldReader.of(data, path);
     root.onlyKeys(['floors']);
     const floors = root.array('floors').map((rawFloor, f) => {
@@ -157,7 +161,7 @@ export class RunMap {
         } satisfies MapNode;
       });
     });
-    const map = new RunMap(floors);
+    const map = new RunMap(floors, act);
     map.assertValid(path);
     return map;
   }

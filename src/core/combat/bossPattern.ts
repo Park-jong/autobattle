@@ -1,8 +1,11 @@
-import type { UnitPattern } from '../data/unit';
+import type { ColumnStrikePattern } from '../data/unit';
+import type { UnitCatalog } from '../data/unitLoader';
 import { BOARD_ROWS, type Cell, type Side } from './board';
 import { COMBAT } from './constants';
 import type { EffectExecutor } from './effects';
-import type { CombatUnit } from './unit';
+import { PhaseSummonRunner } from './phaseSummon';
+import { TwinReviveRunner } from './twinRevive';
+import { NO_SCALE, type CombatUnit, type StatScale } from './unit';
 import type { CombatWorld } from './world';
 
 interface PendingStrike {
@@ -30,7 +33,7 @@ export class ColumnStrikeRunner {
     private readonly world: CombatWorld,
     private readonly executor: EffectExecutor,
     private readonly boss: CombatUnit,
-    private readonly pattern: UnitPattern,
+    private readonly pattern: ColumnStrikePattern,
   ) {}
 
   install(): void {
@@ -86,5 +89,40 @@ export class ColumnStrikeRunner {
       [{ kind: 'flatDamage', selector: 'target', amount: this.pattern.damage, dmgType: this.pattern.dmgType }],
       { side: this.boss.side, caster: this.boss, targets },
     );
+  }
+}
+
+/**
+ * 전투 유닛들의 보스 패턴을 설치한다 (유닛 uid 순서). 패턴 종류별 실행기:
+ * 열 강타 → ColumnStrikeRunner, 쌍둥이 부활 → TwinReviveRunner(짝당 하나), 페이즈 소환 → PhaseSummonRunner.
+ * enemyScale은 증원 소환 유닛에 곱하는 적 보정 배율이다 (편성 유닛과 같은 배율).
+ */
+export function installBossPatterns(
+  world: CombatWorld,
+  executor: EffectExecutor,
+  units: UnitCatalog,
+  enemyScale: StatScale,
+): void {
+  const pairedTwins = new Set<number>();
+  for (const unit of world.units) {
+    const pattern = unit.def.pattern;
+    if (!pattern) continue;
+    switch (pattern.kind) {
+      case 'columnStrike':
+        new ColumnStrikeRunner(world, executor, unit, pattern).install();
+        break;
+      case 'twinRevive': {
+        if (pairedTwins.has(unit.uid)) break;
+        const partner = world.units.find((u) => u.side === unit.side && u.def.id === pattern.partner && u.uid !== unit.uid);
+        if (!partner) break; // 짝이 편성에 없으면 일반 유닛처럼 동작한다
+        pairedTwins.add(unit.uid);
+        pairedTwins.add(partner.uid);
+        new TwinReviveRunner(world, unit, partner, pattern).install();
+        break;
+      }
+      case 'phaseSummon':
+        new PhaseSummonRunner(world, unit, pattern, units, unit.side === 1 ? enemyScale : NO_SCALE).install();
+        break;
+    }
   }
 }

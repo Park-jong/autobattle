@@ -592,6 +592,135 @@
         "damage": 420,
         "dmgType": "physical"
       }
+    },
+    {
+      "id": "twin_ser",
+      "name": "세르",
+      "tier": 4,
+      "origin": "ember",
+      "job": "mystic",
+      "boss": true,
+      "stats": {
+        "hp": 1200,
+        "atk": 60,
+        "as": 0.6,
+        "rng": 3,
+        "arm": 20,
+        "res": 40,
+        "mana": 80
+      },
+      "skill": {
+        "name": "불꽃 낙인",
+        "text": "대상과 인접 적에게 마법 피해 300 + 화상 3초 (초당 시전자 ATK의 100%).",
+        "targeting": "currentTarget",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "targetAndAdjacent",
+            "amount": 300,
+            "dmgType": "magic"
+          },
+          {
+            "kind": "burn",
+            "selector": "targetAndAdjacent",
+            "dpsPctAtk": 100,
+            "duration": 3
+          }
+        ]
+      },
+      "pattern": {
+        "kind": "twinRevive",
+        "partner": "twin_mir",
+        "windowSeconds": 3,
+        "reviveHpPct": 50
+      }
+    },
+    {
+      "id": "twin_mir",
+      "name": "미르",
+      "tier": 4,
+      "origin": "ember",
+      "job": "mystic",
+      "boss": true,
+      "stats": {
+        "hp": 1200,
+        "atk": 50,
+        "as": 0.6,
+        "rng": 3,
+        "arm": 20,
+        "res": 40,
+        "mana": 70
+      },
+      "skill": {
+        "name": "재의 장막",
+        "text": "아군 전체에게 최대 HP 8% 보호막 (6초).",
+        "targeting": "self",
+        "effects": [
+          {
+            "kind": "shield",
+            "selector": "allAllies",
+            "pctMaxHp": 8,
+            "duration": 6
+          }
+        ]
+      },
+      "pattern": {
+        "kind": "twinRevive",
+        "partner": "twin_ser",
+        "windowSeconds": 3,
+        "reviveHpPct": 50
+      }
+    },
+    {
+      "id": "legion_lord",
+      "name": "바르칸",
+      "tier": 5,
+      "origin": "abyss",
+      "job": "gladiator",
+      "boss": true,
+      "stats": {
+        "hp": 3000,
+        "atk": 85,
+        "as": 0.55,
+        "rng": 1,
+        "arm": 45,
+        "res": 30,
+        "mana": 90
+      },
+      "skill": {
+        "name": "군주의 칼날",
+        "text": "현재 대상에게 ATK 300% 물리 피해 (ARM 30% 무시).",
+        "targeting": "currentTarget",
+        "effects": [
+          {
+            "kind": "damage",
+            "selector": "target",
+            "pctAtk": 300,
+            "dmgType": "physical",
+            "ignoreArmorPct": 30
+          }
+        ]
+      },
+      "pattern": {
+        "kind": "phaseSummon",
+        "phases": [
+          {
+            "hpPct": 66,
+            "summon": [
+              { "unitId": "legion_crossbow", "star": 2, "col": 7, "row": 1 },
+              { "unitId": "legion_crossbow", "star": 2, "col": 7, "row": 3 }
+            ]
+          },
+          {
+            "hpPct": 33,
+            "summon": [
+              { "unitId": "abyss_devourer", "star": 2, "col": 5, "row": 0 },
+              { "unitId": "abyss_devourer", "star": 2, "col": 5, "row": 4 },
+              { "unitId": "war_drummer", "star": 1, "col": 7, "row": 2 }
+            ]
+          }
+        ]
+      }
     }
   ]
 }

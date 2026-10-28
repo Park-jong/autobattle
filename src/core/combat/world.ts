@@ -5,7 +5,7 @@ import { COMBAT } from './constants';
 import { computeDamage, overheatMultiplier } from './damage';
 import type { CombatEvent } from './events';
 import { TriggerBus } from './triggers';
-import { CombatUnit } from './unit';
+import { CombatUnit, type StatScale } from './unit';
 import type { UnitDef } from '../data/unit';
 
 type DistributiveOmit<T, K extends PropertyKey> = T extends unknown ? Omit<T, K> : never;
@@ -49,12 +49,28 @@ export class CombatWorld {
     this.board.place(unit.uid, unit.cell);
   }
 
-  spawn(def: UnitDef, side: Side, cell: Cell, temporary = false): CombatUnit {
-    const unit = new CombatUnit(this.units.length, side, def, 1, cell, this.clock);
+  /** 전투 중 유닛 소환. 기본은 1성·보정 없음 (보스 증원은 성급과 적 보정을 넘긴다) */
+  spawn(def: UnitDef, side: Side, cell: Cell, temporary = false, options: { star?: number; scale?: StatScale } = {}): CombatUnit {
+    const star = options.star ?? 1;
+    const unit = new CombatUnit(this.units.length, side, def, star, cell, this.clock, options.scale);
     unit.temporary = temporary;
     this.addUnit(unit);
-    this.emit({ type: 'spawn', unit: unit.uid, unitId: def.id, side, star: 1, cell, hp: unit.hp, maxHp: unit.maxHp, mana: 0, maxMana: unit.maxMana });
+    this.emit({ type: 'spawn', unit: unit.uid, unitId: def.id, side, star, cell, hp: unit.hp, maxHp: unit.maxHp, mana: 0, maxMana: unit.maxMana });
     return unit;
+  }
+
+  /** 죽은 유닛을 되살린다: 빈 칸(원래 칸 우선, 없으면 가까운 칸)에 hp로 다시 세우고 상태·이동을 초기화한다 */
+  revive(unit: CombatUnit, hp: number, cell: Cell): void {
+    unit.alive = true;
+    unit.hp = Math.min(unit.maxHp, Math.max(1, Math.round(hp)));
+    unit.mana = 0;
+    unit.moving = null;
+    unit.cell = cell;
+    unit.attackReadyAt = this.now;
+    unit.retryAt = 0;
+    unit.statuses.clear();
+    this.board.place(unit.uid, cell);
+    this.emit({ type: 'revive', unit: unit.uid, hp: unit.hp, maxHp: unit.maxHp, cell });
   }
 
   emit(event: NewEvent): void {

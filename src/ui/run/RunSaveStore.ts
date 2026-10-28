@@ -4,6 +4,8 @@ import type { RunStorage } from './RunStorage';
 /** 이어하기 버튼에 보여줄 저장본 요약 */
 export interface SaveSummary {
   seed: number;
+  /** 지금 액트와 그 액트에서 도달한 최고 층 */
+  act: number;
   floor: number;
   hp: number;
   maxHp: number;
@@ -39,7 +41,7 @@ export class RunSaveStore {
     const c = loaded.controller;
     return {
       kind: 'ok',
-      summary: { seed: c.seed, floor: c.floorReached, hp: c.hp, maxHp: c.maxHp, gold: c.gold, commanderName: c.commander.name },
+      summary: { seed: c.seed, act: c.act, floor: c.floorReached, hp: c.hp, maxHp: c.maxHp, gold: c.gold, commanderName: c.commander.name },
     };
   }
 

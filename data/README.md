@@ -121,7 +121,7 @@ M3 추가 카드: `call_reserves`(예비대 호출, 3CP·강화 2CP, 후열 빈 
 
 ## units.json
 
-유닛 15기: 1등급 8종 + 2등급 6종 (CHARACTERS.md 4·5장) + 보스 전용 `gate_breaker`(성문 파괴자, 5등급, `boss: true`). 코드는 `loadUnits(json, traitCatalog)`로 읽으며, 특성 카탈로그를 주면 `origin`/`job` 참조(존재, 종류)도 검증한다. `grantedCard`는 보드 제공 카드 ID이며 `assertUnitCardReferences`가 카드 참조를 검증한다.
+유닛 18기: 1등급 8종 + 2등급 6종 (CHARACTERS.md 4·5장) + 보스 전용 4기 `gate_breaker`(성문 파괴자, 5등급)·`twin_ser`/`twin_mir`(쌍둥이 주술사 세르·미르, 4등급)·`legion_lord`(군단의 군주 바르칸, 5등급), 모두 `boss: true`. 코드는 `loadUnits(json, traitCatalog)`로 읽으며, 특성 카탈로그를 주면 `origin`/`job` 참조(존재, 종류)도 검증한다. `grantedCard`는 보드 제공 카드 ID이며 `assertUnitCardReferences`가 카드 참조를 검증한다.
 
 | 필드 | 값 |
 |---|---|
@@ -133,7 +133,7 @@ M3 추가 카드: `call_reserves`(예비대 호출, 3CP·강화 2CP, 후열 빈 
 | `skill.targeting` | `self` / `currentTarget`(현재 공격 대상, 사거리 안이어야 시전) / `lowestHpEnemy`(현재 HP가 가장 낮은 적, 사거리 무관) |
 | `skill.effects` | 효과 목록 (순서대로 실행, 최소 1개). 수치는 `[1성, 2성, 3성]` 배열 가능 |
 | `boss` | 선택. `true`면 보스 전용 — 상점 유닛 풀·징집 후보·이벤트 유닛 지급에서 제외 |
-| `pattern` | 선택(보스). `{ kind: "columnStrike", intervalSeconds, telegraphSeconds(< 간격), damage, dmgType }` — 주기 열 강타. 동작은 아래 "런 코어"의 보스 절 |
+| `pattern` | 선택(보스). 종류(`kind`)마다 필드가 다르다 — `columnStrike`: `{ intervalSeconds, telegraphSeconds(< 간격), damage, dmgType }` 주기 열 강타 / `twinRevive`: `{ partner(짝 유닛 id), windowSeconds, reviveHpPct(1~100) }` 쌍둥이 부활(짝끼리 서로를 가리켜야 함) / `phaseSummon`: `{ phases: [{ hpPct(내림차순, 1~99), summon: [{ unitId, star, col(4~7), row }] }] }` HP 임계치마다 증원 + 버프 해제(증원은 비보스 유닛만). 참조(짝·증원 유닛)는 `loadUnits`가 확인한다. 동작은 아래 "런 코어"의 보스 절 |
 
 M2에서 추가된 유닛
 - `ember_kindler` (U06 잿불 점화사, 잿불/주술사): 점화 = 대상과 인접 적에게 `flatDamage` 마법 120/180/300 + `burn` 3초. CHARACTERS에 화상 수치가 없어 초당 피해는 시전자 ATK의 100%(`dpsPctAtk: 100`)로 정했다.
@@ -300,9 +300,9 @@ M2에서 추가된 유닛
 - **정예 승리**: 카드 보상과 함께 유물 1개를 제시(`RewardSession.relic`, 일반 65 / 희귀 35, 그 희귀도가 바닥나면 다른 희귀도, 둘 다 없으면 없음). `claimRelic()`으로 받으며, UI는 카드를 고르거나 건너뛸 때 남은 유물도 자동으로 받는다. 일반 전투·패배에는 없다.
 - **상점**: 진열 2칸(일반 60 / 희귀 40), 가격 일반 18G / 희귀 30G(`RUN.RELIC`). 할인은 유물 도매 증서만 카드·제거에 적용되고 유물에는 적용되지 않는다. `buyShopRelic(slot)`.
 - **이벤트**: `gainRelic` 효과 (위 events.json).
-- **보스 처치**: 보스 유물 후보 3개를 `RunController.bossRelicOffer()`로 결정적으로 뽑는다(승리한 런에서만, 이미 가진 유물 제외). **액트 1 보스 이후 런이 끝나므로 아직 받을 수는 없고 종료 화면에 "보스 유물 후보"로 보여 주기만 한다** (선택·획득은 액트 2 연결 시 `acquireRelic` 경로로 붙일 준비만 해 둔 상태이며 저장 대상이 아니다).
+- **보스 처치 (M5-1)**: 마지막이 아닌 액트의 보스를 쓰러뜨리면 보스 유물 후보 최대 3개(이미 가진 유물 제외, 런 시드·액트에서 결정적)가 `bossRelic` 단계에 제시되고 `claimBossRelic(index)`로 하나를 받거나 `skipBossRelic()`으로 건너뛴다. 받은 유물은 일반 유물과 같은 `acquireRelic` 경로로 즉시 효과(강철 심장의 최대 HP)와 전투·경제 효과를 갖는다. 마지막 액트(3) 보스 처치로 런이 끝나면 받을 수는 없고 `bossRelicOffer()`로 종료 화면에 남은 후보만 보여 준다. 보스 유물이 3개뿐이라 액트 1·2에서 받으면 액트 3 종료 화면의 후보는 1개가 남는다.
 
-**저장**: 보유 유물은 `RunSave.relics`(`{ owned, mirrorUsed, freeRerollsUsed }`)에 저장한다(런 코어 절의 저장 v2).
+**저장**: 보유 유물은 `RunSave.relics`(`{ owned, mirrorUsed, freeRerollsUsed }`)에 저장한다(런 코어 절의 저장 v2·v3).
 
 ---
 
@@ -314,13 +314,13 @@ M2에서 추가된 유닛
 |---|---|
 | `id`, `name` | 영문 키, 표시 이름 |
 | `kind` | `normal`(전투 노드) / `elite`(정예) / `boss` |
-| `minFloor`, `maxFloor` | 이 편성이 나올 수 있는 층 (포함, 1~13) |
+| `minFloor`, `maxFloor` | 이 편성이 나올 수 있는 **전체 층** (포함). 전체 층 = (액트 − 1) × 13 + 액트 안 층이라 액트 1은 1~13, 액트 2는 14~26, 액트 3은 27~39 |
 | `text` | 미리보기 한 줄 설명 |
 | `units` | `[{ unitId, star(1~3), col(4~7), row(0~4) }]` 적 진영 배치. 칸 중복 불가, 최소 1기 |
 
-현재 수록: 일반 10개(1~11층을 겹쳐서 덮음), 정예 4개(4~11층), 보스 1개(`boss_gate_breaker`, 13층: 성문 파괴자 + 호위 2기). `loadRunDeps`는 일반 1~11층, 정예 4~11층, 보스 13층에 후보가 있는지 검사한다(없으면 어느 층인지 알리는 오류). 같은 노드는 (런 시드, 노드 id)로 편성을 고르므로 미리보기와 실제 전투가 항상 같다.
+현재 수록 (M5-1): 액트 1 = 일반 10개(전체 1~11층을 겹쳐서 덮음)·정예 4개(4~11층)·보스 `boss_gate_breaker`(13층: 성문 파괴자 + 호위 2기). **액트 2 잿불 고원**(전체 14~26층) = 일반 8개(잿불·주술사 계열 중심, 2성 위주)·정예 3개(`elite_ember_pyre`·`elite_ash_wardens`·`elite_cinder_blades`, 17~24층)·보스 `boss_twin_sorcerers`(26층: 세르·미르 + 잿불 광전사 2기 + 방패병). **액트 3 몰락한 수도**(전체 27~39층) = 일반 8개(강철군단·심연 계열, 2~3성)·정예 3개(`elite_legion_wall`·`elite_abyss_court`·`elite_oathbreakers`, 30~37층)·보스 `boss_legion_lord`(39층: 바르칸 + 방패병 2기 + 석궁병 2기). 유닛은 기존 14종이고 성급·인원·배치로 난이도를 올렸다 (유닛 확장은 M5-4). `loadRunDeps`는 **액트마다** 일반 1~11층, 정예 4~11층, 보스 13층(전체 층으로는 위 범위)에 후보가 있는지 검사한다 (없으면 "전체 26층(액트 2 13층)에 쓸 boss 편성이 없음"처럼 전체 층과 액트 안 층을 함께 알리는 오류, `EncounterCoverage.floorsPerAct`). 같은 노드는 (런 시드, 노드 id)로 편성을 고르므로 미리보기와 실제 전투가 항상 같다.
 
-**층 보정**: 모든 적 유닛의 HP·ATK × `1 + 0.04 × (층 − 1)` (`RUN.FLOOR_SCALE_PER_FLOOR`). 시뮬에는 `CombatSetup.enemy = { hpMult, atkMult, mutations }`로 넣는다 (편성 유닛에만 적용, 소환 유닛 제외, 생략하면 보정 없음).
+**층 보정**: 모든 적 유닛의 HP·ATK × `1 + 0.04 × (전체 층 − 1)` (`RUN.FLOOR_SCALE_PER_FLOOR`). 액트 1은 전체 층 = 층이라 기존과 같고, 액트 2 1층은 ×1.52, 액트 2 보스(26층) ×2.00, 액트 3 1층 ×2.04, 액트 3 보스(39층) ×2.52. 시뮬에는 `CombatSetup.enemy = { hpMult, atkMult, mutations }`로 넣는다 (편성 유닛에만 적용, 소환 유닛 제외, 생략하면 보정 없음).
 
 ## events.json
 
@@ -346,7 +346,7 @@ M2에서 추가된 유닛
 
 ---
 
-## 런 코어 (M4-A)
+## 런 코어 (M4-A, M5-1 3액트)
 
 `src/core/run`. 수치는 `RUN`(`run/constants.ts`)에 모여 있다. UI(M4-B)는 `RunController`만 보고 만든다.
 
@@ -355,21 +355,29 @@ M2에서 추가된 유닛
 - 정산(`completeBattle`) 순서: 골드(유물 승리 골드·이자 상한 반영) → 카드·궁극기로 잃은 HP → 패배 피해 → (승리) 지휘관 패시브 골드(녹스) → 유물 승리 회복 → 덱·장비 이어받기 → 다음 단계. 정예 승리는 보상 단계에 유물을 함께 제시한다.
 - 유물의 즉시 효과(최대 HP, 카드 강화, 쌍둥이 거울 합성, 경제 보정)는 `RunController`가 획득 때 적용하고, 나머지는 읽는 쪽(`CombatSimulator`·`PlayerForces`·`Economy`·`Management`)이 보유 유물에서 합산한다.
 
+### 액트 구조 (M5-1)
+- **3액트**(`RUN.ACTS.COUNT`): 액트마다 13층 맵을 따로 만든다. 액트 1 = 회색 관문(성문 파괴자), 액트 2 = 잿불 고원(쌍둥이 주술사 세르·미르), 액트 3 = 몰락한 수도 아스트라(군단의 군주 바르칸). 이름·지역은 `RUN.ACTS.INFO`(CHARACTERS 1장). `RunOptions.acts`(1~3, 기본 3)로 줄일 수 있고 1이면 액트 1 보스 처치가 곧 승리다(헤드리스 회귀 비교용 `--acts 1`).
+- **시드 파생**: 액트 1은 기존과 **비트 단위로 같다**(`deriveSeed(seed,'map')`, 노드 id `층-인덱스`, 노드 파생 시드 그대로). 액트 2부터는 맵 시드에 액트 번호를 더하고(`deriveSeed(seed,'map',act)`), 노드 id에 `a{액트}-` 접두사가 붙어(`a2-3-1`) 전투·편성·보상·상점·이벤트 파생이 자동으로 액트마다 달라진다. 보스 유물 후보 Rng는 액트 1 `deriveSeed(seed,'bossrelic')`, 액트 2부터 `(…,'bossrelic',act)`.
+- **전체 층**: `globalFloor(act, floor) = (act − 1) × 13 + floor`. **층 보정** `1 + 0.04 × (전체 층 − 1)`, **패배 피해의 층 항** `floor(전체 층 / 3)`, **적 편성 층 범위**(`encounters.json minFloor/maxFloor`)가 모두 전체 층을 쓴다. `MapNode.floor`와 history의 `floor`는 액트 안 층(1~13, 맵 표시용)이다. `EncounterPlan`에 `act`·`globalFloor`·`bossPatterns`가 있다.
+- **액트 사이 처리 (초안, 설계 문서에 규정 없음)**: 액트 보스 처치 → (마지막 액트가 아니면) **보스 유물 선택**(`bossRelic` 단계) → 새 액트 맵을 만들고 지휘관 HP를 **최대 HP의 50%(올림)** 회복(`RUN.ACTS.TRANSITION_HEAL_PCT`, 최대치까지) → **액트 소개**(`actIntro` 단계: 지역·보스 패턴·회복 결과) → `continueAct()` → 새 액트의 맵 단계. 골드·로스터(벤치·레벨 포함)·덱·장비·유물·`removals`·`seenEvents`는 그대로 이어진다. 보스 승리에는 카드 보상이 없다(보스 유물이 보상).
+- **보스 유물 선택**: 보스 유물(`rarity: boss`, 현재 3개) 중 아직 없는 것에서 최대 3개를 제시(`RUN.RELIC.BOSS_CHOICES`, 런 시드에서 결정적)하고 `claimBossRelic(index)`로 하나를 받거나 `skipBossRelic()`으로 건너뛸 수 있다(받는 유물의 즉시 효과는 `acquireRelic` 그대로). 후보가 하나도 없으면(보스 유물을 모두 가졌다면) 선택 없이 바로 액트 소개로 넘어간다. 마지막 액트의 보스를 쓰러뜨리면 런이 끝나므로 종료 화면에 남은 후보를 보여 주기만 한다(`bossRelicOffer()`).
+- **단계**: `map → battlePrep → battle → reward | map | battlePrep(보스 재도전) | bossRelic → actIntro → map | ended`. `bossRelic`/`actIntro`의 현재 노드는 방금 쓰러뜨린 보스다. 보스 패배 시 재도전·패배 피해(보스 ×2)는 액트와 무관하게 같은 규칙이다.
+
 ### 맵 (`MapGenerator`, `RunMap`)
 - 13층. 층 1~12는 노드 2~4개, 13층은 보스 1개. 인접한 두 층은 교차하지 않는 간선으로 잇고 노드마다 다음 층 노드 1~2개와 연결한다. 모든 노드는 시작에서 도달 가능하고 보스까지 경로가 있다.
 - 고정: 1층 전투만, 12층 야영지 전부, 13층 보스. 정예는 4층 이상. 간선으로 이어진 두 노드가 모두 상점/야영지인 경우(상점·야영지 연속) 금지.
 - 종류 비율은 보스 제외 전체 노드의 목표 비율(전투 45 / 정예 10 / 상점 12 / 이벤트 20 / 야영지 13)에 맞춘 "개수 할당"이라 시드마다 거의 같다 (300시드 측정: 전투 45.9 / 정예 10.0 / 상점 10.7 / 이벤트 20.3 / 야영지 13.1, 맵당 평균 37노드). 규칙 때문에 할당이 막히면 규칙을 지키는 다른 종류로 대체한다(주로 상점이 목표보다 약간 적음).
-- 같은 시드는 같은 맵 (맵 전용 Rng). 노드 id는 `층-인덱스`(예: `3-1`), `x`(0~1)는 표시용 가로 위치.
+- 같은 (시드, 액트)는 같은 맵 (맵 전용 Rng). 노드 id는 액트 1 `층-인덱스`(예: `3-1`), 액트 2부터 `a{액트}-층-인덱스`(예: `a2-3-1`), `x`(0~1)는 표시용 가로 위치. 액트마다 같은 구조 규칙(13층, 1층 전투, 12층 야영지, 13층 보스)을 쓴다.
 
 ### 단계(`RunPhase`)와 노드 처리
 `map → battlePrep → battle → reward | map | battlePrep(보스 재도전) | ended`, `map → shop | event | camp → map`.
 - 전투/정예/보스: 입장 시 유닛 상점 무료 갱신(잠금이면 1회 유지). 준비 단계에서 상점·배치·준비 카드 → `createSimulator()` → `beginBattle()` → 시뮬 실행 → `completeBattle(sim)`. 골드는 기존 `Economy`(일반/정예/보스 승리 5/8/15G, 패배·무승부 3G, 이자)로 전투 ID `노드#시도`당 한 번 정산. `completeBattle`은 `createSimulator`가 현재 노드·시도에 발급한 시뮬만 받는다 (발급 기록 없음·다른 노드/시도·이미 정산한 시뮬은 상태 변화 없이 거부).
 - 보스에서 지고 살아 있으면 같은 보스 노드에서 다시 도전(전투 시드·정산 ID가 달라짐). 일반·정예 패배는 보상 없이 다음 선택으로 넘어간다.
-- 승리 보상(보스 제외): 카드 3장 중 1장 선택/건너뛰기. 보스 처치 = 런 승리(`ended`, outcome `victory`), 지휘관 HP 0 = 사망(`dead`).
+- 승리 보상(보스 제외): 카드 3장 중 1장 선택/건너뛰기. 마지막 액트의 보스 처치 = 런 승리(`ended`, outcome `victory`), 그 외 액트 보스 처치 = 위 "액트 구조", 지휘관 HP 0 = 사망(`dead`).
 
 ### 지휘관 HP와 패배 피해
 - 시작·최대 HP 80 (`commanders.json maxHp`, 생략 시 `RUN.START_HP`).
-- 패배 피해 = `ceil((2 + 생존 적 유닛 등급 합 + floor(층 / 3)) × 배율)`: 일반 ×1, 정예 ×1.5, 보스 ×2 (소수는 올림). 생존 적은 소환 유닛 제외, 보스는 등급 5. **무승부(시간 초과·동시 전멸)는 패배로 취급**해 같은 피해와 3G를 받는다.
+- 패배 피해 = `ceil((2 + 생존 적 유닛 등급 합 + floor(전체 층 / 3)) × 배율)`: 일반 ×1, 정예 ×1.5, 보스 ×2 (소수는 올림). 생존 적은 소환 유닛 제외, 보스는 등급 5. **무승부(시간 초과·동시 전멸)는 패배로 취급**해 같은 피해와 3G를 받는다.
 - 카드로 잃은 HP(`commanderHp` 이벤트)는 승패와 무관하게 먼저 차감한다. 전투 시뮬은 시작 HP(`cards.commanderHp`)만 알고 "사용 후 HP ≥ 1"일 때만 HP 비용 카드를 허용한다. 이벤트 피해는 HP 1 밑으로 내리지 않는다.
 - 심연의 계약: 0CP 명령, `commanderHpCost { amount: 3, waivedByTrait: "abyss" }` + 효과 `cpGain 2`(강화 3), 전투당 2회. 심연 특성이 활성(단계 1+)이면 HP 비용이 면제된다.
 
@@ -386,6 +394,17 @@ M2에서 추가된 유닛
 - HP 2600 / ATK 70 / AS 0.5 / ARM 40 / RES 20 (층 13 보정 ×1.48 적용 시 HP 3848). 호위: 투기장 신병, 잿불 점화사. 상점 풀·징집 후보에서 제외.
 - 패턴 `columnStrike`: 10초마다(첫 발동 10초) 발동 2초 전에 `telegraph` 이벤트(`id`, `source`, `cells` 한 열 5칸, `fireAt`)를 내고, 발동 시 `strike` 이벤트 뒤에 그 열에 서 있는 아군 전원에게 420 물리 고정 피해(`flatDamage`, 받는 피해 배율·보호막·ARM 적용). 대상 열 = 아군이 가장 많이 선 열(동수면 보스에 가까운 쪽). 예고 중 진형 교대로 빠지거나 피해 감소 카드(전열 사수 등)로 대응할 수 있다. 보스가 죽으면 예약된 발동은 취소된다.
 
+### 보스: 쌍둥이 주술사 세르·미르 (`twin_ser`·`twin_mir`, 액트 2, `pattern.kind: twinRevive`, `combat/twinRevive.ts`)
+- 보스 전용 4등급 2기: 세르(HP 1200 / ATK 60 / 사거리 3 / 잿불·주술사, 스킬 불꽃 낙인 = 대상과 인접 적에게 마법 300 + 화상 3초), 미르(HP 1200 / ATK 50 / 사거리 3, 스킬 재의 장막 = 적 전체 최대 HP 8% 보호막 6초). 편성 `boss_twin_sorcerers`(26층, 층 보정 ×2.00이면 각 HP 2400): 두 쌍둥이 + 잿불 광전사 2기(2성) + 방패병(2성). 상점 풀·징집 후보·이벤트 유닛에서 제외.
+- 규칙 (수치는 초안, `units.json pattern`): 한쪽이 죽으면 **그 틱부터 3초(30틱) 뒤**에 짝이 아직 살아 있을 때 **최대 HP의 50%**로 원래 칸(차 있으면 가까운 빈 칸)에 부활한다. 부활 틱의 시작(`onTick`)에 판정하므로 그 틱에 쓰는 카드는 부활보다 먼저 처리된다. 짝도 제한 시간 안에 죽으면 부활은 취소되고 둘 다 처치된 것이다 (같은 틱 동시 처치 포함). 부활한 유닛은 모든 상태가 초기화되고 마나 0이며, 다시 죽으면 같은 규칙이 되풀이된다. 짝이 편성에 없으면 평범한 유닛이다. 전멸 판정은 시뮬의 기본 규칙(살아 있는 유닛 수)이다.
+- 이벤트: `reviveTelegraph`(`unit`=죽은 쪽, `partner`, `fireAt`=부활 시각) → `revive`(`unit`, `hp`, `maxHp`, `cell`) 또는 `reviveCancel`(`unit`). 대응: 집중 포화로 한쪽에 화력을 모아 쓰러뜨린 뒤 짝도 이어서, 또는 범위 주문(3×3)으로 함께 처치.
+
+### 보스: 군단의 군주 바르칸 (`legion_lord`, 액트 3, `pattern.kind: phaseSummon`, `combat/phaseSummon.ts`)
+- 보스 전용 5등급 1기: HP 3000 / ATK 85 / AS 0.55 / ARM 45 / RES 30 / 심연·검투사, 스킬 군주의 칼날 = ATK 300% 물리(ARM 30% 무시). 편성 `boss_legion_lord`(39층, ×2.52이면 HP 7560): 바르칸 + 방패병 2기 + 석궁병 2기(모두 2성).
+- 규칙 (수치는 초안): **3페이즈**. HP가 최대 HP의 **66%** 이하가 되면 2페이즈, **33%** 이하가 되면 3페이즈. 피해를 받은 즉시가 아니라 **다음 틱 시작**에 전환한다(한 번에 두 임계치를 넘으면 같은 틱에 순서대로 처리, 보스가 죽었으면 전환 없음). 전환 때: ① `bossPhase` 이벤트(`phase`, `hpPct`, `summoned`=증원 uid, `dispelled`=해제된 아군 수) ② **증원 소환**(데이터 `phases[].summon`: 2페이즈 석궁병 2성 ×2, 3페이즈 심연 포식자 2성 ×2 + 전쟁 군악대 1성; 적 층 보정 배율 적용, `temporary`라 패배 피해 집계에서 제외, 지정 칸이 차 있으면 가까운 빈 칸) ③ **상대(플레이어) 진영 버프 해제**(`dispel` 이벤트, `StatusSet.dispelBuffs`).
+- **버프 해제 대상**: 보호막 전부, 카드·스킬이 건 **시간제**(만료 시각이 유한한) 이로운 상태 — 스탯 증가(pct/flat > 0), 받는 피해 감소(mult < 1), 흡혈, 불사, 회복 오라, 연발 충전. **해제하지 않는 것**: 기절·침묵·속박·화상·도발 같은 불리한 상태, 스탯 감소, 받는 피해 증가, 전투 내내 지속되는(만료 시각 Infinity) 특성·장비·유물·패시브 효과(그래서 군단장의 인장 같은 전투 시작 보호막은 보호막이라 지워지지만 특성 ARM·장비는 남는다). 대응: 연쇄·징집(증원에 맞서는 병력)·궁극기(페이즈 전환 뒤 판세 역전).
+- 미리보기: `EncounterPlan.bossPatterns`(`describeBossPattern`)가 패턴별 이름·설명 줄을 데이터에서 만들어 맵 미리보기·전투 준비·액트 소개에 보여 준다(쌍둥이는 한 쌍에 하나).
+
 ### 카드 보상·상점·야영지
 - **보상 풀**: 공용(`neutral`)·비저주·`starter`가 아닌 카드(현재 common 7 / rare 3). 지휘관 고유 카드는 시작 덱 전용. 희귀도 가중치(일반 70/27/3, 정예·보스 40/50/10), 한 제시 안에서 중복 없음, 보스는 첫 장을 희귀 이상에서 보장. 카드 추가는 뽑을 더미에 넣고 덱 Rng로 섞는다.
 - **카드 보상 장수**: 기본 3장(`RUN.REWARD.CHOICES`) + 유물 전술가의 일지 등 `rewardChoices`. 정예 승리는 카드 보상과 함께 유물 1개도 제시한다(위 relics.json 획득 경로).
@@ -393,11 +412,12 @@ M2에서 추가된 유닛
 - **야영지(택1)**: 휴식 = 최대 HP의 30%(올림, 유물 야전 천막 +20%p) 회복 / 단련 = 덱 카드 1장 강화(유닛 제공 카드·이미 강화된 카드 제외) / 승급 = 유닛 1기 +1성. 승급 비용 = 4 + (풀에서 추가로 가져오는 원본 수 × 유닛 등급): 1→2성은 원본 +2개(2성 = 3개), 2→3성은 +6개(3성 = 9개)를 유닛 풀에서 가져와 일반 합성과 같은 재고를 쓰므로 판매 시 돌려주는 개수(1/3/9)와 어긋나지 않는다. 재고나 골드가 모자라면 불가, 승급 뒤 같은 성급 3기가 되면 자동 합성한다.
 
 ### 저장 (`RunSave`)
-- `{ format: "autochess-run", version: 2, seed, commanderId, deckPreset, map, position, health, forces{economy, management, managementRng, carryDeck}, relics{owned, mirrorUsed, freeRerollsUsed}, removals, seenEvents, phase, session, outcome, history }`. **v2(M5-A)**: 지휘관 id(`commanderId`, 이미 v1에도 있었음)와 유물 상태 `relics`가 저장 형식의 일부가 되었다. 세션은 보상 `relic`(정예 보상 유물 id 또는 null)·상점 `relics`(유물 진열 `{ relicId, price, sold }`)가 늘었고, 경제 영수증에는 선택 필드 `bonus`가 생겼다.
-- **v1 마이그레이션**: 버전 1~2를 읽는다. v1 저장본은 `relics`가 없으면(있으면 오류) 유물 없음·무료 리롤·거울 사용량 0으로, 보상 `relic`·상점 `relics`가 없으면 null·빈 목록으로 읽고 지휘관은 저장된 `commanderId`(v1 시절엔 항상 하르텐)를 그대로 쓴다. 다시 저장하면 v2가 된다(`runSaveV1.fixture.json`이 M4 시절 실제 저장본으로 이를 검증한다). v3 이상은 거부한다.
+- `{ format: "autochess-run", version: 3, seed, commanderId, deckPreset, totalActs, maps, position, health, forces{economy, management, managementRng, carryDeck}, relics{owned, mirrorUsed, freeRerollsUsed}, removals, seenEvents, phase, session, outcome, history }`. **v3(M5-1)**: 단일 `map` 대신 액트 1부터 지금 액트까지의 맵 배열 `maps`와 전체 액트 수 `totalActs`를 저장한다 (지난 액트의 맵도 기록 검증용으로 남는다). `position.visited`·`history`는 모든 액트를 이어서 담고(노드 id가 액트마다 달라 겹치지 않음), 단계 `bossRelic`(세션 `{ kind: 'bossRelic', offer }`)·`actIntro`(세션 `{ kind: 'actIntro', hpBefore, healed }`)가 늘었다. **v2(M5-A)**: 지휘관 id(`commanderId`, 이미 v1에도 있었음)와 유물 상태 `relics`가 저장 형식의 일부가 되었다. 세션은 보상 `relic`(정예 보상 유물 id 또는 null)·상점 `relics`(유물 진열 `{ relicId, price, sold }`)가 늘었고, 경제 영수증에는 선택 필드 `bonus`가 생겼다.
+- **v1·v2 마이그레이션**: 버전 1~3을 읽는다. v1·v2(1액트 시절) 저장본은 단일 `map`을 액트 1의 맵으로 읽고 `totalActs`는 3으로 둔다(이어 하면 액트 1 보스 처치 뒤 액트 2로 넘어간다). 이미 승리로 끝난 v1·v2 저장본만 `totalActs` 1로 읽어 승리가 유효하다. v1·v2에 v3 필드가 섞여 있거나 v3에 `map`이 있으면 거부한다. 다시 저장하면 v3가 된다.
+- **v1 마이그레이션(유물)**: v1 저장본은 `relics`가 없으면(있으면 오류) 유물 없음·무료 리롤·거울 사용량 0으로, 보상 `relic`·상점 `relics`가 없으면 null·빈 목록으로 읽고 지휘관은 저장된 `commanderId`(v1 시절엔 항상 하르텐)를 그대로 쓴다. 다시 저장하면 v3가 된다(`runSaveV1.fixture.json`이 M4 시절 실제 저장본으로 이를 검증한다). v4 이상은 거부한다.
 - 노드 단위 체크포인트: 맵 선택 단계, 노드 입장 직후, 상점/이벤트(카드 선택 대기 포함)/야영지/보상 화면 모두 저장할 수 있다. 전투 중간 저장은 없다 — `battle` 단계는 `battlePrep`으로 저장되어 복원하면 같은 준비 손패·같은 전투 시드로 전투 준비 단계에 돌아온다. 복원 후 같은 선택은 같은 결과를 낸다(골드 영수증·상점 Rng·덱 Rng 상태까지 저장).
-- 복원은 모든 필드를 검증하고 `run.forces.carryDeck.draw[0].cardId` 같은 경로가 담긴 한국어 오류를 던진다 (모르는 필드·버전 불일치·단계/세션 불일치 포함). 필드 간 일관성도 검사한다: `currentNodeId`=입장 기록 마지막, 1층 시작·간선 연속·13개 이하, 단계↔현재 노드 종류(보상 종류 포함), 종료 전 HP 0 금지, 전투 `tries`=그 노드의 history 수, 상점 3칸·희귀도 가격, 상점 유물 칸(2칸 이하·중복 없음·가격·구매 여부=보유 여부), 유물 보상은 정예 보상에만, 지휘관 최대 HP=지휘관 기본값+보유 유물의 최대 HP 증가 합, 이벤트 id=`seenEvents` 마지막(이벤트 노드 수만큼 기록), history 노드는 입장 기록에 포함.
+- 복원은 모든 필드를 검증하고 `run.forces.carryDeck.draw[0].cardId` 같은 경로가 담긴 한국어 오류를 던진다 (모르는 필드·버전 불일치·단계/세션 불일치 포함). 필드 간 일관성도 검사한다: `currentNodeId`=입장 기록 마지막, 액트 1의 1층 시작·같은 액트 안에서는 간선 연속·액트가 바뀔 때는 이전 액트 보스 다음 액트 1층(13 × 액트 개 이하), 맵 수 ≤ `totalActs`·액트마다 맞는 노드 id 접두사, 다음 액트 맵이 있으면 지난 액트 보스를 방문했고 마지막 기록이 승리, 승리는 마지막 액트의 보스 노드에서만, `bossRelic`(후보 1~3개·모두 보스 유물·중복/보유 없음·마지막 액트 아님)·`actIntro`(회복 전 HP + 회복량 = 현재 HP, 회복량 ≤ 50% 올림) 단계의 노드·세션 형태, 단계↔현재 노드 종류(보상 종류 포함), 종료 전 HP 0 금지, 전투 `tries`=그 노드의 history 수, 상점 3칸·희귀도 가격, 상점 유물 칸(2칸 이하·중복 없음·가격·구매 여부=보유 여부), 유물 보상은 정예 보상에만, 지휘관 최대 HP=지휘관 기본값+보유 유물의 최대 HP 증가 합, 이벤트 id=`seenEvents` 마지막(이벤트 노드 수만큼 기록), history 노드는 입장 기록에 포함.
 - UI 저장(M4-B, `src/ui/run`): 브라우저는 `localStorage`의 `autochess-run-save` 키 하나에 `RunSave` JSON을 쓴다. 단계가 바뀔 때·전투 준비 중 로스터가 바뀔 때·전투 정산 직후마다 저장하고, 런이 끝나면(`ended`) 지운다. 새 런 시드는 core가 `seed | 0`으로 정규화하므로 UI는 32비트 정수 범위만 받는다. 저장소는 `RunStorage` 인터페이스로 주입한다(접근 실패는 알림만).
 
 ### 헤드리스 자동 런
-`npm run run -- --seed 1 --n 20 [--commander cmd_harten|cmd_isera|cmd_nox] [--path first|random] [--plan 파일|--no-cards] [--deck starter|test] [--no-relics] [--no-ultimate] [--verbose]` (`tools/run.ts`, 로직은 `AutoRunner`). 정책: 보드를 채우고 가장 싼 유닛 구매(인구가 차고 골드 ≥ 8이면 경험치), 카드 보상 첫 장, 이벤트는 선택 가능한 첫 선택지, 야영지는 HP 50% 미만이면 휴식 아니면 강화, 전투는 지휘관별 카드 계획(`tools/plans/harten|isera|nox-basic.json`). **유물 정책**(기본 켜짐, `--no-relics`로 끔): 정예 보상 유물을 받고, 상점에서 살 수 있는 가장 싼 유물부터 사며(유닛 구매보다 먼저), 유물을 주는 이벤트 선택지를 우선 고른다. **궁극기 정책**(기본 켜짐, `--no-ultimate`로 끔): 카드 계획에 `ultimate: true` 항목을 더해 게이지가 차면 바로 쓴다. 두 정책을 모두 끄면 M4와 같은 결과를 낸다(`AutoRunner` 옵션은 기본 꺼짐, CLI 플래그가 켠다). i번째 런의 시드는 `seed + i`.
+`npm run run -- --seed 1 --n 20 [--commander cmd_harten|cmd_isera|cmd_nox] [--path first|random] [--plan 파일|--no-cards] [--deck starter|test] [--no-relics] [--no-ultimate] [--acts 1|2|3] [--verbose]` (`tools/run.ts`, 로직은 `AutoRunner`). **기본은 3액트**를 끝까지 진행하고 출력에 도달 액트가 나온다(첫 줄 끝에 `, 액트 3`, `액트별 도달: 액트1 N / 액트2 N / 액트3 N / 클리어 N`, `평균 도달 액트 …, 평균 도달 층(전체 기준) …`, 사망 위치 `2액트 13층 N`). `--acts 1`이면 액트 1 보스 처치가 승리이고 **출력 형식이 3액트 도입 전(0.5.1)과 완전히 같다**(`--no-relics --no-ultimate`와 지휘관 3명 기본 출력, `--path random`·`--no-cards`·`--deck test` 변형 모두 같은 출력임을 확인했다). 보스 유물 정책: 유물 정책이 켜져 있으면 첫 후보를 받고 꺼져 있으면 건너뛰며, 액트 소개는 바로 계속한다. 정책: 보드를 채우고 가장 싼 유닛 구매(인구가 차고 골드 ≥ 8이면 경험치), 카드 보상 첫 장, 이벤트는 선택 가능한 첫 선택지, 야영지는 HP 50% 미만이면 휴식 아니면 강화, 전투는 지휘관별 카드 계획(`tools/plans/harten|isera|nox-basic.json`). **유물 정책**(기본 켜짐, `--no-relics`로 끔): 정예 보상 유물을 받고, 상점에서 살 수 있는 가장 싼 유물부터 사며(유닛 구매보다 먼저), 유물을 주는 이벤트 선택지를 우선 고른다. **궁극기 정책**(기본 켜짐, `--no-ultimate`로 끔): 카드 계획에 `ultimate: true` 항목을 더해 게이지가 차면 바로 쓴다. 두 정책을 모두 끄면 M4와 같은 결과를 낸다(`AutoRunner` 옵션은 기본 꺼짐, CLI 플래그가 켠다). i번째 런의 시드는 `seed + i`.

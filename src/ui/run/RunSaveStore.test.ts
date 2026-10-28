@@ -78,7 +78,7 @@ describe('RunSaveStore', () => {
       ['not json', /올바른 JSON이 아닙니다/],
       ['[]', /저장 데이터를 불러올 수 없습니다/],
       [JSON.stringify({ ...JSON.parse(good), format: 'other' }), /format/],
-      [JSON.stringify({ ...JSON.parse(good), version: 3 }), /version/],
+      [JSON.stringify({ ...JSON.parse(good), version: 4 }), /version/],
       [JSON.stringify({ ...JSON.parse(good), health: { hp: 999, maxHp: 80 } }), /저장 데이터를 불러올 수 없습니다/],
     ];
     for (const [text, pattern] of cases) {

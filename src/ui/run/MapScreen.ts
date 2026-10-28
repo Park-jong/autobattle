@@ -30,12 +30,14 @@ export class MapScreen {
     if (this.selectedId && !map.floors.flat().some((n) => n.id === this.selectedId)) this.selectedId = null;
     const header = el('div', 'run-screen-header');
     header.append(hudElement(hud), tagged(button('시작 화면', () => this.commands.toStart()), 'to-start'));
+    const actBar = tagged(el('div', 'run-act-bar'), 'act-title');
+    actBar.append(el('h2', 'run-act-name', `액트 ${map.act} — ${map.actName}`), el('p', 'dbg-hint', `${map.region} · ${map.actText} (액트 ${map.act} / ${map.actCount})`));
 
     const scroll = tagged(el('div', 'run-map-scroll'), 'map-scroll');
     scroll.append(this.buildMap(map));
     const layout = el('div', 'run-map-layout');
     layout.append(scroll, this.side);
-    this.root.replaceChildren(header, layout);
+    this.root.replaceChildren(header, actBar, layout);
     this.renderSide(map);
     // 현재 위치(또는 시작점)가 보이도록 스크롤한다
     queueMicrotask(() => {
@@ -121,7 +123,7 @@ export class MapScreen {
       const preview = this.view.previewNode(node.id);
       // 전투 미리보기 머리글이 이미 "N층 종류"를 보여 주므로 제목은 비전투 노드에만 붙인다
       if (preview) parts.push(encounterPreviewElement(preview));
-      else parts.push(tagged(el('h3', '', `${node.floor}층 ${node.label}`), 'node-title'), el('p', 'dbg-hint', this.describeNonBattle(node)));
+      else parts.push(tagged(el('h3', '', `액트 ${map.act} · ${node.floor}층 ${node.label}`), 'node-title'), el('p', 'dbg-hint', this.describeNonBattle(node)));
       if (node.id === this.selectedId) {
         const go = tagged(button('이 노드로 이동', () => this.commands.chooseNode(node.id), 'dbg-btn dbg-primary'), 'choose-node');
         go.disabled = node.state !== 'available';

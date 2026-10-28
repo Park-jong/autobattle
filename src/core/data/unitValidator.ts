@@ -2,7 +2,10 @@ import { DataValidationError } from './errors';
 import { EffectValidator } from './effectValidator';
 import { FieldReader } from './fieldReader';
 import { DAMAGE_TYPES } from './effect';
-import { PATTERN_KINDS, SKILL_TARGETINGS, type SkillDef, type UnitDef, type UnitFile, type UnitPattern, type UnitStats } from './unit';
+import { isInOwnHalf } from '../combat/board';
+import {
+  PATTERN_KINDS, SKILL_TARGETINGS, type BossPhase, type SkillDef, type UnitDef, type UnitFile, type UnitPattern, type UnitStats,
+} from './unit';
 
 const UNIT_KEYS = ['id', 'name', 'tier', 'origin', 'job', 'stats', 'skill', 'grantedCard', 'boss', 'pattern'] as const;
 const STAT_KEYS = ['hp', 'atk', 'as', 'rng', 'arm', 'res', 'mana'] as const;
@@ -57,11 +60,55 @@ export class UnitValidator {
   }
 
   private validatePattern(r: FieldReader): UnitPattern {
-    r.onlyKeys(['kind', 'intervalSeconds', 'telegraphSeconds', 'damage', 'dmgType']);
-    const intervalSeconds = r.number('intervalSeconds', 1);
-    const telegraphSeconds = r.number('telegraphSeconds', 0.1);
-    if (telegraphSeconds >= intervalSeconds) r.fail('telegraphSeconds', '예고 시간은 발동 간격보다 짧아야 함');
-    return { kind: r.enum('kind', PATTERN_KINDS), intervalSeconds, telegraphSeconds, damage: r.number('damage', 0), dmgType: r.enum('dmgType', DAMAGE_TYPES) };
+    const kind = r.enum('kind', PATTERN_KINDS);
+    switch (kind) {
+      case 'columnStrike': {
+        r.onlyKeys(['kind', 'intervalSeconds', 'telegraphSeconds', 'damage', 'dmgType']);
+        const intervalSeconds = r.number('intervalSeconds', 1);
+        const telegraphSeconds = r.number('telegraphSeconds', 0.1);
+        if (telegraphSeconds >= intervalSeconds) r.fail('telegraphSeconds', '예고 시간은 발동 간격보다 짧아야 함');
+        return { kind, intervalSeconds, telegraphSeconds, damage: r.number('damage', 0), dmgType: r.enum('dmgType', DAMAGE_TYPES) };
+      }
+      case 'twinRevive': {
+        r.onlyKeys(['kind', 'partner', 'windowSeconds', 'reviveHpPct']);
+        const reviveHpPct = r.number('reviveHpPct', 1);
+        if (reviveHpPct > 100) r.fail('reviveHpPct', `1~100이어야 함 (실제: ${reviveHpPct})`);
+        return { kind, partner: r.string('partner'), windowSeconds: r.number('windowSeconds', 0.1), reviveHpPct };
+      }
+      case 'phaseSummon': {
+        r.onlyKeys(['kind', 'phases']);
+        const phases = r.array('phases').map((raw, i) => this.validatePhase(r, raw, i));
+        if (phases.length === 0) r.fail('phases', '페이즈가 최소 1개 필요함');
+        phases.forEach((phase, i) => {
+          const previous = phases[i - 1];
+          if (previous && phase.hpPct >= previous.hpPct) r.fail(`phases[${i}].hpPct`, `앞 페이즈(${previous.hpPct})보다 작아야 함 (내림차순, 실제: ${phase.hpPct})`);
+        });
+        return { kind, phases };
+      }
+    }
+  }
+
+  private validatePhase(parent: FieldReader, raw: unknown, index: number): BossPhase {
+    const r = FieldReader.of(raw, `${parent.path}.phases[${index}]`);
+    r.onlyKeys(['hpPct', 'summon']);
+    const hpPct = r.number('hpPct', 1);
+    if (hpPct >= 100) r.fail('hpPct', `1 이상 100 미만이어야 함 (실제: ${hpPct})`);
+    const cells = new Set<string>();
+    const summon = r.array('summon').map((entry, i) => {
+      const e = FieldReader.of(entry, `${r.path}.summon[${i}]`);
+      e.onlyKeys(['unitId', 'star', 'col', 'row']);
+      const star = e.int('star', 1);
+      if (star > 3) e.fail('star', `1~3이어야 함 (실제: ${star})`);
+      const col = e.int('col', 0);
+      const row = e.int('row', 0);
+      if (!isInOwnHalf(1, { col, row })) e.fail('col', `칸 (${col},${row})이 적 진영(열 4~7, 행 0~4) 밖`);
+      const key = `${col},${row}`;
+      if (cells.has(key)) e.fail('col', `칸 (${key})이 같은 페이즈에서 중복됨`);
+      cells.add(key);
+      return { unitId: e.string('unitId'), star: star as 1 | 2 | 3, col, row };
+    });
+    if (summon.length === 0) r.fail('summon', '증원이 최소 1기 필요함');
+    return { hpPct, summon };
   }
 
   private validateStats(r: FieldReader): UnitStats {

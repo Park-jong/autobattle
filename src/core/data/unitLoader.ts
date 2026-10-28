@@ -43,5 +43,31 @@ export function loadUnits(
       }
     });
   }
+  checkPatternReferences(units);
   return new UnitCatalog(units);
+}
+
+/** 보스 패턴이 참조하는 유닛(쌍둥이 짝, 증원 유닛)이 실제로 있고 서로 맞는지 확인한다 */
+function checkPatternReferences(units: readonly UnitDef[]): void {
+  const byId = new Map(units.map((u) => [u.id, u]));
+  units.forEach((unit, index) => {
+    const pattern = unit.pattern;
+    const path = `units[${index}] (${unit.id}).pattern`;
+    if (pattern?.kind === 'twinRevive') {
+      const partner = byId.get(pattern.partner);
+      if (!partner) throw new DataValidationError(`${path}.partner`, `units.json에 없는 유닛 id "${pattern.partner}"`);
+      if (partner.id === unit.id) throw new DataValidationError(`${path}.partner`, '자기 자신을 짝으로 쓸 수 없음');
+      if (partner.pattern?.kind !== 'twinRevive' || partner.pattern.partner !== unit.id) {
+        throw new DataValidationError(`${path}.partner`, `"${partner.id}"의 twinRevive 짝이 이 유닛("${unit.id}")이어야 함`);
+      }
+    }
+    if (pattern?.kind === 'phaseSummon') {
+      pattern.phases.forEach((phase, p) => phase.summon.forEach((entry, i) => {
+        const target = byId.get(entry.unitId);
+        const where = `${path}.phases[${p}].summon[${i}].unitId`;
+        if (!target) throw new DataValidationError(where, `units.json에 없는 유닛 id "${entry.unitId}"`);
+        if (target.boss) throw new DataValidationError(where, `보스 유닛 "${entry.unitId}"는 증원으로 쓸 수 없음`);
+      }));
+    }
+  });
 }

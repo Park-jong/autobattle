@@ -5,6 +5,7 @@ import type { UnitCatalog } from '../data/unitLoader';
 import { MANAGEMENT } from '../management';
 import { Rng } from '../rng';
 import type { RunController } from './runController';
+import { globalFloor } from './runMap';
 import type { RunOutcome } from './runState';
 
 export interface AutoRunOptions {
@@ -26,7 +27,13 @@ export interface AutoRunOptions {
 
 export interface AutoRunSummary {
   outcome: RunOutcome;
+  /** 런이 끝났을 때의 액트 (1부터)와 이 런의 전체 액트 수 */
+  act: number;
+  totalActs: number;
+  /** 그 액트에서 도달한 최고 층 */
   floorReached: number;
+  /** 액트를 이어서 센 전체 층 = (액트 − 1) × 13 + floorReached */
+  totalFloorReached: number;
   hp: number;
   maxHp: number;
   gold: number;
@@ -36,7 +43,7 @@ export interface AutoRunSummary {
   draws: number;
   averageBattleSeconds: number;
   /** 사망한 노드 (승리하면 null) */
-  diedAt: { nodeId: string; floor: number; type: string } | null;
+  diedAt: { nodeId: string; act: number; floor: number; type: string } | null;
   steps: number;
   /** 런이 끝났을 때 보유한 유물 수 */
   relics: number;
@@ -50,12 +57,13 @@ const FRONT_COLS = [3, 2, 1, 0];
 const ROW_ORDER = [2, 1, 3, 0, 4];
 
 /**
- * 헤드리스 자동 런 정책 (밸런스 확인용의 단순한 플레이어). 사람이 아니라 규칙으로 1액트를 끝까지 진행한다.
+ * 헤드리스 자동 런 정책 (밸런스 확인용의 단순한 플레이어). 사람이 아니라 규칙으로 런(기본 3액트)을 끝까지 진행한다.
  * - 경로: 첫 노드 또는 무작위
  * - 준비/상점: 보드가 비면 벤치 유닛부터 올리고, 가장 싼 유닛을 사서 보드를 채운다. 인구가 찼고 골드가 넉넉하면 경험치를 산다
  * - 전투: 카드 사용 계획이 있으면 CardPlanRunner로, 없으면 카드 없이 진행
  * - 유물(옵션): 정예 보상 유물을 받고, 상점에서 살 수 있는 가장 싼 유물을 사며, 유물을 주는 이벤트 선택지를 고른다
  * - 궁극기(옵션): 카드 계획에 궁극기 항목을 더해 게이지가 차면 쓴다
+ * - 보스 유물(액트 보스 처치 후): 유물 정책이 켜져 있으면 첫 후보를 받고, 꺼져 있으면 건너뛴다. 액트 소개는 바로 계속한다
  * - 보상: 첫 카드 / 이벤트: 선택 가능한 첫 선택지(카드 선택은 첫 후보) / 야영지: HP 50% 미만이면 휴식, 아니면 첫 강화 가능 카드 강화
  * 모든 결정은 컨트롤러의 공개 API만 쓰므로 UI가 같은 순서로 호출한 것과 같다.
  */
@@ -73,7 +81,7 @@ export class AutoRunner {
   }
 
   run(): AutoRunSummary {
-    const limit = this.options.maxSteps ?? 2000;
+    const limit = this.options.maxSteps ?? 2000 * this.controller.totalActs;
     let battles = 0;
     let wins = 0;
     let losses = 0;
@@ -103,6 +111,12 @@ export class AutoRunner {
           if (this.options.relics && controller.session?.kind === 'reward' && controller.session.relic !== null) this.expect(controller.claimRelic());
           this.expect(controller.claimReward(0));
           break;
+        case 'bossRelic':
+          this.expect(this.options.relics ? controller.claimBossRelic(0) : controller.skipBossRelic());
+          break;
+        case 'actIntro':
+          this.expect(controller.continueAct());
+          break;
         case 'shop':
           if (this.options.relics) this.buyRelics();
           this.manageRoster();
@@ -122,13 +136,16 @@ export class AutoRunner {
     const node = controller.currentNode;
     return {
       outcome: controller.outcome as RunOutcome,
+      act: controller.act,
+      totalActs: controller.totalActs,
       floorReached: controller.floorReached,
+      totalFloorReached: globalFloor(controller.act, controller.floorReached),
       hp: controller.hp,
       maxHp: controller.maxHp,
       gold: controller.gold,
       battles, wins, losses, draws,
       averageBattleSeconds: battles === 0 ? 0 : seconds / battles,
-      diedAt: controller.outcome === 'dead' && node ? { nodeId: node.id, floor: node.floor, type: last?.type ?? node.type } : null,
+      diedAt: controller.outcome === 'dead' && node ? { nodeId: node.id, act: controller.act, floor: node.floor, type: last?.type ?? node.type } : null,
       steps: this.steps,
       relics: controller.relics.length,
       ultimatesUsed,

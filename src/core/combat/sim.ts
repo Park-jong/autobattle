@@ -13,7 +13,7 @@ import { CARDS } from '../cards/constants';
 import { RelicCombatRules } from './relicRules';
 import { UltimateSystem, type UltimateView } from './ultimate';
 import { CombatCommandPoints } from './combatCp';
-import { ColumnStrikeRunner } from './bossPattern';
+import { installBossPatterns } from './bossPattern';
 import { CommanderHpLedger } from './commanderHp';
 import { COMBAT } from './constants';
 import { MutationSystem, type MutationId } from './mutations';
@@ -178,9 +178,7 @@ export class CombatSimulator {
       }
     }
 
-    for (const unit of world.units) {
-      if (unit.def.pattern) new ColumnStrikeRunner(world, executor, unit, unit.def.pattern).install();
-    }
+    installBossPatterns(world, executor, units, enemyScale);
 
     const engine = new TraitEngine(traits);
     this.activeTraits = [engine.apply(0, defsBySide[0], executor, relics.traitBonusMinUnits), engine.apply(1, defsBySide[1], executor)];

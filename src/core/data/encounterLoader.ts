@@ -3,11 +3,13 @@ import { EncounterValidator } from './encounterValidator';
 import { DataValidationError } from './errors';
 import type { UnitCatalog } from './unitLoader';
 
-/** 맵의 층 구성에 대한 커버리지 요구: 이 층들에는 해당 종류 편성이 반드시 하나 이상 있어야 한다 */
+/** 맵의 층 구성에 대한 커버리지 요구: 이 (전체) 층들에는 해당 종류 편성이 반드시 하나 이상 있어야 한다. 3액트는 액트 단위로 층을 나열한다 */
 export interface EncounterCoverage {
   normalFloors: readonly number[];
   eliteFloors: readonly number[];
   bossFloors: readonly number[];
+  /** 액트당 층 수. 주면 층 번호를 전체 층(= (액트 − 1) × 층 수 + 층)으로 보고, 오류 메시지에 액트와 액트 안 층을 함께 적는다 */
+  floorsPerAct?: number;
 }
 
 /** 검증된 적 편성 모음 */
@@ -55,7 +57,10 @@ export function loadEncounters(
     const check = (kind: EncounterKind, floors: readonly number[]): void => {
       for (const floor of floors) {
         if (catalog.candidates(kind, floor).length === 0) {
-          throw new DataValidationError('encounters', `${floor}층에 쓸 ${kind} 편성이 없음`);
+          const per = coverage.floorsPerAct;
+          const act = per ? Math.ceil(floor / per) : 1;
+          const where = per && act > 1 ? `전체 ${floor}층(액트 ${act} ${floor - (act - 1) * per}층)` : `${floor}층`;
+          throw new DataValidationError('encounters', `${where}에 쓸 ${kind} 편성이 없음`);
         }
       }
     };

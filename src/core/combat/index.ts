@@ -21,3 +21,4 @@ export { CardPlanRunner, parseCardPlan, ULTIMATE_PLAN_CARD, TARGET_RULES, type P
 export { CombatCommandPoints } from './combatCp';
 export type { CpReason } from './events';
 export type { CombatCardSetup } from './sim';
+export { describeBossPattern, type BossPatternInfo } from './bossInfo';

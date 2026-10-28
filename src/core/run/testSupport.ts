@@ -20,13 +20,14 @@ export const rawRunData = {
 export const runDeps = loadRunDeps(rawRunData);
 export const basicPlan = parseCardPlan(hartenPlan, 'harten-basic');
 
-export function newRun(seed = 1, deckPreset: 'starter' | 'test' = 'starter'): RunController {
-  return RunController.create(runDeps, { seed, commanderId: 'cmd_harten', deckPreset });
+/** 새 런. 기본은 1액트 런(액트 1 보스 처치 = 승리)이라 M4·M5-A 시절 테스트가 그대로 성립한다. 3액트는 acts: 3 */
+export function newRun(seed = 1, deckPreset: 'starter' | 'test' = 'starter', acts = 1): RunController {
+  return RunController.create(runDeps, { seed, commanderId: 'cmd_harten', deckPreset, acts });
 }
 
-/** 지휘관을 골라 새 런 */
-export function newRunAs(commanderId: string, seed = 1): RunController {
-  return RunController.create(runDeps, { seed, commanderId });
+/** 지휘관을 골라 새 런 (기본 1액트) */
+export function newRunAs(commanderId: string, seed = 1, acts = 1): RunController {
+  return RunController.create(runDeps, { seed, commanderId, acts });
 }
 
 /** 테스트 전용: 유물을 곧바로 얻는다 (즉시 효과 포함, 획득 경로를 거치지 않음) */
@@ -80,7 +81,7 @@ function distanceToType(run: RunController, from: MapNode, type: NodeType): numb
 
 /**
  * 해당 종류 노드로 갈 때까지 경로를 고르며 진행하고, 그 노드에 입장한 상태로 돌려준다.
- * 도중 전투는 모두 승리로, 보상은 건너뛰고, 상점·야영지는 나가며, 이벤트는 첫 선택지로 처리한다.
+ * 도중 전투는 모두 승리로, 보상은 건너뛰고, 보스 유물은 첫 후보를 받고, 액트 소개는 계속하며, 상점·야영지는 나가고, 이벤트는 첫 선택지로 처리한다.
  */
 export function driveTo(run: RunController, type: NodeType): MapNode {
   for (let guard = 0; guard < 200; guard++) {
@@ -95,6 +96,8 @@ export function driveTo(run: RunController, type: NodeType): MapNode {
       }
       case 'battlePrep': finishBattle(run, 'win'); break;
       case 'reward': run.skipReward(); break;
+      case 'bossRelic': run.claimBossRelic(0); break;
+      case 'actIntro': run.continueAct(); break;
       case 'shop': run.leaveShop(); break;
       case 'event': {
         const view = run.eventView()!;

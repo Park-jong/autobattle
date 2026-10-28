@@ -1,11 +1,11 @@
 import type { EnemyModifiers, FormationEntry, MutationId } from '../combat';
-import { MUTATION_IDS, scaledHpAtk } from '../combat';
+import { describeBossPattern, MUTATION_IDS, scaledHpAtk, type BossPatternInfo } from '../combat';
 import type { EncounterCatalog } from '../data/encounterLoader';
 import type { EncounterKind } from '../data/encounter';
 import type { UnitCatalog } from '../data/unitLoader';
 import { Rng } from '../rng';
 import { RUN } from './constants';
-import type { MapNode } from './runMap';
+import { globalFloor, type MapNode } from './runMap';
 import { deriveSeed } from './seeds';
 
 /** 미리보기에 보이는 적 유닛 한 기: 층 보정이 반영된 실제 전투 스탯 */
@@ -30,7 +30,12 @@ export interface PlannedUnit {
 /** 한 전투 노드의 적 구성. 미리보기와 실제 전투가 같은 계획을 쓴다 */
 export interface EncounterPlan {
   nodeId: string;
+  /** 액트 (1부터) */
+  act: number;
+  /** 액트 안의 층 (1~13) */
   floor: number;
+  /** 전체 층 = (액트 − 1) × 13 + 층. 층 보정·편성 층 범위의 기준 */
+  globalFloor: number;
   kind: EncounterKind;
   encounterId: string;
   name: string;
@@ -43,9 +48,11 @@ export interface EncounterPlan {
   /** 시뮬에 넣는 보정 */
   enemy: EnemyModifiers;
   units: PlannedUnit[];
+  /** 보스 패턴 설명 (보스 유닛이 있을 때만, 편성 순서대로) */
+  bossPatterns: BossPatternInfo[];
 }
 
-/** 층 보정 배율 = 1 + 0.04 × (층 − 1) */
+/** 층 보정 배율 = 1 + 0.04 × (전체 층 − 1). 액트 1은 층 번호 그대로다 */
 export function floorScale(floor: number): number {
   return 1 + RUN.FLOOR_SCALE_PER_FLOOR * (floor - 1);
 }
@@ -62,14 +69,15 @@ export class EncounterPlanner {
   ) {}
 
   /** 전투·정예·보스 노드만 계획할 수 있다. 그 외 노드는 null */
-  plan(node: MapNode): EncounterPlan | null {
+  plan(node: MapNode, act = 1): EncounterPlan | null {
     if (node.type !== 'combat' && node.type !== 'elite' && node.type !== 'boss') return null;
     const kind: EncounterKind = node.type === 'combat' ? 'normal' : node.type;
-    const candidates = this.encounters.candidates(kind, node.floor);
-    if (candidates.length === 0) throw new Error(`${node.floor}층에 쓸 ${kind} 적 편성이 없습니다`);
+    const total = globalFloor(act, node.floor);
+    const candidates = this.encounters.candidates(kind, total);
+    if (candidates.length === 0) throw new Error(`액트 ${act} ${node.floor}층(전체 ${total}층)에 쓸 ${kind} 적 편성이 없습니다`);
     const encounter = new Rng(deriveSeed(this.runSeed, 'encounter', node.id)).pick(candidates);
 
-    const scale = floorScale(node.floor);
+    const scale = floorScale(total);
     const mutations = kind === 'elite' ? this.pickMutations(node) : [];
     const formation: FormationEntry[] = encounter.units.map((u) => ({ unitId: u.unitId, star: u.star, cell: { col: u.col, row: u.row } }));
     const units: PlannedUnit[] = formation.map((entry) => {
@@ -82,9 +90,20 @@ export class EncounterPlanner {
         mana: def.stats.mana, skillName: def.skill.name, boss: def.boss === true,
       };
     });
+    // 보스 패턴 설명: 같은 패턴은 한 번만 (쌍둥이는 한 쌍에 하나)
+    const described = new Set<string>();
+    const bossPatterns = formation.flatMap((entry) => {
+      const def = this.units.get(entry.unitId);
+      if (!def?.boss || !def.pattern) return [];
+      const key = def.pattern.kind === 'twinRevive' ? [def.id, def.pattern.partner].sort().join('|') : def.id;
+      if (described.has(key)) return [];
+      described.add(key);
+      const info = describeBossPattern(def, this.units);
+      return info ? [info] : [];
+    });
     return {
-      nodeId: node.id, floor: node.floor, kind, encounterId: encounter.id, name: encounter.name, text: encounter.text,
-      scale, mutations, formation, units,
+      nodeId: node.id, act, floor: node.floor, globalFloor: total, kind, encounterId: encounter.id, name: encounter.name, text: encounter.text,
+      scale, mutations, formation, units, bossPatterns,
       enemy: { hpMult: scale, atkMult: scale, mutations },
     };
   }

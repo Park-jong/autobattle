@@ -18,7 +18,7 @@ describe('RunSession: 지휘관 선택', () => {
     const snap = h.session.snapshot();
     expect(snap.screen).toBe('map');
     expect(snap.hud).toMatchObject({ hp, maxHp: hp, relics: [] });
-    expect(JSON.parse(h.storage.read()!)).toMatchObject({ commanderId: id, version: 2 });
+    expect(JSON.parse(h.storage.read()!)).toMatchObject({ commanderId: id, version: 3 });
   });
 
   it('지휘관을 생략하면 기본 지휘관, 모르는 지휘관은 알림 오류', () => {

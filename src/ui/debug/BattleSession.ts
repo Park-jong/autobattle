@@ -33,7 +33,7 @@ import { playbackScale } from '../cards/playbackScale';
 import { Gauntlet, type GauntletStage } from '../live/Gauntlet';
 import { LiveBattle } from '../live/LiveBattle';
 import { ManagementRun } from '../live/ManagementRun';
-import { ReplayState, type MeteorView, type ReplayEffect, type TelegraphView, type UltimateAuraView, type UnitView } from '../replay/ReplayState';
+import { ReplayState, type MeteorView, type ReplayEffect, type ReviveWatchView, type TelegraphView, type UltimateAuraView, type UnitView } from '../replay/ReplayState';
 import { CARD_UI, LAYOUT } from '../theme';
 import type { RosterCommands, RunBattleHost, RunBattleLink } from './runLink';
 import type {
@@ -180,7 +180,7 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
     if (this.currentPhase === 'edit' || !this.live) return [];
     const effects = this.live.replay.recentEffects(maxAge);
     // 전투가 끝나면 재생 시각이 멈추므로, 강타 번쩍임이 결과 화면에 남지 않게 보스 연출은 걷어 낸다
-    return this.currentPhase === 'finished' ? effects.filter((e) => e.kind !== 'strike' && e.kind !== 'telegraph' && e.kind !== 'impact' && e.kind !== 'ultimate') : effects;
+    return this.currentPhase === 'finished' ? effects.filter((e) => e.kind !== 'strike' && e.kind !== 'telegraph' && e.kind !== 'impact' && e.kind !== 'ultimate' && e.kind !== 'phase' && e.kind !== 'revive' && e.kind !== 'dispel' && e.kind !== 'reviveCancel') : effects;
   }
 
   meteors(): readonly MeteorView[] {
@@ -189,6 +189,10 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
 
   ultimateAura(): UltimateAuraView | null {
     return this.currentPhase === 'edit' || this.currentPhase === 'finished' || !this.live ? null : this.live.replay.ultimateAura();
+  }
+
+  reviveWatches(): readonly ReviveWatchView[] {
+    return this.currentPhase === 'edit' || this.currentPhase === 'finished' || !this.live ? [] : this.live.replay.reviveWatches();
   }
 
   telegraphs(): readonly TelegraphView[] {

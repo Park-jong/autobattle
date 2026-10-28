@@ -2,7 +2,7 @@ import { el, tagged } from './dom';
 import { relicRow } from './relicElements';
 import type { RunHud } from './runViews';
 
-/** 상단 상태 줄: 층 · 지휘관 HP · 골드 · 덱 장수 · 시드 */
+/** 상단 상태 줄: 액트 · 층 · 지휘관 HP · 골드 · 덱 장수 · 시드 */
 export function hudElement(hud: RunHud): HTMLElement {
   const root = tagged(el('div', 'run-hud'), 'hud');
   const item = (label: string, value: string, className = ''): HTMLElement => {
@@ -17,7 +17,10 @@ export function hudElement(hud: RunHud): HTMLElement {
   fill.style.width = `${Math.round(hpRatio * 100)}%`;
   bar.append(fill);
   hp.append(el('span', 'run-hud-label', '지휘관 HP'), el('strong', 'run-hud-value', `${hud.hp} / ${hud.maxHp}`), bar);
+  const act = tagged(el('div', 'run-hud-item run-hud-act'), 'hud-act');
+  act.append(el('strong', 'run-hud-value', `액트 ${hud.act} — ${hud.actName}`));
   root.append(
+    act,
     item('지휘관', hud.commanderName),
     item('층', `${hud.floor} / ${hud.floorCount}`),
     hp,

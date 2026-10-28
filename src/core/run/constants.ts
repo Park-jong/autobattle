@@ -1,8 +1,8 @@
-/** 런(1액트) 조정 상수. 밸런스 조정은 여기서 한다. (전투는 combat/constants.ts, 경제는 economy.ts, 상점·로스터는 management.ts) */
+/** 런(3액트) 조정 상수. 밸런스 조정은 여기서 한다. (전투는 combat/constants.ts, 경제는 economy.ts, 상점·로스터는 management.ts) */
 export const RUN = {
   /** 저장 형식 버전. 형식이 바뀌면 올린다 */
-  FORMAT_VERSION: 2,
-  /** 지원하는 가장 오래된 저장 버전 (v1은 하르텐·유물 없음으로 읽는다) */
+  FORMAT_VERSION: 3,
+  /** 지원하는 가장 오래된 저장 버전 (v1은 하르텐·유물 없음, v1·v2는 1액트 런·액트 1로 읽는다) */
   MIN_FORMAT_VERSION: 1,
 
   /** 런 시작 지휘관을 고르지 않았을 때의 기본값 */
@@ -10,6 +10,23 @@ export const RUN = {
 
   /** 지휘관 데이터에 maxHp가 없을 때의 시작·최대 HP */
   START_HP: 80,
+
+  /**
+   * 액트 구성. 액트마다 13층 맵을 따로 만든다 (액트 2부터 시드에 액트 번호를 더해 파생).
+   * 층 보정·패배 피해·적 편성 층 범위는 전체 층 = (액트 − 1) × 13 + 층을 기준으로 한다.
+   */
+  ACTS: {
+    /** 한 판의 액트 수 (RunOptions.acts로 줄일 수 있다. 1이면 액트 1 보스 처치가 곧 승리) */
+    COUNT: 3,
+    /** 액트 이름·지역 설명 (CHARACTERS 1장). 인덱스 = 액트 − 1 */
+    INFO: [
+      { name: '회색 관문', region: '국경 요새', text: '군단이 균열의 마력으로 만든 공성 골렘이 관문을 지킨다.' },
+      { name: '잿불 고원', region: '남쪽 화산 고원', text: '잿불 부족의 대화로가 있는 고원. 쌍둥이 대사제 세르·미르가 서로를 되살린다.' },
+      { name: '몰락한 수도 아스트라', region: '수도', text: '대균열이 열린 수도. 군단의 군주 바르칸이 기다린다.' },
+    ] as readonly { name: string; region: string; text: string }[],
+    /** 액트 보스를 쓰러뜨리고 다음 액트로 넘어갈 때 회복하는 지휘관 HP: 최대 HP의 이 비율(%, 올림) */
+    TRANSITION_HEAL_PCT: 50,
+  },
 
   MAP: {
     FLOORS: 13,
