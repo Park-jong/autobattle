@@ -97,6 +97,7 @@
 - **적 편성**: `data/encounters.json` + 층 보정 `1 + 0.04 × (층−1)`(HP·ATK), 정예 변이 4종(`combat/mutations.ts`), 보스 성문 파괴자(`combat/bossPattern.ts`, 열 강타 예고 `telegraph` → 발동 `strike`). `controller.previewNode(id)`가 실제 전투와 같은 `EncounterPlan`(보정 후 스탯·변이)을 돌려준다.
 - **지휘관 HP**: 시작 80(`commanders.json maxHp`), 패배·무승부 피해 `ceil((2 + 생존 적 등급 합 + floor(층/3)) × 종류 배율)`(정예 ×1.5, 보스 ×2). 심연의 계약(0CP, HP 3→CP +2, 심연 공명이면 HP 면제)은 카드 필드 `commanderHpCost` + 효과 `cpGain`.
 - **로스터·덱 이어받기**: `PlayerForces`(Economy + Management + 판 사이 덱/장비)를 경제 플레이(`ManagementRun`)와 런이 함께 쓴다. `RunController.roster`는 단계별로 허용하는 `Management` 창구.
+- **시드**: `RunController.create`가 시작에서 `normalizeRunSeed`(안전한 정수만 허용, `| 0`으로 부호 있는 32비트 정규화)를 한 번 적용하고 이후 모든 파생·저장에 같은 값을 쓴다. 복원은 32비트 범위 밖 시드를 거부한다.
 - **저장**: `controller.serialize()` → `RunSave`(format `autochess-run`, version 1), `RunController.restore(deps, json)`. 노드 입장 직후·맵 선택 단계 등 모든 비전투 시점에서 가능하며 전투 중이면 `battlePrep`으로 저장한다(전투 중간 저장 없음). 잘못된 데이터는 경로가 담긴 한국어 오류. 복원 시 필드 간 일관성(위치·간선, 단계↔노드 종류, HP, 전투 시도 수↔기록, 상점 가격·칸 수, 이벤트 기록)도 검증한다.
 - **정산 바인딩**: `completeBattle`은 `createSimulator`가 현재 노드·시도에 발급한 시뮬만 한 번 정산한다 (다른 노드·이전 시도·다른 컨트롤러·복원 이전 시뮬, 재제출은 거부).
 - **헤드리스**: `AutoRunner`(core) + `tools/run.ts`. 테스트 도우미는 `run/testSupport.ts`(`driveTo`, `finishBattle`, `forceResult`).

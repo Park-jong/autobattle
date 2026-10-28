@@ -118,10 +118,10 @@ export class MapScreen {
     const node = shownId ? map.floors.flat().find((n) => n.id === shownId) : undefined;
     const parts: HTMLElement[] = [];
     if (node) {
-      parts.push(tagged(el('h3', '', `${node.floor}층 ${node.label}`), 'node-title'));
       const preview = this.view.previewNode(node.id);
+      // 전투 미리보기 머리글이 이미 "N층 종류"를 보여 주므로 제목은 비전투 노드에만 붙인다
       if (preview) parts.push(encounterPreviewElement(preview));
-      else parts.push(el('p', 'dbg-hint', this.describeNonBattle(node)));
+      else parts.push(tagged(el('h3', '', `${node.floor}층 ${node.label}`), 'node-title'), el('p', 'dbg-hint', this.describeNonBattle(node)));
       if (node.id === this.selectedId) {
         const go = tagged(button('이 노드로 이동', () => this.commands.chooseNode(node.id), 'dbg-btn dbg-primary'), 'choose-node');
         go.disabled = node.state !== 'available';

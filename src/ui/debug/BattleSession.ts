@@ -177,11 +177,14 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
   }
 
   recentEffects(maxAge: number): readonly ReplayEffect[] {
-    return this.currentPhase === 'edit' || !this.live ? [] : this.live.replay.recentEffects(maxAge);
+    if (this.currentPhase === 'edit' || !this.live) return [];
+    const effects = this.live.replay.recentEffects(maxAge);
+    // 전투가 끝나면 재생 시각이 멈추므로, 강타 번쩍임이 결과 화면에 남지 않게 보스 연출은 걷어 낸다
+    return this.currentPhase === 'finished' ? effects.filter((e) => e.kind !== 'strike' && e.kind !== 'telegraph') : effects;
   }
 
   telegraphs(): readonly TelegraphView[] {
-    return this.currentPhase === 'edit' || !this.live ? [] : this.live.replay.telegraphs();
+    return this.currentPhase === 'edit' || this.currentPhase === 'finished' || !this.live ? [] : this.live.replay.telegraphs();
   }
 
   advance(dtSeconds: number): void {

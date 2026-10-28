@@ -20,8 +20,9 @@ export interface EventHost {
   upgradableCards(): number[];
   removeCard(instanceId: number): void;
   upgradeCard(instanceId: number): void;
-  hasBenchSpace(): boolean;
-  /** 해당 등급의 무작위 1성 유닛을 받는다. 받지 못하면 false */
+  /** 해당 등급의 1성 유닛을 받을 수 없는 사유 (벤치 가득 참, 유닛 풀 재고 없음 등). 받을 수 있으면 null */
+  unitGrantBlocker(tier: number): string | null;
+  /** 해당 등급의 무작위 1성 유닛을 받는다. 받지 못하면 false이고 아무것도 바꾸지 않는다 */
   grantRandomUnit(tier: number, rng: Rng): boolean;
 }
 
@@ -92,9 +93,18 @@ export class EventDirector {
     if (!choice) return fail('올바른 선택지를 고르세요');
     const reason = this.unavailableReason(choice, host);
     if (reason) return fail(reason);
+    const messageCount = state.messages.length;
     state.chosen = index;
     state.messages.push(choice.result);
-    return this.advance(state, choice, host, nodeId);
+    const result = this.advance(state, choice, host, nodeId);
+    if (!result.ok && state.nextEffect === 1) {
+      // 첫 효과에서 실패했으면 아무것도 적용되지 않았으므로 선택하지 않은 상태로 되돌린다
+      state.chosen = null;
+      state.nextEffect = 0;
+      state.pending = null;
+      state.messages.length = messageCount;
+    }
+    return result;
   }
 
   /** 추가 선택(카드 고르기)을 처리하고 남은 효과를 이어서 실행한다 */
@@ -148,9 +158,13 @@ export class EventDirector {
         else host.upgradeCard(rng.pick(ids));
         return OK;
       }
-      case 'gainUnit':
-        if (!host.grantRandomUnit(effect.tier, rng)) state.messages.push('벤치에 자리가 없어 유닛을 받지 못했다.');
+      case 'gainUnit': {
+        // 가용성 검사 이후에도 받지 못하면 실패로 알린다 (골드만 빠지고 유닛이 없는 상태를 남기지 않는다)
+        const blocker = host.unitGrantBlocker(effect.tier);
+        if (blocker) return fail(blocker);
+        if (!host.grantRandomUnit(effect.tier, rng)) return fail('유닛을 받을 수 없습니다');
         return OK;
+      }
     }
   }
 
@@ -169,7 +183,10 @@ export class EventDirector {
           if (hp < 1) return '지휘관 HP가 부족합니다 (이벤트로는 쓰러지지 않습니다)';
           break;
         case 'gainUnit':
-          if (!host.hasBenchSpace()) return '벤치에 빈 자리가 없습니다';
+          {
+            const blocker = host.unitGrantBlocker(effect.tier);
+            if (blocker) return blocker;
+          }
           break;
         case 'removeCard':
           if (host.removableCards().length === 0) return '제거할 수 있는 카드가 없습니다';

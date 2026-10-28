@@ -3,6 +3,7 @@ import { CombatSimulator, type CardCommand, type CombatSetup } from '../combat';
 import type { CardCatalog } from '../data/cardLoader';
 import type { CommanderDef } from '../data/commander';
 import type { CommanderCatalog } from '../data/commanderLoader';
+import type { UnitDef } from '../data/unit';
 import type { EncounterCatalog } from '../data/encounterLoader';
 import type { EventDef } from '../data/event';
 import type { EventCatalog } from '../data/eventLoader';
@@ -23,7 +24,7 @@ import type { MapNode, RunMap } from './runMap';
 import { RunRoster } from './runRoster';
 import { RunSerializer, type RunSave } from './runSerializer';
 import { RunState, type BattleSettlement, type NodeSession, type RunOutcome, type RunPhase, type RunRecord } from './runState';
-import { deriveSeed } from './seeds';
+import { deriveSeed, normalizeRunSeed } from './seeds';
 
 /** 런 코어가 쓰는 검증된 게임 데이터 */
 export interface RunDeps {
@@ -126,13 +127,14 @@ export class RunController {
     const commander = deps.commanders.get(options.commanderId);
     if (!commander) throw new Error(`알 수 없는 지휘관 "${options.commanderId}"`);
     const preset = options.deckPreset ?? 'starter';
+    const seed = normalizeRunSeed(options.seed); // 이후 모든 파생은 저장되는 값과 같은 시드를 쓴다
     const forces = PlayerForces.create(
       deps.units, deps.cards, commander,
-      { management: deriveSeed(options.seed, 'management'), deck: deriveSeed(options.seed, 'deck') },
+      { management: deriveSeed(seed, 'management'), deck: deriveSeed(seed, 'deck') },
       preset,
     );
     const health = new CommanderHealth(commander.maxHp ?? RUN.START_HP);
-    const state = new RunState(options.seed | 0, commander.id, preset, new MapGenerator().generate(options.seed), health, forces);
+    const state = new RunState(seed, commander.id, preset, new MapGenerator().generate(seed), health, forces);
     return new RunController(deps, state);
   }
 
@@ -551,6 +553,12 @@ export class RunController {
     return event;
   }
 
+  /** 이벤트로 받을 수 있는 해당 등급 유닛 (보스 제외, 풀 재고가 남은 것) */
+  private grantableUnits(tier: number): UnitDef[] {
+    const pool = this.state.forces.management.snapshot().pool;
+    return this.deps.units.units.filter((u) => !u.boss && u.tier === tier && (pool[u.id] ?? 0) > 0);
+  }
+
   private eventHost(): EventHost {
     const { health, forces } = this.state;
     const cards = this.deps.cards;
@@ -569,10 +577,12 @@ export class RunController {
       upgradableCards: () => upgradableCards(forces.deck, cards).map((c) => c.instanceId),
       removeCard: (id) => forces.removeCard(id),
       upgradeCard: (id) => forces.upgradeCard(id),
-      hasBenchSpace: () => forces.management.hasBenchSpace(),
+      unitGrantBlocker: (tier) => {
+        if (!forces.management.hasBenchSpace()) return '벤치에 빈 자리가 없습니다';
+        return this.grantableUnits(tier).length === 0 ? `유닛 풀에 ${tier}등급 유닛 재고가 없습니다` : null;
+      },
       grantRandomUnit: (tier, rng) => {
-        const pool = forces.management.snapshot().pool;
-        const candidates = this.deps.units.units.filter((u) => !u.boss && u.tier === tier && (pool[u.id] ?? 0) > 0);
+        const candidates = this.grantableUnits(tier);
         if (candidates.length === 0) return false;
         return forces.management.grantUnit(rng.pick(candidates).id).ok;
       },

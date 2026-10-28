@@ -82,7 +82,7 @@ export class RunSerializer {
     if (version !== RUN.FORMAT_VERSION) r.fail('version', `지원하지 않는 저장 버전 ${version} (지원: ${RUN.FORMAT_VERSION})`);
 
     const seed = r.number('seed');
-    if (!Number.isInteger(seed)) r.fail('seed', `정수여야 함 (실제: ${seed})`);
+    if (!Number.isInteger(seed) || seed !== (seed | 0)) r.fail('seed', `부호 있는 32비트 정수여야 함 (실제: ${seed})`);
     const commanderId = r.string('commanderId');
     if (!this.deps.commanders.get(commanderId)) r.fail('commanderId', `commanders.json에 없는 지휘관 "${commanderId}"`);
     const deckPreset = r.enum('deckPreset', ['starter', 'test'] as const);
@@ -200,7 +200,25 @@ export class RunSerializer {
     // 기록은 입장한 노드의 것이다
     state.history.forEach((record, i) => {
       if (!visited.includes(record.nodeId)) r.fail(`history[${i}].nodeId`, `입장하지 않은 노드 "${record.nodeId}"`);
+      const node = map.node(record.nodeId) as MapNode;
+      if (record.type !== node.type || record.floor !== node.floor) r.fail(`history[${i}]`, `노드 ${node.id}(${node.floor}층 ${node.type})와 기록(${record.floor}층 ${record.type})이 맞지 않음`);
     });
+
+    // 전투 노드는 정산할 때마다 기록이 하나 쌓인다: 일반·정예는 정산을 마친 노드마다 1건(전투 준비 중인 현재 노드는 0건),
+    // 보스는 질 때마다 한 건씩(재도전 중이면 시도 수와 같고 위의 전투 시도 검사가 확인, 끝난 런은 1건 이상). 그 밖의 노드는 0건
+    for (const id of visited) {
+      const node = map.node(id) as MapNode;
+      const count = state.history.filter((record) => record.nodeId === id).length;
+      const preparing = phase === 'battlePrep' && id === state.currentNodeId;
+      if (node.type === 'combat' || node.type === 'elite') {
+        const expected = preparing ? 0 : 1;
+        if (count !== expected) r.fail('history', `${node.floor}층 ${node.type} 노드 ${id}의 전투 기록은 ${expected}건이어야 함 (실제: ${count}건)`);
+      } else if (node.type === 'boss') {
+        if (!preparing && count < 1) r.fail('history', `보스 노드 ${id}에 입장해 전투를 마쳤으므로 기록이 1건 이상이어야 함 (실제: ${count}건)`);
+      } else if (count !== 0) {
+        r.fail('history', `전투가 없는 ${node.type} 노드 ${id}에 전투 기록이 ${count}건 있음`);
+      }
+    }
   }
 
   // ---- 세션 ----

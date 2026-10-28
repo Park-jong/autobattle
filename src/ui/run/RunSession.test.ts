@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { driveTo } from '../../core/run/testSupport';
+import { RunController } from '../../core/run';
 import { MemoryRunStorage, type RunStorage } from './RunStorage';
-import { createHarness, playBattle } from './testSupport';
+import { createHarness, gameData, playBattle } from './testSupport';
 
 /** 맵에서 고를 수 있는 첫 노드를 고른다 */
 function chooseFirst(h: ReturnType<typeof createHarness>): string {
@@ -238,5 +240,22 @@ describe('저장본 처리', () => {
     h.session.toStart();
     const status = h.session.snapshot().start!.save;
     expect(status.kind === 'ok' && status.summary.seed).toBe(2);
+  });
+
+  it('보스 첫 도전의 결과 화면은 1번째 도전이고, 패배 후 재도전 준비 화면부터 2번째 도전이다', () => {
+    const h = createHarness();
+    const run = RunController.create(gameData.run, { seed: 6, commanderId: 'cmd_harten' });
+    driveTo(run, 'boss'); // 도중 전투를 모두 승리로 처리하고 보스 전투 준비에서 멈춘다
+    h.store.save(run);
+    h.session.continueRun();
+    expect(h.session.snapshot().battle).toMatchObject({ stage: 'prep', attempt: 1 });
+    playBattle(h);
+    const result = h.session.snapshot().battle!;
+    expect(result.stage).toBe('result');
+    expect(result.attempt).toBe(1);
+    if (result.settlement!.outcome !== 'win') {
+      h.session.continueAfterBattle();
+      expect(h.session.snapshot().battle).toMatchObject({ stage: 'prep', attempt: 2 });
+    }
   });
 });

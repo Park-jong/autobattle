@@ -147,8 +147,13 @@ export class ManagementPanel {
     return node;
   }
 
+  /** 화면에 보이는가. 런 전투 패널과 디버그 패널이 같은 캔버스를 쓰므로 숨겨진 쪽은 캔버스 드래그를 처리하지 않는다 */
+  private isActive(): boolean {
+    return this.root.isConnected && this.root.getClientRects().length > 0;
+  }
+
   private onCanvasDown = (event: PointerEvent): void => {
-    if (event.button !== 0) return;
+    if (event.button !== 0 || !this.isActive()) return;
     const point = this.stagePoint(event);
     if (!point) return;
     const id = this.controller.managedUnitAtStage(point.x, point.y);

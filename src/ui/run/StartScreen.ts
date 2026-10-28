@@ -7,6 +7,9 @@ export class StartScreen {
   private readonly seedInput = el('input', 'dbg-input run-seed-input');
   private seedDirty = false;
   private shownSuggestion: number | null = null;
+  /** 진행 중인 저장본이 있을 때 "새 런"을 눌러 덮어쓰기 확인을 기다리는 중인가 */
+  private confirming = false;
+  private lastSnapshot: RunSnapshot | null = null;
 
   constructor(private readonly commands: RunCommands) {
     this.seedInput.type = 'text';
@@ -22,6 +25,8 @@ export class StartScreen {
   render(snap: RunSnapshot): void {
     const start = snap.start;
     if (!start) return;
+    this.lastSnapshot = snap;
+    if (start.save.kind !== 'ok') this.confirming = false;
     if (!this.seedDirty && this.shownSuggestion !== start.suggestedSeed) {
       this.seedInput.value = String(start.suggestedSeed);
       this.shownSuggestion = start.suggestedSeed;
@@ -33,7 +38,19 @@ export class StartScreen {
     const seedRow = el('label', 'run-seed-row');
     seedRow.append(el('span', '', '시드'), this.seedInput);
     const newRun = tagged(button('새 런', () => this.startNew(), 'dbg-btn dbg-primary run-big-button'), 'new-run');
-    card.append(seedRow, el('p', 'dbg-hint', '같은 시드는 같은 맵·적·보상을 만듭니다. 비워 두면 위의 제안 시드를 씁니다.'), newRun);
+    card.append(seedRow, el('p', 'dbg-hint', '같은 시드는 같은 맵·적·보상을 만듭니다. 비워 두면 위의 제안 시드를 씁니다.'));
+    if (this.confirming && start.save.kind === 'ok') {
+      const s = start.save.summary;
+      const box = tagged(el('div', 'run-confirm'), 'confirm-new-run');
+      box.append(
+        el('p', '', `진행 중인 런이 있습니다 (${s.floor}층 · HP ${s.hp}/${s.maxHp} · 시드 ${s.seed}). 새로 시작하면 저장본이 지워집니다.`),
+        tagged(button('진행 중인 런을 지우고 새로 시작', () => this.submit(), 'dbg-btn dbg-primary run-big-button'), 'confirm-new-run-yes'),
+        tagged(button('취소', () => this.cancelConfirm(), 'dbg-btn run-big-button'), 'confirm-new-run-no'),
+      );
+      card.append(box);
+    } else {
+      card.append(newRun);
+    }
 
     const save = start.save;
     const resume = tagged(button('이어하기', () => this.commands.continueRun(), 'dbg-btn run-big-button'), 'continue-run');
@@ -61,7 +78,23 @@ export class StartScreen {
     this.root.replaceChildren(card);
   }
 
+  /** 저장본이 있으면 덮어쓰기 확인 단계를 먼저 보여 주고, 없으면 바로 시작한다 */
   private startNew(): void {
+    if (this.lastSnapshot?.start?.save.kind === 'ok' && !this.confirming) {
+      this.confirming = true;
+      this.render(this.lastSnapshot);
+      return;
+    }
+    this.submit();
+  }
+
+  private cancelConfirm(): void {
+    this.confirming = false;
+    if (this.lastSnapshot) this.render(this.lastSnapshot);
+  }
+
+  private submit(): void {
+    this.confirming = false;
     const text = this.seedInput.value.trim();
     if (text === '') return this.commands.newRun(null);
     this.commands.newRun(/^-?\d+$/.test(text) ? Number(text) : Number.NaN);

@@ -38,6 +38,7 @@ interface Args {
 
 function parseArgs(argv: string[]): Args {
   const flags = new Set(['verbose', 'no-cards']);
+  const options = new Set(['seed', 'n', 'path', 'plan', 'commander', 'deck']);
   const values = new Map<string, string>();
   for (let i = 0; i < argv.length; i++) {
     const key = argv[i];
@@ -47,8 +48,9 @@ function parseArgs(argv: string[]): Args {
       values.set(name, 'true');
       continue;
     }
+    if (!options.has(name)) throw new Error(`알 수 없는 옵션: --${name}`);
     const value = argv[++i];
-    if (value === undefined) throw new Error(`--${name}에 값이 필요함`);
+    if (value === undefined || value.startsWith('--')) throw new Error(`--${name}에 값이 필요함`);
     values.set(name, value);
   }
   const seed = Number(values.get('seed') ?? '1');

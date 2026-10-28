@@ -24,8 +24,8 @@ export class CommanderHealth {
   private current: number;
 
   constructor(readonly max: number, hp: number = max) {
-    if (!Number.isInteger(max) || max < 1) throw new Error('지휘관 최대 HP는 1 이상의 정수여야 합니다');
-    if (!Number.isInteger(hp) || hp > max) throw new Error('지휘관 HP가 올바르지 않습니다');
+    if (!Number.isInteger(max) || max < 1) throw new Error(`지휘관 최대 HP는 1 이상의 정수여야 합니다 (실제: ${max})`);
+    if (!Number.isInteger(hp) || hp < 0 || hp > max) throw new Error(`지휘관 HP는 0 이상 최대 HP(${max}) 이하의 정수여야 합니다 (실제: ${hp})`);
     this.current = hp;
   }
 
