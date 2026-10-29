@@ -43,7 +43,8 @@
     events.ts        UI가 재생할 이벤트 타입, formation.ts 편성 타입·검증
 /src/ui          Phaser 씬·렌더링 + HTML 패널(디버그 패널·손패)
   theme.ts         렌더링·카드 UI 상수(해상도·배치·색·타이밍·상태 배지·슬로모션 배율 CARD_UI)를 한 곳에
-  hidpi.ts         HiDPI 처리: 캔버스 = 1280x720 x DPR, 카메라 줌 = DPR, 텍스트 setResolution
+  hidpi.ts         화면 크기·DPR·렌더링 예산으로 실제 캔버스 크기 결정, 같은 카메라 줌으로 1280x720 게임 좌표 유지
+  rendering.ts     터치 기기 Canvas·최대 720p·30fps, 데스크톱 AUTO·HiDPI·60fps. main은 전투/디버그에만 캔버스 생성·루프 실행
   gameData.ts      data/*.json 검증 로드 + 기본 편성(tools/formations/a,b.json), 지휘관 시작 편성, 5연전 적 편성(series-1~5.json)
   replay/          ReplayState: 이벤트 로그(진행 중이라 늘어나도 됨) + 시각 t -> 유닛 표시 상태·연출 이벤트 (Phaser·DOM 비의존)
   live/            LiveBattle(실시간 시뮬+재생), Gauntlet(고정 편성 5연전), ManagementRun(가변 로스터·상점·장비·제공 카드·골드 이어받기) — 모두 Phaser·DOM 비의존
