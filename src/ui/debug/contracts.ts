@@ -157,6 +157,13 @@ export interface DebugController {
   endSeries(): void;
 }
 
+/** 툴팁·유닛 정보 패널(HTML)이 쓰는 쪽: 포인터 아래 유닛 조회 */
+export interface UnitHoverSource {
+  unitAtStage(x: number, y: number): UnitView | null;
+  views(): readonly UnitView[];
+  readonly phase: SessionPhase;
+}
+
 /** 손패 패널(HTML)이 쓰는 쪽 */
 export interface CardController {
   cardView(): CardPanelView;

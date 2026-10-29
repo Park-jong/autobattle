@@ -232,6 +232,12 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
     this.interaction.hover(this.lastPick);
   }
 
+  /** 게임 좌표 아래의 살아 있는 유닛 (툴팁·정보 패널용, 보간 위치 기준). 없으면 null */
+  unitAtStage(x: number, y: number): UnitView | null {
+    const uid = this.picker.pick(x, y, this.views()).unitUid;
+    return uid === null ? null : this.views().find((v) => v.uid === uid) ?? null;
+  }
+
   pointerLeft(): void {
     this.lastPick = null;
     this.interaction.hover(null);

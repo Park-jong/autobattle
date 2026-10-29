@@ -16,8 +16,8 @@ interface OverlayScreen {
 export interface ShellHosts {
   /** 오른쪽 패널의 기존 디버그 패널 자리 */
   debugHost: HTMLElement;
-  /** 오른쪽 패널의 런 전투 패널 자리 */
-  battleHost: HTMLElement;
+  /** 오른쪽 패널 전체 (런 전투 화면에서는 숨기고 화면에 직접 배치한다) */
+  panelHost?: HTMLElement;
 }
 
 const TOAST_MILLIS = 6000;
@@ -67,7 +67,11 @@ export class RunShell {
     const overlayScreen = this.screens[screen];
     this.overlay.hidden = overlayScreen === undefined;
     this.hosts.debugHost.hidden = screen !== 'debug';
-    this.hosts.battleHost.hidden = screen !== 'battle';
+    // 화면 종류를 body에 적어 CSS가 영역(오른쪽 패널 등)을 고른다
+    if (document.body.dataset.screen !== screen) {
+      document.body.dataset.screen = screen;
+      window.dispatchEvent(new Event('resize'));
+    }
     this.backButton.hidden = screen !== 'debug';
     if (overlayScreen) {
       if (this.mounted !== screen) {
