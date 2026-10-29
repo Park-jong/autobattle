@@ -150,6 +150,10 @@
 .run-event-text { margin: 0; padding: 12px 14px; background: #151821; border-left: 3px solid #2f7fb5; white-space: pre-line; }
 .run-event-choices, .run-camp-actions { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
 .run-event-button, .run-camp-button { text-align: left; min-width: 260px; }
+/* 이벤트 선택지는 글자 길이와 관계없이 모두 같은 폭 */
+.run-event-choices { align-items: stretch; }
+.run-event-choice { display: flex; flex-direction: column; }
+.run-event-choice .run-event-button { width: 100%; box-sizing: border-box; }
 .run-event-result { padding: 10px 12px; background: #1a2a1f; border-left: 3px solid #5fd068; }
 .run-event-result p { margin: 2px 0; }
 .run-promotions { display: flex; flex-direction: column; gap: 6px; }
