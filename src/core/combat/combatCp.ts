@@ -56,6 +56,10 @@ export class CombatCommandPoints implements CpGainSink {
     return gained;
   }
 
+  addStartCp(amount: number): void {
+    this.points.addStartBonus(amount);
+  }
+
   canSpend(pool: CpPool, cost: number): boolean {
     return this.points.canSpend(pool, cost);
   }

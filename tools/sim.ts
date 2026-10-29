@@ -15,7 +15,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Deck, startingDeckSpecs, type DeckPreset } from '../src/core/cards';
+import { Deck, assertCardUnitReferences, startingDeckSpecs, type DeckPreset } from '../src/core/cards';
 import {
   CardPlanRunner,
   CombatSimulator,
@@ -126,6 +126,7 @@ function loadGameData(): GameData {
   const traits = loadTraits(read('traits.json'));
   const units = loadUnits(read('units.json'), traits);
   const cards = loadCards(read('cards.json'), traits);
+  assertCardUnitReferences(cards, units);
   const commanders = loadCommanders(read('commanders.json'), cards, units);
   return { traits, units, cards, commanders };
 }

@@ -67,7 +67,7 @@ describe('BattleSession 지휘관 선택', () => {
     const view = s.cardView();
     const ids = [...view.hand, ...view.draw.entries].map((c) => c.cardId);
     expect(ids).toHaveLength(10);
-    for (const id of ['firestorm', 'mana_infusion', 'tactical_reorganization', 'ember_arrow', 'marching_song']) expect(ids).toContain(id);
+    for (const id of ['firestorm', 'mana_infusion', 'tactical_reorganization', 'vine_snare', 'marching_song']) expect(ids).toContain(id);
     expect(view.hand).toHaveLength(5);
     s.reset();
     expect(s.cardView().hand).toEqual(view.hand);

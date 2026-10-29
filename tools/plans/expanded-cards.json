@@ -1,7 +1,7 @@
 [
   { "tick": 0, "card": "war_drums" },
   { "tick": 0, "card": "tactical_reorganization" },
-  { "tick": 0, "card": "ember_arrow", "target": { "rule": "highestHpEnemy" } },
+  { "tick": 0, "card": "vine_snare", "target": { "rule": "highestHpEnemy" } },
   { "tick": 0, "card": "marching_song" },
   { "tick": 0, "card": "mana_infusion", "target": { "rule": "highestHpAlly" } },
   { "tick": 40, "card": "firestorm", "target": { "rule": "highestHpEnemy" } },

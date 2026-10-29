@@ -7,6 +7,7 @@
 export class CommanderHpLedger {
   private left: number;
   private lost = 0;
+  private healReserved = 0;
   /** 런에서 현재 HP를 받았는가 (디버그 전투는 false) */
   readonly tracked: boolean;
 
@@ -23,6 +24,15 @@ export class CommanderHpLedger {
   /** 이 전투에서 카드로 잃은 HP 합계 */
   get spent(): number {
     return this.lost;
+  }
+
+  /** 카드로 예약한 지휘관 HP 회복 합계. 전투에서 이겼을 때만 런이 확정한다 (이 전투에서 쓸 수 있는 HP는 늘지 않는다) */
+  get pendingHeal(): number {
+    return this.healReserved;
+  }
+
+  reserveHeal(amount: number): void {
+    this.healReserved += amount;
   }
 
   /** 지불 후에도 HP가 1 이상 남아야 한다 */

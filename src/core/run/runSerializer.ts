@@ -1,4 +1,5 @@
 import type { DeckPreset } from '../cards';
+import { isCardAllowedFor } from '../data/card';
 import type { CardCatalog } from '../data/cardLoader';
 import type { CommanderCatalog } from '../data/commanderLoader';
 import { FieldReader } from '../data/fieldReader';
@@ -7,6 +8,7 @@ import type { RelicCatalog } from '../data/relicLoader';
 import type { UnitCatalog } from '../data/unitLoader';
 import type { BattleOutcome } from '../economy';
 import { cardPrice } from './cardMarket';
+import type { ContentMigrations } from './contentMigration';
 import type { RewardRarity } from './cardRewards';
 import { CommanderHealth } from './commanderHealth';
 import type { RelicInventoryState } from './relicInventory';
@@ -26,6 +28,8 @@ type SavedPhase = Exclude<RunPhase, 'battle'>;
 export interface RunSave {
   format: typeof SAVE_FORMAT;
   version: number;
+  /** 저장할 때의 콘텐츠 데이터 버전 (data/migrations.json). 없으면 0 — 콘텐츠 마이그레이션이 이 값 뒤의 변경을 적용한다 */
+  contentVersion?: number;
   seed: number;
   commanderId: string;
   deckPreset: DeckPreset;
@@ -55,6 +59,7 @@ export interface SerializerDeps {
   commanders: CommanderCatalog;
   events: EventCatalog;
   relics: RelicCatalog;
+  migrations: ContentMigrations;
 }
 
 const SESSION_BY_PHASE: Readonly<Record<SavedPhase, NodeSession['kind'] | null>> = {
@@ -69,6 +74,7 @@ export class RunSerializer {
     return {
       format: SAVE_FORMAT,
       version: RUN.FORMAT_VERSION,
+      contentVersion: this.deps.migrations.current,
       seed: state.seed,
       commanderId: state.commanderId,
       deckPreset: state.deckPreset,
@@ -97,9 +103,12 @@ export class RunSerializer {
     }
     // v1에는 유물 필드가 없다: 하르텐(commanderId는 v1에도 있음)·유물 없음으로 읽는다.
     // v1·v2에는 액트 필드가 없다: 단일 `map`을 액트 1의 맵으로 읽는다 (v3는 `maps`와 `totalActs`)
-    const keys = ['format', 'version', 'seed', 'commanderId', 'deckPreset', 'position', 'health', 'forces', 'removals', 'seenEvents', 'phase', 'session', 'outcome', 'history'];
+    const keys = ['format', 'version', 'contentVersion', 'seed', 'commanderId', 'deckPreset', 'position', 'health', 'forces', 'removals', 'seenEvents', 'phase', 'session', 'outcome', 'history'];
     r.onlyKeys([...keys, ...(version >= 2 ? ['relics'] : []), ...(version >= 3 ? ['maps', 'totalActs', 'test'] : ['map'])]);
 
+    if (r.has('contentVersion') && r.int('contentVersion', 0) > this.deps.migrations.current) {
+      r.fail('contentVersion', `현재 게임의 콘텐츠 버전(${this.deps.migrations.current})보다 높음`);
+    }
     const seed = r.number('seed');
     if (!Number.isInteger(seed) || seed !== (seed | 0)) r.fail('seed', `부호 있는 32비트 정수여야 함 (실제: ${seed})`);
     const commanderId = r.string('commanderId');
@@ -346,16 +355,17 @@ export class RunSerializer {
 
   /**
    * 지휘관 고유 카드: 다른 지휘관의 고유 카드는 이 런에서 얻을 길이 없다.
-   * 덱(시작 덱은 자기 지휘관 것만, 이후 보상·상점·이벤트 풀은 공용 카드만)과 제시된 보상·진열 카드를 확인한다.
-   * 테스트 덱(deckPreset test)의 10장과 보상·상점 풀도 모두 공용 카드라 덱 검사에 예외를 두지 않는다.
+   * 덱(시작 덱은 자기 지휘관 것만, 이후 보상·상점·이벤트 풀은 공용 + 자기 지휘관 고유 카드)과 제시된 보상·진열 카드를 확인한다.
+   * 테스트 덱(deckPreset test)의 10장은 모두 공용 카드다. 콘텐츠 데이터가 바뀌어 생긴 불일치(카드 소유자 변경 등)는
+   * 복원 전에 contentMigration이 저장본을 고쳐 두므로 여기서는 예외 없이 거부한다.
    * 시작 덱 프리셋이면 카드를 한 장도 제거한 적이 없을 때(상점 제거 0회, 제거 선택지가 있는 이벤트를 본 적 없음)
    * 시작 덱의 모든 카드가 (강화 여부와 무관하게) 장수 이상 덱에 남아 있어야 한다. 이세라처럼 고유 카드가 없는
    * 지휘관을 다른 지휘관 저장본으로 바꾼 조작은 이 검사로 걸러진다. 카드를 한 번이라도 제거했다면 판별할 수 없어 건너뛴다.
    */
   private checkCommanderCards(r: FieldReader, state: RunState): void {
     const foreign = (cardId: string): boolean => {
-      const owner = this.deps.cards.get(cardId)?.owner;
-      return owner !== undefined && owner !== 'neutral' && owner !== state.commanderId;
+      const card = this.deps.cards.get(cardId);
+      return card !== undefined && !isCardAllowedFor(card, state.commanderId);
     };
     const deck = state.forces.deck;
     const piles = { draw: deck.draw, hand: deck.hand, discard: deck.discard, exhaust: deck.exhaust };
@@ -381,8 +391,10 @@ export class RunSerializer {
       : session?.kind === 'shop' ? { key: 'session.cards', ids: session.cards.map((slot) => slot.cardId) }
         : null;
     offered?.ids.forEach((id, i) => {
-      const owner = this.deps.cards.get(id)?.owner;
-      if (owner !== undefined && owner !== 'neutral') r.fail(`${offered.key}[${i}]`, `지휘관 고유 카드 "${id}"는 보상·상점 풀에 나올 수 없음`);
+      const card = this.deps.cards.get(id);
+      if (card !== undefined && !isCardAllowedFor(card, state.commanderId)) {
+        r.fail(`${offered.key}[${i}]`, `다른 지휘관의 고유 카드 "${id}"는 ${state.commanderId}의 보상·상점 풀에 나올 수 없음`);
+      }
     });
   }
 

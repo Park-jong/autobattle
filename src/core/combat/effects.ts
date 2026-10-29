@@ -1,8 +1,9 @@
-import type { ResolvedEffect, TeleportDestination } from '../data/effect';
+import type { ResolvedEffect, SummonPlacement, TeleportDestination } from '../data/effect';
 import type { Deck } from '../cards/deck';
 import { backCol, BOARD_ROWS, chebyshev, fanRays, frontCol, HALF_COLS, rayCells, sameCell, type Cell, type Side } from './board';
 import { COMBAT } from './constants';
 import { DelayedStrikes } from './delayed';
+import { GroundZones } from './zones';
 import type { UnitCatalog } from '../data/unitLoader';
 import type { CombatUnit } from './unit';
 import type { CombatWorld } from './world';
@@ -16,12 +17,39 @@ export interface EffectContext {
   targets: readonly CombatUnit[];
   /** 칸·범위를 지정하는 카드의 대상 영역 (selector enemiesInTargetArea / alliesInTargetArea). radius 0 = 그 칸만, 1 = 3×3 */
   area?: { cell: Cell; radius: number } | null;
+  /** 이 효과를 실행하는 카드 (카드 사용일 때만). 카드 전용 효과가 이벤트에 카드를 밝히거나 CP 이유를 정할 때 쓴다 */
+  card?: { cardId: string; instanceId: number; name: string };
 }
 
 /** CP 수급 창구. 심연 같은 CP 획득 효과(cpOnKill)가 사용한다. 카드 시스템이 없는 전투에서는 주지 않는다 */
 export interface CpGainSink {
   /** CP를 얻고 상한 때문에 깎인 뒤 실제로 늘어난 양을 반환 */
   gainCp(amount: number, reason: 'abyss' | 'effect'): number;
+  /** 이번 전투의 시작 CP 보정을 늘린다 (준비 단계 작전 카드). 전투 CP는 전투가 시작될 때 이 값이 반영된다 */
+  addStartCp(amount: number): void;
+}
+
+/** 궁극기 게이지 창구 (카드의 ultimateGain). 궁극기가 없거나 이미 썼으면 0을 돌려준다 */
+export interface UltimateGainSink {
+  /** 게이지를 올리고 실제로 늘어난 양을 반환 (최대 100) */
+  gainUltimate(amount: number): number;
+}
+
+/** 이번 전투의 주문 피해 보정 창구 (카드의 spellDamageBoost) */
+export interface SpellBoostSink {
+  addSpellDamagePct(pct: number): void;
+}
+
+/** 지휘관 HP 회복 예약 창구 (카드의 commanderHeal). 전투에서 이기면 런이 확정한다 */
+export interface CommanderHealSink {
+  reserveHeal(amount: number): void;
+}
+
+/** 카드 확장 효과가 쓰는 선택 창구 모음. 카드 시스템이 없는 전투에서는 비어 있다 */
+export interface EffectSinks {
+  ultimate?: UltimateGainSink;
+  spellBoost?: SpellBoostSink;
+  commanderHeal?: CommanderHealSink;
 }
 
 /** 손패 카드 비용 조정 창구. 주술사 특성(handCostReduction)이 사용한다. 카드 시스템이 없는 전투에서는 주지 않는다 */
@@ -33,6 +61,8 @@ export interface HandCostSink {
   reduceRandomCost(amount: number): { instanceId: number; cardId: string; surcharge: number; delta: number } | null;
 }
 
+const SUMMON_PLACEMENT_LABELS: Record<SummonPlacement, string> = { allyBack: '후열', allyFront: '전열', enemyBack: '적 후열' };
+
 const durationToSeconds = (d: number | 'combat'): number => (d === 'combat' ? Infinity : d);
 const statusDuration = (seconds: number): number | 'combat' => (Number.isFinite(seconds) ? seconds : 'combat');
 
@@ -42,6 +72,7 @@ const statusDuration = (seconds: number): number | 'combat' => (Number.isFinite(
  */
 export class EffectExecutor {
   private delayedStrikes: DelayedStrikes | null = null;
+  private zones: GroundZones | null = null;
   /** 스킬로 CP를 얻은 횟수 (시전 유닛 uid별) */
   private readonly skillCpUses = new Map<number, number>();
 
@@ -52,6 +83,7 @@ export class EffectExecutor {
     private readonly deck: Deck | null = null,
     private readonly catalog: UnitCatalog | null = null,
     private readonly handCost: HandCostSink | null = null,
+    private readonly sinks: EffectSinks = {},
   ) {}
 
   execute(effects: readonly ResolvedEffect[], ctx: EffectContext): void {
@@ -71,8 +103,17 @@ export class EffectExecutor {
   checkExecutable(effects: readonly ResolvedEffect[], ctx: EffectContext): string | null {
     for (const effect of effects) {
       if (effect.kind === 'summon') {
-        if (!this.catalog?.units.some((u) => !u.boss && u.tier === effect.tier)) return '징집할 등급의 유닛이 없습니다';
-        if (this.summonCells(ctx.side).length < effect.count) return `후열에 빈 칸 ${effect.count}개가 필요합니다`;
+        if (effect.unitId !== undefined) {
+          const def = this.catalog?.get(effect.unitId);
+          if (!def || def.boss) return `징집할 유닛 "${effect.unitId}"을(를) 찾을 수 없습니다`;
+          const placement = effect.placement ?? 'allyBack';
+          if (this.summonCells(ctx.side, placement).length < effect.count) {
+            return `${SUMMON_PLACEMENT_LABELS[placement]}에 빈 칸 ${effect.count}개가 필요합니다`;
+          }
+        } else {
+          if (!this.catalog?.units.some((u) => !u.boss && u.tier === effect.tier)) return '징집할 등급의 유닛이 없습니다';
+          if (this.summonCells(ctx.side).length < effect.count) return `후열에 빈 칸 ${effect.count}개가 필요합니다`;
+        }
       }
       if (effect.kind === 'teleport') {
         const primary = ctx.targets[0];
@@ -121,6 +162,12 @@ export class EffectExecutor {
         return world.alliesOf(ctx.side);
       case 'alliesFrontRow':
         return world.alliesOf(ctx.side).filter((u) => u.cell.col === frontCol(ctx.side));
+      case 'alliesBackRow':
+        return world.alliesOf(ctx.side).filter((u) => u.cell.col === backCol(ctx.side));
+      case 'randomAlly': {
+        const allies = world.alliesOf(ctx.side);
+        return allies.length === 0 ? [] : [world.rng.pick(allies)];
+      }
       case 'alliesMelee':
         return world.alliesOf(ctx.side).filter((u) => u.range <= 1);
       case 'lineThroughTarget':
@@ -207,7 +254,11 @@ export class EffectExecutor {
         }
         break;
       case 'lifesteal':
-        for (const u of units) { u.statuses.addLifesteal(effect.pct, world.now + effect.duration); applied(u, 'lifesteal', effect.duration, effect.pct); }
+        for (const u of units) {
+          const seconds = durationToSeconds(effect.duration);
+          u.statuses.addLifesteal(effect.pct, world.now + seconds);
+          applied(u, 'lifesteal', seconds, effect.pct);
+        }
         break;
       case 'onAttackBurn': {
         const members = new Set(units.map((u) => u.uid));
@@ -237,6 +288,15 @@ export class EffectExecutor {
         break;
       }
       case 'summon': {
+        if (effect.unitId !== undefined) {
+          const def = this.catalog?.get(effect.unitId);
+          if (!def) break;
+          for (const cell of this.summonCells(ctx.side, effect.placement ?? 'allyBack').slice(0, effect.count)) {
+            const unit = world.spawn(def, ctx.side, cell, true, { star: effect.star ?? 1 });
+            if (effect.manaFull) world.setMana(unit, unit.maxMana);
+          }
+          break;
+        }
         const cells = this.summonCells(ctx.side).slice(0, effect.count);
         const candidates = this.catalog?.units.filter((u) => !u.boss && u.tier === effect.tier) ?? [];
         for (const cell of cells) world.spawn(world.rng.pick(candidates), ctx.side, cell, true);
@@ -404,13 +464,26 @@ export class EffectExecutor {
 
       case 'flatDamage':
         for (const u of units) {
+          let raw = effect.amount;
+          let bonus = false;
+          if (effect.bonusIfBurning !== undefined && u.statuses.isBurning()) {
+            raw += effect.bonusIfBurning;
+            bonus = true;
+          }
+          if (effect.hpBelowPct !== undefined && effect.belowMult !== undefined && u.hp <= (u.maxHp * effect.hpBelowPct) / 100) {
+            raw *= effect.belowMult;
+            bonus = true;
+          }
           world.dealDamage({
             source: ctx.caster,
             target: u,
-            raw: effect.amount,
+            raw,
             type: effect.dmgType,
             ignoreArmorPct: effect.ignoreArmorPct ?? 0,
+            ...(bonus ? { bonus: true } : {}),
           });
+          // 이 카드 피해로 처치하면 CP (카드 전용)
+          if (effect.killCp !== undefined && !u.alive && ctx.card && ctx.side === 0) this.cp?.gainCp(effect.killCp, 'effect');
         }
         break;
 
@@ -426,7 +499,7 @@ export class EffectExecutor {
         break;
 
       case 'cpOnKill':
-        this.registerCpOnKill(effect.amount, effect.maxPerCombat, ctx.side);
+        this.registerCpOnKill(effect.amount, effect.maxPerCombat, ctx.side, ctx.card ? 'effect' : 'abyss');
         break;
 
       case 'flatShield':
@@ -468,8 +541,12 @@ export class EffectExecutor {
         break;
 
       case 'delayedStrike': {
-        const caster = this.requireCaster(ctx, 'delayedStrike');
         this.delayedStrikes ??= new DelayedStrikes(world, this);
+        if (effect.area === 'targetArea') {
+          if (ctx.area) this.delayedStrikes.scheduleArea(ctx.side, ctx.area, effect, ctx.card?.name);
+          break;
+        }
+        const caster = this.requireCaster(ctx, 'delayedStrike');
         this.delayedStrikes.schedule(caster, effect);
         break;
       }
@@ -513,6 +590,50 @@ export class EffectExecutor {
           u.critDamagePct = Math.max(u.critDamagePct, effect.damagePct);
         }
         break;
+
+      case 'manaGain':
+        for (const u of units) world.addMana(u, effect.amount);
+        break;
+
+      case 'handCostCut': {
+        // 손패 무작위 1장 (비용 1 이상)의 이번 전투 비용을 줄인다. 줄일 카드가 없으면 Rng도 쓰지 않는다
+        const change = this.handCost?.reduceRandomCost(effect.amount);
+        if (change) world.emit({ type: 'cardCost', instanceId: change.instanceId, cardId: change.cardId, surcharge: change.surcharge, delta: -change.delta });
+        break;
+      }
+
+      case 'spellDamageBoost':
+        this.sinks.spellBoost?.addSpellDamagePct(effect.pct);
+        break;
+
+      case 'ultimateGain':
+        this.sinks.ultimate?.gainUltimate(effect.amount);
+        break;
+
+      case 'damageZone':
+        if (ctx.area) {
+          this.zones ??= new GroundZones(world);
+          this.zones.install(ctx.side, ctx.area, effect);
+        }
+        break;
+
+      case 'reviveOnce':
+        for (const u of units) {
+          u.reviveHpPct = Math.max(u.reviveHpPct, effect.hpPct);
+          applied(u, 'reviveOnce', Infinity, effect.hpPct);
+        }
+        break;
+
+      case 'startCp':
+        this.cp?.addStartCp(effect.amount);
+        break;
+
+      case 'commanderHeal':
+        if (ctx.card && this.sinks.commanderHeal) {
+          this.sinks.commanderHeal.reserveHeal(effect.amount);
+          world.emit({ type: 'commanderHeal', amount: effect.amount, cardId: ctx.card.cardId, instanceId: ctx.card.instanceId });
+        }
+        break;
     }
   }
 
@@ -554,13 +675,13 @@ export class EffectExecutor {
    * 실제로 얻은 합계가 limit에 닿으면 멈춘다 (CP 상한 때문에 못 얻은 양은 한도를 소모하지 않음).
    * CP 창구가 없거나 플레이어(side 0)가 아닌 진영이면 등록하지 않는다.
    */
-  private registerCpOnKill(amount: number, limit: number, side: Side): void {
+  private registerCpOnKill(amount: number, limit: number, side: Side, reason: 'abyss' | 'effect'): void {
     const cp = this.cp;
     if (!cp || side !== 0) return;
     let gained = 0;
     this.world.bus.on('onKill', ({ killer }) => {
       if (!killer || killer.side !== side || gained >= limit) return;
-      gained += cp.gainCp(Math.min(amount, limit - gained), 'abyss');
+      gained += cp.gainCp(Math.min(amount, limit - gained), reason);
     });
   }
 
@@ -569,8 +690,24 @@ export class EffectExecutor {
     return ctx.caster;
   }
 
-  private summonCells(side: Side): Cell[] {
-    return Array.from({ length: BOARD_ROWS }, (_, row) => ({ col: backCol(side), row })).filter((c) => this.world.board.isFree(c));
+  /**
+   * 징집이 놓일 빈 칸 (우선순위 순). allyBack/allyFront는 해당 열만, enemyBack은 상대 후열부터 한 열씩 앞으로
+   * (한 열 안에서는 가운데 행에 가까운 칸 먼저, 같으면 위쪽 행).
+   */
+  private summonCells(side: Side, placement: SummonPlacement = 'allyBack'): Cell[] {
+    const free = (col: number): Cell[] => Array.from({ length: BOARD_ROWS }, (_, row) => ({ col, row })).filter((c) => this.world.board.isFree(c));
+    if (placement === 'allyBack') return free(backCol(side));
+    if (placement === 'allyFront') return free(frontCol(side));
+    const opponent: Side = side === 0 ? 1 : 0;
+    const step = opponent === 1 ? -1 : 1;
+    const center = (BOARD_ROWS - 1) / 2;
+    const cells: Cell[] = [];
+    for (let i = 0; i < HALF_COLS; i++) {
+      const column = free(backCol(opponent) + step * i);
+      column.sort((a, b) => Math.abs(a.row - center) - Math.abs(b.row - center) || a.row - b.row);
+      cells.push(...column);
+    }
+    return cells;
   }
 
   /**

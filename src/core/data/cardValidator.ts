@@ -6,7 +6,9 @@ import {
   type Card,
   type CardChain,
   type CardEffect,
+  type CardCurse,
   type CardHpCost,
+  type CardType,
   type CardFile,
   type CardLimits,
   type CardResonance,
@@ -21,7 +23,7 @@ import { FieldReader } from './fieldReader';
 
 const CARD_KEYS = [
   'id', 'name', 'owner', 'rarity', 'type', 'cost', 'target', 'keywords',
-  'limits', 'commanderHpCost', 'resonance', 'chain', 'text', 'effects', 'upgrade',
+  'limits', 'commanderHpCost', 'resonance', 'chain', 'curse', 'text', 'effects', 'upgrade',
 ] as const;
 const UPGRADE_KEYS = ['text', 'effects', 'cost', 'resonance', 'chain'] as const;
 
@@ -61,30 +63,37 @@ export class CardValidator {
     r.onlyKeys(CARD_KEYS);
 
     const target = this.validateTarget(r.object('target'));
+    const type = r.enum('type', CARD_TYPES);
     const card: Card = {
       id: r.string('id'),
       name: r.string('name'),
       owner: r.string('owner'),
       rarity: r.enum('rarity', RARITIES),
-      type: r.enum('type', CARD_TYPES),
+      type,
       cost: r.int('cost', 0),
       target,
       keywords: this.validateKeywords(r),
       text: r.string('text'),
-      effects: this.validateEffects(r, 'effects', target),
+      // 저주 카드는 효과가 없을 수 있다 (사용 불가 저주)
+      effects: this.validateEffects(r, 'effects', target, type, type === 'curse'),
     };
+    if (type === 'curse' && target.kind !== 'none') r.fail('target.kind', '저주 카드는 대상을 지정하지 않음 (none이어야 함)');
+    if (r.has('curse')) {
+      if (type !== 'curse') r.fail('curse', 'type이 curse인 카드만 curse 동작을 가질 수 있음');
+      card.curse = this.validateCurse(r.object('curse'), card);
+    }
     if (card.type === 'equipment' && target.kind !== 'allyUnit') r.fail('target.kind', '장비는 아군 유닛 1명을 지정해야 함');
     if (r.has('limits')) card.limits = this.validateLimits(r.object('limits'));
     if (r.has('commanderHpCost')) card.commanderHpCost = this.validateHpCost(r.object('commanderHpCost'));
-    if (r.has('resonance')) card.resonance = this.validateResonance(r.object('resonance'), target);
+    if (r.has('resonance')) card.resonance = this.validateResonance(r.object('resonance'), target, type);
     const hasChainKeyword = card.keywords.includes('chain');
     if (r.has('chain')) {
       if (!hasChainKeyword) r.fail('chain', 'keywords에 chain이 없는 카드는 chain 효과를 가질 수 없음');
-      card.chain = this.validateChain(r.object('chain'), target);
+      card.chain = this.validateChain(r.object('chain'), target, type);
     } else if (hasChainKeyword) {
       r.fail('chain', 'keywords에 chain이 있으면 chain 효과가 필요함');
     }
-    if (r.has('upgrade')) card.upgrade = this.validateUpgrade(r.object('upgrade'), target, hasChainKeyword);
+    if (r.has('upgrade')) card.upgrade = this.validateUpgrade(r.object('upgrade'), target, hasChainKeyword, type);
     return card;
   }
 
@@ -119,38 +128,50 @@ export class CardValidator {
     return cost;
   }
 
-  private validateResonance(r: FieldReader, target: CardTarget): CardResonance {
-    r.onlyKeys(['trait', 'effects']);
-    return { trait: r.string('trait'), effects: this.validateEffects(r, 'effects', target) };
+  private validateCurse(r: FieldReader, card: Card): CardCurse {
+    r.onlyKeys(['playable', 'onDraw', 'goldLossAtEnd']);
+    const curse: CardCurse = {};
+    if (r.has('playable')) {
+      curse.playable = r.boolean('playable');
+      if (curse.playable && !card.keywords.includes('exhaust')) r.fail('playable', '사용할 수 있는 저주는 exhaust 키워드가 있어야 함 (써서 없애는 저주)');
+    }
+    if (r.has('onDraw')) curse.onDraw = this.validateEffects(r, 'onDraw', card.target, 'curse');
+    if (r.has('goldLossAtEnd')) curse.goldLossAtEnd = r.int('goldLossAtEnd', 1);
+    return curse;
   }
 
-  private validateChain(r: FieldReader, target: CardTarget): CardChain {
+  private validateResonance(r: FieldReader, target: CardTarget, type: CardType): CardResonance {
+    r.onlyKeys(['trait', 'effects']);
+    return { trait: r.string('trait'), effects: this.validateEffects(r, 'effects', target, type) };
+  }
+
+  private validateChain(r: FieldReader, target: CardTarget, type: CardType): CardChain {
     r.onlyKeys(['effects', 'cost']);
-    const chain: CardChain = { effects: this.validateEffects(r, 'effects', target, true) };
+    const chain: CardChain = { effects: this.validateEffects(r, 'effects', target, type, true) };
     if (r.has('cost')) chain.cost = r.int('cost', 0);
     if (chain.effects.length === 0 && chain.cost === undefined) r.fail('effects', '연쇄 효과 또는 비용이 필요함');
     return chain;
   }
 
-  private validateUpgrade(r: FieldReader, target: CardTarget, hasChainKeyword: boolean): CardUpgrade {
+  private validateUpgrade(r: FieldReader, target: CardTarget, hasChainKeyword: boolean, type: CardType): CardUpgrade {
     r.onlyKeys(UPGRADE_KEYS);
     const upgrade: CardUpgrade = {
       text: r.string('text'),
-      effects: this.validateEffects(r, 'effects', target),
+      effects: this.validateEffects(r, 'effects', target, type, type === 'curse'),
     };
     if (r.has('cost')) upgrade.cost = r.int('cost', 0);
-    if (r.has('resonance')) upgrade.resonance = this.validateResonance(r.object('resonance'), target);
+    if (r.has('resonance')) upgrade.resonance = this.validateResonance(r.object('resonance'), target, type);
     if (r.has('chain')) {
       if (!hasChainKeyword) r.fail('chain', 'keywords에 chain이 없는 카드는 chain 효과를 가질 수 없음');
-      upgrade.chain = this.validateChain(r.object('chain'), target);
+      upgrade.chain = this.validateChain(r.object('chain'), target, type);
     }
     return upgrade;
   }
 
   /** 공통 효과 검증기로 형식을 확인한 뒤, 카드 문맥(시전자 없음, 대상 종류)에서 실행 가능한지 검사한다 */
-  private validateEffects(parent: FieldReader, key: string, target: CardTarget, allowEmpty = false): CardEffect[] {
+  private validateEffects(parent: FieldReader, key: string, target: CardTarget, type: CardType, allowEmpty = false): CardEffect[] {
     const effects = this.effects.validateList(parent, key, allowEmpty);
-    assertEffectsUsable(parent, key, effects, { targetKind: target.kind });
+    assertEffectsUsable(parent, key, effects, { targetKind: target.kind, cardType: type });
     return effects;
   }
 }

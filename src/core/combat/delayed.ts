@@ -1,5 +1,5 @@
 import type { ResolvedEffect } from '../data/effect';
-import { BOARD_COLS, BOARD_ROWS, HALF_COLS, chebyshev, type Cell } from './board';
+import { BOARD_COLS, BOARD_ROWS, HALF_COLS, chebyshev, type Cell, type Side } from './board';
 import { COMBAT } from './constants';
 import type { EffectExecutor } from './effects';
 import type { CombatUnit } from './unit';
@@ -10,10 +10,15 @@ type DelayedStrikeEffect = Extract<ResolvedEffect, { kind: 'delayedStrike' }>;
 /** 스킬 예고 id는 보스 패턴(1부터)과 겹치지 않게 이 값부터 매긴다 (ReplayState가 id로 예고와 발동을 짝짓는다) */
 const SKILL_TELEGRAPH_ID_BASE = 1000;
 
+/** 카드가 만든 지연 타격의 telegraph/strike source 값 (유닛 uid가 아님) */
+export const CARD_STRIKE_SOURCE = -1;
+
 interface PendingStrike {
   id: number;
   fireTick: number;
-  caster: CombatUnit;
+  /** 스킬이면 시전자(죽으면 취소), 카드면 null */
+  caster: CombatUnit | null;
+  side: Side;
   cells: Cell[];
   area: { cell: Cell; radius: number } | null;
   effects: readonly ResolvedEffect[];
@@ -43,6 +48,7 @@ export class DelayedStrikes {
       id: this.nextId++,
       fireTick: this.world.tick + delayTicks,
       caster,
+      side: caster.side,
       cells: target.cells,
       area: target.area,
       effects: effect.effects,
@@ -59,18 +65,44 @@ export class DelayedStrikes {
     });
   }
 
+  /**
+   * 카드용: 카드가 지정한 3×3(또는 한 칸) 범위를 delay초 뒤 친다. 시전자가 없어 취소되지 않으며, 중첩 효과는 카드 진영 기준
+   * (selector enemiesInTargetArea)으로 실행된다. 범위 칸은 보드 안의 칸만 예고한다. Rng를 쓰지 않는다.
+   */
+  scheduleArea(side: Side, area: { cell: Cell; radius: number }, effect: DelayedStrikeEffect, label?: string): void {
+    const delayTicks = Math.max(1, Math.round(effect.delay * COMBAT.TICKS_PER_SECOND));
+    const cells: Cell[] = [];
+    for (let col = area.cell.col - area.radius; col <= area.cell.col + area.radius; col++) {
+      for (let row = area.cell.row - area.radius; row <= area.cell.row + area.radius; row++) {
+        if (col >= 0 && col < BOARD_COLS && row >= 0 && row < BOARD_ROWS) cells.push({ col, row });
+      }
+    }
+    const strike: PendingStrike = { id: this.nextId++, fireTick: this.world.tick + delayTicks, caster: null, side, cells, area, effects: effect.effects };
+    this.pending.push(strike);
+    this.world.emit({
+      type: 'telegraph',
+      id: strike.id,
+      source: CARD_STRIKE_SOURCE,
+      pattern: 'card',
+      ...(label === undefined ? {} : { label }),
+      cells,
+      fireAt: strike.fireTick / COMBAT.TICKS_PER_SECOND,
+    });
+  }
+
   private onTick(tick: number): void {
     if (this.pending.length === 0) return;
     const due = this.pending.filter((p) => p.fireTick <= tick);
     if (due.length === 0) return;
     this.pending = this.pending.filter((p) => p.fireTick > tick);
     for (const strike of due) {
-      if (!strike.caster.alive) {
-        this.world.emit({ type: 'strike', id: strike.id, source: strike.caster.uid, cells: strike.cells, cancelled: true });
+      const source = strike.caster ? strike.caster.uid : CARD_STRIKE_SOURCE;
+      if (strike.caster && !strike.caster.alive) {
+        this.world.emit({ type: 'strike', id: strike.id, source, cells: strike.cells, cancelled: true });
         continue;
       }
-      this.world.emit({ type: 'strike', id: strike.id, source: strike.caster.uid, cells: strike.cells });
-      this.executor.execute(strike.effects, { side: strike.caster.side, caster: strike.caster, targets: [], area: strike.area });
+      this.world.emit({ type: 'strike', id: strike.id, source, cells: strike.cells });
+      this.executor.execute(strike.effects, { side: strike.side, caster: strike.caster, targets: [], area: strike.area });
     }
   }
 

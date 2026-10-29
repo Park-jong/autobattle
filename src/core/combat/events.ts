@@ -39,6 +39,8 @@ export type CombatEvent = { t: number } & (
       hp: number;
       /** 치명타였으면 true (치명타가 아니면 키 자체가 없다) */
       crit?: true;
+      /** 카드의 조건부 추가 피해(화상 중·HP 비율 이하)가 붙었으면 true (아니면 키 자체가 없다) */
+      bonus?: true;
     }
   | { type: 'heal'; unit: number; source: number | null; amount: number; hp: number }
   | { type: 'shield'; unit: number; amount: number; duration: StatusDuration }
@@ -88,7 +90,7 @@ export type CombatEvent = { t: number } & (
   /** 쌍둥이 부활이 취소됨 (둘 다 제한 시간 안에 처치). reason 'noCell' = 부활 시점에 진영에 빈 칸이 없음 (정상 경로에는 필드 없음) */
   | { type: 'reviveCancel'; unit: number; reason?: 'noCell' }
   /** 쌍둥이 부활: unit이 hp/maxHp로 cell에 되살아났다 (상태는 모두 초기화) */
-  | { type: 'revive'; unit: number; hp: number; maxHp: number; cell: Cell }
+  | { type: 'revive'; unit: number; hp: number; maxHp: number; cell: Cell; inPlace?: true }
   /** 보스 페이즈 전환: phase(2부터)로 넘어갔다. summoned = 증원 유닛 uid(이어지는 spawn 이벤트), dispelled = 버프가 해제된 아군 수 */
   | { type: 'bossPhase'; unit: number; phase: number; hpPct: number; summoned: number[]; dispelled: number }
   /** 버프 해제(보스 페이즈 전환): unit에서 statuses(상태 이름)의 버프가 사라졌다. 'shield'는 보호막 전부 */
@@ -101,6 +103,16 @@ export type CombatEvent = { t: number } & (
   | { type: 'ultimateTelegraph'; id: number; cell: Cell; radius: number; fireAt: number }
   /** 궁극기 운석 착탄 (피해는 이어지는 damage 이벤트) */
   | { type: 'ultimateImpact'; id: number; cell: Cell; radius: number }
+  /** 지속 피해 장판 설치: cells 칸에 endAt(초)까지 intervalSeconds마다 피해. id는 같은 장판의 zonePulse와 짝 */
+  | { type: 'zoneStart'; id: number; cells: Cell[]; endAt: number; intervalSeconds: number }
+  /** 장판이 피해를 주는 순간 (피해는 이어지는 damage 이벤트) */
+  | { type: 'zonePulse'; id: number }
+  /** 저주 카드의 뽑을 때 효과가 자동 발동했다 (효과 결과는 이어지는 이벤트) */
+  | { type: 'curseTriggered'; cardId: string; instanceId: number }
+  /** 전투가 끝날 때 손패에 남은 저주 카드의 골드 손실 (런이 정산) */
+  | { type: 'cursePenalty'; cardId: string; instanceId: number; gold: number }
+  /** 카드로 지휘관 HP 회복이 예약됐다: 전투에서 이기면 확정 (런이 정산, 최대 HP 초과분은 버림) */
+  | { type: 'commanderHeal'; amount: number; cardId: string; instanceId: number }
   | { type: 'end'; winner: Winner; reason: 'annihilation' | 'timeout' }
 );
 

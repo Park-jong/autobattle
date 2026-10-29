@@ -74,6 +74,10 @@ export interface BattleSettlement {
   passiveGold: number;
   /** 유물로 회복한 지휘관 HP (승리 시 강철 심장 등. 없으면 0) */
   healed: number;
+  /** 카드(빚 청산 등)로 예약한 지휘관 HP 회복 중 실제로 확정된 양 (승리 때만. 없으면 0) */
+  cardHealed: number;
+  /** 전투가 끝날 때 손패에 남은 저주 카드 때문에 잃은 골드 (잔고 한도까지. 없으면 0) */
+  curseGoldLost: number;
   hpBefore: number;
   hpAfter: number;
   /** 런이 끝났으면 결과 */

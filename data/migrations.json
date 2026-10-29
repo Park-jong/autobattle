@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "migrations": [
+    {
+      "to": 1,
+      "note": "불씨 화살이 이세라 고유 시작 카드가 되었습니다 (M5-4 2부-A)",
+      "steps": [
+        { "op": "replaceCard", "from": "ember_arrow", "to": "vine_snare", "unlessCommander": "cmd_isera" },
+        { "op": "withdrawCard", "cardId": "ember_arrow", "shopFallback": "vine_snare" }
+      ]
+    }
+  ]
+}

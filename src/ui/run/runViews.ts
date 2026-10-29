@@ -530,14 +530,16 @@ export function buildSettlementView(s: BattleSettlement): SettlementView {
   const hpLines: string[] = [];
   if (s.cardHpLost > 0) hpLines.push(`카드·궁극기 사용으로 지휘관 HP -${s.cardHpLost}`);
   if (s.defeatDamage > 0) hpLines.push(`패배 피해 지휘관 HP -${s.defeatDamage}`);
+  if (s.cardHealed > 0) hpLines.push(`카드 효과로 지휘관 HP +${s.cardHealed}`);
   if (s.healed > 0) hpLines.push(`유물 효과로 지휘관 HP +${s.healed}`);
   const extras: string[] = [];
   if (s.passiveGold > 0) extras.push(`지휘관 패시브 +${s.passiveGold}G`);
+  if (s.curseGoldLost > 0) extras.push(`저주 카드 -${s.curseGoldLost}G`);
   const retry = s.outcome !== 'win' && s.kind === 'boss' && s.runEnded === null;
   return {
     headline: `${BATTLE_KIND_LABELS[s.kind]} ${OUTCOME_LABELS[s.outcome]}`,
     outcome: s.outcome,
-    goldLine: `+${s.reward.total + s.passiveGold}G (기본 ${s.reward.base}G + 이자 ${s.reward.interest}G${s.reward.bonus ? ` + 유물 ${s.reward.bonus}G` : ''}${extras.length > 0 ? ` + ${extras.join(' + ')}` : ''})`,
+    goldLine: `+${s.reward.total + s.passiveGold - s.curseGoldLost}G (기본 ${s.reward.base}G + 이자 ${s.reward.interest}G${s.reward.bonus ? ` + 유물 ${s.reward.bonus}G` : ''}${extras.length > 0 ? ` + ${extras.join(' + ')}` : ''})`,
     hpLines,
     hpBefore: s.hpBefore,
     hpAfter: s.hpAfter,

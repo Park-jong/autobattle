@@ -5,12 +5,12 @@
 
 ## cards.json
 
-현재 수록: 카드 풀 18종(M4-A에서 심연의 계약, M5-A에서 녹스 고유 카드 피의 대가 추가). 희귀도: 하르텐 시작 카드 7종과 녹스 고유 카드 피의 대가는 `starter`, 보상·상점 풀은 `common`(마나 주입·전술 재정비·불씨 화살·행군가·제련된 칼날·적진 정찰·덩굴 속박)과 `rare`(화염 폭풍·예비대 호출·심연의 계약)이며 `epic`은 아직 없다. 철벽 장군 하르텐(`cmd_harten`)의 기본 시작 덱은 기존 7종으로 구성한 10장([CHARACTERS.md](../CHARACTERS.md) 3-1)이며, "확장 카드 테스트 덱"은 M2 추가 카드 5종과 제련된 칼날·예비대 호출을 포함한 10장이다. 테스트 덱은 경제 플레이·5연전과 헤드리스 `--deck test`에서도 사용할 수 있다.
+현재 수록: 카드 풀 18종(M4-A에서 심연의 계약, M5-A에서 녹스 고유 카드 피의 대가 추가). 희귀도: 하르텐 시작 카드 7종과 녹스 고유 카드 피의 대가는 `starter`, 보상·상점 풀은 `common`(마나 주입·전술 재정비·행군가·제련된 칼날·적진 정찰·덩굴 속박)과 `rare`(화염 폭풍·예비대 호출·심연의 계약)이며 `epic`은 아직 없다. 철벽 장군 하르텐(`cmd_harten`)의 기본 시작 덱은 기존 7종으로 구성한 10장([CHARACTERS.md](../CHARACTERS.md) 3-1)이며, "확장 카드 테스트 덱"은 M2 추가 카드 5종과 제련된 칼날·예비대 호출을 포함한 10장이다. 테스트 덱은 경제 플레이·5연전과 헤드리스 `--deck test`에서도 사용할 수 있다.
 코드는 `loadCards(json, traitCatalog?)`로 읽는다. 특성 카탈로그를 주면 공명이 가리키는 특성 id도 확인한다.
 
 M2 추가 카드: `firestorm`(화염 폭풍, 범위 피해·잿불 공명), `mana_infusion`(마나 주입, 충전·보존), `tactical_reorganization`(전술 재정비, 드로우·연쇄 비용 0), `ember_arrow`(불씨 화살, 단일 피해·화상·소모), `marching_song`(행군가, 전체 ARM 증가). 잿불 공명은 잿불 투석수·점화사·광전사 중 서로 다른 2종으로 일반 플레이에서도 활성화할 수 있다.
 
-M5-A 추가 카드: `blood_price`(피의 대가, 녹스 고유 0CP 명령, `owner: cmd_nox`, `commanderHpCost { amount: 2 }`, 아군 1명 4초간 ATK +40% / 강화 5초 +60%). 이세라 덱의 불씨 화살은 기존 공용 카드를 그대로 쓴다.
+M5-A 추가 카드: `blood_price`(피의 대가, 녹스 고유 0CP 명령, `owner: cmd_nox`, `commanderHpCost { amount: 2 }`, 아군 1명 4초간 ATK +40% / 강화 5초 +60%). **M5-4 2부-A**: 불씨 화살(`ember_arrow`)은 이세라 고유 시작 카드로 전환했다(`owner: cmd_isera`, `rarity: starter`). 어느 지휘관의 보상·상점·이벤트 풀에도 나오지 않고(시작 덱 전용), 이세라 시작 덱(×3)은 그대로다. 모든 지휘관이 같은 덱을 쓰는 **테스트 덱 프리셋은 공용 카드 10장만** 쓰므로 불씨 화살 자리를 같은 1CP 주문인 덩굴 속박(`vine_snare`)이 대신한다(`tools/plans/expanded-cards.json`도 같이 바꿈). 이미 불씨 화살을 덱에 가진 이전 저장본은 아래 "콘텐츠 마이그레이션"이 바꿔 준다.
 
 M3 추가 카드: `call_reserves`(예비대 호출, 3CP·강화 2CP, 후열 빈 칸 2개에 무작위 1등급 임시 유닛 소환), `forged_blade`(제련된 칼날, 준비 CP 1, 장비 ATK +15/+25 및 공격 시 마나 +5), `enemy_scout`(적진 정찰, 작전 0CP, 무작위 적 1/2명의 최대 HP -10%), `vine_snare`(덩굴 속박, 1CP, 3×3 이동 금지 2/3초). 후열 자리가 부족하면 징집은 CP·손패·로그·RNG를 전혀 바꾸지 않고 실패한다. 임시 소환은 소유 로스터와 공유 유닛 풀에 들어가지 않으며 전투를 넘겨 이어지지 않는다.
 
@@ -25,7 +25,7 @@ M3 추가 카드: `call_reserves`(예비대 호출, 3CP·강화 2CP, 후열 빈 
 | `name` | 표시 이름 |
 | `owner` | 지휘관 id (고유 카드) 또는 `neutral` (공용) |
 | `rarity` | `starter` / `common` / `rare` / `epic` |
-| `type` | `operation`(작전, 준비 단계) / `command`(명령) / `spell`(주문) / `equipment`(장비, 준비 단계·아군 1명) / `curse`(저주, 사용 불가) |
+| `type` | `operation`(작전, 준비 단계) / `command`(명령) / `spell`(주문) / `equipment`(장비, 준비 단계·아군 1명) / `curse`(저주, 아래 "저주 카드") |
 | `cost` | CP 비용 |
 | `target` | 대상 지정 방식 (아래) |
 | `keywords` | `exhaust`(소모) / `retain`(보존) / `chain`(연쇄) / `conscript`(징집). 공명은 `resonance` 필드로 |
@@ -33,6 +33,7 @@ M3 추가 카드: `call_reserves`(예비대 호출, 3CP·강화 2CP, 후열 빈 
 | `commanderHpCost` | 선택. `{ amount, waivedByTrait? }` — 사용 시 지휘관 HP를 `amount` 잃는다. 전투 시뮬은 `cards.commanderHp`(런의 현재 HP)를 받아 **사용 후 HP가 1 이상일 때만** 허용하고 `commanderHp` 이벤트(`delta`, `remaining`)를 남기며, 런이 정산한다. `waivedByTrait` 특성이 아군 진영에서 활성(단계 1 이상)이면 면제(공명 형태). `cards.commanderHp`를 안 주는 디버그 전투는 제한 없음 |
 | `resonance` | 선택. `{ "trait": 특성 id, "effects": [...] }` — 그 특성이 아군 진영에서 활성(단계 1 이상)이면 기본 효과 뒤에 추가 실행 |
 | `chain` | `keywords`에 `chain`이 있을 때만, 그리고 반드시 있어야 함. `{ "effects": [...], "cost"?: 정수 }` — 앞서 카드를 썼으면(준비 단계 작전 포함) 추가 효과 실행. `cost`는 CP 검사·차감·UI 표시에 먼저 적용하며, 비용만 바꾸면 `effects: []` 허용 |
+| `curse` | 저주(`type: curse`) 카드만. `{ playable?, onDraw?, goldLossAtEnd? }` — 아래 "저주 카드" |
 | `text` | 카드 설명문 |
 | `effects` | 효과 목록 (순서대로 적용) |
 | `upgrade` | 강화(+) 버전. `effects`·`text`는 통째로 대체, `cost`·`resonance`·`chain`은 있을 때만 대체(없으면 기본 카드 것을 그대로 씀) |
@@ -52,7 +53,8 @@ M3 추가 카드: `call_reserves`(예비대 호출, 3CP·강화 2CP, 후열 빈 
 - **성급별 배열(`[a, b, c]`)은 거부**한다 (카드에는 성급이 없음. 숫자 하나만).
 - 카드는 시전 유닛이 없으므로 `damage`(ATK 비례)와 selector `self`/`lineThroughTarget`은 거부한다. 고정 피해는 `flatDamage`, 화상은 `dps`(고정값)를 쓴다.
 - selector `target`·`targetAndAdjacent`와 효과 `forceTarget`·`teleport`는 유닛을 지정하는 target.kind(`allyUnit`/`enemyUnit`/`allyUnits`)에서만, `enemiesInTargetArea`·`alliesInTargetArea`는 `cell`/`area3x3`에서만 쓸 수 있다.
-- `cpOnKill`은 특성 전용이라 카드에서 거부한다.
+- `cpOnKill`·`empoweredAttack`·`onAttackBurn`(작전 카드의 "이번 전투 아군 공격 시 화상")·`lifesteal`(`duration: "combat"` 가능, 장비)은 카드에서도 쓴다. `delayedStrike`는 `area: "targetArea"`일 때만, `damageZone`·`handCostCut`·`spellDamageBoost`·`ultimateGain`·`startCp`(작전 카드만)·`commanderHeal`·`reviveOnce`(장비 카드만)는 **카드 전용**이다(스킬·특성·패시브에서는 거부).
+- `startCp`는 `type: operation`, `reviveOnce`는 `type: equipment` 카드에서만, selector `randomAlly`는 저주 카드에서만 쓸 수 있다(검증기가 경로 포함 한국어 오류로 거부).
 - `drawCards`는 카드 전용이며 `selector: "allAllies"`, 양의 정수 `count`를 사용한다. 대상 유닛 수와 무관하게 한 번 뽑는다. 스킬·특성·지휘관 패시브에서는 거부한다.
 - `allAllies` 등 진영 기준 selector는 플레이어 진영(side 0)을 기준으로 한다. 적 진영은 카드를 쓰지 않는다.
 
@@ -68,7 +70,7 @@ M3 추가 카드: `call_reserves`(예비대 호출, 3CP·강화 2CP, 후열 빈 
 `duration`은 초 단위 수치 또는 `"combat"`(전투 끝까지).
 
 ### selector
-`target`(대상: 스킬은 targeting 결과, 카드는 지정 대상) / `self`(시전자) / `allAllies` / `alliesFrontRow` / `alliesMelee` / `lineThroughTarget`(시전자에서 대상 방향으로 보드 끝까지 뻗는 직선 위의 적 전부) / `targetAndAdjacent`(첫 대상 + 그 대상과 같은 진영에서 8방향 인접한 유닛) / `enemiesInTargetArea` / `alliesInTargetArea`(카드가 지정한 칸 또는 3×3 범위 안의 적 / 아군)
+`target`(대상: 스킬은 targeting 결과, 카드는 지정 대상) / `self`(시전자) / `allAllies` / `alliesFrontRow` / `alliesBackRow`(아군 후열 = 중앙에서 가장 먼 열, 아군 열 0) / `randomAlly`(아군 무작위 1명, sim Rng — 저주 카드 전용) / `alliesMelee` / `lineThroughTarget`(시전자에서 대상 방향으로 보드 끝까지 뻗는 직선 위의 적 전부) / `targetAndAdjacent`(첫 대상 + 그 대상과 같은 진영에서 8방향 인접한 유닛) / `enemiesInTargetArea` / `alliesInTargetArea`(카드가 지정한 칸 또는 3×3 범위 안의 적 / 아군)
 
 - M5-4 추가 선택자: `alliesAroundSelf`(시전자 반경 `selectorRadius`칸 안의 아군, 시전자 포함) / `enemiesAroundSelf`(같은 반경 안의 적) / `allEnemies`(상대 진영 전체) / `fanArrows`·`fanTargets`(부채꼴 5발, 아래). `selectorRadius`(정수 ≥ 1, 기본 1)는 모든 효과에 붙일 수 있는 공통 필드지만 `alliesAroundSelf`·`enemiesAroundSelf`에서만 허용된다(체비쇼프 거리). 시전자가 필요한 선택자라 카드·패시브에서는 `allEnemies` 외에는 거부한다.
 - **부채꼴(`fanArrows`/`fanTargets`)**: 시전자 칸에서 대상 칸 방향을 가운데로 15도 간격의 직선 5개(`fanRays`)를 보드 끝까지 긋고, 직선마다 처음 만나는 적을 맞힌다. `fanArrows`는 화살 순서대로(같은 적이 여러 번 나올 수 있음 — 화살마다 피해), `fanTargets`는 맞은 적을 한 번씩만(약화 같은 상태 효과용). 직선이 지나는 칸은 0.5칸 간격 표본을 반올림해 정한다.
@@ -87,7 +89,7 @@ M3 추가 카드: `call_reserves`(예비대 호출, 3CP·강화 2CP, 후열 빈 
 | `undying` | `duration` | HP가 1 밑으로 내려가지 않음 |
 | `swapPositions` | – | selector 유닛 두 명의 위치 교환. 정확히 2명이어야 하고 이동 중인 유닛이 있으면 실패 |
 | `damage` | `pctAtk`, `dmgType`(`physical`/`magic`), `ignoreArmorPct?`, `maxHpOnKill?`, `manaOnKill?` | 시전자 ATK의 `pctAtk`% 피해. `ignoreArmorPct`는 방어력 무시 %. `maxHpOnKill`은 처치 시 시전자 최대 HP(포식), `manaOnKill`은 처치 1명당 시전자 마나 회복(무명의 일섬). 치명 판정을 받는다(아래 암살자) |
-| `flatDamage` | `amount`, `dmgType`, `ignoreArmorPct?` | 시전자와 무관한 고정 피해 (카드·패시브에서 쓸 수 있음) |
+| `flatDamage` | `amount`, `dmgType`, `ignoreArmorPct?`, 카드 전용: `bonusIfBurning?`, `hpBelowPct?`+`belowMult?`, `killCp?` | 시전자와 무관한 고정 피해 (카드·패시브에서 쓸 수 있음). **조건부 추가 피해(카드)**: `bonusIfBurning` = 대상이 화상 중이면 피해에 이 수치를 더한다(연소 폭발), `hpBelowPct`+`belowMult` = 대상 HP가 최대 HP의 `hpBelowPct`% 이하이면 피해 × `belowMult`(처형). 둘 다 맞으면 (`amount`+`bonusIfBurning`) × `belowMult`. 조건이 맞은 피해의 `damage` 이벤트에는 `bonus: true`가 붙는다(UI가 주황 큰 글씨 "★"). `killCp` = 이 카드 피해로 대상을 처치하면 전투 CP를 그만큼 얻는다(`cp` reason `effect`, 카드 전용). 주문 카드의 피해 보정(%)은 `amount`와 `bonusIfBurning` 모두에 곱해진다 |
 | `stun` | `duration` | 기절: 이동 시작·공격·스킬 불가 (이미 시작한 1칸 이동은 끝낸다). 중첩 없이 더 늦게 끝나는 쪽으로 갱신 |
 | `silence` | `duration` | 침묵: 스킬 시전 불가 (이동·기본 공격은 가능, 마나는 계속 참). 중첩 없이 더 늦게 끝나는 쪽으로 갱신 |
 | `manaDrain` | `amount` | 대상 마나 감소 (0 미만 불가) |
@@ -95,34 +97,54 @@ M3 추가 카드: `call_reserves`(예비대 호출, 3CP·강화 2CP, 후열 빈 
 | `drawCards` | `count` (양의 정수), selector는 `allAllies` | 카드 전용. 그 수만큼 드로우, 손패 상한·버린 더미 재셔플 규칙 적용 |
 | `cpGain` | `amount` (양의 정수), selector는 `allAllies` | 카드 전용. 전투 CP를 한 번 얻는다 (상한 6, `cp` 이벤트 reason `effect`). 심연의 계약이 사용 |
 | `root` | `duration` | 이동 시작만 금지. 이미 시작한 이동은 끝내고 공격·스킬은 허용 |
-| `hpCost` / `lifesteal` | `pctMaxHp` / `pct`, `duration` | 최대 HP 비율 자가 소모(HP 최소 1) / 실제 HP 피해 기준 흡혈 |
+| `hpCost` / `lifesteal` | `pctMaxHp` / `pct`, `duration`(`"combat"` 가능) | 최대 HP 비율 자가 소모(HP 최소 1) / 실제 HP 피해 기준 흡혈 |
 | `onAttackBurn` / `killFeast` / `marksman` | 화상 비율·지속 / 회복·ATK 비율 / 사거리·확률 | 특성 전용 트리거. `traitUnits`로 해당 기원·직업 유닛만 선택 |
 | `attackMana` | `amount` | 선택한 유닛이 기본 공격하면 마나 추가. 장비에 사용 |
-| `summon` / `scout` | `count`, `tier` / `count`, `pctMaxHp` | 카드 전용 징집 / 무작위 적 최대 HP 감소 |
+| `summon` / `scout` | `count`, `tier` 또는 `unitId`(+`star?`,`placement?`,`manaFull?`) / `count`, `pctMaxHp` | 카드 전용 징집 / 무작위 적 최대 HP 감소. **summon**: `tier`(그 등급의 무작위 유닛, sim Rng) 또는 `unitId`(그 유닛 — 둘 중 정확히 하나, 보스 전용 유닛 불가, Rng 미사용). `unitId`와 함께만 `star`(1~3, 기본 1), `placement`(`allyBack` 기본 = 아군 후열 / `allyFront` = 아군 전열 / `enemyBack` = 적 후열 — 후열이 차면 한 열씩 앞으로, 한 열 안에서는 가운데 행부터), `manaFull`(마나 가득으로 등장)을 쓸 수 있다. 빈 칸이 `count`보다 적으면 카드는 CP·손패 변화 없이 실패한다. 소환된 유닛은 아군 소속의 임시 유닛이다 |
 | `taunt` | `radius`, `duration` | 도발: 실행 시점에 selector 유닛 반경 `radius`칸(체비쇼프) 안의 적이 `duration`초 동안 그 유닛을 우선 공격(`forceTarget`과 같은 장치, 상태 이름 `taunted`). 적마다 반경 안의 도발자 중 가장 가까운 쪽(동률은 uid 작은 쪽). 위치는 실행 시점에 한 번만 판정한다. 궁극기 불굴의 방진이 사용 |
 | `heal` | `amount` | 즉시 회복 (최대 HP 초과 불가) |
 | `healAura` | `perSecond`, `radius`, `duration` | 지속 중 1초마다 반경 `radius`칸 안의 **다른** 아군을 `perSecond`만큼 회복 |
 | `burn` | `dpsPctAtk` 또는 `dps` (정확히 하나), `duration` | 화상: 1초마다 마법 피해. `dpsPctAtk`는 시전자 ATK 비례, `dps`는 고정값(시전자 없는 카드용). 재부여 시 지속 시간 갱신 + 초당 피해는 큰 값 (중첩 없음) |
 | `teleport` | `destination` | selector 유닛을 순간이동(`teleport` 이벤트). `behindTarget`: `target` 유닛에 인접한 빈 칸 중 이동자에서 **가장 먼** 칸. `besideTarget`: 같은 후보 중 **가장 가까운** 칸(도약, 동률은 대상과 같은 행 → (열, 행) 오름차순). `enemyBackRow`: 상대 진영 후열의 빈 칸(아래 "도약 칸 규칙"). `lineEnd`: 대상 방향 직선(`rayCells`) 위의 가장 먼 빈 칸, 빈 칸이 없으면 제자리(질주 — 시전을 막지 않음). 갈 칸이 없으면(`lineEnd` 제외) 스킬을 시전하지 않음 (마나 유지, 다음 틱 재판정) |
 | `extraShots` | `count` | 다음 `count`회 기본 공격이 2발씩 (마나는 공격 1회로 계산) |
-| `cpOnKill` | `amount`, `maxPerCombat` (selector는 `allAllies`만) | **특성 전용.** 전투 시작 시 트리거(`onKill`)를 등록: 이 진영 유닛이 적을 처치하면 CP를 `amount`만큼 얻음. 실제로 얻은 합계가 `maxPerCombat`에 닿으면 멈춤 (CP 상한 6에 막혀 못 얻은 양은 한도를 소모하지 않음). 플레이어(side 0) 진영이고 카드 시스템이 켜진 전투에서만 동작 |
+| `cpOnKill` | `amount`, `maxPerCombat` (selector는 `allAllies`만) | **특성·카드.** 전투 시작 시 트리거(`onKill`)를 등록: 이 진영 유닛이 적을 처치하면 CP를 `amount`만큼 얻음. 실제로 얻은 합계가 `maxPerCombat`에 닿으면 멈춤 (CP 상한 6에 막혀 못 얻은 양은 한도를 소모하지 않음). 플레이어(side 0) 진영이고 카드 시스템이 켜진 전투에서만 동작. 특성이 등록하면 `cp` reason `abyss`, 카드가 등록하면(영혼 수확: 카드를 쓴 뒤부터 이번 전투) reason `effect`. 처치자가 없는 피해(장판·지연 타격)는 세지 않는다 |
 | `flatShield` | `amount`, `duration` | (M5-4) 고정 수치 보호막. `shield`(최대 HP 비례)와 달리 수치가 그대로 보호막이 된다 |
 | `cleanse` | – | (M5-4) 해로운 상태 제거: 기절·침묵·속박·화상·도발당함(강제 타겟)·받는 피해 증가(mult > 1)·스탯 감소. 제거한 상태마다 `statusRemoved`(도발당함은 `taunted`) |
 | `damageAura` | `amount`, `dmgType`, `radius`, `intervalSeconds`, `count` | (M5-4, 스킬 전용) 시전자 주변 `radius`칸 적에게 `intervalSeconds`마다 고정 피해, 총 `count`회(첫 피해는 한 간격 뒤). `statusApplied` 이름 `damageAura`(지속 = 간격×횟수, value = 1회 피해). 시전자가 죽으면 멈춘다 |
-| `empoweredAttack` | `pctAtk`, `dmgType`, `manaPctOnKill?` | (M5-4, 스킬 전용) 다음 기본 공격의 **첫 발**이 ATK의 `pctAtk`% 피해(연발의 둘째 발은 평소). 그 발로 대상을 처치하면 최대 마나의 `manaPctOnKill`% 회복. `statusApplied`/`statusRemoved` 이름 `empoweredAttack` |
+| `empoweredAttack` | `pctAtk`, `dmgType`, `manaPctOnKill?` | (M5-4, 스킬·카드 — 카드는 selector `target` 등으로 지정 아군에게) 다음 기본 공격의 **첫 발**이 ATK의 `pctAtk`% 피해(연발의 둘째 발은 평소). 그 발로 대상을 처치하면 최대 마나의 `manaPctOnKill`% 회복. `statusApplied`/`statusRemoved` 이름 `empoweredAttack` |
 | `reflect` | `pct`, `duration` | (M5-4) 지속 중 받은 피해(방어·배율 적용 후, 보호막 흡수 전)의 `pct`%를 공격자에게 방어 무시로 되돌린다. 반사 피해는 다시 반사되지 않는다. 이름 `reflect`, value = pct |
 | `regen` | `pctMaxHp`, `duration` | (M5-4) 지속 중 1초마다 최대 HP의 `pctMaxHp`% 회복. 이름 `regen`, value = pctMaxHp |
-| `delayedStrike` | `delay`, `area`(`densestEnemies3x3`/`allEnemies`), `effects`(중첩 효과, 지연 타격 중첩 금지) | (M5-4, 스킬 전용, selector `self`) 시전 시점에 범위를 정해 `telegraph`(`pattern: "skill"`, 예고 id는 1000부터)로 알리고 `delay`초 뒤 `strike` 이벤트 다음에 중첩 효과를 **시전자 기준**으로 실행한다. 범위는 시전 때 고정 — 그동안 적이 움직이면 빗나간다. `densestEnemies3x3`: 보드의 모든 칸을 중심 후보로 3×3 안 적 수를 세어 가장 많은 쪽(동률은 시전자에 가까운 쪽 → (열, 행) 오름차순), 중첩 효과는 `enemiesInTargetArea`를 쓴다. `allEnemies`: 적 진영 전체 20칸, 중첩 효과는 `allEnemies` 선택자를 쓴다. 시전자가 그 전에 죽으면 `strike`(`cancelled: true`)만 남고 피해는 없다 |
+| `delayedStrike` | `delay`, `area`(`densestEnemies3x3`/`allEnemies`), `effects`(중첩 효과, 지연 타격 중첩 금지) | (M5-4, 스킬 + 카드 `targetArea`) 스킬: selector `self`. 시전 시점에 범위를 정해 `telegraph`(`pattern: "skill"`, 예고 id는 1000부터)로 알리고 `delay`초 뒤 `strike` 이벤트 다음에 중첩 효과를 **시전자 기준**으로 실행한다. 범위는 시전 때 고정 — 그동안 적이 움직이면 빗나간다. `densestEnemies3x3`: 보드의 모든 칸을 중심 후보로 3×3 안 적 수를 세어 가장 많은 쪽(동률은 시전자에 가까운 쪽 → (열, 행) 오름차순), 중첩 효과는 `enemiesInTargetArea`를 쓴다. `allEnemies`: 적 진영 전체 20칸, 중첩 효과는 `allEnemies` 선택자를 쓴다. 시전자가 그 전에 죽으면 `strike`(`cancelled: true`)만 남고 피해는 없다. **카드용(`area: "targetArea"`, selector `allAllies`)**: 카드가 지정한 3×3(또는 한 칸) 범위를 `delay`초 뒤 친다 — `telegraph`(`source: -1`, `pattern: "card"`, `label` = 카드 이름) → `strike`(`source: -1`) → 중첩 효과(`enemiesInTargetArea`)를 카드 진영 기준으로 실행. 시전자가 없어 취소되지 않고 Rng를 쓰지 않는다. 주문 카드의 피해 보정은 중첩 효과에도 적용(사용 시점에 계산) |
 | `skillCpGain` | `amount`, `maxPerCombat` | (M5-4, 스킬 전용) 스킬로 전투 CP를 얻는다(`cp` 이벤트 reason `effect`). 아군(side 0) 시전자이고 카드 시스템이 있을 때만, **시전 유닛마다** 전투당 `maxPerCombat`번(CP 상한에 막혀 못 얻은 시전은 세지 않음) |
 | `stackingStatMod` | `stat`, `pct`, `intervalSeconds`, `maxStacks` | **특성 전용(M5-4).** `intervalSeconds`마다(전투 시각 틱 기준, 0초 제외) selector에 해당하는 **그 시점의 살아 있는** 유닛에게 전투 끝까지 가는 스탯 증가를 한 겹씩 쌓는다. 겹 수 상한 `maxStacks`. 쌓일 때마다 `statusApplied`(`statMod:<stat>`, value = pct, duration `combat`) |
 | `startMana` | `amount` | **특성 전용(M5-4).** 전투 시작 시 selector 유닛의 마나 + amount (`mana` 이벤트). 0이면 아무 일 없음 |
 | `handCostReduction` | `amount`, `maxPerCombat` | **특성 전용(M5-4).** selector 유닛이 스킬을 쓸 때마다 손패 카드의 비용을 줄인다(아래 "주술사"). `maxPerCombat` 0 = 무제한. 아군 진영·카드 시스템이 있을 때만 등록 |
 | `backRowLeap` | – | **특성 전용(M5-4).** 전투 시작(`startCombat`) 때 selector 유닛이 상대 후열로 도약(아래 "도약 칸 규칙") |
 | `critical` | `chance`(0~1), `damagePct` | **특성 전용(M5-4).** selector 유닛에게 치명타 확률과 치명 피해(%)를 준다(아래 "치명 판정") |
+| `manaGain` | `amount` | (M5-4 2부-A) selector 유닛의 마나를 `amount`만큼 회복(최대 마나까지, `mana` 이벤트) |
+| `handCostCut` | `amount`(정수 ≥ 1), selector `allAllies` | **카드 전용.** 손패에서 현재 비용이 1 이상인 카드 중 sim Rng로 무작위 1장의 이번 전투 비용을 `amount` 줄인다(최소 0). 주술사 특성과 같은 비용 조정(`sim.cardSurcharge`)·`cardCost` 이벤트(`source` 없음, `delta` 음수). 후보가 없으면 아무 일도 없고 Rng도 쓰지 않는다. 카드의 다른 효과가 먼저 뽑은 카드도 후보다(효과는 목록 순서대로) |
+| `spellDamageBoost` | `pct`(≥ 1), selector `allAllies` | **카드 전용.** 이번 전투 동안 주문(`spell`) 카드의 피해(고정 피해·조건부 추가 피해·화상 초당 피해·장판·지연 타격)를 `pct`%p 더 키운다. **합산 방식**: 지휘관 패시브(`spellDamagePct`) + 유물 + 이 카드의 합을 한 번에 곱한다(이세라 25% + 열 증폭 20% = ×1.45). 효과를 낸 카드 자신과 이미 쓴 주문은 영향받지 않는다 |
+| `ultimateGain` | `amount`(정수 ≥ 1), selector `allAllies` | **카드 전용.** 궁극기 게이지를 올린다(최대 100). 유물 충전 배율은 적용하지 않고 적힌 수치 그대로다. 이미 쓴 궁극기는 게이지가 올라도 다시 쓸 수 없다. 궁극기가 없는 지휘관이면 아무 일 없음. 게이지 변화는 이벤트가 아니라 `sim.ultimate`로 조회 |
+| `damageZone` | `amount`, `dmgType`, `duration`, `intervalSeconds`, selector `enemiesInTargetArea` | **카드 전용(범위 지정 카드).** 지정한 칸 범위에 `duration`초 동안 `intervalSeconds`마다 고정 피해(첫 피해는 한 간격 뒤). 장판은 **칸 기준**이라 지금 그 칸에 있는 적이 맞는다(시전 때의 유닛이 아님). `zoneStart`(`id`, `cells`, `endAt`, `intervalSeconds`) → 피해 순간마다 `zonePulse`(`id`) + damage 이벤트(`source: null`). 시전자가 없어 처치자도 없다. Rng 미사용 |
+| `reviveOnce` | `hpPct`(1~100) | **장비 카드 전용.** 대상 유닛이 쓰러질 상황이 되면 **전투당 1회** 쓰러지지 않고 그 자리에서 최대 HP의 `hpPct`%(최소 1)로 되살아난다(상태·위치·이동은 그대로, 사망·`onDeath` 트리거 없음). 장비는 `FormationEntry.equipment`로 전투마다 다시 적용되므로 전투 간에 유지된다. 이벤트: `statusApplied`/`statusRemoved` 이름 `reviveOnce`(value = hpPct), 쓰러질 때 `damage`(hp 0) 직후 `revive`(`inPlace: true`) |
+| `startCp` | `amount`(정수 ≥ 1), selector `allAllies` | **작전 카드 전용.** 이번 전투의 시작 CP를 `amount` 늘린다(전투 시작 때 `min(6, 2 + 지휘관 + 유물 + 이 값)`). 준비 단계의 `cp` 이벤트는 없고 전투 시작의 `cp`(reason `start`)에 반영된다. 같은 카드에 `drawCards`를 함께 써도 된다(준비 단계 드로우) |
+| `commanderHeal` | `amount`(정수 ≥ 1), selector `allAllies` | **카드 전용.** 지휘관 HP 회복을 예약한다 — **전투에서 이겼을 때만 확정**한다(사용 즉시가 아님, 전투 안의 사용 가능 HP는 늘지 않음). `commanderHeal` 이벤트(`amount`, `cardId`, `instanceId`)를 남기고 `sim.commanderHealPending`에 쌓이며, 런이 `completeBattle`에서 카드 비용을 차감한 뒤 승리하면 최대 HP까지 회복하고(초과분 버림) `settlement.cardHealed`로 알린다. 패배·무승부면 버려진다 |
 
 스킬은 시전 전에 대상·사거리·순간이동 목적지를 검사하고, 하나라도 실패하면 시전하지 않는다. 카드는 사용 전에 같은 검사(`EffectExecutor.checkExecutable`)로 순간이동 목적지·위치 교환 가능 여부를 확인하고, 실패하면 카드·CP를 소모하지 않는다.
 
 `statusApplied` 이벤트의 `value`(선택): `statMod`=pct, `statAdd`=고정값, `damageTakenMult`=mult, `burn`=초당 피해, `healAura`=초당 회복량. 수치가 없는 상태(stun, silence, undying, forceTarget, extraShots)는 `value` 키 자체가 없다.
+
+### 이벤트·트리거 추가분 (M5-4 2부-A: 카드 확장)
+- `damage.bonus`(조건부 추가 피해가 붙었을 때만 `true`), `revive.inPlace`(장비 부활), `telegraph.source: -1`·`pattern: "card"`(카드 지연 타격), 새 이벤트 `zoneStart`/`zonePulse`(장판), `curseTriggered`(저주 뽑을 때 효과 발동), `cursePenalty`(전투 종료 시 손패에 남은 저주의 골드 손실), `commanderHeal`(지휘관 HP 회복 예약). 새 효과를 쓰지 않는 전투의 로그에는 이 이벤트·필드가 전혀 생기지 않는다(기존 카드만 쓰는 전투는 HEAD와 로그가 같다).
+- UI(`ReplayState`/`EffectsLayer`): `damage.bonus` 연출 필드(주황 "★"), `zones()`(깔린 장판, 다음 피해까지 `pulseProgress`)·`zonePulse` 번쩍임, `phoenix`(장비 부활 링 + "부활!"), `curse`(☠ 배너), `commanderHeal`("지휘관 HP +n (승리 시 확정)"), 카드 지연 타격은 보스 예고(`telegraphs()`)와 같은 붉은 칸 + 카드 이름 + 남은 시간.
+
+### 저주 카드 (`type: curse`)
+손패 자리를 차지하는 패널티 카드. 보상·상점·이벤트 풀(`isRewardCard`/`isRewardCardFor`)에는 나오지 않는다. 동작은 `curse` 필드로 정한다(생략하면 "사용 불가, 다른 효과 없음"). `target`은 `none`, `effects`는 비어 있어도 된다.
+- **사용 불가(공포)**: `curse` 생략 또는 `playable` 없음 → `sim.playCard`가 "저주 카드는 사용할 수 없습니다"로 거부(상태·로그 불변). 손패 UI는 흐리게 + 사유 + `사용 불가` 태그.
+- **뽑을 때 효과(부상)**: `curse.onDraw` = 효과 목록(selector `randomAlly` = 아군 무작위 1명, sim Rng). **전투 중에 이 카드를 뽑으면** 즉시 발동하고(`curseTriggered` 이벤트 + 효과 이벤트, 뽑기 때마다), **준비 단계에서 뽑았거나 시작 손패에 있던 카드는 전투가 시작될 때** 손패 순서대로 한 번 발동한다(`Deck.onDraw` 관찰자 → `CardPlayer.triggerCurse`). 손패 상한 때문에 바로 버려진 카드도 뽑은 것으로 친다.
+- **전투 종료 골드 손실(부패한 보급)**: `curse.goldLossAtEnd` = 전투가 끝날 때(승·패·무 무관) 손패에 있으면 장당 그 골드를 잃는다. 종료 직전에 `cursePenalty` 이벤트를 손패 순서대로 남기고, 런이 `completeBattle`에서 보상 정산 뒤 **잔고 한도까지** 차감한다(`settlement.curseGoldLost`, 결과 화면에 "저주 카드 -nG").
+- **써서 없애기**: `curse.playable: true`(반드시 `exhaust` 키워드가 있어야 함) → 전투 중 `cost` CP를 내고 쓰면 소모 더미로 가서 이번 런에서 사라진다(효과가 없어도 됨). 준비 단계에는 쓸 수 없다.
+- 덱에서 빼는 방법은 기존 카드 제거(상점·이벤트)와 같다. 저주를 덱에 넣는 이벤트·위협 레벨은 이후 단계(2부-B·C)에서 데이터로 추가한다.
 
 ### 이벤트·트리거 추가분 (M5-4)
 - `damage.crit`(치명타일 때만 `true`), `strike.cancelled`(시전자가 죽어 취소된 지연 타격), `cardCost.delta`/`source`(주술사 특성), `telegraph.pattern: "skill"`(스킬 예고, id ≥ 1000). 새 상태 이름: `damageAura`·`empoweredAttack`·`reflect`·`regen`·`taunted`(기존). 암살자 도약은 기존 `teleport` 이벤트를 쓴다. 새 트리거 `onCombatStart`(`startCombat()`에서 한 번, 핸들러가 없으면 로그에 영향 없음).
@@ -478,19 +500,26 @@ M2에서 추가된 유닛
 - 미리보기: `EncounterPlan.bossPatterns`(`describeBossPattern`)가 패턴별 이름·설명 줄을 데이터에서 만들어 맵 미리보기·전투 준비·액트 소개에 보여 준다(쌍둥이는 한 쌍에 하나).
 
 ### 카드 보상·상점·야영지
-- **보상 풀**: 공용(`neutral`)·비저주·`starter`가 아닌 카드(현재 common 7 / rare 3). 지휘관 고유 카드는 시작 덱 전용. 희귀도 가중치(일반 70/27/3, 정예·보스 40/50/10), 한 제시 안에서 중복 없음, 보스는 첫 장을 희귀 이상에서 보장. 카드 추가는 뽑을 더미에 넣고 덱 Rng로 섞는다.
+- **보상 풀 (M5-4 2부-A: 지휘관별)**: "공용(`neutral`) 보상 카드 + 현재 지휘관의 고유(`owner` = 지휘관 id) 카드" 중 `common`/`rare`/`epic`만(저주·`starter` 제외, `isRewardCardFor`). 카드 보상·상점 카드 진열(`generateCardStock`)·이벤트 카드 지급(`pickRandom`/`pickDistinct`)·테스트 도구 카드 목록이 같은 규칙이다(테스트 도구는 시작·저주 카드도 넣어 볼 수 있도록 "공용 + 자기 고유 카드 전부"를 보여 준다). 다른 지휘관의 고유 카드는 나오지 않는다. 현재 데이터의 고유 카드는 모두 `starter`라 풀은 공용 common 6 / rare 3(불씨 화살이 빠짐)이고, 고유 보상 카드는 2부-B에서 데이터로 들어온다. 희귀도 가중치(일반 70/27/3, 정예·보스 40/50/10), 한 제시 안에서 중복 없음, 보스는 첫 장을 희귀 이상에서 보장. 카드 추가는 뽑을 더미에 넣고 덱 Rng로 섞는다.
 - **카드 보상 장수**: 기본 3장(`RUN.REWARD.CHOICES`) + 유물 전술가의 일지 등 `rewardChoices`. 정예 승리는 카드 보상과 함께 유물 1개도 제시한다(위 relics.json 획득 경로).
 - **상점 노드**: 카드 3종(일반 보상 가중치, 희귀도별 가격 common 8 / rare 15 / epic 25G), 카드 제거 75G(상점에서 제거할 때마다 +25G, 런 누적), **유물 2종 진열**(가격 일반 18G / 희귀 30G, 위 relics.json). 유닛 상점은 입장 시 무료 갱신 후 기존 Management 그대로(리롤·잠금·구매·경험치). 유물 도매 증서가 있으면 카드·제거 가격이 −25%(올림)로 보인다. 이벤트·야영지의 제거/강화는 이 횟수에 포함하지 않는다.
 - **야영지(택1)**: 휴식 = 최대 HP의 30%(올림, 유물 야전 천막 +20%p) 회복 / 단련 = 덱 카드 1장 강화(유닛 제공 카드·이미 강화된 카드 제외) / 승급 = 유닛 1기 +1성. 승급 비용 = 4 + (풀에서 추가로 가져오는 원본 수 × 유닛 등급): 1→2성은 원본 +2개(2성 = 3개), 2→3성은 +6개(3성 = 9개)를 유닛 풀에서 가져와 일반 합성과 같은 재고를 쓰므로 판매 시 돌려주는 개수(1/3/9)와 어긋나지 않는다. 재고나 골드가 모자라면 불가, 승급 뒤 같은 성급 3기가 되면 자동 합성한다.
 
 ### 저장 (`RunSave`)
-- `{ format: "autochess-run", version: 3, seed, commanderId, deckPreset, totalActs, maps, position, health, forces{economy, management, managementRng, carryDeck}, relics{owned, mirrorUsed, freeRerollsUsed}, removals, seenEvents, phase, session, outcome, history, test? }` (`test`는 플레이 테스트 런에만 있는 선택 필드, 아래 "플레이 테스트 런"). **v3(M5-1)**: 단일 `map` 대신 액트 1부터 지금 액트까지의 맵 배열 `maps`와 전체 액트 수 `totalActs`를 저장한다 (지난 액트의 맵도 기록 검증용으로 남는다). `position.visited`·`history`는 모든 액트를 이어서 담고(노드 id가 액트마다 달라 겹치지 않음), 단계 `bossRelic`(세션 `{ kind: 'bossRelic', offer }`)·`actIntro`(세션 `{ kind: 'actIntro', hpBefore, healed }`)가 늘었다. **v2(M5-A)**: 지휘관 id(`commanderId`, 이미 v1에도 있었음)와 유물 상태 `relics`가 저장 형식의 일부가 되었다. 세션은 보상 `relic`(정예 보상 유물 id 또는 null)·상점 `relics`(유물 진열 `{ relicId, price, sold }`)가 늘었고, 경제 영수증에는 선택 필드 `bonus`가 생겼다.
+- `{ format: "autochess-run", version: 3, seed, commanderId, deckPreset, totalActs, maps, position, health, forces{economy, management, managementRng, carryDeck}, relics{owned, mirrorUsed, freeRerollsUsed}, removals, seenEvents, phase, session, outcome, history, test?, contentVersion? }` (`contentVersion`은 아래 "콘텐츠 마이그레이션", `test`는 플레이 테스트 런에만 있는 선택 필드, 아래 "플레이 테스트 런"). **v3(M5-1)**: 단일 `map` 대신 액트 1부터 지금 액트까지의 맵 배열 `maps`와 전체 액트 수 `totalActs`를 저장한다 (지난 액트의 맵도 기록 검증용으로 남는다). `position.visited`·`history`는 모든 액트를 이어서 담고(노드 id가 액트마다 달라 겹치지 않음), 단계 `bossRelic`(세션 `{ kind: 'bossRelic', offer }`)·`actIntro`(세션 `{ kind: 'actIntro', hpBefore, healed }`)가 늘었다. **v2(M5-A)**: 지휘관 id(`commanderId`, 이미 v1에도 있었음)와 유물 상태 `relics`가 저장 형식의 일부가 되었다. 세션은 보상 `relic`(정예 보상 유물 id 또는 null)·상점 `relics`(유물 진열 `{ relicId, price, sold }`)가 늘었고, 경제 영수증에는 선택 필드 `bonus`가 생겼다.
 - **v1·v2 마이그레이션**: 버전 1~3을 읽는다. v1·v2(1액트 시절) 저장본은 단일 `map`을 액트 1의 맵으로 읽고 `totalActs`는 3으로 둔다(이어 하면 액트 1 보스 처치 뒤 액트 2로 넘어간다). 이미 승리로 끝난 v1·v2 저장본만 `totalActs` 1로 읽어 승리가 유효하다. v1·v2에 v3 필드가 섞여 있거나 v3에 `map`이 있으면 거부한다. 다시 저장하면 v3가 된다.
 - **M5-4 유닛 풀 호환**: 유닛 14종 → 30종 전에 만든 v3 저장본(`forces.management.pool`)에는 신규 16종 재고가 없다. 복원할 때 `MANAGEMENT.POOL_ADDED_IN_M54`에 있는 유닛의 재고가 빠져 있으면 등급별 기본 재고(18/16/14/10/8)로 채운다(그 저장본은 신규 유닛을 소유·진열한 적이 없다). 이 목록 밖 유닛의 재고가 빠졌거나 모르는 유닛이 있으면 여전히 손상된 저장으로 거부한다. 저장 `version`은 3 그대로다(읽기 호환만 추가, `runSaveV3M53.fixture.json`이 4b33a11에서 만든 일반·테스트 런 저장본으로 검증한다). 저장된 전투 준비·노드는 같은 편성 id의 새 구성 유닛으로 치러진다.
 - **v1 마이그레이션(유물)**: v1 저장본은 `relics`가 없으면(있으면 오류) 유물 없음·무료 리롤·거울 사용량 0으로, 보상 `relic`·상점 `relics`가 없으면 null·빈 목록으로 읽고 지휘관은 저장된 `commanderId`(v1 시절엔 항상 하르텐)를 그대로 쓴다. 다시 저장하면 v3가 된다(`runSaveV1.fixture.json`이 M4 시절 실제 저장본으로 이를 검증한다). v4 이상은 거부한다.
 - 노드 단위 체크포인트: 맵 선택 단계, 노드 입장 직후, 상점/이벤트(카드 선택 대기 포함)/야영지/보상 화면 모두 저장할 수 있다. 전투 중간 저장은 없다 — `battle` 단계는 `battlePrep`으로 저장되어 복원하면 같은 준비 손패·같은 전투 시드로 전투 준비 단계에 돌아온다. 복원 후 같은 선택은 같은 결과를 낸다(골드 영수증·상점 Rng·덱 Rng 상태까지 저장).
 - 복원은 모든 필드를 검증하고 `run.forces.carryDeck.draw[0].cardId` 같은 경로가 담긴 한국어 오류를 던진다 (모르는 필드·버전 불일치·단계/세션 불일치 포함). 필드 간 일관성도 검사한다: `currentNodeId`=입장 기록 마지막, 액트 1의 1층 시작·같은 액트 안에서는 간선 연속·액트가 바뀔 때는 이전 액트 보스 다음 액트 1층(13 × 액트 개 이하), 맵 수 ≤ `totalActs`·액트마다 맞는 노드 id 접두사, 다음 액트 맵이 있으면 지난 액트 보스를 방문했고 마지막 기록이 승리, 승리는 마지막 액트의 보스 노드에서만, `bossRelic`(후보 1~3개·모두 보스 유물·중복/보유 없음·마지막 액트 아님)·`actIntro`(회복 전 HP + 회복량 = 현재 HP, 회복량 ≤ 50% 올림) 단계의 노드·세션 형태, 단계↔현재 노드 종류(보상 종류 포함), 종료 전 HP 0 금지, 전투 `tries`=그 노드의 history 수, 상점 3칸·희귀도 가격, 상점 유물 칸(2칸 이하·중복 없음·가격·구매 여부=보유 여부), 유물 보상은 정예 보상에만, 지휘관 최대 HP=지휘관 기본값+보유 유물의 최대 HP 증가 합, 이벤트 id=`seenEvents` 마지막(이벤트 노드 수만큼 기록), history 노드는 입장 기록에 포함.
 - UI 저장(M4-B, `src/ui/run`): 브라우저는 `localStorage`의 `autochess-run-save` 키 하나에 `RunSave` JSON을 쓴다. 단계가 바뀔 때·전투 준비 중 로스터가 바뀔 때·전투 정산 직후마다 저장하고, 런이 끝나면(`ended`) 지운다. 새 런 시드는 core가 `seed | 0`으로 정규화하므로 UI는 32비트 정수 범위만 받는다. 저장소는 `RunStorage` 인터페이스로 주입한다(접근 실패는 알림만).
+
+### 콘텐츠 마이그레이션 (`data/migrations.json`, `src/core/run/contentMigration.ts`)
+카드·유물 데이터가 바뀌어도(소유자 변경, id 변경·삭제, 희귀도 변경 등) 이전에 만든 저장본이 깨지지 않게 하는 장치. 저장 포맷 `version`과 별개로 저장본에 **콘텐츠 버전 `contentVersion`**(저장 시점의 `migrations.json` 마지막 `to`, 없으면 0)을 적는다. `RunController.restore`는 파싱 전에 `ContentMigrations.migrate`로 저장본(JSON)을 현재 콘텐츠 버전까지 올리고, 실제로 바뀐 것이 있으면 한국어 알림 문장을 `controller.contentNotices`로 돌려준다(`RunSession.continueRun`이 "게임 데이터가 업데이트되어 저장본을 맞췄습니다. …" 정보 알림으로 한 번 보여 줌). 다시 저장하면 `contentVersion`이 현재 값이 되어 알림은 반복되지 않는다. **현재보다 높은 `contentVersion`**(더 새 게임이 만든 저장본)은 `run.contentVersion: …더 새로운 콘텐츠 버전…` 오류로 거부한다.
+- 형식: `{ "version": 1, "migrations": [ { "to": 1, "note": 알림 머리말, "steps": [ … ] } ] }` — `to`는 1부터 빠짐없이 이어져야 하고(순서대로 적용, 체인 가능), 각 단계의 카드·유물·지휘관 id는 로드할 때 검증한다(경로 포함 한국어 오류). 대상(`to`·`replaceWith`·`shopFallback`)은 **현재 데이터에 있는** 카드·유물이어야 하고, 상점에 진열될 수 있는 카드는 `common`/`rare`/`epic`이어야 한다(진열 가격 규칙 때문).
+- 단계(`op`): `replaceCard {from, to, unlessCommander?}`(덱 모든 더미·상점 진열·카드 보상·이벤트 선택지에서 id 교체, 강화 버전이 없는 카드로 바뀌면 강화 표시를 뗌, 진열 가격은 새 카드 희귀도로, `unlessCommander` 런은 건드리지 않음 — "다른 지휘관 소유가 된 카드를 대체 카드로") / `removeCard {cardId, replaceWith? | refundGold?, shopFallback?}`(덱에서 제거해 `replaceWith`로 바꾸거나 장당 `refundGold` 환불, 진열 칸은 `shopFallback`으로 채움) / `withdrawCard {cardId, shopFallback}`(덱은 두고 이미 제시된 보상·진열에서만 뺌 — 더 이상 풀에 나오지 않게 된 카드) / `replaceRelic {from, to}` / `removeRelic {relicId, replaceWith? | refundGold?}`(보유·상점·보상·보스 후보). 새 종류의 변경은 `ContentMigrations.apply`에 `op`를 하나 추가한다.
+- **첫 사례(콘텐츠 버전 1)**: 불씨 화살이 이세라 고유 시작 카드가 되었으므로 이세라가 아닌 지휘관의 덱·보상·진열에 있던 불씨 화살은 덩굴 속박으로 바꾸고(`replaceCard … unlessCommander: cmd_isera`), 이세라 런에 제시되어 있던 보상·진열 목록에서는 뺀다(`withdrawCard`).
+- **콘텐츠를 바꿀 때의 절차**: (1) `cards.json`/`relics.json`을 고친다. (2) 기존 저장본이 깨질 수 있는 변경(카드 id 변경·삭제, `owner` 변경, 상점에 나오던 카드의 희귀도를 `starter`로 바꾸기 등)이면 `data/migrations.json`의 `migrations`에 `to`를 하나 올린 항목과 단계를 추가한다. (3) `npm test`로 데이터 검증과 저장 호환 테스트(`contentMigration.test.ts`)를 돌린다. 저장본의 호환이 필요 없는 변경(수치만 바꿈)은 추가하지 않는다. 유닛 id 변경은 아직 단계가 없다 — 필요해지면 `op`를 추가한다(기존 `MANAGEMENT.POOL_ADDED_IN_M54` 임시 처리는 그대로 두었다).
 
 ### 플레이 테스트 런 (`src/core/run/testRun.ts`)
 배포판에서 밸런스(특히 액트 2·3, 지휘관별)를 직접 플레이하며 확인하려는 도구. 일반 런과 같은 `RunController`·저장 형식·정산 경로를 쓰되 **`test` 표시가 있는 런에서만** 테스트 명령을 받는다. 헤드리스 도구(`tools/`)에는 노출하지 않는다.

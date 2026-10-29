@@ -17,7 +17,12 @@ export class CommandPoints {
   private prepCp = 0;
   private combatCp = 0;
 
-  constructor(private readonly startBonus = 0) {}
+  constructor(private startBonus = 0) {}
+
+  /** 이번 전투의 시작 CP 보정을 늘린다 (준비 단계 작전 카드). 전투가 시작될 때 반영된다 */
+  addStartBonus(amount: number): void {
+    this.startBonus += amount;
+  }
 
   get prep(): number {
     return this.prepCp;

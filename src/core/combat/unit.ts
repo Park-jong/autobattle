@@ -35,6 +35,9 @@ export class CombatUnit {
   /** 치명타 확률(0~1)과 치명 피해(%). 암살자 특성이 설정한다 */
   critChance = 0;
   critDamagePct = 100;
+  /** 부활 장비: 쓰러질 때 최대 HP의 이 비율(%)로 되살아난다 (0 = 없음). 전투당 1회 */
+  reviveHpPct = 0;
+  reviveUsed = false;
   readonly statuses: StatusSet;
   /** 성급이 확정된 스킬 효과 */
   readonly skillEffects: readonly ResolvedEffect[];

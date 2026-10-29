@@ -95,7 +95,7 @@ function main(): void {
   const read = (name: string) => readJson(fileURLToPath(new URL(name, dataDir)));
   const deps = loadRunDeps({
     traits: read('traits.json'), units: read('units.json'), cards: read('cards.json'),
-    commanders: read('commanders.json'), encounters: read('encounters.json'), events: read('events.json'), relics: read('relics.json'),
+    commanders: read('commanders.json'), encounters: read('encounters.json'), events: read('events.json'), relics: read('relics.json'), migrations: read('migrations.json'),
   });
   const plan: PlanEntry[] | null = args.plan ? parseCardPlan(readJson(resolve(args.plan)), '계획') : null;
 

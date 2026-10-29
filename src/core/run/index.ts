@@ -26,3 +26,4 @@ export {
 } from './runController';
 export { loadRunDeps, type RawRunData } from './runData';
 export { AutoRunner, type AutoRunOptions, type AutoRunSummary } from './autoRunner';
+export { ContentMigrations, type ContentMigration, type MigrationStep } from './contentMigration';

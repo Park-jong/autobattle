@@ -1,5 +1,6 @@
 import type { CpPool } from '../cards/commandPoints';
 import type { Deck } from '../cards/deck';
+import type { CardInstance } from '../cards/cardInstance';
 import { effectiveCard } from '../cards/effectiveCard';
 import type { Card, CardTarget } from '../data/card';
 import type { CardCatalog } from '../data/cardLoader';
@@ -44,6 +45,8 @@ export class CardPlayer {
   /** 카드 인스턴스별 비용 조정: 방해 변이는 +, 주술사 특성은 − (이번 전투 한정). 실제 비용은 기본 비용 + 조정, 최소 0 */
   private readonly surcharges = new Map<number, number>();
   private playedCount = 0;
+  /** 카드(열 증폭)로 이번 전투에 더해진 주문 피해 증가(%p). 패시브·유물 보정에 합산된다 */
+  private extraSpellPct = 0;
 
   constructor(
     private readonly world: CombatWorld,
@@ -61,6 +64,16 @@ export class CardPlayer {
     const total = (this.surcharges.get(instanceId) ?? 0) + amount;
     this.surcharges.set(instanceId, total);
     return total;
+  }
+
+  /** 이번 전투의 주문 피해 증가에 pct%p를 더한다 (spellDamageBoost 효과가 부른다) */
+  addSpellDamagePct(pct: number): void {
+    this.extraSpellPct += pct;
+  }
+
+  /** 지금 적용 중인 주문 피해 증가(%): 지휘관 패시브 + 유물 + 카드 */
+  get spellDamagePct(): number {
+    return this.modifiers.spellDamagePct + this.extraSpellPct;
   }
 
   /** 지금 이 카드를 쓰는 데 드는 CP: (연쇄·강화 반영한 기본 비용 + 조정), 최소 0 */
@@ -140,9 +153,10 @@ export class CardPlayer {
 
     const resolution = this.resolveTarget(card.target, target);
     if (!resolution.ok) return fail(resolution.reason);
+    const ctx: EffectContext = { ...resolution.ctx, card: { cardId: card.id, instanceId, name: card.name } };
 
     const effects = this.collectEffects(view, card.type);
-    const blocked = this.executor.checkExecutable(effects, resolution.ctx);
+    const blocked = this.executor.checkExecutable(effects, ctx);
     if (blocked) return fail(blocked);
 
     // ---- 검증 통과: 여기부터 상태 변경 ----
@@ -163,9 +177,9 @@ export class CardPlayer {
         this.world.emit({ type: 'commanderHp', delta: -hpCost, remaining: this.hpLedger.remaining, cardId: card.id, instanceId });
       }
       this.world.bus.emit('onCardPlay', { cardId: card.id, instanceId });
-      this.executor.execute(effects, resolution.ctx);
+      this.executor.execute(effects, ctx);
       if (card.type === 'equipment') {
-        for (const unit of resolution.ctx.targets) unit.equipment.push(`${card.id}${instance.upgraded ? '+' : ''}`);
+        for (const unit of ctx.targets) unit.equipment.push(`${card.id}${instance.upgraded ? '+' : ''}`);
       }
     });
     this.playedCount += 1;
@@ -177,7 +191,10 @@ export class CardPlayer {
   private checkPhase(card: Card, phase: CombatPhase): string | null {
     if (phase === 'ended') return '전투가 이미 끝났습니다';
     if (card.type === 'equipment') return phase === 'prep' ? null : '장비 카드는 준비 단계에서만 사용할 수 있습니다';
-    if (card.type === 'curse') return '저주 카드는 사용할 수 없습니다';
+    if (card.type === 'curse') {
+      if (!card.curse?.playable) return '저주 카드는 사용할 수 없습니다';
+      return phase === 'combat' ? null : '저주 카드는 전투 중에만 사용할 수 있습니다';
+    }
     if (card.type === 'operation') {
       return phase === 'prep' ? null : '작전 카드는 준비 단계에서만 사용할 수 있습니다';
     }
@@ -244,15 +261,58 @@ export class CardPlayer {
     if (view.resonance && this.isTraitActive(view.resonance.trait)) defs.push(...view.resonance.effects);
     if (view.chain && this.playedCount > 0) defs.push(...view.chain.effects);
     const effects = defs.map((d) => resolveEffect(d, 0));
-    return this.modifiers.spellDamagePct > 0 && type === 'spell' ? effects.map((e) => this.boostSpell(e)) : effects;
+    const pct = this.spellDamagePct;
+    return pct > 0 && type === 'spell' ? effects.map((e) => this.boostSpell(e, 1 + pct / 100)) : effects;
   }
 
-  /** 주문 카드의 피해(고정 피해·화상 초당 피해)에 spellDamagePct를 곱한다 */
-  private boostSpell(effect: ResolvedEffect): ResolvedEffect {
-    const mult = 1 + this.modifiers.spellDamagePct / 100;
-    if (effect.kind === 'flatDamage') return { ...effect, amount: Math.round(effect.amount * mult) };
-    if (effect.kind === 'burn' && effect.dps !== undefined) return { ...effect, dps: Math.round(effect.dps * mult) };
-    return effect;
+  /** 주문 카드의 피해(고정 피해·조건부 추가 피해·화상 초당 피해·장판·지연 타격)에 주문 피해 배율을 곱한다 */
+  private boostSpell(effect: ResolvedEffect, mult: number): ResolvedEffect {
+    const scale = (value: number): number => Math.round(value * mult);
+    switch (effect.kind) {
+      case 'flatDamage':
+        return {
+          ...effect,
+          amount: scale(effect.amount),
+          ...(effect.bonusIfBurning === undefined ? {} : { bonusIfBurning: scale(effect.bonusIfBurning) }),
+        };
+      case 'burn':
+        return effect.dps !== undefined ? { ...effect, dps: scale(effect.dps) } : effect;
+      case 'damageZone':
+        return { ...effect, amount: scale(effect.amount) };
+      case 'delayedStrike':
+        return { ...effect, effects: effect.effects.map((nested) => this.boostSpell(nested, mult)) };
+      default:
+        return effect;
+    }
+  }
+
+  // ---- 저주 ----
+
+  /**
+   * 저주 카드의 뽑을 때 효과를 자동 발동한다 (전투 중 뽑았을 때, 그리고 전투가 시작될 때 손패에 있던 카드마다).
+   * 효과가 없는 저주는 아무 일도 없다. 무작위 대상(randomAlly)은 sim Rng를 쓴다.
+   */
+  triggerCurse(instance: CardInstance): void {
+    const card = this.catalog.get(instance.cardId);
+    const onDraw = card?.curse?.onDraw;
+    if (!card || !onDraw) return;
+    this.world.emit({ type: 'curseTriggered', cardId: card.id, instanceId: instance.instanceId });
+    this.executor.execute(onDraw.map((e) => resolveEffect(e, 0)), {
+      side: PLAYER_SIDE, caster: null, targets: [], card: { cardId: card.id, instanceId: instance.instanceId, name: card.name },
+    });
+  }
+
+  /** 전투 시작: 손패에 있는 저주 카드의 뽑을 때 효과를 손패 순서대로 발동 */
+  triggerHandCurses(): void {
+    for (const instance of [...this.deck.hand]) this.triggerCurse(instance);
+  }
+
+  /** 전투 종료 직전: 손패에 남은 저주의 골드 손실을 이벤트로 남긴다 (런이 정산). 손패 순서대로 */
+  emitCursePenalties(): void {
+    for (const instance of this.deck.hand) {
+      const gold = this.catalog.get(instance.cardId)?.curse?.goldLossAtEnd;
+      if (gold) this.world.emit({ type: 'cursePenalty', cardId: instance.cardId, instanceId: instance.instanceId, gold });
+    }
   }
 
   isTraitActive(traitId: string): boolean {

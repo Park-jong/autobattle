@@ -38,5 +38,6 @@ export function targetLabel(target: CardTarget): string {
 export function cardTags(card: Card): string[] {
   const tags = card.keywords.map((k) => KEYWORD_LABELS[k]);
   if (card.limits?.perCombat !== undefined) tags.push(`전투당 ${card.limits.perCombat}회`);
+  if (card.type === 'curse' && !card.curse?.playable) tags.push('사용 불가');
   return tags;
 }

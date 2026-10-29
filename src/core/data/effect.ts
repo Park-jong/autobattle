@@ -13,7 +13,11 @@ export const EFFECT_SELECTORS = [
   'self',
   'allAllies',
   'alliesFrontRow',
+  /** 아군 후열(중앙에서 가장 먼 열) */
+  'alliesBackRow',
   'alliesMelee',
+  /** 아군 무작위 1명 (sim Rng). 저주 카드의 뽑을 때 효과에서만 쓴다 */
+  'randomAlly',
   'lineThroughTarget',
   'targetAndAdjacent',
   'enemiesInTargetArea',
@@ -40,7 +44,14 @@ export const RADIUS_SELECTORS = ['alliesAroundSelf', 'enemiesAroundSelf'] as con
  */
 export const TELEPORT_DESTINATIONS = ['behindTarget', 'besideTarget', 'enemyBackRow', 'lineEnd'] as const;
 /** 지연 타격이 노리는 범위 */
-export const DELAYED_AREAS = ['densestEnemies3x3', 'allEnemies'] as const;
+export const DELAYED_AREAS = ['densestEnemies3x3', 'allEnemies', 'targetArea'] as const;
+/**
+ * 징집 위치.
+ * - allyBack: 아군 후열의 빈 칸 (생략했을 때의 기본값)
+ * - allyFront: 아군 전열의 빈 칸
+ * - enemyBack: 상대 진영 후열의 빈 칸 (후열이 차 있으면 한 열씩 앞으로)
+ */
+export const SUMMON_PLACEMENTS = ['allyBack', 'allyFront', 'enemyBack'] as const;
 export const COMBAT_EFFECT_KINDS = [
   'shield',
   'damageTakenMult',
@@ -69,6 +80,8 @@ export const COMBAT_EFFECT_KINDS = [
   'flatShield', 'cleanse', 'damageAura', 'empoweredAttack', 'reflect', 'regen', 'delayedStrike', 'skillCpGain',
   // 특성 전용 (M5-4)
   'stackingStatMod', 'startMana', 'handCostReduction', 'backRowLeap', 'critical',
+  // 카드 확장 (M5-4 2부-A)
+  'manaGain', 'handCostCut', 'spellDamageBoost', 'ultimateGain', 'damageZone', 'reviveOnce', 'startCp', 'commanderHeal',
 ] as const;
 
 export type CombatStat = (typeof COMBAT_STATS)[number];
@@ -76,6 +89,7 @@ export type DamageType = (typeof DAMAGE_TYPES)[number];
 export type EffectSelector = (typeof EFFECT_SELECTORS)[number];
 export type TeleportDestination = (typeof TELEPORT_DESTINATIONS)[number];
 export type DelayedArea = (typeof DELAYED_AREAS)[number];
+export type SummonPlacement = (typeof SUMMON_PLACEMENTS)[number];
 export type CombatEffectKind = (typeof COMBAT_EFFECT_KINDS)[number];
 
 /** 숫자 하나 또는 [1성, 2성, 3성] */
@@ -139,8 +153,23 @@ type EffectBody<V> =
     }
   | { kind: 'teleport'; selector: EffectSelector; destination: TeleportDestination }
   | { kind: 'extraShots'; selector: EffectSelector; count: V }
-  /** 시전자 ATK와 무관한 고정 피해 (시전자 없이도 쓸 수 있음) */
-  | { kind: 'flatDamage'; selector: EffectSelector; amount: V; dmgType: DamageType; ignoreArmorPct?: V }
+  /**
+   * 시전자 ATK와 무관한 고정 피해 (시전자 없이도 쓸 수 있음).
+   * 조건부 추가 피해(카드): bonusIfBurning = 대상이 화상 중이면 피해에 더하는 수치,
+   * hpBelowPct + belowMult = 대상 HP 비율이 hpBelowPct% 이하이면 피해 × belowMult (둘은 함께 써야 함).
+   * 두 조건 모두 맞으면 (amount + bonusIfBurning) × belowMult. killCp = 이 피해로 대상을 처치하면 전투 CP를 얻는다 (카드 전용).
+   */
+  | {
+      kind: 'flatDamage';
+      selector: EffectSelector;
+      amount: V;
+      dmgType: DamageType;
+      ignoreArmorPct?: V;
+      bonusIfBurning?: V;
+      hpBelowPct?: V;
+      belowMult?: V;
+      killCp?: V;
+    }
   /** 침묵: 스킬 시전 불가 (이동·기본 공격은 가능). 중첩 없이 더 늦게 끝나는 쪽으로 갱신 */
   | { kind: 'silence'; selector: EffectSelector; duration: V }
   /** 대상 마나 감소 (0 미만으로 내려가지 않음) */
@@ -153,12 +182,25 @@ type EffectBody<V> =
   | { kind: 'cpGain'; selector: EffectSelector; amount: V }
   | { kind: 'root'; selector: EffectSelector; duration: V }
   | { kind: 'hpCost'; selector: EffectSelector; pctMaxHp: V }
-  | { kind: 'lifesteal'; selector: EffectSelector; pct: V; duration: V }
+  | { kind: 'lifesteal'; selector: EffectSelector; pct: V; duration: EffectDuration<V> }
   | { kind: 'onAttackBurn'; selector: EffectSelector; pctAtk: V; duration: V }
   | { kind: 'killFeast'; selector: EffectSelector; healPct: V; atkPct: V }
   | { kind: 'marksman'; selector: EffectSelector; rangeBonus: V; chance: V }
   | { kind: 'attackMana'; selector: EffectSelector; amount: V }
-  | { kind: 'summon'; selector: EffectSelector; count: V; tier: V }
+  /**
+   * 징집(카드 전용). tier를 주면 그 등급의 무작위 유닛, unitId를 주면 그 유닛(둘 중 정확히 하나).
+   * star(기본 1), placement(기본 allyBack), manaFull(마나 가득으로 등장)은 unitId와 함께만 쓴다.
+   */
+  | {
+      kind: 'summon';
+      selector: EffectSelector;
+      count: V;
+      tier?: V;
+      unitId?: string;
+      star?: V;
+      placement?: SummonPlacement;
+      manaFull?: boolean;
+    }
   | { kind: 'scout'; selector: EffectSelector; count: V; pctMaxHp: V }
   /** 도발: 실행 시점에 selector 유닛 반경 radius칸(체비쇼프) 안의 적이 duration초 동안 그 유닛을 우선 공격. 여러 도발자가 겹치면 가장 가까운 쪽 */
   | { kind: 'taunt'; selector: EffectSelector; radius: V; duration: V }
@@ -183,6 +225,7 @@ type EffectBody<V> =
    * 지연 타격: delay초 뒤 area 범위에 중첩된 effects를 시전자 기준으로 실행한다 (시전자가 그 전에 죽으면 취소).
    * 범위는 시전 시점에 정해져 telegraph 이벤트로 예고되고, 발동 시 strike 이벤트가 나온다.
    * densestEnemies3x3이면 effects 안에서 enemiesInTargetArea, allEnemies면 allEnemies 선택자를 쓴다.
+   * targetArea(카드 전용, 시전자 없음): 카드가 지정한 3×3 범위. effects 안에서 enemiesInTargetArea를 쓴다.
    */
   | { kind: 'delayedStrike'; selector: EffectSelector; delay: V; area: DelayedArea; effects: EffectOf<V>[] }
   /** 스킬로 전투 CP를 얻는다 (아군 진영·카드 시스템이 있을 때만). 시전 유닛마다 전투당 maxPerCombat번 */
@@ -196,7 +239,26 @@ type EffectBody<V> =
   /** 특성 전용: 전투 시작 시 selector 유닛이 상대 후열로 도약 */
   | { kind: 'backRowLeap'; selector: EffectSelector }
   /** 특성 전용: selector 유닛의 ATK 비례 피해(기본 공격·damage 효과)가 chance 확률로 damagePct% 피해 */
-  | { kind: 'critical'; selector: EffectSelector; chance: V; damagePct: V };
+  | { kind: 'critical'; selector: EffectSelector; chance: V; damagePct: V }
+  /** 지정 유닛의 마나를 amount만큼 회복 (최대치까지) */
+  | { kind: 'manaGain'; selector: EffectSelector; amount: V }
+  /** 카드 전용: 손패에서 비용이 1 이상인 무작위 1장의 이번 전투 비용을 amount 줄인다 (sim Rng, 최소 0). selector는 allAllies */
+  | { kind: 'handCostCut'; selector: EffectSelector; amount: V }
+  /** 카드 전용: 이번 전투 동안 주문 카드의 피해(고정 피해·화상)를 pct%p 더 키운다. 지휘관 패시브·유물과 더해진다. selector는 allAllies */
+  | { kind: 'spellDamageBoost'; selector: EffectSelector; pct: V }
+  /** 카드 전용: 궁극기 게이지를 amount 올린다 (최대 100, 이미 쓴 궁극기는 다시 쓸 수 없다). selector는 allAllies */
+  | { kind: 'ultimateGain'; selector: EffectSelector; amount: V }
+  /**
+   * 카드 전용: 지정한 칸 범위에 duration초 동안 intervalSeconds마다 고정 피해 (첫 피해는 한 간격 뒤, 장판은 칸 기준).
+   * selector는 enemiesInTargetArea
+   */
+  | { kind: 'damageZone'; selector: EffectSelector; amount: V; dmgType: DamageType; duration: V; intervalSeconds: V }
+  /** 장비 전용: 대상 유닛이 쓰러질 상황이 되면 전투당 1회 최대 HP의 hpPct%로 되살아난다 */
+  | { kind: 'reviveOnce'; selector: EffectSelector; hpPct: V }
+  /** 작전 카드 전용: 이번 전투의 시작 CP를 amount 늘린다 (상한 6). selector는 allAllies */
+  | { kind: 'startCp'; selector: EffectSelector; amount: V }
+  /** 카드 전용: 전투에서 이기면 지휘관 HP를 amount 회복한다 (런이 정산, 최대 HP 초과 불가). selector는 allAllies */
+  | { kind: 'commanderHeal'; selector: EffectSelector; amount: V };
 
 export type EffectDef = EffectOf<StarValue>;
 export type ResolvedEffect = EffectOf<number>;
