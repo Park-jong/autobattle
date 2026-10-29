@@ -19,10 +19,10 @@ function errorOf(edit: (d: Data) => void): string {
 }
 
 describe('loadMeta', () => {
-  it('실제 data/meta.json이 통과하고 지휘관 2 + 유물 11 항목이 있다', () => {
+  it('실제 data/meta.json이 통과하고 지휘관 2 + 유물 12 항목이 있다', () => {
     const catalog = loadMeta(metaJson, commanders, relics);
     expect(catalog.ofTarget('commander').map((e) => e.id)).toEqual(['cmd_isera', 'cmd_nox']);
-    expect(catalog.ofTarget('relic')).toHaveLength(11);
+    expect(catalog.ofTarget('relic')).toHaveLength(12);
     expect(catalog.get('cmd_nox')).toMatchObject({ price: 120, condition: { type: 'bossKilled', act: 2 } });
     expect(catalog.get('old_baton')).toBeUndefined();
   });

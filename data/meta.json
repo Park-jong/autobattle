@@ -18,8 +18,9 @@
     { "target": "relic", "id": "war_record", "price": 25, "condition": { "type": "ultimateUses", "count": 10 } },
     { "target": "relic", "id": "fat_purse", "price": 25, "condition": { "type": "reachBossWithGold", "gold": 50 } },
     { "target": "relic", "id": "wholesale_voucher", "price": 25, "condition": { "type": "shopVisits", "count": 5 } },
-    { "target": "relic", "id": "rift_heart", "price": 40, "condition": { "type": "bossKilled", "act": 1 } },
-    { "target": "relic", "id": "legion_seal", "price": 40, "condition": { "type": "bossKilled", "act": 1 } },
-    { "target": "relic", "id": "iron_heart", "price": 40, "condition": { "type": "bossKilled", "act": 1 } }
+    { "target": "relic", "id": "arcane_codex", "price": 40, "condition": { "type": "bossKilled", "act": 1 } },
+    { "target": "relic", "id": "strategist_satchel", "price": 40, "condition": { "type": "runsCompleted", "count": 1 } },
+    { "target": "relic", "id": "master_forge", "price": 40, "condition": { "type": "eliteKills", "count": 10 } },
+    { "target": "relic", "id": "grand_banner", "price": 60, "condition": { "type": "bossKilled", "act": 2 } }
   ]
 }

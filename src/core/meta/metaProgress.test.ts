@@ -33,17 +33,17 @@ describe('조건 판정과 진행도', () => {
 });
 
 describe('MetaProgress 기본 상태', () => {
-  it('처음에는 포인트 0이고 하르텐·조건 없는 유물은 열려 있고 이세라·녹스·조건 유물 11개는 잠겨 있다', () => {
+  it('처음에는 포인트 0이고 하르텐·조건 없는 유물은 열려 있고 이세라·녹스·조건 유물 12개는 잠겨 있다', () => {
     const meta = newMeta();
     expect(meta.points).toBe(0);
     expect(meta.isUnlocked('cmd_harten')).toBe(true);
     expect(meta.isUnlocked('old_baton')).toBe(true);
     expect(meta.isUnlocked('cmd_isera')).toBe(false);
     expect(meta.isUnlocked('cmd_nox')).toBe(false);
-    expect(meta.items().filter((i) => !i.unlocked)).toHaveLength(13);
+    expect(meta.items().filter((i) => !i.unlocked)).toHaveLength(14);
     const unlocks = meta.runUnlocks(runDeps.commanders.commanders.map((c) => c.id), runDeps.relics.relics.map((r) => r.id));
     expect(unlocks.commanders).toEqual(['cmd_harten']);
-    expect(unlocks.relics).toHaveLength(9);
+    expect(unlocks.relics).toHaveLength(16); // 일반 9 + 처음부터 열린 보스 유물 7
     expect(meta.progress('cmd_harten')).toBeNull();
     expect(meta.progress('cmd_isera')).toEqual({ current: 0, target: 1, met: false });
   });
@@ -78,7 +78,7 @@ describe('settleRun', () => {
     if (!result.ok) return;
     expect(result.earned.total).toBe(13 + 10 + 10);
     expect(result.balance).toBe(33);
-    expect(result.newUnlocks).toEqual(['cmd_isera', 'blood_oath', 'fifth_banner', 'heralds_bag', 'rift_heart', 'legion_seal', 'iron_heart']);
+    expect(result.newUnlocks).toEqual(['cmd_isera', 'blood_oath', 'fifth_banner', 'heralds_bag', 'arcane_codex', 'strategist_satchel']);
     expect(meta.isUnlocked('cmd_isera')).toBe(true);
     expect(meta.isUnlocked('cmd_nox')).toBe(false);
     expect(meta.statsView()).toMatchObject({ runsCompleted: 1, eliteKills: 5, bossActsKilled: [1] });
@@ -89,7 +89,7 @@ describe('settleRun', () => {
     const meta = newMeta();
     meta.settleRun(summary({ runId: 'a', ultimateUses: 6, shopVisits: 3, bossEntryGold: 40, deckSize: 15 }));
     const second = meta.settleRun(summary({ runId: 'b', ultimateUses: 4, shopVisits: 2, bossEntryGold: 55, deckSize: 20, unitStar3: true, bossActsKilled: [2] }));
-    expect(second.ok && second.newUnlocks.sort()).toEqual(['cmd_nox', 'fat_purse', 'tacticians_journal', 'twin_mirror', 'war_record', 'wholesale_voucher'].sort());
+    expect(second.ok && second.newUnlocks.sort()).toEqual(['cmd_nox', 'fat_purse', 'grand_banner', 'tacticians_journal', 'twin_mirror', 'war_record', 'wholesale_voucher'].sort());
     expect(meta.statsView()).toMatchObject({ ultimateUses: 10, shopVisits: 5, bestBossEntryGold: 55, bestCompletedDeckSize: 20, unitStar3: true });
   });
 
@@ -149,11 +149,11 @@ describe('purchase', () => {
   it('구매한 항목은 나중에 조건을 달성해도 구매 기록과 포인트가 유지된다', () => {
     const meta = newMeta();
     earn(meta, 100);
-    meta.purchase('rift_heart');
+    meta.purchase('arcane_codex');
     const points = meta.points;
     const result = meta.settleRun(summary({ runId: 'later', floorsReached: 0, bossActsKilled: [1] }));
-    expect(result.ok && result.newUnlocks).not.toContain('rift_heart');
-    expect(meta.items().find((i) => i.id === 'rift_heart')!.via).toBe('purchase');
+    expect(result.ok && result.newUnlocks).not.toContain('arcane_codex');
+    expect(meta.items().find((i) => i.id === 'arcane_codex')!.via).toBe('purchase');
     expect(meta.points).toBe(points + 10);
   });
 });

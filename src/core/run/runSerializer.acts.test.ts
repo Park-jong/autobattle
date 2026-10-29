@@ -160,7 +160,7 @@ describe('저장 v3 일관성 검증: 액트 구조', () => {
     none.session.offer = [];
     expect(restoreWith(none)).toThrow(/보스 유물 후보는 1~3개/);
     const owned = atBossRelic();
-    owned.relics.owned = ['rift_heart'];
+    owned.relics.owned = [owned.session.offer[0]!]; // 후보는 무작위라 실제 후보 중 하나를 가진 것으로
     expect(restoreWith(owned)).toThrow(/이미 가진 유물이 후보에 있음/);
     const early = atBossRelic();
     early.maps.push(atActIntro().maps[1]); // 보스 유물을 고르기 전에는 다음 액트의 맵이 없다

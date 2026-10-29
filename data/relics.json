@@ -230,7 +230,6 @@
       "name": "균열의 심장",
       "rarity": "boss",
       "text": "전투 시작 CP +2.",
-      "unlock": "액트 1 보스 처치",
       "effects": [
         {
           "kind": "startCp",
@@ -243,7 +242,6 @@
       "name": "군단장의 인장",
       "rarity": "boss",
       "text": "전투 시작 시 아군 전체에게 최대 HP 15% 보호막 (전투 끝까지).",
-      "unlock": "액트 1 보스 처치",
       "effects": [
         {
           "kind": "combatStart",
@@ -263,7 +261,6 @@
       "name": "강철 심장",
       "rarity": "boss",
       "text": "획득 즉시 지휘관 최대 HP +20 (같은 양 회복), 전투 승리 시 HP +2.",
-      "unlock": "액트 1 보스 처치",
       "effects": [
         {
           "kind": "maxHp",
@@ -272,6 +269,141 @@
         {
           "kind": "winHeal",
           "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "war_crown",
+      "name": "전쟁군주의 왕관",
+      "rarity": "boss",
+      "text": "아군 유닛이 쓰러지면 CP +1 (전투당 최대 2), 궁극기 게이지 충전량 +50%.",
+      "effects": [
+        {
+          "kind": "allyDeathCp",
+          "amount": 1,
+          "maxPerCombat": 2
+        },
+        {
+          "kind": "ultimateCharge",
+          "pct": 50
+        }
+      ]
+    },
+    {
+      "id": "golden_ledger",
+      "name": "황금 장부",
+      "rarity": "boss",
+      "text": "전투 승리 골드 +4, 이자 상한 +2G.",
+      "effects": [
+        {
+          "kind": "winGold",
+          "amount": 4
+        },
+        {
+          "kind": "interestMax",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "mana_wellspring",
+      "name": "마력의 샘",
+      "rarity": "boss",
+      "text": "전투 시작 시 아군 전체 마나 +30. 아군이 적을 처치하면 그 유닛의 마나 +10.",
+      "effects": [
+        {
+          "kind": "combatStart",
+          "effects": [
+            {
+              "kind": "manaGain",
+              "selector": "allAllies",
+              "amount": 30
+            }
+          ]
+        },
+        {
+          "kind": "killMana",
+          "amount": 10
+        }
+      ]
+    },
+    {
+      "id": "phoenix_ember",
+      "name": "불사조의 잔불",
+      "rarity": "boss",
+      "text": "전투 승리 시 지휘관 HP +4, 야영지 휴식 회복량 +20%p.",
+      "effects": [
+        {
+          "kind": "winHeal",
+          "amount": 4
+        },
+        {
+          "kind": "campHeal",
+          "pct": 20
+        }
+      ]
+    },
+    {
+      "id": "arcane_codex",
+      "name": "대마도서",
+      "rarity": "boss",
+      "text": "주문 카드 피해 +40%, 전투 시작 CP +1.",
+      "unlock": "액트 1 보스 처치",
+      "effects": [
+        {
+          "kind": "spellDamage",
+          "pct": 40
+        },
+        {
+          "kind": "startCp",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "id": "strategist_satchel",
+      "name": "대전략가의 가방",
+      "rarity": "boss",
+      "text": "손패 상한 +1, 전투 준비 때 카드 2장 더 뽑기.",
+      "unlock": "런 1회 완료",
+      "effects": [
+        {
+          "kind": "handLimit",
+          "amount": 1
+        },
+        {
+          "kind": "openingDraw",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "master_forge",
+      "name": "명장의 대장간",
+      "rarity": "boss",
+      "text": "획득 즉시 덱의 카드 4장을 무작위로 강화. 카드 보상 선택지 +1장.",
+      "unlock": "정예 10회 처치",
+      "effects": [
+        {
+          "kind": "upgradeOnAcquire",
+          "count": 4
+        },
+        {
+          "kind": "rewardChoices",
+          "amount": 1
+        }
+      ]
+    },
+    {
+      "id": "grand_banner",
+      "name": "대군기",
+      "rarity": "boss",
+      "text": "같은 특성의 아군 유닛이 4기 이상이면 그 특성 단계 +1.",
+      "unlock": "액트 2 보스 처치",
+      "effects": [
+        {
+          "kind": "traitTierBonus",
+          "minUnits": 4
         }
       ]
     }

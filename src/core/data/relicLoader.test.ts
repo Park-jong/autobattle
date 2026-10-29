@@ -17,9 +17,9 @@ function errorOf(edit: (d: Data) => void): string {
 }
 
 describe('loadRelics', () => {
-  it('실제 data/relics.json 20개가 검증을 통과하고 id로 조회된다', () => {
+  it('실제 data/relics.json 28개가 검증을 통과하고 id로 조회된다', () => {
     const catalog = loadRelics(relicsJson);
-    expect(catalog.size).toBe(20);
+    expect(catalog.size).toBe(28);
     expect(catalog.get('old_baton')).toMatchObject({ name: '낡은 지휘봉', rarity: 'common', effects: [{ kind: 'startCp', amount: 1 }] });
     expect(catalog.get('nope')).toBeUndefined();
   });

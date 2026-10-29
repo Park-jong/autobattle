@@ -52,7 +52,7 @@ describe('RunSession: 메타 해금과 런 시작', () => {
     const saved = JSON.parse(h.storage.read()!) as { runId: string; allowedRelics: string[] };
     expect(saved.runId).toBe('run-1');
     expect(saved.allowedRelics).not.toContain('twin_mirror');
-    expect(saved.allowedRelics.length).toBe(gameData.run.relics.relics.length - 11);
+    expect(saved.allowedRelics.length).toBe(gameData.run.relics.relics.length - 12); // 잠긴 유물 12개(희귀 8 + 보스 4) 제외
   });
 
   it('시작 화면 스냅샷에 전공 포인트와 지휘관 잠금 정보가 나온다', () => {
