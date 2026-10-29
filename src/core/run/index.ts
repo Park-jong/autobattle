@@ -12,8 +12,8 @@ export { EventDirector, type ChoiceView, type EventHost, type EventSessionState,
 export { PlayerForces, type ForcesState } from './forces';
 export { RunRoster, type RosterGate } from './runRoster';
 export {
-  RUN_PHASES, RunState, TEST_START_POSITIONS,
-  type BattleSettlement, type NodeSession, type RunOutcome, type RunPhase, type RunRecord, type TestRunInfo, type TestStartPosition,
+  RUN_PHASES, RunState, TEST_START_POSITIONS, emptyRunStats,
+  type BattleSettlement, type NodeSession, type RunOutcome, type RunStats, type RunPhase, type RunRecord, type TestRunInfo, type TestStartPosition,
 } from './runState';
 export {
   TEST_LIMITS, TestRunTools, forceCombatResult, isSkippedRecord,

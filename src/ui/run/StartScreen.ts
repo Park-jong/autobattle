@@ -1,5 +1,6 @@
 import { button, el, tagged } from './dom';
 import type { RunCommands, RunSnapshot, TestCommands } from './contracts';
+import { MetaPanel } from './MetaPanel';
 import { TestStartPanel } from './TestStartPanel';
 
 /** 시작 화면: 새 런(시드 표시·입력) / 이어하기 / 경제 플레이 / 편성 디버그 */
@@ -15,9 +16,12 @@ export class StartScreen {
   private selectedCommander: string | null = null;
   /** 테스트 시작 패널 (입력 상태를 유지하려고 한 번만 만들어 다시 그릴 때마다 같은 노드를 붙인다) */
   private readonly testPanel: TestStartPanel;
+  /** 전공(메타 진행) 패널 */
+  private readonly metaPanel: MetaPanel;
 
   constructor(private readonly commands: RunCommands, testCommands: TestCommands) {
     this.testPanel = new TestStartPanel(testCommands);
+    this.metaPanel = new MetaPanel(commands);
     this.seedInput.type = 'text';
     this.seedInput.inputMode = 'numeric';
     this.seedInput.setAttribute('aria-label', '시드');
@@ -41,10 +45,13 @@ export class StartScreen {
     const card = el('div', 'run-start-card');
     card.append(el('h1', 'run-title', '전술 지휘관'), el('p', 'run-subtitle', '오토체스 + 덱빌딩 로그라이크 · 3액트 (액트당 13층)'));
 
+    card.append(tagged(el('p', 'run-meta-points-line', start.meta.status === 'ok' ? `보유 전공 ${start.meta.points}` : '전공 기록 손상'), 'meta-points'));
     card.append(this.commanderPicker(start));
     const seedRow = el('label', 'run-seed-row');
     seedRow.append(el('span', '', '시드'), this.seedInput);
     const newRun = tagged(button('새 런', () => this.startNew(), 'dbg-btn dbg-primary run-big-button'), 'new-run');
+    const blocked = this.newRunBlockedReason(start);
+    newRun.disabled = blocked !== null;
     card.append(seedRow, el('p', 'dbg-hint', '같은 시드는 같은 맵·적·보상을 만듭니다. 비워 두면 위의 제안 시드를 씁니다.'));
     if (this.confirming && start.save.kind === 'ok') {
       const s = start.save.summary;
@@ -57,6 +64,7 @@ export class StartScreen {
       card.append(box);
     } else {
       card.append(newRun);
+      if (blocked) card.append(tagged(el('p', 'dbg-hint run-new-blocked', blocked), 'new-run-blocked'));
     }
 
     const save = start.save;
@@ -82,6 +90,8 @@ export class StartScreen {
       tagged(button('편성 디버그', () => this.commands.openDebug()), 'open-debug'),
     );
     card.append(legacy);
+    this.metaPanel.render(snap);
+    card.append(this.metaPanel.root);
     this.testPanel.render(start);
     card.append(this.testPanel.root);
     this.root.replaceChildren(card);
@@ -99,7 +109,10 @@ export class StartScreen {
     box.append(el('h2', 'run-commanders-title', '지휘관 선택'));
     const list = el('div', 'run-commander-list');
     for (const c of start.commanders) {
-      const root = tagged(el('button', `run-commander${c.id === selected ? ' selected' : ''}`), `commander-${c.id}`);
+      const lock = start.meta.commanders[c.id];
+      const locked = lock !== undefined && lock.state !== 'unlocked';
+      const slot = el('div', 'run-commander-slot');
+      const root = tagged(el('button', `run-commander${c.id === selected ? ' selected' : ''}${locked ? ' locked' : ''}`), `commander-${c.id}`);
       root.type = 'button';
       root.setAttribute('aria-pressed', String(c.id === selected));
       root.addEventListener('click', () => {
@@ -114,15 +127,42 @@ export class StartScreen {
         el('p', 'run-commander-line', `시작 유닛: ${c.units.join(', ')}`),
         el('p', 'run-commander-line', `시작 덱 ${c.deckCount}장: ${c.deck.join(', ')}`),
       );
-      if (c.unlock) root.append(el('p', 'run-commander-unlock', `해금 조건: ${c.unlock} (메타 진행 구현 전까지 모두 선택 가능)`));
-      list.append(root);
+      if (locked && lock) {
+        const box = tagged(el('div', 'run-commander-lock'), `commander-lock-${c.id}`);
+        box.append(
+          el('strong', '', '잠김'),
+          el('p', '', `해금 조건: ${lock.conditionText}`),
+          el('p', '', `진행도 ${lock.progressText}`),
+        );
+        const buy = tagged(button(lock.purchaseLabel, () => this.commands.purchaseUnlock(c.id), 'dbg-btn'), `unlock-commander-${c.id}`);
+        buy.disabled = !lock.canPurchase;
+        box.append(buy);
+        slot.append(root, box);
+      } else {
+        slot.append(root);
+      }
+      list.append(slot);
     }
     box.append(list);
     return box;
   }
 
+  /** 새 런을 시작할 수 없는 사유 (시작할 수 있으면 null): 전공 기록 손상 / 선택한 지휘관이 잠김 */
+  private newRunBlockedReason(start: NonNullable<RunSnapshot['start']>): string | null {
+    if (start.meta.status === 'broken') return '전공 기록이 손상되어 새 런을 시작할 수 없습니다. 아래 "전공"에서 초기화하세요.';
+    const id = this.commanderId(start);
+    const lock = start.meta.commanders[id];
+    if (lock && lock.state !== 'unlocked') {
+      const name = start.commanders.find((c) => c.id === id)?.name ?? id;
+      return `${name}은(는) 아직 잠겨 있습니다. 조건(${lock.conditionText})을 달성하거나 전공 ${lock.price}으로 해금하세요.`;
+    }
+    return null;
+  }
+
   /** 저장본이 있으면 덮어쓰기 확인 단계를 먼저 보여 주고, 없으면 바로 시작한다 */
   private startNew(): void {
+    const start = this.lastSnapshot?.start;
+    if (start && this.newRunBlockedReason(start) !== null) return;
     if (this.lastSnapshot?.start?.save.kind === 'ok' && !this.confirming) {
       this.confirming = true;
       this.render(this.lastSnapshot);

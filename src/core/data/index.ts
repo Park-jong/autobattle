@@ -24,3 +24,6 @@ export { EffectValidator, type EffectValidatorOptions } from './effectValidator'
 export * from './relic';
 export * from './relicLoader';
 export { RelicValidator } from './relicValidator';
+export * from './meta';
+export * from './metaLoader';
+export { MetaValidator } from './metaValidator';

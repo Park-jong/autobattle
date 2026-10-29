@@ -17,7 +17,7 @@ import { RUN } from './constants';
 import type { EventSessionState, PendingPick } from './eventDirector';
 import { PlayerForces, type ForcesState } from './forces';
 import { NODE_TYPES, RunMap, type MapNode, type SerializedMap } from './runMap';
-import { RunState, RUN_PHASES, TEST_START_POSITIONS, type NodeSession, type RunOutcome, type RunPhase, type RunRecord, type TestRunInfo } from './runState';
+import { RunState, RUN_PHASES, TEST_START_POSITIONS, emptyRunStats, type RunStats, type NodeSession, type RunOutcome, type RunPhase, type RunRecord, type TestRunInfo } from './runState';
 
 export const SAVE_FORMAT = 'autochess-run';
 
@@ -50,6 +50,12 @@ export interface RunSave {
   history: RunRecord[];
   /** v3의 선택 필드. 있으면 플레이 테스트 런이다 (일반 런 저장본에는 이 필드가 없다) */
   test?: TestRunInfo;
+  /** v3의 선택 필드(메타 진행). 메타 정산용 런 통계 — 없으면 0·false로 시작한다 (기본값이면 저장하지 않음) */
+  stats?: RunStats;
+  /** v3의 선택 필드. 메타 정산 중복 방지용 런 식별자 */
+  runId?: string;
+  /** v3의 선택 필드. 런 시작 때 허용된 유물 id(메타 해금). 없으면 모든 유물 허용. 카탈로그에 없는 id는 복원할 때 무시한다 */
+  allowedRelics?: string[];
 }
 
 /** 복원에 필요한 데이터 카탈로그 */
@@ -61,6 +67,11 @@ export interface SerializerDeps {
   relics: RelicCatalog;
   migrations: ContentMigrations;
 }
+
+const isDefaultStats = (stats: RunStats): boolean => {
+  const empty = emptyRunStats();
+  return stats.ultimateUses === empty.ultimateUses && stats.bossEntryGold === empty.bossEntryGold && stats.unitStar3 === empty.unitStar3;
+};
 
 const SESSION_BY_PHASE: Readonly<Record<SavedPhase, NodeSession['kind'] | null>> = {
   map: null, battlePrep: 'battle', reward: 'reward', bossRelic: 'bossRelic', actIntro: 'actIntro', shop: 'shop', event: 'event', camp: 'camp', ended: null,
@@ -91,6 +102,9 @@ export class RunSerializer {
       outcome: state.outcome,
       history: state.history.map((record) => ({ ...record })),
       ...(state.test ? { test: { ...state.test } } : {}),
+      ...(isDefaultStats(state.stats) ? {} : { stats: { ...state.stats } }),
+      ...(state.runId !== null ? { runId: state.runId } : {}),
+      ...(state.allowedRelics !== null ? { allowedRelics: [...state.allowedRelics] } : {}),
     };
   }
 
@@ -104,7 +118,7 @@ export class RunSerializer {
     // v1에는 유물 필드가 없다: 하르텐(commanderId는 v1에도 있음)·유물 없음으로 읽는다.
     // v1·v2에는 액트 필드가 없다: 단일 `map`을 액트 1의 맵으로 읽는다 (v3는 `maps`와 `totalActs`)
     const keys = ['format', 'version', 'contentVersion', 'seed', 'commanderId', 'deckPreset', 'position', 'health', 'forces', 'removals', 'seenEvents', 'phase', 'session', 'outcome', 'history'];
-    r.onlyKeys([...keys, ...(version >= 2 ? ['relics'] : []), ...(version >= 3 ? ['maps', 'totalActs', 'test'] : ['map'])]);
+    r.onlyKeys([...keys, ...(version >= 2 ? ['relics'] : []), ...(version >= 3 ? ['maps', 'totalActs', 'test', 'stats', 'runId', 'allowedRelics'] : ['map'])]);
 
     if (r.has('contentVersion') && r.int('contentVersion', 0) > this.deps.migrations.current) {
       r.fail('contentVersion', `현재 게임의 콘텐츠 버전(${this.deps.migrations.current})보다 높음`);
@@ -125,6 +139,9 @@ export class RunSerializer {
     const totalActs = this.parseTotalActs(r, version, maps.length, phase, outcome);
     const state = new RunState(seed, commanderId, deckPreset, maps, health, forces, totalActs);
     if (r.has('test')) state.test = this.parseTestInfo(r.object('test'), totalActs, maps.length);
+    if (r.has('stats')) state.stats = this.parseStats(r.object('stats'));
+    if (r.has('runId')) state.runId = r.string('runId');
+    if (r.has('allowedRelics')) state.allowedRelics = this.parseAllowedRelics(r);
 
     const position = r.object('position');
     position.onlyKeys(['currentNodeId', 'visited']);
@@ -160,6 +177,23 @@ export class RunSerializer {
     state.history = r.array('history').map((raw, i) => this.parseRecord(raw, `run.history[${i}]`, state));
     this.checkConsistency(r, position, state);
     return state;
+  }
+
+  private parseStats(s: FieldReader): RunStats {
+    s.onlyKeys(['ultimateUses', 'bossEntryGold', 'unitStar3']);
+    return { ultimateUses: s.int('ultimateUses', 0), bossEntryGold: s.int('bossEntryGold', 0), unitStar3: s.boolean('unitStar3') };
+  }
+
+  /** 허용 유물: 문자열 배열(중복 불가). 현재 relics.json에 없는 id는 무시한다 (콘텐츠 변경으로 사라진 유물이 저장본을 막지 않게) */
+  private parseAllowedRelics(r: FieldReader): string[] {
+    const seen = new Set<string>();
+    const ids = r.array('allowedRelics').map((id, i) => {
+      if (typeof id !== 'string' || id === '') r.fail(`allowedRelics[${i}]`, `비어 있지 않은 문자열이어야 함 (실제: ${JSON.stringify(id)})`);
+      if (seen.has(id as string)) r.fail(`allowedRelics[${i}]`, `중복된 유물 "${id as string}"`);
+      seen.add(id as string);
+      return id as string;
+    });
+    return ids.filter((id) => this.deps.relics.get(id) !== undefined);
   }
 
   /** 테스트 런 표시: 시작 액트는 전체 액트 수 이하이고 지금 액트보다 뒤일 수 없다 */

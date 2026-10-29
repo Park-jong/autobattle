@@ -15,6 +15,10 @@ function toLegacy(save: any, version: 1 | 2): any {
   legacy.map = legacy.maps[0];
   delete legacy.maps;
   delete legacy.totalActs;
+  // v3 선택 필드(메타 진행): v1·v2에는 없다
+  delete legacy.stats;
+  delete legacy.runId;
+  delete legacy.allowedRelics;
   if (version === 1) {
     delete legacy.relics;
     if (legacy.session?.kind === 'reward') delete legacy.session.relic;

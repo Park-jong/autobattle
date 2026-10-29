@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { driveTo, grantGold } from '../../core/run/testSupport';
-import { createHarness } from './testSupport';
+import { allUnlockedMeta, createHarness } from './testSupport';
 
 describe('RunSession: 지휘관 선택', () => {
   it('시작 화면 스냅샷에 지휘관 3명이 나오고 기본은 하르텐', () => {
-    const h = createHarness();
+    const h = createHarness(undefined, 42, allUnlockedMeta());
     const start = h.session.snapshot().start!;
     expect(start.commanders.map((c) => c.id)).toEqual(['cmd_harten', 'cmd_isera', 'cmd_nox']);
     expect(start.defaultCommanderId).toBe('cmd_harten');
@@ -13,7 +13,7 @@ describe('RunSession: 지휘관 선택', () => {
   it.each([
     ['cmd_harten', 80], ['cmd_isera', 70], ['cmd_nox', 65],
   ] as const)('newRun(seed, %s)로 그 지휘관의 런이 열린다', (id, hp) => {
-    const h = createHarness();
+    const h = createHarness(undefined, 42, allUnlockedMeta());
     h.session.newRun(5, id);
     const snap = h.session.snapshot();
     expect(snap.screen).toBe('map');
@@ -22,17 +22,17 @@ describe('RunSession: 지휘관 선택', () => {
   });
 
   it('지휘관을 생략하면 기본 지휘관, 모르는 지휘관은 알림 오류', () => {
-    const h = createHarness();
+    const h = createHarness(undefined, 42, allUnlockedMeta());
     h.session.newRun(5);
     expect(h.session.snapshot().hud!.commanderName).toContain('하르텐');
-    const bad = createHarness();
+    const bad = createHarness(undefined, 42, allUnlockedMeta());
     bad.session.newRun(5, 'cmd_nope');
     expect(bad.session.snapshot().screen).toBe('start');
     expect(bad.session.snapshot().notice?.message).toContain('알 수 없는 지휘관');
   });
 
   it('선택한 지휘관의 전투 화면: 궁극기 이름이 손패 패널에 나온다', () => {
-    const h = createHarness();
+    const h = createHarness(undefined, 42, allUnlockedMeta());
     h.session.newRun(5, 'cmd_isera');
     h.session.chooseNode(h.session.snapshot().map!.availableIds[0]!);
     expect(h.battle.cardView().ultimate).toMatchObject({ name: '대분화', charge: 0 });
@@ -42,7 +42,7 @@ describe('RunSession: 지휘관 선택', () => {
 
 describe('RunSession: 유물', () => {
   it('정예 보상 화면에서 유물 받기 → HUD에 표시, 카드를 고르면 남은 유물도 함께 받는다', () => {
-    const h = createHarness();
+    const h = createHarness(undefined, 42, allUnlockedMeta());
     h.session.newRun(1, 'cmd_nox');
     const run = (h.session as unknown as { controller: Parameters<typeof driveTo>[0] }).controller;
     driveTo(run, 'elite');
@@ -67,7 +67,7 @@ describe('RunSession: 유물', () => {
     expect(snap.hud!.relics.map((r) => r.name)).toEqual([relicName]);
 
     // 다른 쪽 흐름: 유물을 따로 받지 않고 카드만 골라도 유물이 따라온다
-    const h2 = createHarness();
+    const h2 = createHarness(undefined, 42, allUnlockedMeta());
     h2.session.newRun(1, 'cmd_nox');
     const run2 = (h2.session as unknown as { controller: Parameters<typeof driveTo>[0] }).controller;
     driveTo(run2, 'elite');
@@ -87,7 +87,7 @@ describe('RunSession: 유물', () => {
   });
 
   it('상점에서 유물을 사면 골드가 줄고 HUD·저장에 반영된다', () => {
-    const h = createHarness();
+    const h = createHarness(undefined, 42, allUnlockedMeta());
     h.session.newRun(5);
     const run = (h.session as unknown as { controller: Parameters<typeof driveTo>[0] }).controller;
     driveTo(run, 'shop');
@@ -108,7 +108,7 @@ describe('RunSession: 유물', () => {
   });
 
   it('이어하기: 지휘관과 유물이 저장에서 그대로 복원된다', () => {
-    const h = createHarness();
+    const h = createHarness(undefined, 42, allUnlockedMeta());
     h.session.newRun(5, 'cmd_isera');
     const run = (h.session as unknown as { controller: Parameters<typeof driveTo>[0] }).controller;
     driveTo(run, 'shop');

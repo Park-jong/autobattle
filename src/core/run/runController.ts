@@ -13,6 +13,7 @@ import type { TraitCatalog } from '../data/traitLoader';
 import type { UnitCatalog } from '../data/unitLoader';
 import type { BattleKind, BattleOutcome, EconomyView } from '../economy';
 import type { PromotionQuote } from '../management';
+import type { RunSummary, RunUnlocks } from '../meta';
 import { Rng } from '../rng';
 import { discounted, generateCardStock, removalPrice, type ShopCardSlot } from './cardMarket';
 import { CardRewardGenerator } from './cardRewards';
@@ -50,6 +51,13 @@ export interface RunOptions {
   deckPreset?: DeckPreset;
   /** 전체 액트 수 (기본 3, 1이면 액트 1 보스 처치가 곧 승리 — 헤드리스 회귀 비교용) */
   acts?: number;
+  /**
+   * 메타 해금 결과(허용 지휘관·유물). 주면 잠긴 지휘관으로는 런을 만들 수 없고, 유물 후보는 허용된 유물만 나온다
+   * (허용 유물은 런에 저장되어 도중에 메타가 바뀌어도 이 런의 후보는 그대로다). 생략하면 모두 허용 — 테스트 런·헤드리스·디버그가 쓰는 기본값
+   */
+  unlocks?: RunUnlocks;
+  /** 메타 정산 중복 방지용 런 식별자 (저장됨). 메타 정산을 하려면 호출자가 새 런마다 다르게 정해 준다 */
+  runId?: string;
 }
 
 export type RunResult = { ok: true } | { ok: false; reason: string };
@@ -133,7 +141,7 @@ export class RunController {
   ) {
     this.planner = new EncounterPlanner(deps.units, deps.encounters, state.seed);
     this.rewards = new CardRewardGenerator(deps.cards, state.commanderId);
-    this.relicRewards = new RelicRewardGenerator(deps.relics);
+    this.relicRewards = new RelicRewardGenerator(deps.relics, state.allowedRelics);
     this.director = new EventDirector(deps.events, this.rewards, state.seed, deps.cards);
     this.serializer = new RunSerializer(deps);
     this.roster = new RunRoster(state.forces.management, {
@@ -157,6 +165,9 @@ export class RunController {
     const commanderId = options.commanderId ?? RUN.DEFAULT_COMMANDER_ID;
     const commander = deps.commanders.get(commanderId);
     if (!commander) throw new Error(`알 수 없는 지휘관 "${commanderId}"`);
+    if (options.unlocks && !options.unlocks.commanders.includes(commanderId)) {
+      throw new Error(`아직 해금하지 않은 지휘관입니다: ${commander.name}`);
+    }
     const preset = options.deckPreset ?? 'starter';
     const seed = normalizeRunSeed(options.seed); // 이후 모든 파생은 저장되는 값과 같은 시드를 쓴다
     const totalActs = options.acts ?? RUN.ACTS.COUNT;
@@ -171,6 +182,8 @@ export class RunController {
     );
     const health = new CommanderHealth(commander.maxHp ?? RUN.START_HP);
     const state = new RunState(seed, commander.id, preset, [new MapGenerator().generate(seed, 1)], health, forces, totalActs);
+    state.runId = options.runId ?? null;
+    state.allowedRelics = options.unlocks ? [...options.unlocks.relics] : null;
     return new RunController(deps, state);
   }
 
@@ -220,6 +233,10 @@ export class RunController {
   get actInfo(): { name: string; region: string; text: string } { return RUN.ACTS.INFO[this.state.act - 1] as { name: string; region: string; text: string }; }
   /** 테스트 런 표시 (일반 런이면 null) */
   get testInfo(): TestRunInfo | null { return this.state.test; }
+  /** 메타 정산용 런 식별자 (없으면 null) */
+  get runId(): string | null { return this.state.runId; }
+  /** 런을 시작할 때 허용된 유물 id (모두 허용이면 null) */
+  get allowedRelics(): readonly string[] | null { return this.state.allowedRelics; }
   get commander(): CommanderDef { return this.deps.commanders.get(this.state.commanderId) as CommanderDef; }
   get hp(): number { return this.state.health.hp; }
   get maxHp(): number { return this.state.health.max; }
@@ -391,6 +408,8 @@ export class RunController {
     if (curseGoldLost > 0) forces.economy.spend(curseGoldLost);
     forces.finishBattle(sim.deck.serialize(), sim.equippedItems);
     ticket.settled = true;
+    this.state.stats.ultimateUses += result.events.filter((e) => e.type === 'ultimateUsed').length;
+    this.observeStar3();
 
     this.state.history.push({
       nodeId: node.id, floor: node.floor, type: node.type, outcome, endTime: result.endTime,
@@ -657,12 +676,77 @@ export class RunController {
     return OK;
   }
 
+  // ---- 메타 정산 입력 ----
+
+  /**
+   * 런 식별자가 없는 런(메타 진행 도입 이전 저장본)에 식별자를 한 번만 붙인다. 이미 있으면 거부한다 (정산 중복 방지가 깨지지 않게).
+   * 테스트 런은 정산 대상이 아니므로 붙이지 않는다.
+   */
+  assignRunId(runId: string): RunResult {
+    if (runId === '') return fail('런 식별자는 비어 있을 수 없습니다');
+    if (this.state.test) return fail('테스트 런에는 런 식별자를 붙이지 않습니다');
+    if (this.state.runId !== null) return fail('이미 런 식별자가 있습니다');
+    this.state.runId = runId;
+    return OK;
+  }
+
+  /**
+   * 메타 진행에 정산할 요약. 런이 끝난 뒤(outcome가 있을 때)에만 정산할 수 있고, 진행 중에도 지금까지의 값을 볼 수 있다.
+   * 통계 정의: 도달 층 = 입장한 노드의 전체 층 최대, 보스 처치 = 보스 승리 기록의 액트, 정예 처치 = 정예 승리 기록 수,
+   * 상점 방문 = 입장한 상점 노드 수, 3성 = 전투·노드 입장·요약 시점에 보드·벤치에 3성 이상이 있었는가.
+   */
+  runSummary(): RunSummary {
+    const { history, visited, stats } = this.state;
+    const deck = this.state.forces.deck;
+    const acts = new Set<number>();
+    let eliteKills = 0;
+    for (const record of history) {
+      if (record.outcome !== 'win') continue;
+      if (record.type === 'elite') eliteKills += 1;
+      if (record.type === 'boss') acts.add(this.state.findNode(record.nodeId)?.act ?? 1);
+    }
+    let floorsReached = 0;
+    let shopVisits = 0;
+    for (const id of visited) {
+      const found = this.state.findNode(id);
+      if (!found) continue;
+      floorsReached = Math.max(floorsReached, globalFloor(found.act, found.node.floor));
+      if (found.node.type === 'shop') shopVisits += 1;
+    }
+    return {
+      runId: this.state.runId,
+      test: this.state.test !== null,
+      commanderId: this.state.commanderId,
+      outcome: this.state.outcome,
+      floorsReached,
+      bossActsKilled: [...acts].sort((a, b) => a - b),
+      eliteKills,
+      ultimateUses: stats.ultimateUses,
+      shopVisits,
+      unitStar3: stats.unitStar3 || this.hasStar3(),
+      bossEntryGold: stats.bossEntryGold,
+      deckSize: deck.draw.length + deck.hand.length + deck.discard.length + deck.exhaust.length,
+    };
+  }
+
   // ---- 내부 ----
+
+  /** 보드·벤치에 3성 이상 유닛이 있는가 */
+  private hasStar3(): boolean {
+    const board = this.state.forces.management.snapshot();
+    return [...board.board, ...board.bench].some((u) => u !== null && u.star >= 3);
+  }
+
+  private observeStar3(): void {
+    if (!this.state.stats.unitStar3 && this.hasStar3()) this.state.stats.unitStar3 = true;
+  }
 
   /** 노드에 입장한다: 위치·입장 기록을 갱신하고 노드 종류별 화면 상태를 연다 */
   private visitNode(node: MapNode): void {
     this.state.currentNodeId = node.id;
     this.state.visited.push(node.id);
+    this.observeStar3();
+    if (node.type === 'boss') this.state.stats.bossEntryGold = Math.max(this.state.stats.bossEntryGold, this.state.forces.economy.gold);
     this.state.forces.relics.beginNode();
     this.enter(node);
   }
