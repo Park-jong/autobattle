@@ -264,3 +264,11 @@
 .run-end-unlocks { margin: 6px 0 0; padding-left: 18px; font-size: 12px; color: #8fd0a0; }
 .run-end-meta.failed { border-color: #7a3a3a; color: #ff9a8a; }
 .run-end-meta.test { border-color: #a07be0; }
+
+/* 위협 레벨 */
+.run-threat-badge { padding: 2px 8px; background: #6b1f1f; border: 1px solid #e07b7b; border-radius: 4px; }
+.run-threat-badge .run-hud-value { color: #ffd6d6; }
+.run-threat { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.run-threat-select { width: 100%; }
+.run-threat-penalties { margin: 0; padding-left: 18px; font-size: 12px; color: #c9b0b0; display: flex; flex-direction: column; gap: 2px; }
+.run-end-threat-unlock { color: #ffd54a; font-weight: 600; }

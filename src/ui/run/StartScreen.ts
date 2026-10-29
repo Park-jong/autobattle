@@ -2,6 +2,27 @@ import { button, el, tagged } from './dom';
 import type { RunCommands, RunSnapshot, TestCommands } from './contracts';
 import { MetaPanel } from './MetaPanel';
 import { TestStartPanel } from './TestStartPanel';
+import { clampThreatLevel } from './threatViews';
+
+/** 마지막으로 고른 위협 레벨을 기억하는 localStorage 키 (보는 사람 편의용. 실패해도 게임에는 영향 없음) */
+const THREAT_PREF_KEY = 'autochess-threat-level';
+
+function readThreatPref(): number {
+  try {
+    const value = Number(globalThis.localStorage?.getItem(THREAT_PREF_KEY) ?? 0);
+    return Number.isInteger(value) ? value : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function writeThreatPref(level: number): void {
+  try {
+    globalThis.localStorage?.setItem(THREAT_PREF_KEY, String(level));
+  } catch {
+    // 저장소를 쓸 수 없어도 선택 자체는 유지된다
+  }
+}
 
 /** 시작 화면: 새 런(시드 표시·입력) / 이어하기 / 경제 플레이 / 편성 디버그 */
 export class StartScreen {
@@ -14,6 +35,8 @@ export class StartScreen {
   private lastSnapshot: RunSnapshot | null = null;
   /** 선택한 지휘관 id (아직 고르지 않았으면 기본 지휘관) */
   private selectedCommander: string | null = null;
+  /** 선택한 위협 레벨 (마지막으로 고른 값을 기억해 두었다가 해금된 범위로 맞춘다) */
+  private selectedThreat = readThreatPref();
   /** 테스트 시작 패널 (입력 상태를 유지하려고 한 번만 만들어 다시 그릴 때마다 같은 노드를 붙인다) */
   private readonly testPanel: TestStartPanel;
   /** 전공(메타 진행) 패널 */
@@ -47,6 +70,7 @@ export class StartScreen {
 
     card.append(tagged(el('p', 'run-meta-points-line', start.meta.status === 'ok' ? `보유 전공 ${start.meta.points}` : '전공 기록 손상'), 'meta-points'));
     card.append(this.commanderPicker(start));
+    card.append(this.threatPicker(start));
     const seedRow = el('label', 'run-seed-row');
     seedRow.append(el('span', '', '시드'), this.seedInput);
     const newRun = tagged(button('새 런', () => this.startNew(), 'dbg-btn dbg-primary run-big-button'), 'new-run');
@@ -147,6 +171,41 @@ export class StartScreen {
     return box;
   }
 
+  private threatLevel(start: NonNullable<RunSnapshot['start']>): number {
+    return clampThreatLevel(this.selectedThreat, start.threat);
+  }
+
+  /** 위협 레벨 선택: 해금된 레벨만 고를 수 있고, 고른 레벨의 누적 패널티와 전공 보너스를 보여 준다 */
+  private threatPicker(start: NonNullable<RunSnapshot['start']>): HTMLElement {
+    const picker = start.threat;
+    const level = this.threatLevel(start);
+    const row = picker.rows[level];
+    const box = tagged(el('div', 'run-threat'), 'threat-picker');
+    box.append(el('h2', 'run-commanders-title', '위협 레벨'));
+    const select = tagged(el('select', 'dbg-input run-threat-select'), 'threat-select');
+    select.setAttribute('aria-label', '위협 레벨');
+    for (const entry of picker.rows) {
+      const option = new Option(entry.selectable ? entry.label : `${entry.label} (잠김 — ${entry.lockText})`, String(entry.level));
+      option.disabled = !entry.selectable;
+      select.append(option);
+    }
+    select.value = String(level);
+    select.addEventListener('change', () => {
+      this.selectedThreat = Number(select.value);
+      writeThreatPref(this.selectedThreat);
+      if (this.lastSnapshot) this.render(this.lastSnapshot);
+    });
+    box.append(select);
+    if (row) {
+      box.append(tagged(el('p', 'dbg-hint', row.bonusText), 'threat-bonus'));
+      const list = tagged(el('ul', 'run-threat-penalties'), 'threat-penalties');
+      if (row.penalties.length === 0) list.append(el('li', '', '패널티 없음'));
+      for (const p of row.penalties) list.append(el('li', '', `레벨 ${p.level} ${p.name}: ${p.text}`));
+      box.append(list);
+    }
+    return box;
+  }
+
   /** 새 런을 시작할 수 없는 사유 (시작할 수 있으면 null): 전공 기록 손상 / 선택한 지휘관이 잠김 */
   private newRunBlockedReason(start: NonNullable<RunSnapshot['start']>): string | null {
     if (start.meta.status === 'broken') return '전공 기록이 손상되어 새 런을 시작할 수 없습니다. 아래 "전공"에서 초기화하세요.';
@@ -181,7 +240,8 @@ export class StartScreen {
     const text = this.seedInput.value.trim();
     const start = this.lastSnapshot?.start;
     const commanderId = start ? this.commanderId(start) : undefined;
-    if (text === '') return this.commands.newRun(null, commanderId);
-    this.commands.newRun(/^-?\d+$/.test(text) ? Number(text) : Number.NaN, commanderId);
+    const threatLevel = start ? this.threatLevel(start) : 0;
+    if (text === '') return this.commands.newRun(null, commanderId, threatLevel);
+    this.commands.newRun(/^-?\d+$/.test(text) ? Number(text) : Number.NaN, commanderId, threatLevel);
   }
 }

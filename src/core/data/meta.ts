@@ -35,6 +35,8 @@ export interface PointsRule {
   perElite: number;
   /** 최종 승리 보너스 */
   victoryBonus: number;
+  /** 위협 레벨 1단계당 전공 포인트 추가 비율(%). 런 포인트 합계 × (100 + 이 값 × 레벨) / 100을 반올림한다 */
+  threatBonusPctPerLevel: number;
 }
 
 export interface MetaFile {

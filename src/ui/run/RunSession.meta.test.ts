@@ -17,7 +17,7 @@ function metaWithPoints(floors: number, settle = true): MemoryRunStorage {
   const progress = new MetaProgress(gameData.meta);
   if (settle) {
     progress.settleRun({
-      runId: 'seed-run', test: false, commanderId: 'cmd_harten', outcome: 'dead', floorsReached: floors, bossActsKilled: [], eliteKills: 0,
+      runId: 'seed-run', threatLevel: 0, test: false, commanderId: 'cmd_harten', outcome: 'dead', floorsReached: floors, bossActsKilled: [], eliteKills: 0,
       ultimateUses: 0, shopVisits: 0, unitStar3: false, bossEntryGold: 0, deckSize: 10,
     });
   }

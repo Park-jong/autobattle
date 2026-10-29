@@ -18,6 +18,7 @@
  *   --commander ID  지휘관 (기본 cmd_harten)
  *   --deck starter|test   덱 프리셋 (기본 starter)
  *   --acts N        액트 수 1~3 (기본 3). 1이면 액트 1 보스 처치가 승리이고 출력 형식도 3액트 이전과 같다
+ *   --threat N      위협 레벨 0~10 (기본 0 = 패널티 없음, 출력도 변경 전과 같다). 해금과 무관하게 아무 레벨이나 쓴다
  *   --verbose       런마다 한 줄씩 출력
  *
  * 정책(밸런스 확인용): 보드를 채우고 가장 싼 유닛을 구매, 인구가 차고 골드가 넉넉하면 경험치 구매, 카드 보상은 첫 장,
@@ -37,6 +38,7 @@ interface Args {
   commander: string;
   deck: 'starter' | 'test';
   acts: number;
+  threat: number;
   verbose: boolean;
   relics: boolean;
   ultimate: boolean;
@@ -50,7 +52,7 @@ function defaultPlan(commander: string): string {
 
 function parseArgs(argv: string[]): Args {
   const flags = new Set(['verbose', 'no-cards', 'no-relics', 'no-ultimate']);
-  const options = new Set(['seed', 'n', 'path', 'plan', 'commander', 'deck', 'acts']);
+  const options = new Set(['seed', 'n', 'path', 'plan', 'commander', 'deck', 'acts', 'threat']);
   const values = new Map<string, string>();
   for (let i = 0; i < argv.length; i++) {
     const key = argv[i];
@@ -76,8 +78,10 @@ function parseArgs(argv: string[]): Args {
   const commander = values.get('commander') ?? 'cmd_harten';
   const acts = Number(values.get('acts') ?? '3');
   if (!Number.isInteger(acts) || acts < 1 || acts > 3) throw new Error('--acts는 1~3의 정수여야 함');
+  const threat = Number(values.get('threat') ?? '0');
+  if (!Number.isInteger(threat) || threat < 0 || threat > 10) throw new Error('--threat는 0~10의 정수여야 함');
   return {
-    seed, n, path, deck, acts, verbose: values.has('verbose'),
+    seed, n, path, deck, acts, threat, verbose: values.has('verbose'),
     plan: values.has('no-cards') ? null : (values.get('plan') ?? defaultPlan(commander)),
     commander,
     relics: !values.has('no-relics'),
@@ -95,14 +99,14 @@ function main(): void {
   const read = (name: string) => readJson(fileURLToPath(new URL(name, dataDir)));
   const deps = loadRunDeps({
     traits: read('traits.json'), units: read('units.json'), cards: read('cards.json'),
-    commanders: read('commanders.json'), encounters: read('encounters.json'), events: read('events.json'), relics: read('relics.json'), migrations: read('migrations.json'),
+    commanders: read('commanders.json'), encounters: read('encounters.json'), events: read('events.json'), relics: read('relics.json'), migrations: read('migrations.json'), threat: read('threat.json'),
   });
   const plan: PlanEntry[] | null = args.plan ? parseCardPlan(readJson(resolve(args.plan)), '계획') : null;
 
   const results: AutoRunSummary[] = [];
   for (let i = 0; i < args.n; i++) {
     const seed = args.seed + i;
-    const controller = RunController.create(deps, { seed, commanderId: args.commander, deckPreset: args.deck, acts: args.acts });
+    const controller = RunController.create(deps, { seed, commanderId: args.commander, deckPreset: args.deck, acts: args.acts, threatLevel: args.threat });
     const summary = new AutoRunner(controller, deps.cards, deps.units, { pathMode: args.path, policySeed: seed, plan, relics: args.relics, ultimate: args.ultimate }).run();
     results.push(summary);
     if (args.verbose) {
@@ -120,7 +124,7 @@ function main(): void {
   const avg = (pick: (r: AutoRunSummary) => number): number => results.reduce((sum, r) => sum + pick(r), 0) / results.length;
   const battles = results.reduce((sum, r) => sum + r.battles, 0);
   const battleSeconds = results.reduce((sum, r) => sum + r.averageBattleSeconds * r.battles, 0);
-  console.log(`지휘관 ${args.commander}, ${args.deck === 'test' ? '확장 테스트' : '기본'} 덱, 경로 ${args.path}, 카드 ${plan ? args.plan : '사용 안 함'}${args.acts > 1 ? `, 액트 ${args.acts}` : ''}`);
+  console.log(`지휘관 ${args.commander}, ${args.deck === 'test' ? '확장 테스트' : '기본'} 덱, 경로 ${args.path}, 카드 ${plan ? args.plan : '사용 안 함'}${args.acts > 1 ? `, 액트 ${args.acts}` : ''}${args.threat > 0 ? `, 위협 레벨 ${args.threat}` : ''}`);
   if (args.relics || args.ultimate) {
     const relicCount = results.reduce((sum, r) => sum + r.relics, 0) / results.length;
     console.log(`정책: 유물 ${args.relics ? '사용' : '끔'}, 궁극기 ${args.ultimate ? '사용' : '끔'}` +

@@ -6,6 +6,7 @@ import { removableCards } from '../../core/cards';
 import type { RunDeps, RunController, TestAvailability } from '../../core/run';
 import { RARITY_LABELS, buildDeckCardView, buildRelicView, PHASE_LABELS, testBadgeText, type DeckCardView, type RelicView } from './runViews';
 import { CARD_TYPE_LABELS } from '../cards/cardLabels';
+import { buildThreatPicker, type ThreatPickerView } from './threatViews';
 
 /** 시작 화면 카드 선택지 한 장 */
 export interface TestCardOption {
@@ -35,6 +36,8 @@ export interface TestCatalogView {
   relics: RelicView[];
   cards: TestCardOption[];
   units: TestUnitOption[];
+  /** 위협 레벨 0~10 (메타 해금과 무관하게 모두 고를 수 있다) */
+  threat: ThreatPickerView;
 }
 
 export function buildTestCatalog(deps: RunDeps): TestCatalogView {
@@ -50,6 +53,7 @@ export function buildTestCatalog(deps: RunDeps): TestCatalogView {
       owner: card.owner,
       hasUpgrade: card.upgrade !== undefined,
     })),
+    threat: buildThreatPicker(deps.threat, deps.threat.maxLevel, 0),
     units: deps.units.units.filter((unit) => !unit.boss).map((unit) => ({
       id: unit.id,
       name: unit.name,

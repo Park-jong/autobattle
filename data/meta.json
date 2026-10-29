@@ -4,7 +4,8 @@
     "perFloor": 1,
     "perBoss": 10,
     "perElite": 2,
-    "victoryBonus": 30
+    "victoryBonus": 30,
+    "threatBonusPctPerLevel": 10
   },
   "unlocks": [
     { "target": "commander", "id": "cmd_isera", "price": 30, "condition": { "type": "runsCompleted", "count": 1 } },

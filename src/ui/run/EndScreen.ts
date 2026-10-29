@@ -29,6 +29,9 @@ export class EndScreen {
       for (const u of meta.unlocks) unlocks.append(el('li', '', `새로 해금: ${u.targetLabel} ${u.name} (${u.conditionText})`));
       box.append(unlocks);
     }
+    if (meta.newThreat) {
+      box.append(tagged(el('p', 'run-end-threat-unlock', `새로 열린 위협 레벨: 레벨 ${meta.newThreat.level} — ${meta.newThreat.name}`), 'end-meta-threat-unlock'));
+    }
     return box;
   }
 
@@ -50,6 +53,7 @@ export class EndScreen {
     };
     stat('지휘관', end.commanderName);
     stat('시드', String(end.seed));
+    if (end.threatLevel > 0) stat('위협 레벨', String(end.threatLevel));
     stat('도달 액트', `${end.act} / ${end.actCount} — ${end.actName}`);
     stat('도달 층', `${end.floorReached} / ${end.floorCount}`);
     stat('남은 HP', `${end.hp} / ${end.maxHp}`);
@@ -77,7 +81,7 @@ export class EndScreen {
 
     const actions = el('div', 'run-end-actions');
     actions.append(
-      tagged(button('새 런', () => this.commands.newRun(null, end.commanderId), 'dbg-btn dbg-primary run-big-button'), 'end-new-run'),
+      tagged(button('새 런', () => this.commands.newRun(null, end.commanderId, end.testRun ? 0 : end.threatLevel), 'dbg-btn dbg-primary run-big-button'), 'end-new-run'),
       tagged(button('시작 화면', () => this.commands.toStart(), 'dbg-btn run-big-button'), 'end-to-start'),
     );
     card.append(actions);

@@ -5,6 +5,8 @@
 export interface RunSummary {
   /** 정산 중복 방지용 런 식별자 (런을 만들 때 호출자가 정한다). 없으면 정산할 수 없다 */
   runId: string | null;
+  /** 런의 위협 레벨 (0 = 패널티 없음). 전공 보너스와 위협 레벨 해금의 기준 */
+  threatLevel: number;
   /** 플레이 테스트 런이면 true — 메타 정산에서 제외된다 */
   test: boolean;
   commanderId: string;
@@ -32,4 +34,6 @@ export interface RunSummary {
 export interface RunUnlocks {
   commanders: readonly string[];
   relics: readonly string[];
+  /** 고를 수 있는 최고 위협 레벨 (런 시작 때 이보다 높은 레벨은 거부한다). 생략하면 레벨 범위만 검사 */
+  maxThreat?: number;
 }

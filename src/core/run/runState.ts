@@ -131,6 +131,8 @@ export class RunState {
   runId: string | null = null;
   /** 런을 시작할 때 허용된 유물 id (메타 해금 결과). null이면 모든 유물을 허용한다. 진행 중에는 바뀌지 않는다 */
   allowedRelics: readonly string[] | null = null;
+  /** 위협 레벨 (0 = 패널티 없음). 런을 시작할 때 정해지고 진행 중에는 바뀌지 않는다 */
+  threatLevel = 0;
 
   constructor(
     readonly seed: number,

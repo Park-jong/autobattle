@@ -6,6 +6,7 @@ import type {
   SettlementView, ShopScreenView,
 } from './runViews';
 import type { TestCatalogView, TestToolsView } from './testViews';
+import type { ThreatPickerView } from './threatViews';
 
 /** 지금 보여줄 화면 */
 export type RunScreenId = 'start' | 'map' | 'battle' | 'reward' | 'bossRelic' | 'actIntro' | 'shop' | 'event' | 'camp' | 'ended' | 'debug';
@@ -21,6 +22,8 @@ export interface StartInfo {
   commanders: CommanderChoiceView[];
   /** 메타 진행(전공 포인트·해금 목록·통계) */
   meta: MetaStartView;
+  /** 위협 레벨 선택 (고를 수 있는 최고 레벨은 메타 진행이 정한다. 전공 기록이 손상이면 0) */
+  threat: ThreatPickerView;
   /** 처음 선택해 둘 지휘관 id */
   defaultCommanderId: string;
   /** "테스트 시작" 패널의 선택지 (유물·카드·유닛 목록) */
@@ -76,8 +79,8 @@ export interface RunViewSource {
 /** 화면이 내리는 명령. 실패하면 상태는 그대로이고 사유가 알림으로 나온다 */
 export interface RunCommands {
   // 시작 화면
-  /** commanderId를 생략하면 기본 지휘관 */
-  newRun(seed: number | null, commanderId?: string): void;
+  /** commanderId를 생략하면 기본 지휘관, threatLevel을 생략하면 0 (해금하지 않은 레벨은 거부) */
+  newRun(seed: number | null, commanderId?: string, threatLevel?: number): void;
   continueRun(): void;
   deleteSave(): void;
   /** 전공 포인트로 해금 항목을 구매한다 */

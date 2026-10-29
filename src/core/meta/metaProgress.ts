@@ -1,5 +1,6 @@
 import { FieldReader } from '../data/fieldReader';
 import type { PointsRule, UnlockCondition, UnlockTarget } from '../data/meta';
+import { MAX_THREAT_LEVEL } from '../data/threat';
 import type { MetaCatalog } from '../data/metaLoader';
 import { conditionProgress, emptyStats, type ConditionProgress, type MetaStats } from './conditions';
 import type { RunSummary, RunUnlocks } from './runSummary';
@@ -23,6 +24,8 @@ export interface MetaSave {
   unlocked: { id: string; via: UnlockVia }[];
   /** 최근 정산한 런 id (오래된 순) */
   settledRuns: string[];
+  /** 선택 필드: 고를 수 있는 최고 위협 레벨 (0이면 저장하지 않고, 없는 저장본은 0으로 읽는다) */
+  threatUnlocked?: number;
 }
 
 export type MetaResult = { ok: true } | { ok: false; reason: string };
@@ -33,20 +36,27 @@ export interface PointsBreakdown {
   bosses: number;
   elites: number;
   victory: number;
+  /** 위협 레벨 보너스 (위 항목 합계 × 레벨당 비율, 반올림. 레벨 0이면 0) */
+  threat: number;
   total: number;
 }
 
 export type SettleRunResult =
-  | { ok: true; earned: PointsBreakdown; newUnlocks: string[]; balance: number }
+  | { ok: true; earned: PointsBreakdown; newUnlocks: string[]; balance: number; threatUnlocked: number | null }
   | { ok: false; reason: string };
 
-/** 전공 포인트 공식: 도달 층 + 보스 처치 + 정예 처치 + 승리 보너스 (계수는 meta.json points) */
+/**
+ * 전공 포인트 공식: 도달 층 + 보스 처치 + 정예 처치 + 승리 보너스 (계수는 meta.json points)에
+ * 위협 레벨 보너스(합계 × threatBonusPctPerLevel × 레벨 / 100, 반올림)를 더한다. 레벨 0이면 보너스 없음
+ */
 export function calculateRunPoints(rule: PointsRule, summary: RunSummary): PointsBreakdown {
   const floors = summary.floorsReached * rule.perFloor;
   const bosses = summary.bossActsKilled.length * rule.perBoss;
   const elites = summary.eliteKills * rule.perElite;
   const victory = summary.outcome === 'victory' ? rule.victoryBonus : 0;
-  return { floors, bosses, elites, victory, total: floors + bosses + elites + victory };
+  const base = floors + bosses + elites + victory;
+  const threat = Math.round((base * rule.threatBonusPctPerLevel * summary.threatLevel) / 100);
+  return { floors, bosses, elites, victory, threat, total: base + threat };
 }
 
 /** UI가 해금 화면을 그리는 데 쓰는 항목 한 개의 상태 */
@@ -75,6 +85,7 @@ export class MetaProgress {
   private stats: MetaStats = emptyStats();
   private unlocked = new Map<string, UnlockVia>();
   private settled: string[] = [];
+  private threatMax = 0;
 
   constructor(private readonly catalog: MetaCatalog) {}
 
@@ -82,7 +93,7 @@ export class MetaProgress {
   static restore(catalog: MetaCatalog, data: unknown): MetaProgress {
     const meta = new MetaProgress(catalog);
     const r = FieldReader.of(data, 'meta');
-    r.onlyKeys(['format', 'version', 'points', 'totalEarned', 'stats', 'unlocked', 'settledRuns']);
+    r.onlyKeys(['format', 'version', 'points', 'totalEarned', 'stats', 'unlocked', 'settledRuns', 'threatUnlocked']);
     if (r.rawValue('format') !== META_SAVE_FORMAT) r.fail('format', `"${META_SAVE_FORMAT}"여야 함 (메타 진행 저장 파일이 아님)`);
     const version = r.int('version', 1);
     if (version > META_SAVE_VERSION) r.fail('version', `지원하지 않는 저장 버전 ${version} (지원: ${META_SAVE_VERSION})`);
@@ -102,6 +113,10 @@ export class MetaProgress {
       if (typeof id !== 'string' || id === '') r.fail(`settledRuns[${i}]`, `비어 있지 않은 문자열이어야 함 (실제: ${JSON.stringify(id)})`);
       return id as string;
     });
+    if (r.has('threatUnlocked')) {
+      meta.threatMax = r.int('threatUnlocked', 0);
+      if (meta.threatMax > MAX_THREAT_LEVEL) r.fail('threatUnlocked', `0~${MAX_THREAT_LEVEL}이어야 함 (실제: ${meta.threatMax})`);
+    }
     if (meta.settled.length > META_SETTLED_RUNS_LIMIT) r.fail('settledRuns', `${META_SETTLED_RUNS_LIMIT}개 이하여야 함 (실제: ${meta.settled.length})`);
     return meta;
   }
@@ -133,6 +148,7 @@ export class MetaProgress {
       stats: this.statsView(),
       unlocked: [...this.unlocked].map(([id, via]) => ({ id, via })),
       settledRuns: [...this.settled],
+      ...(this.threatMax > 0 ? { threatUnlocked: this.threatMax } : {}),
     };
   }
 
@@ -142,6 +158,9 @@ export class MetaProgress {
   get points(): number { return this.balance; }
   /** 지금까지 번 전공 포인트 합계 */
   get totalEarned(): number { return this.earned; }
+
+  /** 고를 수 있는 최고 위협 레벨 (기본 0 = 패널티 없는 기본 난이도만) */
+  get maxThreatLevel(): number { return this.threatMax; }
 
   /** 누적 통계의 사본 */
   statsView(): MetaStats {
@@ -185,6 +204,7 @@ export class MetaProgress {
     return {
       commanders: allCommanderIds.filter((id) => this.isUnlocked(id)),
       relics: allRelicIds.filter((id) => this.isUnlocked(id)),
+      maxThreat: this.threatMax,
     };
   }
 
@@ -236,6 +256,13 @@ export class MetaProgress {
         newUnlocks.push(entry.id);
       }
     }
-    return { ok: true, earned, newUnlocks, balance: this.balance };
+    // 위협 레벨: 지금 고를 수 있는 최고 레벨과 같은 레벨로 승리하면 다음 레벨이 열린다 (최대 10).
+    // 더 높은 레벨의 런(전공 기록을 초기화한 뒤 끝난 옛 런 등)은 한 번에 여러 레벨을 열지 못하게 같은 레벨일 때만 센다
+    let threatUnlocked: number | null = null;
+    if (summary.outcome === 'victory' && summary.threatLevel === this.threatMax && this.threatMax < MAX_THREAT_LEVEL) {
+      this.threatMax += 1;
+      threatUnlocked = this.threatMax;
+    }
+    return { ok: true, earned, newUnlocks, balance: this.balance, threatUnlocked };
   }
 }

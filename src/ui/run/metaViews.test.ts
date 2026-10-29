@@ -6,7 +6,7 @@ import { gameData } from './testSupport';
 const { meta: catalog, run: deps } = gameData;
 
 const summary = (over: Partial<RunSummary> = {}): RunSummary => ({
-  runId: 'r1', test: false, commanderId: 'cmd_harten', outcome: 'dead', floorsReached: 5, bossActsKilled: [], eliteKills: 1,
+  runId: 'r1', threatLevel: 0, test: false, commanderId: 'cmd_harten', outcome: 'dead', floorsReached: 5, bossActsKilled: [], eliteKills: 1,
   ultimateUses: 0, shopVisits: 0, unitStar3: false, bossEntryGold: 0, deckSize: 10, ...over,
 });
 
@@ -64,8 +64,8 @@ describe('buildEndMetaView', () => {
     const s = summary({ floorsReached: 13, bossActsKilled: [1], eliteKills: 2, outcome: 'victory' });
     const result = progress.settleRun(s);
     if (!result.ok) throw new Error(result.reason);
-    const settlement: EndSettlement = { kind: 'settled', summary: s, earned: result.earned, newUnlocks: result.newUnlocks, balance: result.balance };
-    const view = buildEndMetaView(settlement, catalog, deps.commanders, deps.relics);
+    const settlement: EndSettlement = { kind: 'settled', summary: s, earned: result.earned, newUnlocks: result.newUnlocks, balance: result.balance, threatUnlocked: result.threatUnlocked };
+    const view = buildEndMetaView(settlement, catalog, deps.commanders, deps.relics, deps.threat);
     if (view.kind !== 'settled') throw new Error('settled여야 함');
     expect(view.rows.map((r) => r.label)).toEqual(['도달 층', '보스 처치', '정예 처치', '승리 보너스']);
     expect(view.total).toBe(13 + 10 + 4 + 30);
@@ -75,7 +75,7 @@ describe('buildEndMetaView', () => {
   });
 
   it('테스트 런·실패는 각각 안내 문구를 준다', () => {
-    expect(buildEndMetaView({ kind: 'test' }, catalog, deps.commanders, deps.relics)).toEqual({ kind: 'test', message: '테스트 런은 전공에 반영되지 않습니다.' });
-    expect(buildEndMetaView({ kind: 'failed', reason: '사유' }, catalog, deps.commanders, deps.relics)).toEqual({ kind: 'failed', reason: '사유' });
+    expect(buildEndMetaView({ kind: 'test' }, catalog, deps.commanders, deps.relics, deps.threat)).toEqual({ kind: 'test', message: '테스트 런은 전공에 반영되지 않습니다.' });
+    expect(buildEndMetaView({ kind: 'failed', reason: '사유' }, catalog, deps.commanders, deps.relics, deps.threat)).toEqual({ kind: 'failed', reason: '사유' });
   });
 });
