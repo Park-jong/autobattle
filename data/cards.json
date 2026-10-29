@@ -416,6 +416,7 @@
         "kind": "none"
       },
       "keywords": [],
+      "grantOnly": true,
       "text": "아군 전체 ARM +20 (4초).",
       "effects": [
         {
@@ -530,6 +531,7 @@
         "kind": "none"
       },
       "keywords": [],
+      "grantOnly": true,
       "text": "무작위 적 1명의 이번 전투 최대 HP -10%.",
       "effects": [
         {
@@ -562,6 +564,7 @@
         "kind": "area3x3"
       },
       "keywords": [],
+      "grantOnly": true,
       "text": "3×3 범위의 적을 2초간 속박한다 (이동 불가).",
       "effects": [
         {

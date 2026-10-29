@@ -5,7 +5,7 @@ import traitsJson from '../../../data/traits.json';
 import unitsJson from '../../../data/units.json';
 import { effectiveCard } from '../cards/effectiveCard';
 import { CardRewardGenerator } from '../run/cardRewards';
-import { isRewardCard, isRewardCardFor, type Card } from './card';
+import { isCardAllowedFor, isRewardCard, isRewardCardFor, type Card } from './card';
 import { CardValidator } from './cardValidator';
 import { loadCards } from './cardLoader';
 import { loadEvents } from './eventLoader';
@@ -131,16 +131,26 @@ describe('보상·상점·이벤트 풀', () => {
     const newIds = new Set(Object.values(REWARD));
     for (const card of neutral.filter((c) => newIds.has(c.id))) tally[card.rarity as keyof typeof tally] += 1;
     expect(tally).toEqual({ common: 19, rare: 8, epic: 3 });
-    // 기존 공용 보상 카드(2부-B까지): 에픽은 없다. 유닛 제공 3종(행군가·적진 정찰·덩굴 속박)은 이전부터 풀에 있다
+    // 기존 공용 보상 카드(2부-B까지): 에픽은 없다. 유닛 제공 3종(행군가·적진 정찰·덩굴 속박)은 grantOnly로 풀에서 빠졌다
     const old = neutral.filter((c) => !newIds.has(c.id));
-    expect(old.map((c) => c.id).sort()).toEqual(
-      ['abyss_pact', 'call_reserves', 'enemy_scout', 'firestorm', 'forged_blade', 'mana_infusion', 'marching_song', 'tactical_reorganization', 'vine_snare'],
-    );
-    expect(neutral).toHaveLength(39);
+    expect(old.map((c) => c.id).sort()).toEqual(['abyss_pact', 'call_reserves', 'firestorm', 'forged_blade', 'mana_infusion', 'tactical_reorganization']);
+    expect(neutral).toHaveLength(36);
   });
 
-  it('지휘관 풀 크기 = 공용 39 + 전용 30', () => {
-    for (const commander of ['cmd_harten', 'cmd_isera', 'cmd_nox']) expect(poolOf(commander)).toHaveLength(39 + 30);
+  it('지휘관 풀 크기 = 공용 36 + 전용 30', () => {
+    for (const commander of ['cmd_harten', 'cmd_isera', 'cmd_nox']) expect(poolOf(commander)).toHaveLength(36 + 30);
+  });
+
+  it('기존 유닛 제공 카드 3종은 보상 풀에 없지만 덱·저장에는 그대로 쓸 수 있다', () => {
+    for (const id of ['marching_song', 'enemy_scout', 'vine_snare']) {
+      const card = catalog.get(id)!;
+      expect(card.grantOnly).toBe(true);
+      expect(isRewardCard(card)).toBe(false);
+      for (const commander of ['cmd_harten', 'cmd_isera', 'cmd_nox']) {
+        expect(isRewardCardFor(card, commander)).toBe(false);
+        expect(isCardAllowedFor(card, commander)).toBe(true);
+      }
+    }
   });
 });
 
