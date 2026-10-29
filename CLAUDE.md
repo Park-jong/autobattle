@@ -177,7 +177,7 @@
 - 주소: https://park-jong.github.io/autobattle/ (원격 `Park-jong/autobattle`). `npm run deploy`가 `predeploy`(빌드) 후 `gh-pages -d dist --nojekyll`로 `gh-pages` 브랜치에 올린다.
 - 첫 배포 후 GitHub 저장소 Settings → Pages에서 Source를 `gh-pages` 브랜치 / root로 지정해야 한다.
 - Vite `base`는 `./`(상대 경로): 저장소 이름이 바뀌어도 하위 경로에서 동작하고 dev 서버(`/`)에도 영향이 없다. 데이터 JSON은 import로 번들되어 별도 fetch 파일이 없다.
-- 캐릭터 원본은 `characters/U01`~`U30`·`C01`~`C03`에서 관리하고 배포하지 않는다. 게임은 `public/skins/academy`의 축소본 99개만 사용한다(위 "스킨").
+- 캐릭터 원본은 아카데미 `characters/U01`~`U30`·`C01`~`C03`, 현대전 `characters/modern/U01`~`U30`·`C01`~`C03`에서 관리하고 배포하지 않는다. 게임은 `public/skins/academy`와 `public/skins/modern`의 축소본 각 99개만 사용한다(위 "스킨").
 
 ## 문서
 - [DESIGN.md](DESIGN.md) 게임 설계, 10장 구현 구조
@@ -185,6 +185,7 @@
 - [CHARACTERS.md](CHARACTERS.md) 세계관, 지휘관, 유닛 설정
 - [ACADEMY_UNIT_CONCEPTS.md](ACADEMY_UNIT_CONCEPTS.md) 성인 대상 마도아카데미 게임의 여성 유닛 30기 스킨 설정·노출 있는 판타지 복식
 - [characters/README.md](characters/README.md) 번호별 원화·전신/초상화/SD·생성 프롬프트·공통 아트 기준
+- [characters/modern/README.md](characters/modern/README.md) 현대전 시티 오퍼레이션 33명 설정·원화 목록. `data/skins/modern.json`을 `loadModernRoster`로 검증하고 `modern.css`·`RosterGallery`·총기별 `combatVisuals`에 연결한다. `python tools/modern_assets.py audit`로 99장 원본 검증 후 `powershell -ExecutionPolicy Bypass -File tools/skin-assets.ps1 -Skin modern`으로 배포본을 갱신한다. 기본 스킨은 academy이며 modern은 추가 선택지다.
 - [characters/PROGRESS.md](characters/PROGRESS.md) 원화 제작 진행표 (`python tools/character_assets.py audit`로 전체 파일 검증)
 - [data/README.md](data/README.md) 데이터 파일 형식
 

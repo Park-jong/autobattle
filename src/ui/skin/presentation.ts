@@ -1,4 +1,5 @@
 import { appSkin } from './SkinStore';
+import { skinPresentation } from './skins';
 
 /** 표시만 줄이는 설정. 전투 시뮬레이션이나 저장본에는 관여하지 않는다. */
 class MotionPreferences {
@@ -28,7 +29,7 @@ export function installPresentation(): void {
   const sync = (): void => {
     document.body.dataset.skin = appSkin.current;
     document.body.dataset.motion = motionPreferences.reduced ? 'reduced' : 'full';
-    document.title = appSkin.current === 'academy' ? '마도아카데미 · 전술 지휘관' : '전술 지휘관';
+    document.title = `${skinPresentation(appSkin.current).title}${appSkin.current === 'default' ? '' : ' · 전술 지휘관'}`;
   };
   appSkin.subscribe(sync);
   motionPreferences.subscribe(sync);

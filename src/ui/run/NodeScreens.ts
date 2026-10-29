@@ -5,6 +5,8 @@ import { iconButton } from './iconButton';
 import { hudElement } from './hudElement';
 import { encounterPreviewElement } from './encounterPreview';
 import { relicCard, relicRow } from './relicElements';
+import { actPresentation } from '../skin/skins';
+import { appSkin } from '../skin/SkinStore';
 
 /** 노드 화면들이 공유하는 틀: 상단 상태 줄 + 제목 + 본문 */
 abstract class NodeScreen {
@@ -47,7 +49,7 @@ export class BossRelicScreen extends NodeScreen {
       owned,
       this.actionBar(tagged(button('받지 않고 다음 액트로', () => this.commands.skipBossRelic(), 'dbg-btn'), 'skip-boss-relic')),
     ];
-    this.frame(snap, `액트 ${view.act} 클리어 — ${view.actName}`, '보스를 쓰러뜨렸습니다. 보스 유물을 하나 고르세요. 이 선택은 되돌릴 수 없습니다.', body);
+    this.frame(snap, `액트 ${view.act} 클리어 — ${actPresentation(appSkin.current, view.act)?.name ?? view.actName}`, '보스를 쓰러뜨렸습니다. 보스 유물을 하나 고르세요. 이 선택은 되돌릴 수 없습니다.', body);
   }
 }
 
@@ -57,16 +59,17 @@ export class ActIntroScreen extends NodeScreen {
     const view = snap.actIntro;
     if (!view) return;
     const card = tagged(el('div', 'run-act-intro'), 'act-intro');
+    const act = actPresentation(appSkin.current, view.act);
     card.append(
-      el('h3', 'run-act-name', `액트 ${view.act} / ${view.actCount} — ${view.name}`),
-      el('p', 'dbg-hint', `${view.region} · ${view.text}`),
+      el('h3', 'run-act-name', `액트 ${view.act} / ${view.actCount} — ${act?.name ?? view.name}`),
+      el('p', 'dbg-hint', `${act?.region ?? view.region} · ${act?.text ?? view.text}`),
       tagged(el('p', 'run-act-heal', view.healed > 0
         ? `야영을 마치고 숨을 돌렸습니다: 지휘관 HP ${view.hpBefore} → ${view.hpAfter} / ${view.maxHp} (+${view.healed})`
         : `지휘관 HP ${view.hpAfter} / ${view.maxHp} (이미 가득 찼습니다)`), 'act-heal'),
     );
     if (view.boss) card.append(el('h4', '', '이 액트의 보스'), encounterPreviewElement(view.boss));
     const go = tagged(button(`액트 ${view.act} 시작`, () => this.commands.continueAct(), 'dbg-btn dbg-primary run-big-button'), 'continue-act');
-    this.frame(snap, `액트 ${view.act} — ${view.name}`, '골드·유닛·덱·장비·유물은 그대로 이어집니다.', [card, this.actionBar(go)]);
+    this.frame(snap, `액트 ${view.act} — ${act?.name ?? view.name}`, '골드·유닛·덱·장비·유물은 그대로 이어집니다.', [card, this.actionBar(go)]);
   }
 }
 

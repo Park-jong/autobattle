@@ -5,13 +5,13 @@ import type { Cell } from '../../core/combat';
 import type { BattleViewSource } from '../debug/contracts';
 import { applyHiDpiCamera, createText, type HiDpiMetrics } from '../hidpi';
 import type { UnitView } from '../replay/ReplayState';
-import { ACADEMY_COLORS, COLORS, LAYOUT, STAGE, TEXT_COLORS, TIMING } from '../theme';
+import { ACADEMY_COLORS, COLORS, LAYOUT, MODERN_COLORS, STAGE, TEXT_COLORS, TIMING } from '../theme';
 import { BoardLayout } from './BoardLayout';
 import { BoardRenderer } from './BoardRenderer';
 import { EffectsLayer } from './EffectsLayer';
 import { TargetingOverlay } from './TargetingOverlay';
 import { UnitSprite } from './UnitSprite';
-import { commanderArtList, skinArtList, unitTextureKey, type SkinId } from '../skin/skins';
+import { commanderArtList, isIllustratedSkin, skinArtList, unitTextureKey, type SkinId } from '../skin/skins';
 import { appSkin, type SkinStore } from '../skin/SkinStore';
 import { motionPreferences } from '../skin/presentation';
 import { buildCombatVisualFrame, type AttackProfile } from './combatVisuals';
@@ -19,10 +19,10 @@ import { buildCombatVisualFrame, type AttackProfile } from './combatVisuals';
 /** 씬이 화면에 쓸 이름을 얻는 창구 (데이터 카탈로그를 직접 알 필요가 없게) */
 export interface SceneLabels {
   /** 유닛 id → 화면에 쓸 이름 약자 */
-  unitAbbreviation(unitId: string): string;
+  unitAbbreviation(unitId: string, skin?: SkinId): string;
   /** 카드 id → 카드 이름 (강화면 + 표기) */
   cardName(cardId: string, upgraded: boolean): string;
-  attackProfile?(unitId: string): AttackProfile;
+  attackProfile?(unitId: string, skin?: SkinId): AttackProfile;
   unitIsBoss?(unitId: string): boolean;
 }
 
@@ -112,7 +112,8 @@ export class BattleScene extends Phaser.Scene {
     const byUid = new Map<number, UnitView>();
     for (const view of views) byUid.set(view.uid, view);
     const recent = this.source.recentEffects(TIMING.EFFECT_WINDOW);
-    const frame = buildCombatVisualFrame(visualTime, recent, byUid, this.labels.attackProfile, motionPreferences.reduced);
+    const resolve = this.labels.attackProfile ? (id: string) => this.labels.attackProfile!(id, this.skin.current) : undefined;
+    const frame = buildCombatVisualFrame(visualTime, recent, byUid, resolve, motionPreferences.reduced);
     for (const view of views) this.sprites.get(view.uid)?.update(view, visualTime, frame.poses.get(view.uid));
     this.effects.update(visualTime, recent, byUid, this.source.telegraphs(), {
       meteors: this.source.meteors(),
@@ -150,15 +151,19 @@ export class BattleScene extends Phaser.Scene {
   }
 
   private updateTexts(editing: boolean, time: number, targetHint: string): void {
+    const modern = this.skin.current === 'modern';
+    this.hintText.setColor(modern ? '#5b7e95' : TEXT_COLORS.MUTED);
+    this.hintText.setPosition(modern ? this.scale.width / 2 : 20, modern ? this.scale.height - 24 : 20)
+      .setOrigin(modern ? 0.5 : 0, modern ? 1 : 0).setFontSize(modern ? 12 : 16);
     if (editing) {
-      this.timeText.setText(this.source.prepping ? '준비 단계' : '편성 중').setColor(TEXT_COLORS.MUTED);
+      this.timeText.setText(this.source.prepping ? '준비 단계' : '편성 중').setColor(modern ? '#5b7e95' : TEXT_COLORS.MUTED);
       this.hintText.setText(targetHint || (this.source.canPlaceAt({ col: 0, row: 0 }) ? '좌클릭: 배치 / 우클릭: 제거' : ''));
       return;
     }
     const overheat = this.source.overheating ? '  [과열]' : '';
     this.timeText
       .setText(`전투 시각 ${time.toFixed(1)}초 / ${COMBAT.HARD_LIMIT_SECONDS}초${overheat}`)
-      .setColor(this.source.overheating ? TEXT_COLORS.OVERHEAT : TEXT_COLORS.TITLE);
+      .setColor(this.source.overheating ? TEXT_COLORS.OVERHEAT : modern ? '#365c78' : TEXT_COLORS.TITLE);
     this.hintText.setText(targetHint || this.speedNote());
   }
 
@@ -178,11 +183,11 @@ export class BattleScene extends Phaser.Scene {
   /** 스킨이 바뀌면 원화를 (처음 한 번) 읽고 스프라이트를 다시 만든다. 읽기에 실패한 원화는 기본 표시로 남는다 */
   private applySkin(): void {
     const skin = this.skin.current;
-    this.board.setAcademy(skin === 'academy');
-    this.cameras.main.setBackgroundColor(skin === 'academy' ? ACADEMY_COLORS.BACKGROUND : COLORS.BACKGROUND);
+    this.board.setSkin(skin);
+    this.cameras.main.setBackgroundColor(skin === 'modern' ? MODERN_COLORS.BACKGROUND : skin === 'academy' ? ACADEMY_COLORS.BACKGROUND : COLORS.BACKGROUND);
     this.signature = '';
     if (this.loadedSkins.has(skin) || this.loadingSkins.has(skin)) return;
-    const pending = [...skinArtList(skin, 'sd'), ...(skin === 'academy' ? commanderArtList() : [])].filter((art) => !this.textures.exists(art.key));
+    const pending = [...skinArtList(skin, 'sd'), ...commanderArtList(skin)].filter((art) => !this.textures.exists(art.key));
     if (pending.length === 0) {
       this.loadedSkins.add(skin);
       return;
@@ -207,9 +212,9 @@ export class BattleScene extends Phaser.Scene {
     for (const view of views) {
       this.sprites.set(
         view.uid,
-        new UnitSprite(this, this.metrics, this.layout, this.labels.unitAbbreviation(view.unitId), view.star,
+        new UnitSprite(this, this.metrics, this.layout, this.labels.unitAbbreviation(view.unitId, this.skin.current), view.star,
           unitTextureKey(this.skin.current, view.unitId, 'sd'),
-          this.skin.current === 'academy' && !!this.labels.unitIsBoss?.(view.unitId)),
+          isIllustratedSkin(this.skin.current) && !!this.labels.unitIsBoss?.(view.unitId), this.skin.current),
       );
     }
     this.effects.clear();

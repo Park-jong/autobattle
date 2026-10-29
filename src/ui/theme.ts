@@ -104,6 +104,14 @@ export const ACADEMY_COLORS = {
   GRID_LINE: 0x4b5269, BOARD_BORDER: 0xb29a68,
 } as const;
 
+/** 현대 도시전 보드: 콘크리트 바닥과 청색·적색 작전 구역. */
+export const MODERN_COLORS = {
+  BACKGROUND: 0xe6eef5,
+  ALLY_CELL_A: 0xd1e0eb, ALLY_CELL_B: 0xc6d9e7,
+  ENEMY_CELL_A: 0xead8d8, ENEMY_CELL_B: 0xe3ced1,
+  GRID_LINE: 0x91acbe, BOARD_BORDER: 0x5e9bb7,
+} as const;
+
 /** 텍스트 색 (CSS 문자열) */
 export const TEXT_COLORS = {
   TITLE: '#ffffff',
@@ -193,6 +201,8 @@ export const MOTION = {
 
 /** 공격·착탄 연출 시간(초). 투사체, 숫자, 스프라이트 반동이 같은 기준을 쓴다. */
 export const COMBAT_FX = {
+  BURST_INTERVAL: 0.045,
+  MUZZLE_FLASH: 0.055,
   WINDUP: 0.045,
   MELEE_IMPACT: 0.09,
   PROJECTILE_BASE: 0.11,

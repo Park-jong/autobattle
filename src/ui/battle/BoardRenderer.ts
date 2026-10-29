@@ -1,7 +1,8 @@
 import Phaser from 'phaser';
 import { BOARD_COLS, BOARD_ROWS, frontCol, type Cell } from '../../core/combat/board';
 import { createText, type HiDpiMetrics } from '../hidpi';
-import { ACADEMY_COLORS, COLORS, LAYOUT, TEXT_COLORS } from '../theme';
+import { ACADEMY_COLORS, COLORS, LAYOUT, MODERN_COLORS, TEXT_COLORS } from '../theme';
+import { isIllustratedSkin, type SkinId } from '../skin/skins';
 import type { BoardLayout } from './BoardLayout';
 
 /** 8x5 보드 배경: 아군/적 영역 색 구분, 전열 열 표시, 과열 테두리, 편성 중 커서 강조 */
@@ -9,7 +10,7 @@ export class BoardRenderer {
   private readonly dynamic: Phaser.GameObjects.Graphics;
   private readonly backdrop: Phaser.GameObjects.Graphics;
   private labels: Phaser.GameObjects.Text[] = [];
-  private academy = false;
+  private skin: SkinId = 'default';
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -21,9 +22,9 @@ export class BoardRenderer {
     this.dynamic = scene.add.graphics().setDepth(1);
   }
 
-  setAcademy(value: boolean): void {
-    if (value === this.academy) return;
-    this.academy = value;
+  setSkin(value: SkinId): void {
+    if (value === this.skin) return;
+    this.skin = value;
     this.drawStatic(this.scene, this.metrics);
   }
 
@@ -56,10 +57,12 @@ export class BoardRenderer {
     g.clear();
     for (const label of this.labels) label.destroy();
     this.labels = [];
-    const palette = this.academy ? ACADEMY_COLORS : COLORS;
+    const modern = this.skin === 'modern', academy = this.skin === 'academy';
+    const illustrated = isIllustratedSkin(this.skin);
+    const palette = modern ? MODERN_COLORS : academy ? ACADEMY_COLORS : COLORS;
     const size = this.layout.cellSize;
-    if (this.academy) {
-      g.fillStyle(0x060a14, 0.8);
+    if (illustrated) {
+      g.fillStyle(modern ? 0xf7fbff : 0x060a14, 0.8);
       g.fillRoundedRect(this.layout.originX - 14, this.layout.originY - 14, this.layout.width + 28, this.layout.height + 28, 14);
       g.lineStyle(1, palette.BOARD_BORDER, 0.3);
       g.strokeRoundedRect(this.layout.originX - 11, this.layout.originY - 11, this.layout.width + 22, this.layout.height + 22, 10);
@@ -82,7 +85,20 @@ export class BoardRenderer {
       g.fillStyle(COLORS.FRONT_TINT, 0.08);
       g.fillRect(p.x, p.y, size, this.layout.height);
     }
-    if (this.academy) {
+    if (modern) {
+      g.lineStyle(3, 0xf7fbff, 0.65);
+      const y = this.layout.originY + this.layout.height / 2;
+      for (let x = this.layout.originX + 16; x < this.layout.originX + this.layout.width; x += 48) g.lineBetween(x, y, x + 22, y);
+      for (let col = 0; col < BOARD_COLS; col++) {
+        const c = this.layout.center(col, 0);
+        this.labels.push(createText(scene, metrics, c.x, this.layout.originY - 13, String.fromCharCode(65 + col), { fontSize: '12px', color: '#60889e' }).setOrigin(0.5));
+      }
+      for (let row = 0; row < BOARD_ROWS; row++) {
+        const c = this.layout.center(0, row);
+        this.labels.push(createText(scene, metrics, this.layout.originX - 18, c.y, String(row + 1), { fontSize: '12px', color: '#60889e' }).setOrigin(0.5));
+      }
+    }
+    if (academy) {
       const cx = this.layout.originX + this.layout.width / 2, cy = this.layout.originY + this.layout.height / 2;
       g.lineStyle(1, 0xd0b781, 0.12);
       for (const radius of [174, 184, 242]) g.strokeCircle(cx, cy, radius);
@@ -93,7 +109,7 @@ export class BoardRenderer {
         g.lineBetween(cx + Math.cos(angle) * 232, cy + Math.sin(angle) * 232, cx + Math.cos(angle) * 242, cy + Math.sin(angle) * 242);
       }
     }
-    g.lineStyle(1, palette.GRID_LINE, this.academy ? 0.55 : 1);
+    g.lineStyle(1, palette.GRID_LINE, illustrated ? 0.55 : 1);
     for (let col = 0; col <= BOARD_COLS; col++) {
       const p = this.layout.topLeft(col, 0);
       g.lineBetween(p.x, p.y, p.x, p.y + this.layout.height);
@@ -102,17 +118,18 @@ export class BoardRenderer {
       const p = this.layout.topLeft(0, row);
       g.lineBetween(p.x, p.y, p.x + this.layout.width, p.y);
     }
-    g.lineStyle(2, palette.BOARD_BORDER, this.academy ? 0.7 : 1);
+    g.lineStyle(2, palette.BOARD_BORDER, illustrated ? 0.7 : 1);
     g.strokeRect(this.layout.originX, this.layout.originY, this.layout.width, this.layout.height);
 
     // 라벨
     const half = (BOARD_COLS / 2) * size;
-    const labelStyle = { fontSize: '20px', color: TEXT_COLORS.MUTED };
-    this.labels.push(createText(scene, metrics, this.layout.originX + half / 2, LAYOUT.SIDE_LABEL_Y, this.academy ? '◇ 아카데미 분대' : '아군 영역', labelStyle).setOrigin(0.5));
-    this.labels.push(createText(scene, metrics, this.layout.originX + half * 1.5, LAYOUT.SIDE_LABEL_Y, this.academy ? '금서의 잔영 ◇' : '적 영역', labelStyle).setOrigin(0.5));
+    const labelStyle = { fontSize: '20px', color: modern ? '#577d97' : TEXT_COLORS.MUTED };
+    const labelY = modern ? 82 : LAYOUT.SIDE_LABEL_Y;
+    this.labels.push(createText(scene, metrics, this.layout.originX + half / 2, labelY, modern ? '도시 기동대' : academy ? '◇ 아카데미 분대' : '아군 영역', labelStyle).setOrigin(0.5));
+    this.labels.push(createText(scene, metrics, this.layout.originX + half * 1.5, labelY, modern ? '적대 세력' : academy ? '금서의 잔영 ◇' : '적 영역', labelStyle).setOrigin(0.5));
     for (const side of [0, 1] as const) {
       const c = this.layout.center(frontCol(side), 0);
-      this.labels.push(createText(scene, metrics, c.x, LAYOUT.FRONT_LABEL_Y, '전열', { fontSize: '18px', color: TEXT_COLORS.MUTED }).setOrigin(0.5));
+      this.labels.push(createText(scene, metrics, c.x, LAYOUT.FRONT_LABEL_Y, '전열', { fontSize: '18px', color: modern ? '#67889e' : TEXT_COLORS.MUTED }).setOrigin(0.5));
     }
   }
 }

@@ -7,6 +7,8 @@ import { el, tagged } from '../dom';
 import type { EncounterPreviewView } from '../runViews';
 import { infoHead, liveLine, skillBlock, statsGrid } from './UnitInfoPanel';
 import { buildUnitInfo, type StarLevel, type StatOverride } from './unitInfoView';
+import { appSkin } from '../../skin/SkinStore';
+import { traitSkinName, unitSkillName } from '../../skin/skins';
 
 /** 툴팁이 붙는 쪽: 캔버스 기준 오프셋 (px) */
 const OFFSET = 18;
@@ -71,7 +73,7 @@ export class UnitTooltip {
   };
 
   private draw(view: UnitView): void {
-    const signature = JSON.stringify([view.uid, view.hp, view.maxHp, view.shield, view.mana, view.statuses.map((s) => s.name), this.plan?.nodeId]);
+    const signature = JSON.stringify([appSkin.current, view.uid, view.hp, view.maxHp, view.shield, view.mana, view.statuses.map((s) => s.name), this.plan?.nodeId]);
     if (signature === this.signature) return;
     this.signature = signature;
     const def = this.units.get(view.unitId);
@@ -81,7 +83,8 @@ export class UnitTooltip {
     const stats: StatOverride | undefined = planned
       ? { hp: view.maxHp, atk: planned.atk, as: planned.as, range: planned.range, arm: planned.arm, res: planned.res, mana: planned.mana }
       : undefined;
-    const info = buildUnitInfo(def, star, { traitName: (id) => this.traits.get(id)?.name ?? id }, stats);
+    const info = buildUnitInfo(def, star, { traitName: (id) => traitSkinName(appSkin.current, id, this.traits.get(id)?.name ?? id) }, stats);
+    info.skillName = unitSkillName(appSkin.current, def.id, info.skillName);
     const nodes: HTMLElement[] = [infoHead(info, true, { large: false }), liveLine(view), statsGrid(info), skillBlock(info, true)];
     const plan = this.plan;
     if (plan && plan.mutations.length > 0) {

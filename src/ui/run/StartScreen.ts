@@ -3,8 +3,9 @@ import type { RunCommands, RunSnapshot, TestCommands } from './contracts';
 import { MetaPanel } from './MetaPanel';
 import { SkinPicker } from '../skin/SkinPicker';
 import { appSkin } from '../skin/SkinStore';
-import { COMMANDER_PROFILES } from '../skin/skins';
+import { commanderProfile, commanderSkillName, commanderSkinName, isIllustratedSkin, skinPresentation, unitSkinName } from '../skin/skins';
 import { commanderArt } from '../skin/commanderArt';
+import { RosterGallery } from '../skin/RosterGallery';
 import { TestStartPanel } from './TestStartPanel';
 import { clampThreatLevel } from './threatViews';
 
@@ -47,6 +48,7 @@ export class StartScreen {
   private readonly metaPanel: MetaPanel;
   /** 화면 스킨 선택 (기본 / 원화). 런 규칙과 무관한 표시 설정 */
   private readonly skinPicker = new SkinPicker(undefined, 'start-skin-select');
+  private readonly gallery = new RosterGallery();
 
   constructor(private readonly commands: RunCommands, testCommands: TestCommands) {
     this.testPanel = new TestStartPanel(testCommands);
@@ -72,15 +74,17 @@ export class StartScreen {
     }
 
     const card = el('div', 'run-start-card');
-    const academy = appSkin.current === 'academy';
+    const academy = isIllustratedSkin(appSkin.current);
+    const presentation = skinPresentation(appSkin.current);
     const brand = el('header', 'academy-brand');
-    brand.append(el('span', 'academy-eyebrow', academy ? 'ARCANA ACADEMY · TACTICS' : 'TACTICAL COMMANDER'));
-    brand.append(el('h1', 'run-title', academy ? '마도아카데미' : '전술 지휘관'));
-    brand.append(el('p', 'run-subtitle', academy ? '금서가 깨어난 밤, 당신의 전술이 그녀들의 운명을 바꾼다.' : '오토체스 + 덱빌딩 로그라이크'));
+    brand.append(el('span', 'academy-eyebrow', presentation.eyebrow));
+    brand.append(el('h1', 'run-title', presentation.title));
+    brand.append(el('p', 'run-subtitle', presentation.subtitle));
     const tags = el('div', 'academy-brand-tags');
     tags.append(el('span', '', '오토배틀 × 덱빌딩'), el('span', '', '3액트 로그라이크'));
-    if (academy) tags.append(el('span', 'academy-adult-label', '성인향 판타지 · 전원 성인 설정'));
+    if (academy) tags.append(el('span', 'academy-adult-label', appSkin.current === 'modern' ? '성인향 현대전 · 전원 성인 여성' : '성인향 판타지 · 전원 성인 설정'));
     brand.append(tags);
+    if (appSkin.current === 'modern') brand.append(tagged(button('대원 도감 · 30', () => this.gallery.open(), 'dbg-btn modern-gallery-open'), 'open-roster-gallery'));
     card.append(brand);
 
     card.append(tagged(el('p', 'run-meta-points-line', start.meta.status === 'ok' ? `보유 전공 ${start.meta.points}` : '전공 기록 손상'), 'meta-points'));
@@ -163,7 +167,7 @@ export class StartScreen {
       const root = tagged(el('button', `run-commander${c.id === selected ? ' selected' : ''}${locked ? ' locked' : ''}`), `commander-${c.id}`);
       root.type = 'button';
       root.setAttribute('aria-pressed', String(c.id === selected));
-      const profile = appSkin.current === 'academy' ? COMMANDER_PROFILES[c.id] : undefined;
+      const profile = commanderProfile(appSkin.current, c.id);
       if (profile) {
         root.style.setProperty('--commander-accent', profile.color);
         const art = commanderArt(c.id, 'illustration', 'academy-commander-art');
@@ -177,11 +181,11 @@ export class StartScreen {
         if (this.lastSnapshot) this.render(this.lastSnapshot);
       });
       root.append(
-        el('strong', 'run-commander-name', c.name),
+        el('strong', 'run-commander-name', commanderSkinName(appSkin.current, c.id, c.name)),
         el('span', 'run-commander-hp', `지휘관 HP ${c.maxHp}`),
-        el('p', 'run-commander-skill', `패시브 ${c.passiveName}: ${c.passiveText}`),
-        el('p', 'run-commander-skill ultimate', `궁극기 ${c.ultimateName}: ${c.ultimateText}`),
-        el('p', 'run-commander-line', `시작 유닛: ${c.units.join(', ')}`),
+        el('p', 'run-commander-skill', `패시브 ${commanderSkillName(appSkin.current, c.id, 'passive', c.passiveName)}: ${c.passiveText}`),
+        el('p', 'run-commander-skill ultimate', `궁극기 ${commanderSkillName(appSkin.current, c.id, 'ultimate', c.ultimateName)}: ${c.ultimateText}`),
+        el('p', 'run-commander-line', `시작 유닛: ${(c.startingUnits?.map((u, i) => `${unitSkinName(appSkin.current, u.unitId, c.units[i]?.replace(/ ×\d+$/, '') ?? u.unitId)} ×${u.count}`) ?? c.units).join(', ')}`),
         el('p', 'run-commander-line', `시작 덱 ${c.deckCount}장: ${c.deck.join(', ')}`),
       );
       if (locked && lock) {

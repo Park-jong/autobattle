@@ -1,0 +1,1497 @@
+{
+  "version": 1,
+  "skin": "modern",
+  "tool": "built-in image_gen",
+  "assets": {
+    "U01/illustration": {
+      "path": "characters/modern/U01/illustration.png",
+      "prompt": "characters/modern/U01/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.6126,
+      "bytes": 1895344,
+      "sha256": "781013336cd049c5494ea9c8ca9b1958aea3e424a3fa5c5321c7bc2f90a35096",
+      "tool": "built-in image_gen"
+    },
+    "U01/portrait": {
+      "path": "characters/modern/U01/portrait.png",
+      "prompt": "characters/modern/U01/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.24,
+      "bytes": 2412277,
+      "sha256": "965a331ae65925f25b2a14bb80c3a8f42dc50a7fd4f01d17ce4c67ca82f5346f",
+      "tool": "built-in image_gen"
+    },
+    "U01/sd": {
+      "path": "characters/modern/U01/sd.png",
+      "prompt": "characters/modern/U01/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.5389,
+      "bytes": 1522373,
+      "sha256": "55829b4af3b9cddb1958612b181ede7243f677b976705173535eab550cc0c87e",
+      "tool": "built-in image_gen"
+    },
+    "U03/illustration": {
+      "path": "characters/modern/U03/illustration.png",
+      "prompt": "characters/modern/U03/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.7137,
+      "bytes": 1746710,
+      "sha256": "1876ab47ca33cb9355c5b5c79dcd77dcfb01d5cb651c8d2862f775a447cf70f3",
+      "tool": "built-in image_gen"
+    },
+    "U03/portrait": {
+      "path": "characters/modern/U03/portrait.png",
+      "prompt": "characters/modern/U03/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.3634,
+      "bytes": 2280478,
+      "sha256": "327cdbbbb0097e3fbc5bb6fe3d3798b06ea2ce5812b00c3964c2d4a1dfe6195d",
+      "tool": "built-in image_gen"
+    },
+    "U03/sd": {
+      "path": "characters/modern/U03/sd.png",
+      "prompt": "characters/modern/U03/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.5773,
+      "bytes": 1562455,
+      "sha256": "b3507da1a616cd4f46b8c0441c5e03fd953a0a50e527eca64f8aab87a32d6159",
+      "tool": "built-in image_gen"
+    },
+    "U06/illustration": {
+      "path": "characters/modern/U06/illustration.png",
+      "prompt": "characters/modern/U06/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.6826,
+      "bytes": 1844069,
+      "sha256": "2035c2fb709a333a9f15a96cfaf4972678721166735ed86ac0f23168e684be07",
+      "tool": "built-in image_gen"
+    },
+    "U06/portrait": {
+      "path": "characters/modern/U06/portrait.png",
+      "prompt": "characters/modern/U06/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.306,
+      "bytes": 2255821,
+      "sha256": "fda56eff6960d7ac7a66de70d37de3403053f9e7f3f6e5c56389de2e19ad9334",
+      "tool": "built-in image_gen"
+    },
+    "U06/sd": {
+      "path": "characters/modern/U06/sd.png",
+      "prompt": "characters/modern/U06/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.6258,
+      "bytes": 1358773,
+      "sha256": "2997e258255f32db6864eeb334479204fa731af7818daa57a31cc86171ecd44f",
+      "tool": "built-in image_gen"
+    },
+    "C01/illustration": {
+      "path": "characters/modern/C01/illustration.png",
+      "prompt": "characters/modern/C01/illustration.refinement.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.6247,
+      "bytes": 1804123,
+      "sha256": "a28f964c3e7698907c51cf5b809f1e34af89cf9023af8212c82938ca14ad38f5",
+      "tool": "built-in image_gen",
+      "original_prompt": "characters/modern/C01/illustration.prompt.md"
+    },
+    "C01/portrait": {
+      "path": "characters/modern/C01/portrait.png",
+      "prompt": "characters/modern/C01/portrait.refinement.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.4588,
+      "bytes": 1723547,
+      "sha256": "d9ea80af8b5d57388dcb51574a6eb5842ffa8c86d522adf61c9c6eac38e995c8",
+      "tool": "built-in image_gen",
+      "original_prompt": "characters/modern/C01/portrait.prompt.md"
+    },
+    "C01/sd": {
+      "path": "characters/modern/C01/sd.png",
+      "prompt": "characters/modern/C01/sd.refinement.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.6048,
+      "bytes": 1370190,
+      "sha256": "979c19100f195633ef0c78a8dbbd4aac79daa9dd4e9f5baa8b1c04bc1af5bd25",
+      "tool": "built-in image_gen",
+      "original_prompt": "characters/modern/C01/sd.prompt.md"
+    },
+    "U02/illustration": {
+      "path": "characters/modern/U02/illustration.png",
+      "prompt": "characters/modern/U02/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.708,
+      "bytes": 1774083,
+      "sha256": "c7294a450b39984973f1dc7f3d07ab4ef4c73138504a8cea901ca3932cda818a",
+      "tool": "built-in image_gen"
+    },
+    "U02/portrait": {
+      "path": "characters/modern/U02/portrait.png",
+      "prompt": "characters/modern/U02/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.4093,
+      "bytes": 1996407,
+      "sha256": "7b83276c08e591e00d6d6a3e7b8ff305b849955401f94956779e0d115e87592f",
+      "tool": "built-in image_gen"
+    },
+    "U02/sd": {
+      "path": "characters/modern/U02/sd.png",
+      "prompt": "characters/modern/U02/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.6456,
+      "bytes": 1290410,
+      "sha256": "fee7a2ef271c9761f57defe6dd244ef3ab2145546a5d25abd710c9f0604b5ca3",
+      "tool": "built-in image_gen"
+    },
+    "U04/illustration": {
+      "path": "characters/modern/U04/illustration.png",
+      "prompt": "characters/modern/U04/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.555,
+      "bytes": 2017945,
+      "sha256": "53c1a7e593feb140d1bcb325f9b0999726b2f5c6170218e0e8f023a3f5122a8c",
+      "tool": "built-in image_gen"
+    },
+    "U04/portrait": {
+      "path": "characters/modern/U04/portrait.png",
+      "prompt": "characters/modern/U04/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.2952,
+      "bytes": 2264682,
+      "sha256": "a51a626d29aa0ee884050ffd0defa768e552dbe3f5fd2ae4220ecc2c9a05a7cb",
+      "tool": "built-in image_gen"
+    },
+    "U04/sd": {
+      "path": "characters/modern/U04/sd.png",
+      "prompt": "characters/modern/U04/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.5338,
+      "bytes": 1596502,
+      "sha256": "9a2624ec56f2f4957158433056ea8ad5fbcb28e5093e31e41d4f178d2c0b1fd5",
+      "tool": "built-in image_gen"
+    },
+    "U05/illustration": {
+      "path": "characters/modern/U05/illustration.png",
+      "prompt": "characters/modern/U05/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.6548,
+      "bytes": 1911956,
+      "sha256": "de7aeaaa8f02794eaf9f72ca92027a6d4cb4a0985db5f8ce850246007d62b73a",
+      "tool": "built-in image_gen"
+    },
+    "U05/portrait": {
+      "path": "characters/modern/U05/portrait.png",
+      "prompt": "characters/modern/U05/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.3381,
+      "bytes": 2267634,
+      "sha256": "44088f76ccd46eda7454881c1966371ff9bab8d19b14917eb262409a5d9e1aa7",
+      "tool": "built-in image_gen"
+    },
+    "U05/sd": {
+      "path": "characters/modern/U05/sd.png",
+      "prompt": "characters/modern/U05/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.5768,
+      "bytes": 1565294,
+      "sha256": "aa1c9601d0924f6c5c0cae469e27dac0c5e7331b1eb0726fc880cdecb88c8f44",
+      "tool": "built-in image_gen"
+    },
+    "U07/illustration": {
+      "path": "characters/modern/U07/illustration.png",
+      "prompt": "characters/modern/U07/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.6613,
+      "bytes": 1871392,
+      "sha256": "293eb1fd7f824562f1dda81a50e04ee422441dda13c74dd8c287e336bb30e344",
+      "tool": "built-in image_gen"
+    },
+    "U07/portrait": {
+      "path": "characters/modern/U07/portrait.png",
+      "prompt": "characters/modern/U07/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.2279,
+      "bytes": 2491331,
+      "sha256": "aad3ace847be097d504e17b23863a00b337ddf102fd0b2c2c425146e00581bfe",
+      "tool": "built-in image_gen"
+    },
+    "U07/sd": {
+      "path": "characters/modern/U07/sd.png",
+      "prompt": "characters/modern/U07/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.5804,
+      "bytes": 1528794,
+      "sha256": "ebe68aaa69df7ad7f6524238250194b4daacd421184e35d64ca7a5b51e7ed50c",
+      "tool": "built-in image_gen"
+    },
+    "U08/illustration": {
+      "path": "characters/modern/U08/illustration.png",
+      "prompt": "characters/modern/U08/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.6959,
+      "bytes": 1738782,
+      "sha256": "219e40811ec8d1a72b04b0ae01a66a36887b848bed7856b678f5d971b070dd63",
+      "tool": "built-in image_gen"
+    },
+    "U08/portrait": {
+      "path": "characters/modern/U08/portrait.png",
+      "prompt": "characters/modern/U08/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.3028,
+      "bytes": 2286891,
+      "sha256": "77d16420b60d63f7a3ca25bd1db6ff020fbf23a72ca2481d617a0aaf019671f8",
+      "tool": "built-in image_gen"
+    },
+    "U08/sd": {
+      "path": "characters/modern/U08/sd.png",
+      "prompt": "characters/modern/U08/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.6164,
+      "bytes": 1311710,
+      "sha256": "bd7d70dcf062838efafbf8eed569417f17a727f9170e978f08092347be880709",
+      "tool": "built-in image_gen"
+    },
+    "U09/illustration": {
+      "path": "characters/modern/U09/illustration.png",
+      "prompt": "characters/modern/U09/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.6718,
+      "bytes": 1869313,
+      "sha256": "936d9f9d51ca28c0dce3d675e100d9cc7233c5b3a5e3bc5102cc16efa07a76f8",
+      "tool": "built-in image_gen"
+    },
+    "U09/portrait": {
+      "path": "characters/modern/U09/portrait.png",
+      "prompt": "characters/modern/U09/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.3171,
+      "bytes": 2174000,
+      "sha256": "b441884f638bcfea8a5dadf7ae82163207525b7950de922481751731e20b622f",
+      "tool": "built-in image_gen"
+    },
+    "U09/sd": {
+      "path": "characters/modern/U09/sd.png",
+      "prompt": "characters/modern/U09/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.6318,
+      "bytes": 1309409,
+      "sha256": "089e2c67893086c23370b250e0852ed5e460f3a3235def93e769ba5233d2b719",
+      "tool": "built-in image_gen"
+    },
+    "U10/illustration": {
+      "path": "characters/modern/U10/illustration.png",
+      "prompt": "characters/modern/U10/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.7081,
+      "bytes": 1727183,
+      "sha256": "a4755466f3e69c87a4c2ae918e7b2b412d18fbd9bac8d34c03fe1b27283ee037",
+      "tool": "built-in image_gen"
+    },
+    "U10/portrait": {
+      "path": "characters/modern/U10/portrait.png",
+      "prompt": "characters/modern/U10/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.34,
+      "bytes": 2203018,
+      "sha256": "4153349ada7259a954846615eba00a0f5b4b8378a6580832fbcf4c2a554674ed",
+      "tool": "built-in image_gen"
+    },
+    "U10/sd": {
+      "path": "characters/modern/U10/sd.png",
+      "prompt": "characters/modern/U10/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.6308,
+      "bytes": 1295733,
+      "sha256": "b3c4eff438069782308181e7aa4538164f24c38d7b4024427f99f9de6c09b6ac",
+      "tool": "built-in image_gen"
+    },
+    "C02/illustration": {
+      "path": "characters/modern/C02/illustration.png",
+      "prompt": "characters/modern/C02/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.6123,
+      "bytes": 2004802,
+      "sha256": "b6473f6b8e14974923025bd2f6c72ff6e35baeda501748ce5cbb1c1a55f59abb",
+      "tool": "built-in image_gen"
+    },
+    "C02/portrait": {
+      "path": "characters/modern/C02/portrait.png",
+      "prompt": "characters/modern/C02/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.245,
+      "bytes": 2409479,
+      "sha256": "071a60691954e31a9527465f169aafc634e97827e3869beb5c094c31a04c14bf",
+      "tool": "built-in image_gen"
+    },
+    "C02/sd": {
+      "path": "characters/modern/C02/sd.png",
+      "prompt": "characters/modern/C02/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.5206,
+      "bytes": 1688954,
+      "sha256": "84560baf1460026984edce1ff73b1bf42b510f30bb1ba85a67050daaadf7ea1b",
+      "tool": "built-in image_gen"
+    },
+    "C03/illustration": {
+      "path": "characters/modern/C03/illustration.png",
+      "prompt": "characters/modern/C03/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.6462,
+      "bytes": 1900503,
+      "sha256": "968430ba0c72424cefc2fd813fbe447b2418b5606f186ad896b217f941c7c5ea",
+      "tool": "built-in image_gen"
+    },
+    "C03/portrait": {
+      "path": "characters/modern/C03/portrait.png",
+      "prompt": "characters/modern/C03/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.2507,
+      "bytes": 2412728,
+      "sha256": "6cb6c0f539b08664e0623c488c1e0a5468d77620ff018ccbd5d936cf6da50af2",
+      "tool": "built-in image_gen"
+    },
+    "C03/sd": {
+      "path": "characters/modern/C03/sd.png",
+      "prompt": "characters/modern/C03/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.5498,
+      "bytes": 1679422,
+      "sha256": "eae26e5d5964804d25eaef5ba26e858f027563256dd2e39d425f2488d6890211",
+      "tool": "built-in image_gen"
+    },
+    "U11/illustration": {
+      "path": "characters/modern/U11/illustration.png",
+      "prompt": "characters/modern/U11/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.6509,
+      "bytes": 1899784,
+      "sha256": "54e5d2ce5774e4ce2ee88e1f7dc4a31e5c4444881f5c20a1132a4dcfa2a001d0",
+      "tool": "built-in image_gen"
+    },
+    "U11/portrait": {
+      "path": "characters/modern/U11/portrait.png",
+      "prompt": "characters/modern/U11/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.2796,
+      "bytes": 2242522,
+      "sha256": "2581c9f2c3f3911a9d03eb531b0752f81eacc864b7f85d83b4aa53f5fd89a265",
+      "tool": "built-in image_gen"
+    },
+    "U11/sd": {
+      "path": "characters/modern/U11/sd.png",
+      "prompt": "characters/modern/U11/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.6243,
+      "bytes": 1348282,
+      "sha256": "ee862775dc8438ab19a8011ab5bd1242df1493ab486fcc0434d6cd17e074e473",
+      "tool": "built-in image_gen"
+    },
+    "U12/illustration": {
+      "path": "characters/modern/U12/illustration.png",
+      "prompt": "characters/modern/U12/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.6293,
+      "bytes": 1938361,
+      "sha256": "cfe3005c782e54854b52172ce1039a0c011beb06500ca4b33f8b6f8c16bf77f2",
+      "tool": "built-in image_gen"
+    },
+    "U12/portrait": {
+      "path": "characters/modern/U12/portrait.png",
+      "prompt": "characters/modern/U12/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.2608,
+      "bytes": 2345277,
+      "sha256": "3e68b1eacb327270a052cdcb505c3a71209277cf43e05ed61b84f9f5d39dfa65",
+      "tool": "built-in image_gen"
+    },
+    "U12/sd": {
+      "path": "characters/modern/U12/sd.png",
+      "prompt": "characters/modern/U12/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.5461,
+      "bytes": 1605236,
+      "sha256": "75478aac65a20e792fa0c88af011e2752255f3305289c924be8385b8dc77d695",
+      "tool": "built-in image_gen"
+    },
+    "U13/illustration": {
+      "path": "characters/modern/U13/illustration.png",
+      "prompt": "characters/modern/U13/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.6281,
+      "bytes": 1940217,
+      "sha256": "f6fe1e8e6a666fa2d0a48daa16323eba3502d0e7d71235a50d9fc9d3b0382fae",
+      "tool": "built-in image_gen"
+    },
+    "U13/portrait": {
+      "path": "characters/modern/U13/portrait.png",
+      "prompt": "characters/modern/U13/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.385,
+      "bytes": 2114261,
+      "sha256": "9689f617d0b1d115e4023c80111afcc0ab9277dd336750083423e93a82bac3ce",
+      "tool": "built-in image_gen"
+    },
+    "U13/sd": {
+      "path": "characters/modern/U13/sd.png",
+      "prompt": "characters/modern/U13/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.5333,
+      "bytes": 1711241,
+      "sha256": "aeb39519c55363fc8aca7d72dd7ebebf5d42b9f02aedcf7c19465b360f1b2333",
+      "tool": "built-in image_gen"
+    },
+    "U14/illustration": {
+      "path": "characters/modern/U14/illustration.png",
+      "prompt": "characters/modern/U14/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.6252,
+      "bytes": 2003786,
+      "sha256": "0e3da2160d3eeed40a4657b3e336ad762f72f3fa4693546256cf2d67fa3d07cf",
+      "tool": "built-in image_gen"
+    },
+    "U14/portrait": {
+      "path": "characters/modern/U14/portrait.png",
+      "prompt": "characters/modern/U14/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.2932,
+      "bytes": 2371705,
+      "sha256": "7ccca8184278455e99fb030dd05686f2265344a2faec8105035050dcf091b4af",
+      "tool": "built-in image_gen"
+    },
+    "U14/sd": {
+      "path": "characters/modern/U14/sd.png",
+      "prompt": "characters/modern/U14/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.5701,
+      "bytes": 1556759,
+      "sha256": "4cca854349b59e63993abe618d0dc8ef4a4685ccbf2704b3772c422bed3239ff",
+      "tool": "built-in image_gen"
+    },
+    "U15/illustration": {
+      "path": "characters/modern/U15/illustration.png",
+      "prompt": "characters/modern/U15/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.6376,
+      "bytes": 1926423,
+      "sha256": "c6f1e74583e021bc85d8753d5bfb522278659969e99e1d50027119e4c0f6d2ef",
+      "tool": "built-in image_gen"
+    },
+    "U15/portrait": {
+      "path": "characters/modern/U15/portrait.png",
+      "prompt": "characters/modern/U15/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.2833,
+      "bytes": 2456486,
+      "sha256": "370f69b59e035f641b3eb54fd41eb4001bc4f5fae3d879bd0f50c7bf37f9ef20",
+      "tool": "built-in image_gen"
+    },
+    "U15/sd": {
+      "path": "characters/modern/U15/sd.png",
+      "prompt": "characters/modern/U15/sd.refinement.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.5859,
+      "bytes": 1575175,
+      "sha256": "1dc0bd7b2dad4250e9cd292bf62e5514058d5b05faf57289fac2475fde2ff397",
+      "tool": "built-in image_gen",
+      "original_prompt": "characters/modern/U15/sd.prompt.md"
+    },
+    "U16/illustration": {
+      "path": "characters/modern/U16/illustration.png",
+      "prompt": "characters/modern/U16/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.6566,
+      "bytes": 1824700,
+      "sha256": "342b2c409a110b8faf671869e4c7c56ef69ef72089fb8815fd3f8e834a285fd1",
+      "tool": "built-in image_gen"
+    },
+    "U16/portrait": {
+      "path": "characters/modern/U16/portrait.png",
+      "prompt": "characters/modern/U16/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.2789,
+      "bytes": 2295226,
+      "sha256": "6ac4585f164d90627d8967436ea0462e521999e0e27d31f64bdb26b9ff0040f5",
+      "tool": "built-in image_gen"
+    },
+    "U16/sd": {
+      "path": "characters/modern/U16/sd.png",
+      "prompt": "characters/modern/U16/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.5603,
+      "bytes": 1609313,
+      "sha256": "5aca682b800438501bfbccc6b69ab4a6a792ec64e4a6496897bdb5441071cbe1",
+      "tool": "built-in image_gen"
+    },
+    "U17/illustration": {
+      "path": "characters/modern/U17/illustration.png",
+      "prompt": "characters/modern/U17/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.6374,
+      "bytes": 1919409,
+      "sha256": "5e6538d70e2ec4540e577614e7dc26ba4aa78f15d0bd71fd3381da50b22d6bef",
+      "tool": "built-in image_gen"
+    },
+    "U17/portrait": {
+      "path": "characters/modern/U17/portrait.png",
+      "prompt": "characters/modern/U17/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.229,
+      "bytes": 2524126,
+      "sha256": "2e92acf7647707557aa87b26fd6a3084f47314487ce06da02d1481a96550beba",
+      "tool": "built-in image_gen"
+    },
+    "U17/sd": {
+      "path": "characters/modern/U17/sd.png",
+      "prompt": "characters/modern/U17/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.538,
+      "bytes": 1626751,
+      "sha256": "d539166d63e945244767a4ad890f164aab97d683620c2bac55f876fc6cb322f2",
+      "tool": "built-in image_gen"
+    },
+    "U18/illustration": {
+      "path": "characters/modern/U18/illustration.png",
+      "prompt": "characters/modern/U18/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.6301,
+      "bytes": 1991977,
+      "sha256": "ff58ee8980b4060ddcdf47766ee0dd613c6336f66ccca3dfd50f3701625fb8ca",
+      "tool": "built-in image_gen"
+    },
+    "U18/portrait": {
+      "path": "characters/modern/U18/portrait.png",
+      "prompt": "characters/modern/U18/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.3401,
+      "bytes": 2207438,
+      "sha256": "5da051c92da3d2bd4852f0fff6c65109929c65f85325974daa63ed2808009de6",
+      "tool": "built-in image_gen"
+    },
+    "U18/sd": {
+      "path": "characters/modern/U18/sd.png",
+      "prompt": "characters/modern/U18/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.6084,
+      "bytes": 1405253,
+      "sha256": "08b4da21b58f524c409f7614d1e0cd03a8e3d066e7d49c1945601bdec4f75553",
+      "tool": "built-in image_gen"
+    },
+    "U19/illustration": {
+      "path": "characters/modern/U19/illustration.png",
+      "prompt": "characters/modern/U19/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.6436,
+      "bytes": 1963713,
+      "sha256": "e2016582c9f9fb1f6a97cbc3c1416c1ce829060cea82d9c267f9cc8e28094a6c",
+      "tool": "built-in image_gen"
+    },
+    "U19/portrait": {
+      "path": "characters/modern/U19/portrait.png",
+      "prompt": "characters/modern/U19/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.2193,
+      "bytes": 2527982,
+      "sha256": "2810ba1b1b8e8dd327c2747955bbea70a109176f3b8e79256625465c606e67c4",
+      "tool": "built-in image_gen"
+    },
+    "U19/sd": {
+      "path": "characters/modern/U19/sd.png",
+      "prompt": "characters/modern/U19/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.5184,
+      "bytes": 1727775,
+      "sha256": "4df851ffc2d16ea5c44657d88a050a59ae9cc201b57332944574ff0300d57018",
+      "tool": "built-in image_gen"
+    },
+    "U20/illustration": {
+      "path": "characters/modern/U20/illustration.png",
+      "prompt": "characters/modern/U20/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.7061,
+      "bytes": 1708845,
+      "sha256": "566d21237cfb420ee803f1a7dd98863c5bf7d5bfd3832d04c1e9df943b7eeaa9",
+      "tool": "built-in image_gen"
+    },
+    "U20/portrait": {
+      "path": "characters/modern/U20/portrait.png",
+      "prompt": "characters/modern/U20/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.2971,
+      "bytes": 2281500,
+      "sha256": "8b7e07b7c032e6b17b156f86456e9942bd5d4bc99f14b6060f1a5caa853063b6",
+      "tool": "built-in image_gen"
+    },
+    "U20/sd": {
+      "path": "characters/modern/U20/sd.png",
+      "prompt": "characters/modern/U20/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.6392,
+      "bytes": 1324837,
+      "sha256": "6c1e394f412f69d89ca8b5edfdae738493dba998278c273dcf23859793930717",
+      "tool": "built-in image_gen"
+    },
+    "U21/illustration": {
+      "path": "characters/modern/U21/illustration.png",
+      "prompt": "characters/modern/U21/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.6565,
+      "bytes": 1945222,
+      "sha256": "82227e5c4ee4f3f1c48b8262a1feab9d3f58e91f34f0ea86459b0f7af4dbcd76",
+      "tool": "built-in image_gen"
+    },
+    "U21/portrait": {
+      "path": "characters/modern/U21/portrait.png",
+      "prompt": "characters/modern/U21/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.3085,
+      "bytes": 2300745,
+      "sha256": "e594ec191621c2af5b230d2446128441c158e7d650b8f13889b7548b283a7c08",
+      "tool": "built-in image_gen"
+    },
+    "U21/sd": {
+      "path": "characters/modern/U21/sd.png",
+      "prompt": "characters/modern/U21/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.5432,
+      "bytes": 1604464,
+      "sha256": "9ed7d4cf00b644635a609dfa1899c95dba7f5356a8da4b22285381e10dae1320",
+      "tool": "built-in image_gen"
+    },
+    "U22/illustration": {
+      "path": "characters/modern/U22/illustration.png",
+      "prompt": "characters/modern/U22/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.6119,
+      "bytes": 2028025,
+      "sha256": "111f43704fc4997136f642a9c1f1c9d7f973b8b6a3de5d3952f5ea29b99a631f",
+      "tool": "built-in image_gen"
+    },
+    "U22/portrait": {
+      "path": "characters/modern/U22/portrait.png",
+      "prompt": "characters/modern/U22/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.2636,
+      "bytes": 2462505,
+      "sha256": "9638187b586e3680399891203591b60202ffbdc8f380abfae0de9e3daffacafe",
+      "tool": "built-in image_gen"
+    },
+    "U22/sd": {
+      "path": "characters/modern/U22/sd.png",
+      "prompt": "characters/modern/U22/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.5209,
+      "bytes": 1788742,
+      "sha256": "67cc6918d65781e998ef1e4dbb65f2b3dc1418fdb26a799d0983e4a9f48d3e73",
+      "tool": "built-in image_gen"
+    },
+    "U23/illustration": {
+      "path": "characters/modern/U23/illustration.png",
+      "prompt": "characters/modern/U23/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.6677,
+      "bytes": 1872738,
+      "sha256": "cbda46def2be7d5c6a2490d10c7881b76866d0ce247361b15c3294ce5229421e",
+      "tool": "built-in image_gen"
+    },
+    "U23/portrait": {
+      "path": "characters/modern/U23/portrait.png",
+      "prompt": "characters/modern/U23/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.2999,
+      "bytes": 2349875,
+      "sha256": "fb296c69bde9ffd2cc74291e87f8ffb797445b7b2f6d9c70d8a9270c4639035f",
+      "tool": "built-in image_gen"
+    },
+    "U23/sd": {
+      "path": "characters/modern/U23/sd.png",
+      "prompt": "characters/modern/U23/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.5476,
+      "bytes": 1636869,
+      "sha256": "75a719b787190424241c9fa7cb2501ae048757b53e3744233d4ce407545e3d28",
+      "tool": "built-in image_gen"
+    },
+    "U24/illustration": {
+      "path": "characters/modern/U24/illustration.png",
+      "prompt": "characters/modern/U24/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.676,
+      "bytes": 1790051,
+      "sha256": "6052d71df323563d033096981b8a18b2af3f7de435266c09686e55fa71477038",
+      "tool": "built-in image_gen"
+    },
+    "U24/portrait": {
+      "path": "characters/modern/U24/portrait.png",
+      "prompt": "characters/modern/U24/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.2805,
+      "bytes": 2283537,
+      "sha256": "b7a538fa90b6c0fe2c156355cb981ba8e097294cfb00adfd0c2edc49f89b24be",
+      "tool": "built-in image_gen"
+    },
+    "U24/sd": {
+      "path": "characters/modern/U24/sd.png",
+      "prompt": "characters/modern/U24/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.6083,
+      "bytes": 1461527,
+      "sha256": "d4989719617601fb5c73bc02f9a6ae935a4ebf1809cbd10182c953585443aa54",
+      "tool": "built-in image_gen"
+    },
+    "U25/illustration": {
+      "path": "characters/modern/U25/illustration.png",
+      "prompt": "characters/modern/U25/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.5808,
+      "bytes": 2082595,
+      "sha256": "a8650db4ce4007f47f05ad5e37ef0ecba4a0751fc4afb8f04b691d4f1c8b5dd5",
+      "tool": "built-in image_gen"
+    },
+    "U25/portrait": {
+      "path": "characters/modern/U25/portrait.png",
+      "prompt": "characters/modern/U25/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.2676,
+      "bytes": 2293725,
+      "sha256": "e83e7dc4ce14bbc60e27590501437d037d541bd62337926f2c3b3550953565b0",
+      "tool": "built-in image_gen"
+    },
+    "U25/sd": {
+      "path": "characters/modern/U25/sd.png",
+      "prompt": "characters/modern/U25/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.5772,
+      "bytes": 1563954,
+      "sha256": "d6cfd5525ec2e64366788e1bc92c4e1514aedf40e19cbfc802b1e397c42426d0",
+      "tool": "built-in image_gen"
+    },
+    "U26/illustration": {
+      "path": "characters/modern/U26/illustration.png",
+      "prompt": "characters/modern/U26/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.5109,
+      "bytes": 2105588,
+      "sha256": "976b2b8e97eda56819aa23d3a19d228e7ffaad209d5907b121758baee420f006",
+      "tool": "built-in image_gen"
+    },
+    "U26/portrait": {
+      "path": "characters/modern/U26/portrait.png",
+      "prompt": "characters/modern/U26/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.3102,
+      "bytes": 2258356,
+      "sha256": "280aa77c78635fc28d58a7bdfd98009f9af48e7083580d87507c2e6d388e0334",
+      "tool": "built-in image_gen"
+    },
+    "U26/sd": {
+      "path": "characters/modern/U26/sd.png",
+      "prompt": "characters/modern/U26/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.4548,
+      "bytes": 1809712,
+      "sha256": "8fdb8e4cdc50079ea3c4b38feb7be9cc8e79b21afa072f1f80a8890110c4ff97",
+      "tool": "built-in image_gen"
+    },
+    "U27/illustration": {
+      "path": "characters/modern/U27/illustration.png",
+      "prompt": "characters/modern/U27/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.585,
+      "bytes": 2055763,
+      "sha256": "7f2caa8e7d54176decc0c5a335393bc5f2ea86d653538498cabc2072380b73ce",
+      "tool": "built-in image_gen"
+    },
+    "U27/portrait": {
+      "path": "characters/modern/U27/portrait.png",
+      "prompt": "characters/modern/U27/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.2536,
+      "bytes": 2472430,
+      "sha256": "32b6fd2a9b464d375afdbb40e38abf0b23be7605ebb97a3ac194bac4eda901cd",
+      "tool": "built-in image_gen"
+    },
+    "U27/sd": {
+      "path": "characters/modern/U27/sd.png",
+      "prompt": "characters/modern/U27/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.4969,
+      "bytes": 1805828,
+      "sha256": "72cc6771bcd61b44a63e3a393afe171457056c93a1fd3a4508671b596311081f",
+      "tool": "built-in image_gen"
+    },
+    "U28/illustration": {
+      "path": "characters/modern/U28/illustration.png",
+      "prompt": "characters/modern/U28/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.5612,
+      "bytes": 2070820,
+      "sha256": "5d947cc5177fafa187dfaf8ef98d1b5e59ada71529067790fbeca18eac717844",
+      "tool": "built-in image_gen"
+    },
+    "U28/portrait": {
+      "path": "characters/modern/U28/portrait.png",
+      "prompt": "characters/modern/U28/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.2568,
+      "bytes": 2375968,
+      "sha256": "5ba7b87efac8ddd9c850b76aac993237051ed5086ef45220001d1fa2ac77fc46",
+      "tool": "built-in image_gen"
+    },
+    "U28/sd": {
+      "path": "characters/modern/U28/sd.png",
+      "prompt": "characters/modern/U28/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.4983,
+      "bytes": 1823278,
+      "sha256": "3499c58ef82c60f5c482a22dd4104677fc3ded8abd564aaab3f5a126b5305d0c",
+      "tool": "built-in image_gen"
+    },
+    "U29/illustration": {
+      "path": "characters/modern/U29/illustration.png",
+      "prompt": "characters/modern/U29/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.7161,
+      "bytes": 1663577,
+      "sha256": "bd03cc3210f7763915246bdae87c5c207777faebd29de281fdb25c39aab743d2",
+      "tool": "built-in image_gen"
+    },
+    "U29/portrait": {
+      "path": "characters/modern/U29/portrait.png",
+      "prompt": "characters/modern/U29/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.3547,
+      "bytes": 1995041,
+      "sha256": "ffba96447cbc6f53d6cbc9635ef34a6d77580989781dc59965e69f01ac26c93b",
+      "tool": "built-in image_gen"
+    },
+    "U29/sd": {
+      "path": "characters/modern/U29/sd.png",
+      "prompt": "characters/modern/U29/sd.refinement.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.6657,
+      "bytes": 1195974,
+      "sha256": "4114bf9357811a35c7b8a671e66492d1f17cf91554210fa7104923783a5aae8b",
+      "tool": "built-in image_gen",
+      "original_prompt": "characters/modern/U29/sd.prompt.md"
+    },
+    "U30/illustration": {
+      "path": "characters/modern/U30/illustration.png",
+      "prompt": "characters/modern/U30/illustration.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.5211,
+      "bytes": 2277439,
+      "sha256": "8d8f1b67341193846074555e43dd7753a716b796686d603d54b3809590da3a80",
+      "tool": "built-in image_gen"
+    },
+    "U30/portrait": {
+      "path": "characters/modern/U30/portrait.png",
+      "prompt": "characters/modern/U30/portrait.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.2781,
+      "bytes": 2415637,
+      "sha256": "edf92fff5d62aa144b2c22e6f8ee66870e5619acf1260a05c8f19ce133025aee",
+      "tool": "built-in image_gen"
+    },
+    "U30/sd": {
+      "path": "characters/modern/U30/sd.png",
+      "prompt": "characters/modern/U30/sd.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.4677,
+      "bytes": 2018451,
+      "sha256": "a74e6e1d5bfc52e952934104a423cd99e4a260768fe7e4af5bc9cd9a8b99e4bd",
+      "tool": "built-in image_gen"
+    }
+  }
+}

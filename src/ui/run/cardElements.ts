@@ -1,15 +1,24 @@
 import { cardFaceElement } from '../cards/cardFace';
 import { button, el, tagged } from './dom';
 import type { CardView, DeckCardView } from './runViews';
+import { appSkin } from '../skin/SkinStore';
+import { cardArtUnit, cardTypeSkinName, unitArtUrl } from '../skin/skins';
 
 /** 카드 한 장의 표시 (이름·비용·희귀도·종류·설명·키워드) */
 export function cardElement(card: CardView): HTMLElement {
   const root = el('div', `run-card rarity-${card.rarity}${card.upgraded ? ' upgraded' : ''}`);
   const head = el('div', 'run-card-head');
   head.append(el('span', 'run-card-cost', String(card.cost)), el('strong', 'run-card-name', card.name));
-  const meta = el('div', 'run-card-meta', `${card.typeLabel} · ${card.rarityLabel} · ${card.targetLabel}`);
+  const meta = el('div', 'run-card-meta', `${cardTypeSkinName(appSkin.current, card.type, card.typeLabel)} · ${card.rarityLabel} · ${card.targetLabel}`);
   const body = el('p', 'run-card-text', card.text);
-  root.append(head, meta, body);
+  root.append(head);
+  if (appSkin.current === 'modern') {
+    const art = el('div', 'modern-run-card-art');
+    const img = el('img'); img.src = unitArtUrl('modern', cardArtUnit(card.type), 'portrait')!;
+    img.alt = ''; img.loading = 'lazy'; img.draggable = false;
+    img.addEventListener('error', () => img.remove()); art.append(img); root.append(art);
+  }
+  root.append(meta, body);
   const tags = [...card.tags, ...(card.hpCostLabel ? [card.hpCostLabel] : [])];
   if (tags.length > 0) root.append(el('div', 'run-card-tags', tags.join(' · ')));
   return root;

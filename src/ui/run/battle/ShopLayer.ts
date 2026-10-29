@@ -2,7 +2,7 @@ import type { TraitCatalog } from '../../../core/data/traitLoader';
 import type { UnitCatalog } from '../../../core/data/unitLoader';
 import { MANAGEMENT, type ShopOffer } from '../../../core/management';
 import type { DebugController, SessionSnapshot } from '../../debug/contracts';
-import { unitArtUrl, unitSkinName } from '../../skin/skins';
+import { isIllustratedSkin, traitSkinName, unitArtUrl, unitSkinName, unitSkinRole } from '../../skin/skins';
 import { appSkin } from '../../skin/SkinStore';
 import { unitAbbreviation } from '../../gameData';
 import type { ActiveTrait } from '../../../core/combat/traits';
@@ -105,14 +105,14 @@ export class ShopLayer {
     if (def) {
       const traits = el('div', 'bt-offer-traits');
       for (const id of [def.origin, def.job]) {
-        const chip = el('span', '', this.traits.get(id)?.name ?? id);
+        const chip = el('span', '', traitSkinName(appSkin.current, id, this.traits.get(id)?.name ?? id));
         bindTraitChip(chip, id, this.traits, this.traitPop, this.allyTraits);
         traits.append(chip);
       }
       art.append(traits);
       node.dataset.popKey = `offer:${slot}:${offer.unitId}`;
       const content = () => {
-        const info = buildUnitInfo(def, 1, { traitName: (id) => this.traits.get(id)?.name ?? id });
+        const info = buildUnitInfo(def, 1, { traitName: (id) => traitSkinName(appSkin.current, id, this.traits.get(id)?.name ?? id) });
         return [infoHead(info, false, { large: false }), el('div', 'bt-unit-pop-cost', `${offer.tier}등급 · ${offer.cost}G`), statsGrid(info), skillBlock(info)];
       };
       // 특성 이름 위에서는 특성 팝업만, 나머지 부분에서는 유닛 팝업을 띄운다
@@ -125,7 +125,7 @@ export class ShopLayer {
     const foot = el('div', 'bt-offer-foot');
     const label = el('div', 'academy-offer-label');
     label.append(el('b', '', unitSkinName(appSkin.current, offer.unitId, name)));
-    if (appSkin.current === 'academy') label.append(el('small', '', name));
+    if (isIllustratedSkin(appSkin.current)) label.append(el('small', '', unitSkinRole(appSkin.current, offer.unitId, name)));
     foot.append(label, el('span', 'bt-offer-cost', `${offer.cost}G`));
     node.append(art, foot);
     return node;
