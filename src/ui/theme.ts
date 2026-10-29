@@ -25,6 +25,11 @@ export const LAYOUT = {
   STAR_Y: 34,
   BADGE_Y: 46,
   BADGE_SIZE: 14,
+  /** 원화 스킨: 유닛 SD 이미지 한 변 크기와 칸 중심 기준 y (막대·별 사이에 들어가게) */
+  SKIN_ART_SIZE: 80,
+  SKIN_ART_Y: -2,
+  /** 원화 스킨: 원화 밑에 까는 진영색 받침의 불투명도 */
+  SKIN_BASE_ALPHA: 0.45,
   /** 카드 사용 배너(보드 아래)와 CP 변화 표시(오른쪽 위) 위치 */
   CARD_BANNER_Y: 684,
   CP_TEXT_Y: 64,

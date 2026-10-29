@@ -11,6 +11,7 @@ import { RunShell } from './ui/run/RunShell';
 import { BrowserRunStorage, META_SAVE_KEY } from './ui/run/RunStorage';
 import { loadGameData, unitAbbreviation } from './ui/gameData';
 import { computeHiDpi } from './ui/hidpi';
+import { SkinPicker } from './ui/skin/SkinPicker';
 import { COLORS } from './ui/theme';
 
 /** 데이터 검증 오류를 화면에 보여준다 (게임은 시작하지 않음). */
@@ -62,7 +63,11 @@ function bootstrap(): void {
   debugHost.id = 'debug-host';
   const battleHost = document.createElement('div');
   battleHost.id = 'run-battle-host';
-  panelHost.replaceChildren(debugHost, battleHost);
+  // 패널 맨 위: 화면 스킨 선택 (디버그·전투 패널 어느 쪽이든 보인다)
+  const skinRow = document.createElement('div');
+  skinRow.className = 'skin-panel-row';
+  skinRow.append(new SkinPicker().root);
+  panelHost.replaceChildren(skinRow, debugHost, battleHost);
   new DebugPanel(debugHost, session, data.units, data.traits, data.commanders, gameHost, data.cards);
   new HandPanel(handHost, session, gameHost);
 

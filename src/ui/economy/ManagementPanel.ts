@@ -5,6 +5,8 @@ import type { UnitDef } from '../../core/data/unit';
 import type { OwnedUnit } from '../../core/management';
 import type { DebugController } from '../debug/contracts';
 import { clientToStage } from '../cards/stagePoint';
+import { unitArtUrl } from '../skin/skins';
+import { appSkin, type SkinStore } from '../skin/SkinStore';
 import './managementPanel.css';
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, className = '', text?: string): HTMLElementTagNameMap[K] {
@@ -28,6 +30,8 @@ export interface ManagementPanelOptions {
   modeControls?: boolean;
   /** 주면 상점 진열과 유닛 설명에 기원·직업 이름을 함께 보여 준다 */
   traits?: TraitCatalog;
+  /** 화면 스킨 (원화 스킨이면 상점·벤치·배치 목록에 초상화를 붙인다). 기본은 앱 공용 저장소 */
+  skin?: SkinStore;
 }
 
 interface UnitPress { id: number; x: number; y: number; origin: 'board' | 'bench' | 'canvas'; dragging: boolean; }
@@ -48,6 +52,7 @@ export class ManagementPanel {
     this.root.className = 'management-panel';
     canvasHost?.addEventListener('pointerdown', this.onCanvasDown, true);
     controller.subscribe(() => this.render());
+    (options.skin ?? appSkin).subscribe(() => this.render());
     this.render();
   }
 
@@ -83,6 +88,8 @@ export class ManagementPanel {
       buy.classList.add('management-offer');
       buy.disabled = !canManage || !offer || state.gold < offer.cost;
       if (def) buy.title = this.describe(def);
+      const face = offer ? this.portrait(offer.unitId, 'skin-portrait') : null;
+      if (face) buy.prepend(face);
       offers.append(buy);
     });
 
@@ -144,6 +151,18 @@ export class ManagementPanel {
     return `${head}${def.skill.name}: ${def.skill.text}`;
   }
 
+  /** 원화 스킨일 때 유닛 초상화 (기본 스킨·원화 없는 유닛이면 null, 읽기 실패면 숨김) */
+  private portrait(unitId: string, className: string): HTMLImageElement | null {
+    const url = unitArtUrl((this.options.skin ?? appSkin).current, unitId, 'portrait');
+    if (!url) return null;
+    const img = el('img', className);
+    img.src = url;
+    img.alt = '';
+    img.draggable = false;
+    img.addEventListener('error', () => { img.hidden = true; });
+    return img;
+  }
+
   private unitName(unit: OwnedUnit): string {
     return `${this.units.get(unit.unitId)?.name ?? '유닛'} ${'★'.repeat(unit.star)}`;
   }
@@ -156,6 +175,8 @@ export class ManagementPanel {
     const def = this.units.get(unit.unitId);
     const grant = def?.grantedCard ? this.cards?.get(def.grantedCard)?.name : null;
     node.title = `${def ? this.describe(def) : ''}${grant ? ` / 배치 중 제공 카드: ${grant}` : ''}`;
+    const face = this.portrait(unit.unitId, 'skin-portrait-small');
+    if (face) node.prepend(face);
     node.addEventListener('pointerdown', (event) => {
       if (event.button !== 0 || !enabled) return;
       this.beginPress(unit.id, event.clientX, event.clientY, origin);

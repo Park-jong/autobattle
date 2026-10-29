@@ -10,6 +10,8 @@ import { BoardRenderer } from './BoardRenderer';
 import { EffectsLayer } from './EffectsLayer';
 import { TargetingOverlay } from './TargetingOverlay';
 import { UnitSprite } from './UnitSprite';
+import { skinArtList, unitTextureKey, type SkinId } from '../skin/skins';
+import { appSkin, type SkinStore } from '../skin/SkinStore';
 
 /** 씬이 화면에 쓸 이름을 얻는 창구 (데이터 카탈로그를 직접 알 필요가 없게) */
 export interface SceneLabels {
@@ -33,11 +35,15 @@ export class BattleScene extends Phaser.Scene {
   private sprites = new Map<number, UnitSprite>();
   private signature = '';
   private hoverCell: Cell | null = null;
+  /** 원화 텍스처를 다 읽어 둔 스킨 (읽는 동안은 기본 표시) */
+  private readonly loadedSkins = new Set<SkinId>();
+  private readonly loadingSkins = new Set<SkinId>();
 
   constructor(
     private readonly source: BattleViewSource,
     private readonly metrics: HiDpiMetrics,
     private readonly labels: SceneLabels,
+    private readonly skin: SkinStore = appSkin,
   ) {
     super('BattleScene');
   }
@@ -72,7 +78,10 @@ export class BattleScene extends Phaser.Scene {
       this.source.pointerMoved(world.x, world.y);
       this.source.pointerDown(world.x, world.y, p.rightButtonDown());
     });
+    const unsubscribe = this.skin.subscribe(() => this.applySkin());
+    this.applySkin();
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
+      unsubscribe();
       this.effects.clear();
       this.targetingOverlay.clear();
     });
@@ -132,6 +141,26 @@ export class BattleScene extends Phaser.Scene {
     return this.cameras.main.getWorldPoint(pointer.x, pointer.y);
   }
 
+  /** 스킨이 바뀌면 원화를 (처음 한 번) 읽고 스프라이트를 다시 만든다. 읽기에 실패한 원화는 기본 표시로 남는다 */
+  private applySkin(): void {
+    const skin = this.skin.current;
+    this.signature = '';
+    if (this.loadedSkins.has(skin) || this.loadingSkins.has(skin)) return;
+    const pending = skinArtList(skin, 'sd').filter((art) => !this.textures.exists(art.key));
+    if (pending.length === 0) {
+      this.loadedSkins.add(skin);
+      return;
+    }
+    this.loadingSkins.add(skin);
+    for (const art of pending) this.load.image(art.key, art.url);
+    this.load.once(Phaser.Loader.Events.COMPLETE, () => {
+      this.loadingSkins.delete(skin);
+      this.loadedSkins.add(skin);
+      if (this.skin.current === skin) this.signature = '';
+    });
+    this.load.start();
+  }
+
   /** 화면에 있어야 할 유닛 목록이 바뀌면(편성 편집·새 전투) 스프라이트를 다시 만든다. */
   private syncSprites(views: readonly UnitView[]): void {
     const signature = views.map((v) => `${v.uid}:${v.unitId}:${v.star}:${v.side}`).join('|');
@@ -142,7 +171,8 @@ export class BattleScene extends Phaser.Scene {
     for (const view of views) {
       this.sprites.set(
         view.uid,
-        new UnitSprite(this, this.metrics, this.layout, this.labels.unitAbbreviation(view.unitId), view.star),
+        new UnitSprite(this, this.metrics, this.layout, this.labels.unitAbbreviation(view.unitId), view.star,
+          unitTextureKey(this.skin.current, view.unitId, 'sd')),
       );
     }
     this.effects.clear();
