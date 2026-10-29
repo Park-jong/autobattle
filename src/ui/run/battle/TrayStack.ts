@@ -23,6 +23,8 @@ export class TrayStack {
   private readonly layers = new Map<TrayLayerId, HTMLElement>();
   private frontId: TrayLayerId = 'cards';
   private stacked = false;
+  private collapsed = typeof window !== 'undefined' && window.innerHeight < 620;
+  private readonly collapseButton = tagged(el('button', 'tray-collapse'), 'tray-collapse');
 
   constructor(private readonly tray: HTMLElement, contents: Record<TrayLayerId, HTMLElement>) {
     for (const spec of LAYERS) {
@@ -43,6 +45,12 @@ export class TrayStack {
       this.layers.set(spec.id, layer);
       tray.append(layer);
     }
+    this.collapseButton.type = 'button';
+    this.collapseButton.addEventListener('click', () => {
+      this.collapsed = !this.collapsed;
+      this.apply(false);
+    });
+    tray.append(this.collapseButton);
     window.addEventListener('keydown', (e) => {
       if (!this.stacked || e.ctrlKey || e.metaKey || e.altKey || isTyping(e.target)) return;
       const spec = LAYERS.find((l) => l.code === e.code);
@@ -62,14 +70,19 @@ export class TrayStack {
     this.apply(false);
   }
 
-  bringFront(id: TrayLayerId): void {
-    if (this.frontId === id) return;
+  bringFront(id: TrayLayerId, expand = true): void {
+    if (this.frontId === id && (!this.collapsed || !expand)) return;
     this.frontId = id;
+    if (expand) this.collapsed = false;
     this.apply(true);
   }
 
   private apply(animate: boolean): void {
     this.tray.classList.toggle('stacked', this.stacked);
+    this.tray.classList.toggle('collapsed', this.stacked && this.collapsed);
+    this.collapseButton.hidden = !this.stacked;
+    this.collapseButton.textContent = this.collapsed ? '트레이 펼치기 ▴' : '보드 크게 ▾';
+    this.collapseButton.setAttribute('aria-expanded', String(!this.collapsed));
     for (const [id, layer] of this.layers) {
       const front = id === this.frontId;
       layer.hidden = !this.stacked && id !== 'cards';

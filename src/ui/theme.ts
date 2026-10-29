@@ -89,6 +89,14 @@ export const COLORS = {
   ATTACK_ENEMY: 0xffb0a0,
 } as const;
 
+/** 아카데미 보드의 잉크색 바닥과 금장. 기본 도형 스킨은 기존 팔레트를 유지한다. */
+export const ACADEMY_COLORS = {
+  BACKGROUND: 0x0d1120,
+  ALLY_CELL_A: 0x1d2b43, ALLY_CELL_B: 0x22324b,
+  ENEMY_CELL_A: 0x30283e, ENEMY_CELL_B: 0x382d47,
+  GRID_LINE: 0x4b5269, BOARD_BORDER: 0xb29a68,
+} as const;
+
 /** 텍스트 색 (CSS 문자열) */
 export const TEXT_COLORS = {
   TITLE: '#ffffff',
@@ -168,6 +176,18 @@ export const MOTION = {
   SKILL_RISE_PX: 10,
   /** "카드 비용 -1" 글자 기준 높이: 스킬명(-78)·피해 숫자(-62에서 44 상승) 위로 띄운다 */
   CARD_COST_BASE_Y: -126,
+} as const;
+
+/** 공격·착탄 연출 시간(초). 투사체, 숫자, 스프라이트 반동이 같은 기준을 쓴다. */
+export const COMBAT_FX = {
+  WINDUP: 0.045,
+  MELEE_IMPACT: 0.09,
+  PROJECTILE_BASE: 0.11,
+  PROJECTILE_PER_CELL: 0.025,
+  PROJECTILE_MAX: 0.29,
+  ATTACK_FADE: 0.18,
+  HIT: 0.28,
+  DAMAGE_BUCKET: 0.14,
 } as const;
 
 /** 상태 아이콘(글자 배지). 정의되지 않은 상태는 표시하지 않는다 */

@@ -5,6 +5,7 @@ import type { SessionSnapshot } from '../../debug/contracts';
 import { BOARD_COLS } from '../../../core/combat/board';
 import { LAYOUT, STAGE } from '../../theme';
 import { appSkin } from '../../skin/SkinStore';
+import { unitSkinName } from '../../skin/skins';
 import { button, el, tagged } from '../dom';
 import { unitFace } from './unitFace';
 
@@ -78,7 +79,7 @@ export class BenchRow {
     node.disabled = !canManage;
     node.classList.toggle('selected', unit.id === selected);
     const label = el('span', 'bt-slot-name');
-    label.append(el('b', '', name), el('span', '', '★'.repeat(unit.star)));
+    label.append(el('b', '', unitSkinName(appSkin.current, unit.unitId, name)), el('span', '', '★'.repeat(unit.star)));
     node.append(unitFace(unit.unitId, name, def?.tier ?? 1), label);
     node.title = `${name} — 클릭: 정보 / 끌기: 보드에 배치·상점에 놓아 판매`;
     this.drag.bind(node, unit.id, 'bench', canManage);

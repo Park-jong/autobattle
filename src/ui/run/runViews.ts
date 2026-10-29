@@ -109,6 +109,7 @@ export function testBadgeText(info: TestRunInfo): string {
 
 export interface RunHud {
   seed: number;
+  commanderId?: string;
   commanderName: string;
   /** 지금 액트 (1부터) / 전체 액트 수 / 이름 ("액트 N — 이름" 표기에 쓴다) */
   act: number;
@@ -138,6 +139,7 @@ export function buildHud(run: RunController): RunHud {
   const node = run.currentNode;
   return {
     seed: run.seed,
+    commanderId: run.commander.id,
     commanderName: run.commander.name,
     act: run.act,
     actCount: run.totalActs,

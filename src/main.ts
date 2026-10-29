@@ -13,6 +13,9 @@ import { loadGameData, unitAbbreviation } from './ui/gameData';
 import { computeHiDpi } from './ui/hidpi';
 import { SkinPicker } from './ui/skin/SkinPicker';
 import { COLORS } from './ui/theme';
+import { installPresentation } from './ui/skin/presentation';
+import './ui/skin/academy.css';
+import { attackProfile } from './ui/battle/combatVisuals';
 
 /** 데이터 검증 오류를 화면에 보여준다 (게임은 시작하지 않음). */
 function showFatalError(host: HTMLElement, message: string): void {
@@ -38,6 +41,7 @@ function newRunId(): string {
 }
 
 function bootstrap(): void {
+  installPresentation();
   const gameHost = document.getElementById('game');
   const panelHost = document.getElementById('panel');
   const handHost = document.getElementById('hand');
@@ -105,6 +109,8 @@ function bootstrap(): void {
   const labels: SceneLabels = {
     unitAbbreviation: (unitId) => unitAbbreviation(data.units.get(unitId)?.name ?? unitId),
     cardName: (cardId, upgraded) => `${data.cards.get(cardId)?.name ?? cardId}${upgraded ? '+' : ''}`,
+    attackProfile: (unitId) => attackProfile(data.units.get(unitId)),
+    unitIsBoss: (unitId) => !!data.units.get(unitId)?.boss,
   };
   new Phaser.Game({
     type: Phaser.AUTO,

@@ -279,6 +279,13 @@ body.roster-dragging .bt-slot { border-color: var(--bt-gold-dim); background: #2
 .tray-layer { position: relative; }
 .tray-layer[hidden] { display: none; }
 .tray-tab { display: none; }
+.tray-collapse { position: absolute; z-index: 5; right: 12px; top: 3px; padding: 3px 10px; border: 1px solid var(--bt-border-strong); border-radius: 5px; background: #20283d; color: var(--bt-muted); cursor: pointer; font: 11px var(--bt-font); }
+.tray-collapse[hidden] { display: none; }
+#tray.stacked.collapsed { height: 36px; }
+#tray.stacked.collapsed .tray-layer { height: 0; transform: none; filter: none; box-shadow: none; }
+#tray.stacked.collapsed .tray-layer.back { transform: none; filter: none; }
+#tray.stacked.collapsed .tray-layer > :not(.tray-tab) { display: none; }
+.bt-trait-toggle { display: none; }
 #tray.stacked { height: 252px; padding-top: 30px; box-sizing: border-box; background: var(--bt-bg); }
 #tray.stacked .tray-layer {
   position: absolute; left: 0; right: 0; bottom: 0; height: 222px;

@@ -5,6 +5,9 @@ import { fanLayout } from './cardFan';
 import type { CardType } from '../../core/data/card';
 import { clientToStage } from './stagePoint';
 import './handPanel.css';
+import { appSkin } from '../skin/SkinStore';
+import { commanderArt } from '../skin/commanderArt';
+import { unitArtUrl } from '../skin/skins';
 
 type PileKey = 'draw' | 'discard' | 'exhaust';
 const PILE_LABELS: Record<PileKey, string> = { draw: '뽑을 더미', discard: '버린 더미', exhaust: '소모 더미' };
@@ -118,6 +121,7 @@ export class HandPanel {
     if (!view.visible) return;
 
     const signature = JSON.stringify([
+      appSkin.current,
       view.phaseLabel,
       view.commanderName,
       view.hand,
@@ -159,6 +163,8 @@ export class HandPanel {
   private render(view: CardPanelView): void {
     this.phaseLabel.textContent = view.phaseLabel;
     this.commanderBox.replaceChildren(el('strong', undefined, view.commanderName), el('span', 'hand-passive', `패시브 ${view.passiveName}`));
+    const portrait = commanderArt(view.commanderId, 'portrait', 'academy-hand-portrait');
+    if (portrait) this.commanderBox.append(portrait);
     this.commanderBox.title = `${view.passiveName}: ${view.passiveText}`;
     this.renderUltimate(view);
     this.hintBox.textContent = view.holding ? view.hint : '';
@@ -204,6 +210,17 @@ export class HandPanel {
   private cardNode(card: HandCardView): HTMLElement {
     const node = el('div', `hcard type-${card.type} rarity-${card.rarity}`);
     node.dataset.testid = `hand-card-${card.instanceId}`;
+    node.tabIndex = 0;
+    node.setAttribute('role', 'group');
+    node.setAttribute('aria-label', `${card.name}, ${card.cost}CP. ${card.reason ?? card.text}`);
+    node.setAttribute('aria-disabled', String(!card.playable));
+    node.addEventListener('keydown', (e) => {
+      if (e.target !== node || (e.key !== 'Enter' && e.key !== ' ')) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (card.playable && card.targetKind === 'none') this.controller.useCardNow(card.instanceId);
+      else this.controller.beginCard(card.instanceId, 'click');
+    });
     node.classList.toggle('selected', card.selected);
     node.classList.toggle('disabled', !card.playable);
     node.classList.toggle('upgraded', card.upgraded);
@@ -211,7 +228,18 @@ export class HandPanel {
 
     const cost = el('span', card.cost < card.baseCost ? 'hcard-cost reduced' : card.cost > card.baseCost ? 'hcard-cost raised' : 'hcard-cost', String(card.cost));
     if (card.cost !== card.baseCost) cost.title = `기본 비용 ${card.baseCost} → ${card.cost} (${card.cost < card.baseCost ? '주술사 특성' : '방해 변이'})`;
-    const art = el('div', 'hcard-art', TYPE_GLYPHS[card.type]);
+    const art = el('div', 'hcard-art');
+    const artUnit = { operation: 'iron_shieldbearer', command: 'legion_centurion', spell: 'ember_kindler', equipment: 'ember_smith', curse: 'void_hierophant' }[card.type];
+    const artUrl = unitArtUrl(appSkin.current, artUnit, 'portrait');
+    if (artUrl) {
+      const img = el('img', 'academy-card-art');
+      img.src = artUrl;
+      img.alt = '';
+      img.draggable = false;
+      img.addEventListener('error', () => img.remove());
+      art.append(img);
+    }
+    art.append(el('span', 'academy-card-glyph', TYPE_GLYPHS[card.type]));
     const meta = el('div', 'hcard-type', `${card.typeLabel} · ${card.targetLabel}`);
     const text = el('div', 'hcard-text', card.text);
     node.append(cost, el('div', 'hcard-name', card.name), art, meta, text);

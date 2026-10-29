@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import unitsJson from '../../../data/units.json';
-import { ACADEMY_ART_CODES, DEFAULT_SKIN, SKINS, isSkinId, skinArtList, unitArtUrl, unitTextureKey } from './skins';
+import { ACADEMY_ART_CODES, ACADEMY_UNIT_NAMES, COMMANDER_ART_CODES, DEFAULT_SKIN, SKINS, commanderArtUrl, isSkinId, skinArtList, unitArtUrl, unitTextureKey, unitSkinName } from './skins';
 import { SKIN_PREF_KEY, SkinStore } from './SkinStore';
 import type { StorageLike } from '../run/RunStorage';
 
@@ -13,9 +13,9 @@ class MapStorage implements StorageLike {
 }
 
 describe('스킨 정의', () => {
-  it('기본·아카데미 두 스킨이 있고 기본값은 default', () => {
+  it('기본·아카데미 두 스킨이 있고 기본값은 academy', () => {
     expect(SKINS.map((s) => s.id)).toEqual(['default', 'academy']);
-    expect(DEFAULT_SKIN).toBe('default');
+    expect(DEFAULT_SKIN).toBe('academy');
     expect(isSkinId('academy')).toBe(true);
     expect(isSkinId('neon')).toBe(false);
   });
@@ -37,12 +37,28 @@ describe('스킨 정의', () => {
     }
   });
 
-  it('축소 원화 파일(public/skins/academy)이 30종 × 2종류 모두 있다', () => {
-    for (const code of Object.values(ACADEMY_ART_CODES)) {
-      for (const kind of ['sd', 'portrait']) {
+  it('유닛 30명·지휘관 3명의 전신·초상화·SD 배포 파일이 모두 있다', () => {
+    for (const code of [...Object.values(ACADEMY_ART_CODES), ...Object.values(COMMANDER_ART_CODES)]) {
+      for (const kind of ['sd', 'portrait', 'illustration']) {
         expect(existsSync(new URL(`../../../public/skins/academy/${kind}/${code}.png`, import.meta.url)), `${kind}/${code}`).toBe(true);
       }
     }
+  });
+
+  it('지휘관 원화는 하위 경로 배포와 기본 스킨을 처리한다', () => {
+    expect(commanderArtUrl('academy', 'cmd_harten', 'illustration', './')).toBe('./skins/academy/illustration/C01.png');
+    expect(commanderArtUrl('academy', 'cmd_nox', 'portrait', '/autobattle/')).toBe('/autobattle/skins/academy/portrait/C03.png');
+    expect(commanderArtUrl('default', 'cmd_nox', 'portrait')).toBeNull();
+    expect(commanderArtUrl('academy', 'missing', 'portrait')).toBeNull();
+  });
+
+  it('화면 이름이 원화 설정 문서와 일치하며 기존 스킨·보스 이름은 유지된다', () => {
+    const markdown = readFileSync(new URL('../../../characters/README.md', import.meta.url), 'utf8');
+    const rows = [...markdown.matchAll(/\| \[(U\d\d)\]\([^\n]+?\) \| ([^|]+) \|/g)];
+    expect(Object.fromEntries(rows.map(m => [m[1], m[2]!.trim()]))).toEqual(ACADEMY_UNIT_NAMES);
+    expect(unitSkinName('academy', 'iron_shieldbearer', '방패병')).toBe('리네');
+    expect(unitSkinName('default', 'iron_shieldbearer', '방패병')).toBe('방패병');
+    expect(unitSkinName('academy', 'gate_breaker', '성문 파괴자')).toBe('성문 파괴자');
   });
 
   it('기본 스킨·원화 없는 유닛은 URL·텍스처 키가 없다', () => {
@@ -81,16 +97,16 @@ describe('SkinStore', () => {
   it('잘못된 값·저장소 오류는 기본 스킨으로 계속 동작한다', () => {
     const storage = new MapStorage();
     storage.setItem(SKIN_PREF_KEY, 'neon');
-    expect(new SkinStore(() => storage).current).toBe('default');
+    expect(new SkinStore(() => storage).current).toBe('academy');
     const broken: StorageLike = {
       getItem: () => { throw new Error('막힘'); },
       setItem: () => { throw new Error('막힘'); },
       removeItem: () => undefined,
     };
     const store = new SkinStore(() => broken);
-    expect(store.current).toBe('default');
+    expect(store.current).toBe('academy');
     store.set('academy');
     expect(store.current).toBe('academy');
-    expect(new SkinStore(() => undefined).current).toBe('default');
+    expect(new SkinStore(() => undefined).current).toBe('academy');
   });
 });

@@ -2,6 +2,9 @@ import { button, el, tagged } from './dom';
 import type { RunCommands, RunSnapshot, TestCommands } from './contracts';
 import { MetaPanel } from './MetaPanel';
 import { SkinPicker } from '../skin/SkinPicker';
+import { appSkin } from '../skin/SkinStore';
+import { COMMANDER_PROFILES } from '../skin/skins';
+import { commanderArt } from '../skin/commanderArt';
 import { TestStartPanel } from './TestStartPanel';
 import { clampThreatLevel } from './threatViews';
 
@@ -69,19 +72,33 @@ export class StartScreen {
     }
 
     const card = el('div', 'run-start-card');
-    card.append(el('h1', 'run-title', '전술 지휘관'), el('p', 'run-subtitle', '오토체스 + 덱빌딩 로그라이크 · 3액트 (액트당 13층)'));
+    const academy = appSkin.current === 'academy';
+    const brand = el('header', 'academy-brand');
+    brand.append(el('span', 'academy-eyebrow', academy ? 'ARCANA ACADEMY · TACTICS' : 'TACTICAL COMMANDER'));
+    brand.append(el('h1', 'run-title', academy ? '마도아카데미' : '전술 지휘관'));
+    brand.append(el('p', 'run-subtitle', academy ? '금서가 깨어난 밤, 당신의 전술이 그녀들의 운명을 바꾼다.' : '오토체스 + 덱빌딩 로그라이크'));
+    const tags = el('div', 'academy-brand-tags');
+    tags.append(el('span', '', '오토배틀 × 덱빌딩'), el('span', '', '3액트 로그라이크'));
+    if (academy) tags.append(el('span', 'academy-adult-label', '성인향 판타지 · 전원 성인 설정'));
+    brand.append(tags);
+    card.append(brand);
 
     card.append(tagged(el('p', 'run-meta-points-line', start.meta.status === 'ok' ? `보유 전공 ${start.meta.points}` : '전공 기록 손상'), 'meta-points'));
     card.append(this.commanderPicker(start));
-    card.append(this.threatPicker(start));
+    const launch = el('div', 'run-launch');
+    const setup = el('div', 'run-start-config');
+    const actions = el('div', 'run-start-actions');
+    launch.append(setup, actions);
+    card.append(launch);
+    setup.append(this.threatPicker(start));
     this.skinPicker.root.classList.add('skin-start-row');
-    card.append(this.skinPicker.root);
+    setup.append(this.skinPicker.root);
     const seedRow = el('label', 'run-seed-row');
     seedRow.append(el('span', '', '시드'), this.seedInput);
     const newRun = tagged(button('새 런', () => this.startNew(), 'dbg-btn dbg-primary run-big-button'), 'new-run');
     const blocked = this.newRunBlockedReason(start);
     newRun.disabled = blocked !== null;
-    card.append(seedRow, el('p', 'dbg-hint', '같은 시드는 같은 맵·적·보상을 만듭니다. 비워 두면 위의 제안 시드를 씁니다.'));
+    setup.append(seedRow, el('p', 'dbg-hint', '같은 시드로 같은 여정을 다시 도전할 수 있습니다.'));
     if (this.confirming && start.save.kind === 'ok') {
       const s = start.save.summary;
       const box = tagged(el('div', 'run-confirm'), 'confirm-new-run');
@@ -90,26 +107,26 @@ export class StartScreen {
         tagged(button('진행 중인 런을 지우고 새로 시작', () => this.submit(), 'dbg-btn dbg-primary run-big-button'), 'confirm-new-run-yes'),
         tagged(button('취소', () => this.cancelConfirm(), 'dbg-btn run-big-button'), 'confirm-new-run-no'),
       );
-      card.append(box);
+      actions.append(box);
     } else {
-      card.append(newRun);
-      if (blocked) card.append(tagged(el('p', 'dbg-hint run-new-blocked', blocked), 'new-run-blocked'));
+      actions.append(newRun);
+      if (blocked) actions.append(tagged(el('p', 'dbg-hint run-new-blocked', blocked), 'new-run-blocked'));
     }
 
     const save = start.save;
     const resume = tagged(button('이어하기', () => this.commands.continueRun(), 'dbg-btn run-big-button'), 'continue-run');
     resume.disabled = save.kind !== 'ok';
-    card.append(resume);
+    actions.append(resume);
     if (save.kind === 'ok') {
       const s = save.summary;
-      card.append(el('p', 'dbg-hint', `${s.test ? '[테스트 런] ' : ''}${s.commanderName} · 시드 ${s.seed} · 액트 ${s.act} ${s.floor}층 · HP ${s.hp}/${s.maxHp} · ${s.gold}G`));
+      actions.append(el('p', 'dbg-hint', `${s.test ? '[테스트 런] ' : ''}${s.commanderName} · 액트 ${s.act} ${s.floor}층 · HP ${s.hp}/${s.maxHp} · ${s.gold}G`));
     } else if (save.kind === 'none') {
-      card.append(el('p', 'dbg-hint', '저장된 런이 없습니다.'));
+      actions.append(el('p', 'dbg-hint', '저장된 여정이 없습니다.'));
     } else {
       const box = tagged(el('div', 'dbg-error run-save-error'), 'save-error');
       box.append(el('p', '', save.message));
       box.append(tagged(button('저장 삭제', () => this.commands.deleteSave()), 'delete-save'));
-      card.append(box);
+      actions.append(box);
     }
 
     const legacy = el('div', 'run-start-legacy');
@@ -118,11 +135,13 @@ export class StartScreen {
       tagged(button('경제 플레이 (5연전)', () => this.commands.openManagement()), 'open-management'),
       tagged(button('편성 디버그', () => this.commands.openDebug()), 'open-debug'),
     );
-    card.append(legacy);
+    const tools = el('details', 'academy-test-modes');
+    tools.append(el('summary', '', '연습과 플레이 테스트'), legacy);
+    card.append(tools);
     this.metaPanel.render(snap);
     card.append(this.metaPanel.root);
     this.testPanel.render(start);
-    card.append(this.testPanel.root);
+    tools.append(this.testPanel.root);
     this.root.replaceChildren(card);
   }
 
@@ -144,6 +163,15 @@ export class StartScreen {
       const root = tagged(el('button', `run-commander${c.id === selected ? ' selected' : ''}${locked ? ' locked' : ''}`), `commander-${c.id}`);
       root.type = 'button';
       root.setAttribute('aria-pressed', String(c.id === selected));
+      const profile = appSkin.current === 'academy' ? COMMANDER_PROFILES[c.id] : undefined;
+      if (profile) {
+        root.style.setProperty('--commander-accent', profile.color);
+        const art = commanderArt(c.id, 'illustration', 'academy-commander-art');
+        if (art) root.append(art);
+        root.append(el('span', 'academy-commander-title', profile.title));
+        root.append(el('span', 'academy-commander-quote', `“${profile.quote}”`));
+      }
+      root.append(el('span', 'academy-commander-selected', c.id === selected ? '선택한 지휘관' : '지휘관 선택'));
       root.addEventListener('click', () => {
         this.selectedCommander = c.id;
         if (this.lastSnapshot) this.render(this.lastSnapshot);

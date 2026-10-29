@@ -4,6 +4,7 @@ import { encounterPreviewElement } from './encounterPreview';
 import { hudElement } from './hudElement';
 import { NODE_TYPE_INFO, type MapNodeView, type MapView } from './runViews';
 import { NODE_TYPES } from '../../core/run';
+import { commanderArt } from '../skin/commanderArt';
 
 const ROW_HEIGHT = 56;
 const TOP_PAD = 28;
@@ -34,7 +35,7 @@ export class MapScreen {
     actBar.append(el('h2', 'run-act-name', `액트 ${map.act} — ${map.actName}`), el('p', 'dbg-hint', `${map.region} · ${map.actText} (액트 ${map.act} / ${map.actCount})`));
 
     const scroll = tagged(el('div', 'run-map-scroll'), 'map-scroll');
-    scroll.append(this.buildMap(map));
+    scroll.append(this.buildMap(map, hud.commanderId));
     const layout = el('div', 'run-map-layout');
     layout.append(scroll, this.side);
     this.root.replaceChildren(header, actBar, layout);
@@ -46,7 +47,7 @@ export class MapScreen {
     });
   }
 
-  private buildMap(map: MapView): HTMLElement {
+  private buildMap(map: MapView, commanderId?: string): HTMLElement {
     const floorCount = map.floors.length;
     const height = TOP_PAD * 2 + (floorCount - 1) * ROW_HEIGHT;
     const yOf = (floor: number): number => TOP_PAD + (floorCount - floor) * ROW_HEIGHT;
@@ -79,6 +80,15 @@ export class MapScreen {
       board.append(label);
     }
     for (const node of nodes.values()) board.append(this.nodeButton(node, xOf(node), yOf(node.floor)));
+    const current = map.currentId ? nodes.get(map.currentId) : undefined;
+    const marker = current ? commanderArt(commanderId, 'sd', 'academy-map-commander') : null;
+    if (marker && current) {
+      marker.style.left = `${xOf(current)}%`;
+      marker.style.top = `${yOf(current.floor)}px`;
+      marker.title = '지휘관의 현재 위치';
+      marker.alt = '현재 위치';
+      board.append(marker);
+    }
     return board;
   }
 
