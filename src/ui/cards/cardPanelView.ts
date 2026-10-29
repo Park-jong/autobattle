@@ -5,6 +5,7 @@ import type { CardCatalog } from '../../core/data/cardLoader';
 import type { CommanderDef } from '../../core/data/commander';
 import { explainUnplayable } from './cardAvailability';
 import { CARD_TYPE_LABELS, cardTags, targetLabel } from './cardLabels';
+import { sortCardEntries, type CardListEntry } from './cardListView';
 
 /** 손패 카드 한 장의 표시 정보 (HTML 손패가 그대로 그린다) */
 export interface HandCardView {
@@ -31,13 +32,8 @@ export interface HandCardView {
   selected: boolean;
 }
 
-/** 더미 목록의 한 줄: 같은 카드는 묶어서 장수를 센다 */
-export interface PileEntry {
-  cardId: string;
-  name: string;
-  upgraded: boolean;
-  count: number;
-}
+/** 더미 목록의 한 줄: 같은 카드는 묶어서 장수를 센다 (카드 모양을 그릴 정보를 함께 가진다) */
+export type PileEntry = CardListEntry;
 
 export interface PileView {
   count: number;
@@ -236,15 +232,34 @@ export class CardPanelViewBuilder {
   private pile(cards: readonly CardInstance[]): PileView {
     const grouped = new Map<string, PileEntry>();
     for (const c of cards) {
-      const name = this.catalog.get(c.cardId)?.name ?? c.cardId;
       const key = `${c.cardId}:${c.upgraded}`;
       const entry = grouped.get(key);
       if (entry) entry.count += 1;
-      else grouped.set(key, { cardId: c.cardId, name: c.upgraded ? `${name}+` : name, upgraded: c.upgraded, count: 1 });
+      else grouped.set(key, this.pileEntry(c));
     }
-    // 뽑을 더미의 순서를 드러내지 않도록 이름순으로 정렬한다
-    const entries = [...grouped.values()].sort((a, b) => a.name.localeCompare(b.name, 'ko'));
-    return { count: cards.length, entries };
+    // 뽑을 더미의 순서를 드러내지 않도록 종류·비용·이름순으로 정렬한다
+    return { count: cards.length, entries: sortCardEntries([...grouped.values()]) };
+  }
+
+  private pileEntry(instance: CardInstance): PileEntry {
+    const card = this.catalog.get(instance.cardId);
+    if (!card) throw new Error(`알 수 없는 카드 "${instance.cardId}"`);
+    const view = effectiveCard(card, instance.upgraded);
+    const tags = cardTags(card, instance.upgraded);
+    if (view.commanderHpCost) tags.push(`지휘관 HP ${view.commanderHpCost.amount}`);
+    return {
+      cardId: card.id,
+      name: instance.upgraded ? `${card.name}+` : card.name,
+      type: card.type,
+      typeLabel: CARD_TYPE_LABELS[card.type],
+      targetLabel: targetLabel(card.target),
+      rarity: card.rarity,
+      cost: view.cost,
+      upgraded: instance.upgraded,
+      text: view.text,
+      tags,
+      count: 1,
+    };
   }
 }
 

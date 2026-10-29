@@ -272,3 +272,59 @@
 .run-threat-select { width: 100%; }
 .run-threat-penalties { margin: 0; padding-left: 18px; font-size: 12px; color: #c9b0b0; display: flex; flex-direction: column; gap: 2px; }
 .run-end-threat-unlock { color: #ffd54a; font-weight: 600; }
+
+/* 카드 보상 창 (전투 화면 위 모달). 막이 화면 전체를 덮어 뒤의 상점·벤치·손패 조작을 막는다 */
+.rw-backdrop {
+  position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; overflow: auto; padding: 16px; box-sizing: border-box;
+  background: #05070dcc; color: #e6e9f0;
+  font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; font-size: 14px; line-height: 1.45;
+  animation: rw-fade 0.2s ease-out;
+}
+.rw-backdrop[hidden] { display: none; }
+/* 뒤에 전투 화면이 없을 때(저장본 이어하기)는 막을 불투명하게 */
+.rw-backdrop.solo { background: radial-gradient(ellipse at top, #1f2638 0%, #11141c 70%); }
+@keyframes rw-fade { from { opacity: 0; } to { opacity: 1; } }
+.rw-panel {
+  display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: min(900px, 100%); max-height: 100%; overflow: auto;
+  margin: auto; padding: 20px 28px 24px; box-sizing: border-box;
+  background: linear-gradient(180deg, #232a3e, #151a28); border: 2px solid #5b6480; border-radius: 12px; box-shadow: 0 16px 48px #000c;
+}
+.rw-header { align-self: stretch; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.rw-title { margin: 0; font-size: 24px; letter-spacing: 3px; color: #ffd54a; }
+.rw-subtitle { margin: 0; color: #b7bfd0; }
+.rw-hint { margin: 0; color: #8a93a8; font-size: 12px; }
+.rw-relic { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 14px; background: #1b1f2d; border: 1px solid #3a4152; border-radius: 8px; }
+.rw-relic h3 { margin: 0; font-size: 14px; color: #ffb454; }
+.rw-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 28px; padding: 14px 8px 8px; }
+.rw-choice { display: flex; flex-direction: column; align-items: center; gap: 18px; }
+/* 손패 카드 모양(.hcard)을 키워서 보여준다: 손패의 부채꼴 배치(절대 위치·기울기)는 끄고 제자리에 둔다 */
+.rw-card-zoom { zoom: 1.6; padding: 6px 4px 8px; }
+.rw-card-zoom .hcard.rw-card {
+  position: relative; left: auto; bottom: auto; margin: 0; transform: none; cursor: pointer; touch-action: auto;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.rw-card-zoom .hcard.rw-card:hover, .rw-card-zoom .hcard.rw-card:focus-visible {
+  transform: translateY(-5px) scale(1.04); box-shadow: 0 12px 24px #000d, 0 0 0 2px var(--frame-light); outline: none;
+}
+.rw-btn { padding: 6px 14px; background: #262b3a; color: inherit; border: 1px solid #3a4152; border-radius: 4px; font: inherit; cursor: pointer; }
+.rw-btn:hover:not(:disabled) { background: #313850; }
+.rw-primary { background: #1f5f3a; border-color: #2f8f58; }
+.rw-primary:hover:not(:disabled) { background: #28784a; }
+.rw-choice .rw-btn { min-width: 140px; }
+
+/* 카드 목록 창 (덱 보기·더미 보기): 보상 창과 같은 막·패널 골격을 쓴다 */
+.cl-backdrop { z-index: 110; }
+.cl-panel { width: min(1100px, 100%); align-items: stretch; }
+.cl-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.cl-close { min-width: 36px; font-size: 18px; line-height: 1; }
+.cl-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px 12px; padding: 8px 4px; overflow-y: auto; min-height: 120px; }
+.cl-item { position: relative; zoom: 1.25; padding: 4px 4px 8px; }
+/* 손패의 부채꼴 배치(절대 위치·기울기)는 끄고 제자리에 둔다 */
+.cl-item .hcard.cl-card { position: relative; left: auto; bottom: auto; margin: 0; transform: none; cursor: default; touch-action: auto; }
+.cl-item .hcard.cl-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px #000d, 0 0 0 2px var(--frame-light); }
+.cl-count {
+  position: absolute; top: -2px; right: -2px; z-index: 2; padding: 1px 6px; font-size: 12px; font-weight: 700; color: #fff;
+  background: #3a4a78; border: 1px solid #8fa3e0; border-radius: 10px; box-shadow: 0 2px 4px #000a;
+}
+.cl-empty { margin: 24px auto; color: #9aa3b5; }
+.rw-panel.cl-panel .rw-hint { align-self: center; }

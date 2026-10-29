@@ -1,4 +1,6 @@
 import { RUN, RunController, type ForcedResult, type RunDeps, type RunResult, type TestRunSetup } from '../../core/run';
+import { deckCards } from '../../core/cards';
+import type { CardListEntry } from '../cards/cardListView';
 import type { CardCatalog } from '../../core/data/cardLoader';
 import type { UnitCatalog } from '../../core/data/unitLoader';
 import type { RunUnlocks } from '../../core/meta';
@@ -12,7 +14,7 @@ import type {
   BattleScreenInfo, BattleStage, RunCommands, RunNotice, RunScreenId, RunSnapshot, RunViewSource, StartInfo, TestCommands, TestToolCommand,
 } from './contracts';
 import {
-  buildActIntroView, buildBossRelicView, buildCampView, buildCommanderChoices, buildEncounterPreview, buildEndView, buildEventView, buildHud, buildMapView, buildRewardView, buildSettlementView,
+  buildActIntroView, buildBossRelicView, buildCampView, buildCommanderChoices, buildDeckList, buildEncounterPreview, buildEndView, buildEventView, buildHud, buildMapView, buildRewardView, buildSettlementView,
   buildShopView, type EncounterPreviewView,
 } from './runViews';
 import { buildTestCatalog, buildTestToolsView, type TestCatalogView } from './testViews';
@@ -55,8 +57,11 @@ type Mode = 'start' | 'run' | 'debug';
 export class RunSession implements RunViewSource, RunCommands, TestCommands {
   private mode: Mode = 'start';
   private controller: RunController | null = null;
+  private deckListCache: { key: string; list: CardListEntry[] } | null = null;
   private suggestedSeed: number;
   private resultPending = false;
+  /** 카드 보상 창이 방금 끝난 전투 화면 위에 떠 있다 (결과 확인 뒤 보상 단계로 넘어온 경우. 저장본에서 이어하면 false) */
+  private rewardOverBattle = false;
   private handledSettlement: unknown = null;
   /** 이 런의 전공 정산 결과 (런이 끝나는 순간 한 번만 만든다. 화면을 다시 그려도 재정산하지 않는다) */
   private endSettlement: EndSettlement | null = null;
@@ -97,7 +102,7 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
       case 'map': return 'map';
       case 'battlePrep':
       case 'battle': return 'battle';
-      case 'reward': return 'reward';
+      case 'reward': return this.rewardOverBattle ? 'battle' : 'reward';
       case 'bossRelic': return 'bossRelic';
       case 'actIntro': return 'actIntro';
       case 'shop': return 'shop';
@@ -105,6 +110,14 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
       case 'camp': return 'camp';
       case 'ended': return 'ended';
     }
+  }
+
+  /** 덱 목록: 같은 덱이면 같은 배열을 돌려준다 (카드 이동으로 순서만 바뀌어도 키는 같도록 정렬) */
+  private deckList(run: RunController): CardListEntry[] {
+    const cards = deckCards(run.deck);
+    const key = cards.map((c) => `${c.instanceId}:${c.cardId}:${c.upgraded}`).sort().join('|');
+    if (this.deckListCache?.key !== key) this.deckListCache = { key, list: buildDeckList(this.cards, cards) };
+    return this.deckListCache.list;
   }
 
   snapshot(): RunSnapshot {
@@ -120,8 +133,9 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
       start: screen === 'start' ? this.startInfo() : null,
       hud: live ? buildHud(run) : null,
       map: live && screen === 'map' ? buildMapView(run) : null,
+      deck: live && (screen === 'map' || screen === 'battle') ? this.deckList(run) : null,
       battle: live && screen === 'battle' ? this.battleInfo(run) : null,
-      reward: live && screen === 'reward' ? buildRewardView(run, this.cards, this.o.deps.relics) : null,
+      reward: live && !this.resultPending && run.phase === 'reward' ? buildRewardView(run, this.cards, this.o.deps.relics) : null,
       bossRelic: live && screen === 'bossRelic' ? buildBossRelicView(run, this.o.deps.relics) : null,
       actIntro: live && screen === 'actIntro' ? buildActIntroView(run) : null,
       shop: live && shopView ? buildShopView(shopView, run.gold, this.cards, this.o.deps.relics) : null,
@@ -272,6 +286,7 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
   continueAfterBattle(): void {
     if (!this.resultPending) return;
     this.resultPending = false;
+    this.rewardOverBattle = this.controller?.phase === 'reward';
     this.afterChange();
   }
 
@@ -370,8 +385,10 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
 
   /** 진행 중인 런 연결(전투 세션, 상태 플래그)을 정리한다 */
   private leaveRun(): void {
+    this.deckListCache = null;
     this.controller = null; // 연결을 풀며 전투 세션이 알림을 보내도 옛 런을 건드리지 않게 먼저 비운다
     this.resultPending = false;
+    this.rewardOverBattle = false;
     this.handledSettlement = null;
     this.endSettlement = null;
     this.attachedKey = null;
@@ -383,6 +400,7 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
   private afterChange(): void {
     const run = this.controller;
     if (!run) return this.notify();
+    if (run.phase !== 'reward') this.rewardOverBattle = false;
     if (run.phase === 'battlePrep' && !this.resultPending) this.attachBattle(run);
     this.persist();
     this.notify();
@@ -457,13 +475,15 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
 
   private battleInfo(run: RunController): BattleScreenInfo {
     const phase = this.o.battle.phase;
-    const stage: BattleStage = this.resultPending ? 'result' : phase === 'playing' || phase === 'paused' ? 'playing' : 'prep';
+    // 보상 창이 전투 화면 위에 떠 있는 동안도 전투는 끝난 상태(결과 단계)로 보여준다 (결과 모달만 보상 창으로 바뀐다)
+    const finished = this.resultPending || this.rewardOverBattle;
+    const stage: BattleStage = finished ? 'result' : phase === 'playing' || phase === 'paused' ? 'playing' : 'prep';
     const settlement = this.resultPending ? this.o.battle.runSettlement() : null;
     const session = run.session;
     return {
       stage,
       plan: buildEncounterPreview(run.battlePlan()),
-      attempt: this.resultPending ? this.attachedAttempt : (session?.kind === 'battle' ? session.tries : 0) + 1,
+      attempt: finished ? this.attachedAttempt : (session?.kind === 'battle' ? session.tries : 0) + 1,
       settlement: settlement ? buildSettlementView(settlement) : null,
     };
   }

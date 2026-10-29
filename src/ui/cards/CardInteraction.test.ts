@@ -143,4 +143,31 @@ describe('CardInteraction 대상 종류별 판정', () => {
     i.hover(onUnit(3));
     expect(i.hoverUnit()).toBeNull();
   });
+
+  it('유효하지 않은 유닛을 가리키면 invalidHoverUnit이 uid를 준다 (범위·대상 없는 카드는 null)', () => {
+    const i = make();
+    i.select({ instanceId: 1, kind: 'allyUnit', count: 1 }, 'drag');
+    i.hover(onUnit(3));
+    expect(i.invalidHoverUnit()).toBe(3);
+    i.hover(onUnit(0));
+    expect(i.invalidHoverUnit()).toBeNull();
+    i.select({ instanceId: 2, kind: 'area3x3', count: 1 }, 'drag');
+    i.hover(onUnit(3));
+    expect(i.invalidHoverUnit()).toBeNull();
+  });
+
+  it('범위 카드는 중심 칸과 범위 안 살아 있는 유닛을 알려준다', () => {
+    const i = make();
+    i.select({ instanceId: 1, kind: 'area3x3', count: 1 }, 'drag');
+    expect(i.previewCenter()).toBeNull();
+    i.hover(onCell(1, 1)); // 유닛은 모두 (0,0) → 3×3 안, 사망한 2번은 제외
+    expect(i.previewCenter()).toEqual({ col: 1, row: 1 });
+    expect(i.previewUnits()).toEqual([0, 1, 3, 4]);
+    i.hover(onCell(5, 3));
+    expect(i.previewUnits()).toEqual([]);
+    i.select({ instanceId: 2, kind: 'enemyUnit', count: 1 }, 'drag');
+    i.hover(onCell(0, 0));
+    expect(i.previewCenter()).toBeNull();
+    expect(i.previewUnits()).toEqual([]);
+  });
 });

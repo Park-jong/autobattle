@@ -2,18 +2,15 @@ import type { CardController } from '../debug/contracts';
 import { CARD_UI } from '../theme';
 import { ultimateCostLabel, type CardPanelView, type HandCardView, type PileView } from './cardPanelView';
 import { fanLayout } from './cardFan';
-import type { CardType } from '../../core/data/card';
 import { clientToStage } from './stagePoint';
 import './handPanel.css';
 import { appSkin } from '../skin/SkinStore';
 import { commanderArt } from '../skin/commanderArt';
-import { unitArtUrl } from '../skin/skins';
+import { cardFaceElement } from './cardFace';
 
 type PileKey = 'draw' | 'discard' | 'exhaust';
 const PILE_LABELS: Record<PileKey, string> = { draw: '뽑을 더미', discard: '버린 더미', exhaust: '소모 더미' };
 const PILE_KEYS: readonly PileKey[] = ['draw', 'discard', 'exhaust'];
-/** 카드 그림 칸의 종류 문양 */
-const TYPE_GLYPHS: Record<CardType, string> = { operation: '⚑', command: '⚔', spell: '✦', equipment: '◈', curse: '☠' };
 /** 부채꼴 배치에 쓰는 카드 폭 (handPanel.css의 --card-w와 같다) */
 const CARD_WIDTH = 112;
 
@@ -208,7 +205,7 @@ export class HandPanel {
   }
 
   private cardNode(card: HandCardView): HTMLElement {
-    const node = el('div', `hcard type-${card.type} rarity-${card.rarity}`);
+    const node = cardFaceElement(card);
     node.dataset.testid = `hand-card-${card.instanceId}`;
     node.tabIndex = 0;
     node.setAttribute('role', 'group');
@@ -223,27 +220,7 @@ export class HandPanel {
     });
     node.classList.toggle('selected', card.selected);
     node.classList.toggle('disabled', !card.playable);
-    node.classList.toggle('upgraded', card.upgraded);
     node.title = card.reason ? `사용 불가: ${card.reason}` : `${card.name}: ${card.text}`;
-
-    const cost = el('span', card.cost < card.baseCost ? 'hcard-cost reduced' : card.cost > card.baseCost ? 'hcard-cost raised' : 'hcard-cost', String(card.cost));
-    if (card.cost !== card.baseCost) cost.title = `기본 비용 ${card.baseCost} → ${card.cost} (${card.cost < card.baseCost ? '주술사 특성' : '방해 변이'})`;
-    const art = el('div', 'hcard-art');
-    const artUnit = { operation: 'iron_shieldbearer', command: 'legion_centurion', spell: 'ember_kindler', equipment: 'ember_smith', curse: 'void_hierophant' }[card.type];
-    const artUrl = unitArtUrl(appSkin.current, artUnit, 'portrait');
-    if (artUrl) {
-      const img = el('img', 'academy-card-art');
-      img.src = artUrl;
-      img.alt = '';
-      img.draggable = false;
-      img.addEventListener('error', () => img.remove());
-      art.append(img);
-    }
-    art.append(el('span', 'academy-card-glyph', TYPE_GLYPHS[card.type]));
-    const meta = el('div', 'hcard-type', `${card.typeLabel} · ${card.targetLabel}`);
-    const text = el('div', 'hcard-text', card.text);
-    node.append(cost, el('div', 'hcard-name', card.name), art, meta, text);
-    if (card.tags.length > 0) node.append(el('div', 'hcard-tags', card.tags.join(' · ')));
     if (card.reason) node.append(el('div', 'hcard-reason', card.reason));
     if (card.playable && card.targetKind === 'none') {
       const use = el('button', 'hcard-use', '바로 사용');
@@ -400,8 +377,12 @@ export class HandPanel {
   }
 
   private createGhost(card: HandCardView): HTMLElement {
-    const ghost = el('div', `hcard-ghost type-${card.type}`);
-    ghost.append(el('span', 'hcard-cost', String(card.cost)), el('span', 'hcard-name', card.name));
+    // 손패와 같은 카드 모양을 포인터에 붙여 끈다 (판정을 막지 않도록 pointer-events: none은 CSS)
+    const ghost = cardFaceElement(card);
+    ghost.classList.add('hcard-ghost');
+    ghost.style.setProperty('--ghost-scale', String(CARD_UI.GHOST_SCALE));
+    ghost.style.setProperty('--ghost-tilt', `${CARD_UI.GHOST_TILT_DEG}deg`);
+    ghost.style.setProperty('--ghost-lift', `${CARD_UI.GHOST_LIFT_PX}px`);
     document.body.append(ghost);
     return ghost;
   }
