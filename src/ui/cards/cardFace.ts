@@ -25,6 +25,18 @@ export interface CardFaceSpec {
   tags: readonly string[];
 }
 
+/**
+ * 설명 길이 단계: 카드 폭(112px)에서 기본 글씨(10px)는 약 33자까지 들어간다.
+ * 그보다 길면 m(8.6px) → l(7.6px) → xl(6.9px) 순으로 설명 글씨·줄 간격만 줄인다 (그림 칸 높이는 그대로).
+ */
+export function textSize(text: string): 's' | 'm' | 'l' | 'xl' {
+  const length = Array.from(text).length;
+  if (length <= 33) return 's';
+  if (length <= 48) return 'm';
+  if (length <= 70) return 'l';
+  return 'xl';
+}
+
 function node<K extends keyof HTMLElementTagNameMap>(tag: K, className: string, text?: string): HTMLElementTagNameMap[K] {
   const made = document.createElement(tag);
   made.className = className;
@@ -39,6 +51,8 @@ function node<K extends keyof HTMLElementTagNameMap>(tag: K, className: string, 
 export function cardFaceElement(card: CardFaceSpec): HTMLElement {
   const root = node('div', `hcard type-${card.type} rarity-${card.rarity}`);
   root.classList.toggle('upgraded', card.upgraded);
+  // 설명이 길면 글씨를 줄여 카드 안에 다 들어가게 한다 (handPanel.css의 data-text 단계)
+  root.dataset.text = textSize(card.text);
 
   const baseCost = card.baseCost ?? card.cost;
   const cost = node('span', card.cost < baseCost ? 'hcard-cost reduced' : card.cost > baseCost ? 'hcard-cost raised' : 'hcard-cost', String(card.cost));

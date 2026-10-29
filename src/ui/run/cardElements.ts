@@ -1,3 +1,4 @@
+import { cardFaceElement } from '../cards/cardFace';
 import { button, el, tagged } from './dom';
 import type { CardView, DeckCardView } from './runViews';
 
@@ -24,13 +25,25 @@ export interface ChoiceOptions {
   /** 카드 위에 붙이는 한 줄 (가격 등) */
   badge?: string;
   testId?: string;
+  /** 글자 상자 대신 손패와 같은 카드 모양(cardFaceElement)으로 그린다 */
+  face?: boolean;
 }
 
 /** 카드 + 선택 버튼. 보상·상점·이벤트·덱 고르기가 모두 이 모양을 쓴다 */
 export function cardChoice(card: CardView | DeckCardView, options: ChoiceOptions): HTMLElement {
-  const root = el('div', 'run-choice');
+  const root = el('div', options.face ? 'run-choice face' : 'run-choice');
   if (options.badge) root.append(el('div', 'run-choice-badge', options.badge));
-  root.append(cardElement(card));
+  if (options.face) {
+    const holder = el('div', 'run-card-face');
+    const face = cardFaceElement({ ...card, tags: [...card.tags, ...(card.hpCostLabel ? [card.hpCostLabel] : [])] });
+    face.classList.add('run-face-card');
+    face.classList.toggle('disabled', options.disabled === true);
+    face.title = `${card.name}: ${card.text}`;
+    holder.append(face);
+    root.append(holder);
+  } else {
+    root.append(cardElement(card));
+  }
   if ('upgradePreview' in card && card.upgradePreview) {
     const up = card.upgradePreview;
     root.append(el('p', 'run-card-upgrade', `강화 후: ${up.name} (비용 ${up.cost}) ${up.text}`));
@@ -61,6 +74,8 @@ export interface DeckPickerOptions {
   /** 취소 버튼 (없으면 표시하지 않음) */
   onCancel?: () => void;
   testId?: string;
+  /** 카드 모양으로 그린다 (cardChoice의 face) */
+  face?: boolean;
 }
 
 /** 덱 카드를 골라 제거·강화하는 공통 선택 UI (상점 제거, 야영지 강화, 이벤트 선택) */
@@ -71,13 +86,14 @@ export function deckPicker(options: DeckPickerOptions): HTMLElement {
   if (options.onCancel) head.append(button('닫기', options.onCancel));
   root.append(head);
   if (options.reason) root.append(el('p', 'run-choice-reason', options.reason));
-  const grid = el('div', 'run-card-grid');
+  const grid = el('div', options.face ? 'run-card-grid face-grid' : 'run-card-grid');
   for (const item of options.items) {
     grid.append(cardChoice(item.card, {
       label: options.actionLabel,
       disabled: options.disabled === true,
       onChoose: () => options.onPick(item.key),
       testId: `pick-card-${item.key}`,
+      face: options.face,
     }));
   }
   if (options.items.length === 0) grid.append(el('p', 'dbg-hint', '고를 수 있는 카드가 없습니다.'));

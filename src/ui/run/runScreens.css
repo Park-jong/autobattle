@@ -348,3 +348,15 @@
 
 /* 화면 머리글 오른쪽 아이콘 버튼 묶음 (덱 보기 + 시작 화면) */
 .run-header-actions { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+
+/* 카드 모양 선택 (상점 진열·상점 카드 제거): 손패 카드(.hcard)를 키워 제자리에 두고 아래에 버튼 */
+.run-card-grid.face-grid { grid-template-columns: repeat(auto-fill, 190px); justify-content: start; gap: 18px 14px; }
+.run-choice.face { align-items: center; width: 190px; }
+.run-card-face { zoom: 1.5; padding: 4px 2px 6px; }
+.run-card-face .hcard.run-face-card {
+  position: relative; left: auto; bottom: auto; margin: 0; transform: none; cursor: default; touch-action: auto;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.run-card-face .hcard.run-face-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px #000d, 0 0 0 2px var(--frame-light); }
+.run-card-face .hcard.run-face-card.disabled { filter: grayscale(0.5) brightness(0.75); }
+.run-choice.face .run-choice-badge { top: -6px; right: 4px; }
