@@ -5,7 +5,8 @@ import { BOARD_COLS, BOARD_ROWS } from '../../core/combat/board';
 import { COLORS, COMBAT_FX, LAYOUT, MOTION, STAGE, TEXT_COLORS, TIMING } from '../theme';
 import type { BoardLayout } from './BoardLayout';
 import { buildCombatVisualFrame, damageLabels, projectilePoint, type AttackVisual, type CombatVisualFrame, type HitVisual } from './combatVisuals';
-import { commanderTextureKey } from '../skin/skins';
+import { commanderProfile, commanderTextureKey, isIllustratedSkin, unitSkillName } from '../skin/skins';
+import { MODERN_COMMANDERS } from '../skin/modernRoster';
 import { appSkin } from '../skin/SkinStore';
 
 interface PooledText {
@@ -165,7 +166,7 @@ export class EffectsLayer {
         case 'skill':
           if (age > TIMING.SKILL_TEXT) break;
           if (age < 0.6) this.drawCast(e.unit, views, age / 0.6, 0xe4c991, visual.reduced);
-          this.showFloating(e.seq, live, e.unit, views, e.skill, TEXT_COLORS.SKILL, age / TIMING.SKILL_TEXT, {
+          this.showFloating(e.seq, live, e.unit, views, unitSkillName(appSkin.current, views.get(e.unit)?.unitId ?? '', e.skill), TEXT_COLORS.SKILL, age / TIMING.SKILL_TEXT, {
             lift: MOTION.SKILL_RISE_PX,
             baseY: -78,
             jitter: 0,
@@ -194,7 +195,8 @@ export class EffectsLayer {
         case 'ultimate':
           if (age < 1.25 && !visual.reduced) this.drawCommanderCutin(e.commanderId, age / 1.25);
           if (age <= TIMING.ULTIMATE_BANNER) {
-            ultimateText = { text: `✦ ${e.name} ✦`, alpha: 1 - Math.max(0, age / TIMING.ULTIMATE_BANNER - 0.6) / 0.4 };
+            const name = appSkin.current === 'modern' ? MODERN_COMMANDERS[e.commanderId]?.skillName ?? e.name : e.name;
+            ultimateText = { text: `✦ ${name} ✦`, alpha: 1 - Math.max(0, age / TIMING.ULTIMATE_BANNER - 0.6) / 0.4 };
           }
           break;
         case 'impact':
@@ -422,6 +424,20 @@ export class EffectsLayer {
       }
       const center = this.layout.center(m.cell.col, m.cell.row);
       const ring = (m.radius + 0.5) * size * (1.3 - 0.3 * m.progress);
+      if (appSkin.current === 'modern') {
+        const g = this.lines, fall = (1 - m.progress) * size * 3;
+        g.lineStyle(2, COLORS.METEOR, 0.8);
+        const left = Math.max(this.layout.originX, center.x - ring), top = Math.max(this.layout.originY, center.y - ring);
+        const right = Math.min(this.layout.originX + this.layout.width, center.x + ring), bottom = Math.min(this.layout.originY + this.layout.height, center.y + ring);
+        g.strokeRoundedRect(left, top, right - left, bottom - top, 5);
+        g.lineBetween(center.x - 10, center.y, center.x + 10, center.y);
+        g.lineBetween(center.x, center.y - 10, center.x, center.y + 10);
+        g.lineStyle(4, 0xa5b7c4, 0.4);
+        g.lineBetween(center.x, center.y - fall - 35, center.x, center.y - fall);
+        g.fillStyle(0xe0e8ee, 1); g.fillRect(center.x - 4, center.y - fall - 14, 8, 18);
+        g.fillStyle(0xf2b87a, 1); g.fillTriangle(center.x - 5, center.y - fall + 4, center.x + 5, center.y - fall + 4, center.x, center.y - fall + 12);
+        continue;
+      }
       this.lines.lineStyle(3, COLORS.METEOR, 0.8);
       this.lines.strokeCircle(center.x, center.y, ring);
       const fall = (1 - m.progress) * size * 3;
@@ -460,7 +476,9 @@ export class EffectsLayer {
       if (v.side !== 0 || !v.alive) continue;
       const p = this.layout.center(v.pos.col, v.pos.row);
       this.lines.lineStyle(4, color, (0.55 + 0.35 * pulse) * fade);
-      this.lines.strokeCircle(p.x, p.y, LAYOUT.UNIT_RADIUS + 8 + 4 * pulse);
+      const radius = LAYOUT.UNIT_RADIUS + 8 + 4 * pulse;
+      if (appSkin.current === 'modern') this.lines.strokeRoundedRect(p.x - radius, p.y - radius, radius * 2, radius * 2, 8);
+      else this.lines.strokeCircle(p.x, p.y, radius);
     }
   }
 
@@ -501,6 +519,7 @@ export class EffectsLayer {
 
   /** 발사체는 실제로 이동하고 근접 공격은 대상 앞에 짧은 호를 남긴다. */
   private drawAttack(attack: AttackVisual, reduced: boolean): void {
+    if (attack.profile.modern && attack.profile.ranged) return this.drawModernAttack(attack, reduced);
     const { profile, age, impactAt, event } = attack;
     const a = this.layout.center(attack.from.col, attack.from.row);
     const b = this.layout.center(attack.to.col, attack.to.row);
@@ -578,6 +597,82 @@ export class EffectsLayer {
     }
   }
 
+  /** 현대전 사격: 총구 섬광·점사·탄피·산탄·유탄·로켓을 같은 공격 이벤트에 맞춘다. */
+  private drawModernAttack(attack: AttackVisual, reduced: boolean): void {
+    const { profile, age, impactAt } = attack;
+    const start = this.layout.center(attack.from.col, attack.from.row), end = this.layout.center(attack.to.col, attack.to.row);
+    const facing = end.x < start.x ? -1 : 1;
+    const muzzle = profile.muzzle ?? [28, -5];
+    const a = { x: start.x + muzzle[0] * facing, y: start.y + muzzle[1] };
+    const angle = Math.atan2(end.y - a.y, end.x - a.x), dx = Math.cos(angle), dy = Math.sin(angle);
+    const g = this.lines, color = profile.color;
+    const burst = profile.burst ?? 1;
+    const flight = impactAt - COMBAT_FX.WINDUP - (burst - 1) * COMBAT_FX.BURST_INTERVAL;
+    if (profile.style === 'grenade' || profile.style === 'rocket') {
+      const p = (age - COMBAT_FX.WINDUP) / flight;
+      if (p < 0) return;
+      if (p > 1) {
+        const fade = Math.max(0, 1 - (age - impactAt) / COMBAT_FX.ATTACK_FADE);
+        g.lineStyle(reduced ? 2 : 4, 0xefb170, fade);
+        g.strokeCircle(end.x, end.y, 10 + (1 - fade) * 32);
+        if (!reduced) for (let i = 0; i < 4; i++) {
+          const t = i * Math.PI / 2 + attack.event.seq;
+          g.fillStyle(0x677b89, 0.16 * fade);
+          g.fillCircle(end.x + Math.cos(t) * 18 * (1 - fade), end.y + Math.sin(t) * 18 * (1 - fade), 8 + (1 - fade) * 9);
+        }
+        return;
+      }
+      const adjusted = { ...attack, from: { col: attack.from.col + muzzle[0] * facing / this.layout.cellSize, row: attack.from.row + muzzle[1] / this.layout.cellSize } };
+      const head = projectilePoint(adjusted, p), at = this.layout.center(head.col, head.row);
+      for (let i = 1; i <= (reduced ? 2 : 6); i++) {
+        const tail = projectilePoint(adjusted, Math.max(0, p - i * 0.04)), t = this.layout.center(tail.col, tail.row);
+        g.fillStyle(profile.style === 'rocket' ? 0xa9bac7 : 0xd6aa7b, (1 - i / 7) * 0.35);
+        g.fillCircle(t.x, t.y, profile.style === 'rocket' ? 2 + i * 0.4 : 2);
+      }
+      g.fillStyle(profile.style === 'rocket' ? 0xf3d8a0 : color, 1);
+      if (profile.style === 'rocket') {
+        g.fillTriangle(at.x + dx * 9, at.y + dy * 9, at.x - dx * 6 - dy * 4, at.y - dy * 6 + dx * 4, at.x - dx * 6 + dy * 4, at.y - dy * 6 - dx * 4);
+      } else {
+        g.fillCircle(at.x, at.y, 5);
+        g.lineStyle(2, 0xffdf98, 1); g.strokeCircle(at.x, at.y, 6);
+      }
+      return;
+    }
+    for (let i = 0; i < burst; i++) {
+      const shotAge = age - COMBAT_FX.WINDUP - i * COMBAT_FX.BURST_INTERVAL;
+      if (shotAge < 0) continue;
+      const flash = Math.max(0, 1 - shotAge / COMBAT_FX.MUZZLE_FLASH);
+      if (flash > 0) {
+        const r = (profile.style === 'shotgun' || profile.style === 'sniper' ? 13 : 8) * flash;
+        if (!reduced) { g.fillStyle(0xffd38a, flash * 0.2); g.fillCircle(a.x, a.y, r * 1.7); }
+        g.fillStyle(profile.style === 'drone' ? 0xa4e3ff : 0xfff1ca, flash * (reduced ? 0.5 : 1));
+        g.fillTriangle(a.x + dx * r, a.y + dy * r, a.x - dy * r * 0.4, a.y + dx * r * 0.4, a.x + dy * r * 0.4, a.y - dx * r * 0.4);
+        if (!reduced) g.fillTriangle(a.x - dx * 3, a.y - dy * 3, a.x - dy * r * 0.7, a.y + dx * r * 0.7, a.x + dy * r * 0.7, a.y - dx * r * 0.7);
+      }
+      const p = shotAge / flight;
+      if (p >= 0 && p <= 1.15) {
+        const pellets = profile.style === 'shotgun' ? reduced ? 3 : 5 : 1;
+        for (let pellet = 0; pellet < pellets; pellet++) {
+          const spread = (pellet - (pellets - 1) / 2) * 0.055;
+          const length = Math.hypot(end.x - a.x, end.y - a.y);
+          const ex = a.x + Math.cos(angle + spread) * length, ey = a.y + Math.sin(angle + spread) * length;
+          const head = Math.min(1, p), tail = Math.max(0, head - (profile.style === 'sniper' ? 1 : 0.4));
+          const hx = a.x + (ex - a.x) * head, hy = a.y + (ey - a.y) * head;
+          const tx = a.x + (ex - a.x) * tail, ty = a.y + (ey - a.y) * tail;
+          if (!reduced && profile.style === 'sniper') { g.lineStyle(5, color, 0.16); g.lineBetween(tx, ty, hx, hy); }
+          g.lineStyle(profile.style === 'sniper' ? 2.5 : 1.7, profile.style === 'drone' ? color : 0xffd69b, p > 1 ? 0.35 : 0.95);
+          g.lineBetween(tx, ty, hx, hy);
+          g.fillStyle(0xfff8de, 0.9); g.fillCircle(hx, hy, profile.style === 'sniper' ? 2.5 : 1.6);
+        }
+      }
+      if (!reduced && profile.style !== 'drone' && shotAge < 0.22) {
+        const t = shotAge / 0.22;
+        g.fillStyle(0xd7ad69, (1 - t) * 0.9);
+        g.fillRect(a.x - dx * 15 - facing * t * 10, a.y - 3 - Math.sin(t * Math.PI) * 12 + t * 7, 3, 1.8);
+      }
+    }
+  }
+
   /** 피격 순간의 별 모양 섬광, 방패 문장, 바깥으로 튀는 파편. */
   private drawHit(hit: HitVisual, reduced: boolean): void {
     const { event, age, pos } = hit;
@@ -614,6 +709,15 @@ export class EffectsLayer {
     if (!view) return;
     const p = this.layout.center(view.pos.col, view.pos.row), g = this.lines;
     const radius = 22 + progress * 25;
+    if (appSkin.current === 'modern') {
+      g.lineStyle(2, color, (1 - progress) * 0.8);
+      g.strokeRoundedRect(p.x - radius, p.y + 18 - radius * 0.2, radius * 2, radius * 0.4, 4);
+      if (!reduced) {
+        g.lineBetween(p.x - radius, p.y + 18, p.x + radius, p.y + 18);
+        g.fillStyle(color, (1 - progress) * 0.7); g.fillRect(p.x - 2, p.y - 15 - progress * 12, 4, 12);
+      }
+      return;
+    }
     g.lineStyle(2, color, (1 - progress) * 0.8);
     g.strokeEllipse(p.x, p.y + 21, radius * 2, radius * 0.65);
     if (reduced) return;
@@ -625,13 +729,14 @@ export class EffectsLayer {
   }
 
   private drawCommanderCutin(commanderId: string, progress: number): void {
-    const key = commanderTextureKey(commanderId);
-    if (appSkin.current !== 'academy' || !this.scene.textures.exists(key)) return;
+    const key = commanderTextureKey(commanderId, appSkin.current);
+    if (!isIllustratedSkin(appSkin.current) || !this.scene.textures.exists(key)) return;
     if (!this.cutin) this.cutin = this.scene.add.image(0, 0, key).setDepth(38);
     const fade = progress < 0.7 ? 1 : (1 - progress) / 0.3;
     const entrance = Math.min(1, progress / 0.16);
     this.cutin.setTexture(key).setDisplaySize(190, 190).setPosition(300 - 35 * (1 - entrance), 365).setAlpha(fade).setVisible(true);
-    this.lines.lineStyle(2, auraColor(commanderId), fade * 0.6);
+    const profile = commanderProfile(appSkin.current, commanderId);
+    this.lines.lineStyle(2, profile ? Number.parseInt(profile.color.slice(1), 16) : auraColor(commanderId), fade * 0.6);
     this.lines.strokeCircle(300, 365, 100);
   }
 

@@ -1,5 +1,7 @@
 import { el, tagged } from '../dom';
 import type { TraitRowView } from './traitPanelView';
+import { appSkin } from '../../skin/SkinStore';
+import { traitSkinName } from '../../skin/skins';
 
 /** 팝업을 기준 요소의 어디에 띄울지: 오른쪽(넘치면 왼쪽) / 위(넘치면 아래) */
 export type PopPlacement = 'right' | 'above';
@@ -63,7 +65,7 @@ export class HoverPop {
 /** 특성 설명 팝업 내용: 이름·종류·현재 종류 수, 지금 단계(또는 1단계까지 남은 수) 효과, 단계 기준과 원문 */
 export function traitPopContent(row: TraitRowView): HTMLElement[] {
   const nodes = [
-    el('strong', '', `${row.name} (${row.kind === 'origin' ? '기원' : '직업'}) · ${row.count}종`),
+    el('strong', '', `${traitSkinName(appSkin.current, row.traitId, row.name)} (${row.kind === 'origin' ? '기원' : '직업'}) · ${row.count}종`),
     el('div', '', row.tier > 0 ? `${row.tier}단계: ${row.currentText}` : `미달 — ${row.nextAt}종이 되면 1단계: ${row.currentText}`),
     el('div', 'bt-trait-steps', `단계 기준 ${row.thresholds.join(' / ')}종 · ${row.fullText}`),
   ];

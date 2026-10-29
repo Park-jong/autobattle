@@ -6,7 +6,8 @@ import type { DebugController } from '../../debug/contracts';
 import type { UnitView } from '../../replay/ReplayState';
 import type { ActiveTrait } from '../../../core/combat/traits';
 import { appSkin } from '../../skin/SkinStore';
-import { unitArtUrl, unitSkinName } from '../../skin/skins';
+import { isIllustratedSkin, traitSkinName, unitArtUrl, unitSkinName, unitSkinRole, unitSkillName } from '../../skin/skins';
+import { MODERN_UNITS } from '../../skin/modernRoster';
 import { button, el, tagged } from '../dom';
 import type { HoverPop } from './hoverPop';
 import { bindTraitChip } from './TraitPanel';
@@ -54,7 +55,8 @@ export class UnitInfoPanel {
       return;
     }
     const star = (subject.kind === 'owned' ? subject.unit.star : subject.view.star) as StarLevel;
-    const info = buildUnitInfo(def, star, { traitName: (id) => this.traits.get(id)?.name ?? id }, subject.kind === 'live' ? subject.stats : undefined);
+    const info = buildUnitInfo(def, star, { traitName: (id) => traitSkinName(appSkin.current, id, this.traits.get(id)?.name ?? id) }, subject.kind === 'live' ? subject.stats : undefined);
+    info.skillName = unitSkillName(appSkin.current, def.id, info.skillName);
     const enemy = subject.kind === 'live' && subject.view.side === 1;
 
     const close = tagged(button('×', () => this.onClose(), 'bt-info-close'), 'unit-info-close');
@@ -74,6 +76,11 @@ export class UnitInfoPanel {
       nodes.push(art);
     }
     if (subject.kind === 'live') nodes.push(liveLine(subject.view));
+    const profile = appSkin.current === 'modern' ? MODERN_UNITS[def.id] : undefined;
+    if (profile) {
+      const bio = el('p', 'modern-unit-bio', profile.bio);
+      nodes.push(el('div', 'modern-unit-role', `${profile.faction} · ${profile.role} · ${profile.age}세`), bio);
+    }
     nodes.push(statsGrid(info), skillBlock(info));
 
     const extra = el('div', 'bt-info-extra');
@@ -120,12 +127,12 @@ export function infoHead(info: UnitInfoView, enemy: boolean, options: InfoHeadOp
   if (info.boss) name.append(el('span', 'bt-tooltip-tag', '보스'));
   const chips = el('div', 'bt-traitchips');
   info.traits.forEach((trait, i) => {
-    const chip = el('span', 'bt-traitchip', trait);
     const id = info.traitIds[i];
+    const chip = el('span', 'bt-traitchip', traitSkinName(appSkin.current, id ?? '', trait));
     if (id !== undefined) options.onTraitChip?.(chip, id);
     chips.append(chip);
   });
-  text.append(name, el('div', 'bt-info-sub', `${appSkin.current === 'academy' ? `${info.name} · ` : ''}${info.tier}등급${enemy ? ' · 적' : ''}`), chips);
+  text.append(name, el('div', 'bt-info-sub', `${isIllustratedSkin(appSkin.current) ? `${unitSkinRole(appSkin.current, info.unitId, info.name)} · ` : ''}${info.tier}등급${enemy ? ' · 적' : ''}`), chips);
   head.append(unitFace(info.unitId, info.name, info.tier, { large: options.large ?? true, enemy }), text);
   return head;
 }

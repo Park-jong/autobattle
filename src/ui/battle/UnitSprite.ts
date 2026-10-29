@@ -4,6 +4,7 @@ import type { UnitView } from '../replay/ReplayState';
 import { COLORS, LAYOUT, STATUS_BADGES, TEXT_COLORS, TIMING } from '../theme';
 import type { BoardLayout } from './BoardLayout';
 import type { UnitPose } from './combatVisuals';
+import type { SkinId } from '../skin/skins';
 
 /**
  * 유닛 하나의 표시: 진영색 도형 + 이름 약자(또는 스킨 원화) + 성급 + HP/보호막/마나 바 + 상태 배지. UnitView만 보고 그린다.
@@ -29,6 +30,7 @@ export class UnitSprite {
     star: number,
     artKey: string | null = null,
     private readonly bossCrest = false,
+    private readonly skin: SkinId = 'default',
   ) {
     this.base = scene.add.graphics();
     this.gfx = scene.add.graphics();
@@ -63,6 +65,7 @@ export class UnitSprite {
     this.actor.setRotation(pose?.rotation ?? 0).setScale(pose?.scaleX ?? 1, pose?.scaleY ?? 1);
 
     this.drawBody(view);
+    if (pose?.facing !== undefined) this.art?.setFlipX(pose.facing < 0);
     if (pose?.flash) this.art?.setTintFill(0xffffff);
     else if (pose?.hurt) this.art?.setTint(0xffbabd);
     this.syncBadges(view);
@@ -89,6 +92,15 @@ export class UnitSprite {
     b.fillStyle(ally ? COLORS.ALLY_UNIT : COLORS.ENEMY_UNIT, this.art ? LAYOUT.SKIN_BASE_ALPHA : 1);
     b.lineStyle(3, stunned ? 0xffd54a : burning ? 0xff8a3d : ally || !this.art ? COLORS.UNIT_OUTLINE : COLORS.ENEMY_UNIT, 1);
     if (this.bossCrest && !this.art) {
+      if (this.skin === 'modern') {
+        b.fillStyle(0x344c62, 1);
+        b.fillRoundedRect(-29, -27, 58, 54, 8);
+        b.lineStyle(3, 0xe3a17f, 1);
+        b.strokeRoundedRect(-29, -27, 58, 54, 8);
+        b.lineStyle(2, 0xc6deeb, 0.8);
+        b.lineBetween(-18, -33, 18, -33);
+        b.lineBetween(0, -39, 0, -27);
+      } else {
       const points = Array.from({ length: 7 }, (_, i) => ({ x: Math.cos(Math.PI / 6 + i * Math.PI / 3) * 29, y: Math.sin(Math.PI / 6 + i * Math.PI / 3) * 29 }));
       b.fillStyle(0x40283f, 1);
       b.fillPoints(points, true);
@@ -99,6 +111,7 @@ export class UnitSprite {
       b.fillStyle(0xe5c694, 1);
       b.fillTriangle(-14, -26, -8, -38, -3, -27);
       b.fillTriangle(3, -27, 8, -38, 14, -26);
+      }
     } else if (this.art) {
       b.fillStyle(0x080c17, 0.6);
       b.fillEllipse(0, 29, 54, 14);

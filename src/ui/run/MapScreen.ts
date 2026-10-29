@@ -6,6 +6,8 @@ import { encounterPreviewElement } from './encounterPreview';
 import { hudElement } from './hudElement';
 import { buildMapBoard, mapLegend } from './mapBoard';
 import type { MapNodeView, MapView } from './runViews';
+import { actPresentation } from '../skin/skins';
+import { appSkin } from '../skin/SkinStore';
 
 /** 맵 화면: 13층 노드·간선, 방문 경로·현재 위치·선택 가능 노드 강조, 노드 선택 시 적 편성 미리보기 */
 export class MapScreen {
@@ -39,7 +41,8 @@ export class MapScreen {
     header.append(hudElement(hud), actions);
     this.deckModal.update(this.deckSpec(snap));
     const actBar = tagged(el('div', 'run-act-bar'), 'act-title');
-    actBar.append(el('h2', 'run-act-name', `액트 ${map.act} — ${map.actName}`), el('p', 'dbg-hint', `${map.region} · ${map.actText} (액트 ${map.act} / ${map.actCount})`));
+    const act = actPresentation(appSkin.current, map.act);
+    actBar.append(el('h2', 'run-act-name', `액트 ${map.act} — ${act?.name ?? map.actName}`), el('p', 'dbg-hint', `${act?.region ?? map.region} · ${act?.text ?? map.actText} (액트 ${map.act} / ${map.actCount})`));
 
     const scroll = tagged(el('div', 'run-map-scroll'), 'map-scroll');
     scroll.append(buildMapBoard(map, hud.commanderId, {

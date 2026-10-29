@@ -7,6 +7,7 @@ import './handPanel.css';
 import { appSkin } from '../skin/SkinStore';
 import { commanderArt } from '../skin/commanderArt';
 import { cardFaceElement } from './cardFace';
+import { commanderSkinName, commanderSkillName } from '../skin/skins';
 
 type PileKey = 'draw' | 'discard' | 'exhaust';
 const PILE_LABELS: Record<PileKey, string> = { draw: '뽑을 더미', discard: '버린 더미', exhaust: '소모 더미' };
@@ -162,10 +163,11 @@ export class HandPanel {
 
   private render(view: CardPanelView): void {
     this.phaseLabel.textContent = view.phaseLabel;
-    this.commanderBox.replaceChildren(el('strong', undefined, view.commanderName), el('span', 'hand-passive', `패시브 ${view.passiveName}`));
+    const passive = commanderSkillName(appSkin.current, view.commanderId, 'passive', view.passiveName);
+    this.commanderBox.replaceChildren(el('strong', undefined, commanderSkinName(appSkin.current, view.commanderId, view.commanderName)), el('span', 'hand-passive', `패시브 ${passive}`));
     const portrait = commanderArt(view.commanderId, 'portrait', 'academy-hand-portrait');
     if (portrait) this.commanderBox.append(portrait);
-    this.commanderBox.title = `${view.passiveName}: ${view.passiveText}`;
+    this.commanderBox.title = `${passive}: ${view.passiveText}`;
     this.renderUltimate(view);
     this.hintBox.textContent = view.holding ? view.hint : '';
     this.hintBox.hidden = !view.holding;
@@ -299,7 +301,8 @@ export class HandPanel {
     const ult = view.ultimate;
     this.ultimateBox.hidden = ult === null;
     if (!ult) return;
-    this.ultimateBox.title = `${ult.name}: ${ult.text}`;
+    const name = commanderSkillName(appSkin.current, view.commanderId, 'ultimate', ult.name);
+    this.ultimateBox.title = `${name}: ${ult.text}`;
     this.ultimateBox.classList.toggle('ready', ult.ready);
     this.ultimateBox.classList.toggle('used', ult.used);
     const gauge = el('div', 'hand-ult-gauge');
@@ -313,7 +316,7 @@ export class HandPanel {
     const cost = costLabel ? el('div', 'hand-ult-cost', costLabel) : null;
     const reason = !ult.ready && ult.reason ? el('div', 'hand-ult-reason', ult.reason) : null;
     this.ultimateBox.replaceChildren(
-      el('strong', 'hand-ult-name', ult.name), gauge, this.ultimateGaugeLabel, use, ...(cost ? [cost] : []), ...(reason ? [reason] : []),
+      el('strong', 'hand-ult-name', name), gauge, this.ultimateGaugeLabel, use, ...(cost ? [cost] : []), ...(reason ? [reason] : []),
     );
   }
 

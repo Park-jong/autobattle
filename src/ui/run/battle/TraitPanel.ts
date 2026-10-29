@@ -3,6 +3,8 @@ import type { TraitCatalog } from '../../../core/data/traitLoader';
 import { el, tagged } from '../dom';
 import { traitPopContent, type HoverPop } from './hoverPop';
 import { buildTraitRows, traitRowFor, type TraitRowView } from './traitPanelView';
+import { appSkin } from '../../skin/SkinStore';
+import { traitSkinName } from '../../skin/skins';
 
 /**
  * 보드 왼쪽의 특성 패널: 아군 특성(켜진 것 먼저, 미달은 흐리게)과 적의 켜진 특성.
@@ -18,7 +20,7 @@ export class TraitPanel {
   ) {}
 
   render(ally: readonly ActiveTrait[], enemy: readonly ActiveTrait[]): void {
-    const signature = JSON.stringify([ally, enemy]);
+    const signature = JSON.stringify([appSkin.current, ally, enemy]);
     if (signature === this.signature) return;
     this.signature = signature;
     const lookup = (id: string) => this.traits.get(id);
@@ -42,6 +44,7 @@ export class TraitPanel {
   }
 
   private row(row: TraitRowView): HTMLElement {
+    row = { ...row, name: traitSkinName(appSkin.current, row.traitId, row.name) };
     const node = tagged(el('div', `bt-trait tier-${row.tier}${row.tier === 0 ? ' inactive' : ''}`), `trait-${row.traitId}`);
     const steps = el('div', 'bt-trait-steps');
     row.thresholds.forEach((n, i) => {

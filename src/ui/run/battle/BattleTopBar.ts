@@ -61,7 +61,7 @@ export class BattleTopBar {
 
     const title = el('strong');
     title.append(el('span', `bt-kind ${plan.kind}`, plan.kindLabel), `액트 ${plan.act} · ${plan.floor}층`);
-    this.node.replaceChildren(title, el('span', '', `${plan.name}${info.attempt > 1 ? ` · ${info.attempt}번째 도전` : ''} · ${hud.actName}`));
+    this.node.replaceChildren(title, el('span', '', `${encounterSkinName(appSkin.current, plan.kind, plan.name)}${info.attempt > 1 ? ` · ${info.attempt}번째 도전` : ''} · ${actPresentation(appSkin.current, hud.act)?.name ?? hud.actName}`));
     this.node.title = plan.text;
 
     const chips: HTMLElement[] = [];
@@ -78,7 +78,7 @@ export class BattleTopBar {
     fill.style.width = `${Math.round(hpRatio * 100)}%`;
     bar.append(fill);
     hp.append(el('span', 'bt-chip-label', '지휘관'), bar, el('b', '', `${hud.hp}/${hud.maxHp}`));
-    hp.title = `${hud.commanderName} — 지휘관 HP`;
+    hp.title = `${commanderSkinName(appSkin.current, hud.commanderId, hud.commanderName)} — 지휘관 HP`;
     const gold = tagged(el('span', 'bt-chip gold'), 'hud-gold');
     gold.append(el('span', 'bt-chip-label', '골드'), el('b', '', `${session.economy.gold}G`));
     chips.push(hp, gold, this.piles);
@@ -183,3 +183,5 @@ export class BattleTopBar {
     return chip;
   }
 }
+import { actPresentation, commanderSkinName, encounterSkinName } from '../../skin/skins';
+import { appSkin } from '../../skin/SkinStore';

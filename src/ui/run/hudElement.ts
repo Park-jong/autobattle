@@ -1,6 +1,8 @@
 import { el, tagged } from './dom';
 import { relicRow } from './relicElements';
 import type { RunHud } from './runViews';
+import { actPresentation, commanderSkinName } from '../skin/skins';
+import { appSkin } from '../skin/SkinStore';
 import { commanderArt } from '../skin/commanderArt';
 
 /** 상단 상태 줄: 액트 · 층 · 지휘관 HP · 골드 · 덱 장수 · 시드 */
@@ -21,7 +23,7 @@ export function hudElement(hud: RunHud): HTMLElement {
   bar.append(fill);
   hp.append(el('span', 'run-hud-label', '지휘관 HP'), el('strong', 'run-hud-value', `${hud.hp} / ${hud.maxHp}`), bar);
   const act = tagged(el('div', 'run-hud-item run-hud-act'), 'hud-act');
-  act.append(el('strong', 'run-hud-value', `액트 ${hud.act} — ${hud.actName}`));
+  act.append(el('strong', 'run-hud-value', `액트 ${hud.act} — ${actPresentation(appSkin.current, hud.act)?.name ?? hud.actName}`));
   if (hud.test) {
     const badge = tagged(el('div', 'run-hud-item run-test-badge'), 'test-badge');
     badge.title = hud.test;
@@ -36,7 +38,7 @@ export function hudElement(hud: RunHud): HTMLElement {
     root.append(badge);
   }
   root.append(
-    item('지휘관', hud.commanderName),
+    item('지휘관', commanderSkinName(appSkin.current, hud.commanderId, hud.commanderName)),
     item('층', `${hud.floor} / ${hud.floorCount}`),
     hp,
     item('골드', `${hud.gold}G`, 'run-hud-gold'),

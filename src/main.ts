@@ -15,7 +15,9 @@ import { SkinPicker } from './ui/skin/SkinPicker';
 import { COLORS } from './ui/theme';
 import { installPresentation } from './ui/skin/presentation';
 import './ui/skin/academy.css';
+import './ui/skin/modern.css';
 import { attackProfile } from './ui/battle/combatVisuals';
+import { unitSkinName } from './ui/skin/skins';
 
 /** 데이터 검증 오류를 화면에 보여준다 (게임은 시작하지 않음). */
 function showFatalError(host: HTMLElement, message: string): void {
@@ -107,9 +109,9 @@ function bootstrap(): void {
   // HiDPI: 캔버스 = 1280x720 x DPR, 카메라 줌 = DPR (hidpi.ts). Scale.FIT로 화면에 맞춘다.
   const metrics = computeHiDpi();
   const labels: SceneLabels = {
-    unitAbbreviation: (unitId) => unitAbbreviation(data.units.get(unitId)?.name ?? unitId),
+    unitAbbreviation: (unitId, skin = 'default') => unitAbbreviation(unitSkinName(skin, unitId, data.units.get(unitId)?.name ?? unitId)),
     cardName: (cardId, upgraded) => `${data.cards.get(cardId)?.name ?? cardId}${upgraded ? '+' : ''}`,
-    attackProfile: (unitId) => attackProfile(data.units.get(unitId)),
+    attackProfile: (unitId, skin) => attackProfile(data.units.get(unitId), skin),
     unitIsBoss: (unitId) => !!data.units.get(unitId)?.boss,
   };
   new Phaser.Game({

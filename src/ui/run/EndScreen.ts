@@ -1,6 +1,8 @@
 import type { RunCommands, RunSnapshot } from './contracts';
 import { button, el, tagged } from './dom';
 import { relicRow } from './relicElements';
+import { actPresentation, commanderSkinName, unitSkinName } from '../skin/skins';
+import { appSkin } from '../skin/SkinStore';
 
 /** 종료 화면: 승리/사망, 도달 액트·층, 남은 HP, 골드, 덱·로스터 요약 */
 export class EndScreen {
@@ -51,10 +53,10 @@ export class EndScreen {
     const stat = (label: string, value: string): void => {
       stats.append(el('dt', '', label), el('dd', '', value));
     };
-    stat('지휘관', end.commanderName);
+    stat('지휘관', commanderSkinName(appSkin.current, end.commanderId, end.commanderName));
     stat('시드', String(end.seed));
     if (end.threatLevel > 0) stat('위협 레벨', String(end.threatLevel));
-    stat('도달 액트', `${end.act} / ${end.actCount} — ${end.actName}`);
+    stat('도달 액트', `${end.act} / ${end.actCount} — ${actPresentation(appSkin.current, end.act)?.name ?? end.actName}`);
     stat('도달 층', `${end.floorReached} / ${end.floorCount}`);
     stat('남은 HP', `${end.hp} / ${end.maxHp}`);
     stat('골드', `${end.gold}G`);
@@ -64,7 +66,7 @@ export class EndScreen {
     const deck = el('section', 'run-end-section');
     deck.append(el('h3', '', `덱 ${end.deckCount}장`), el('p', 'run-end-list', end.deck.map((c) => `${c.name} ×${c.count}`).join(' · ') || '없음'));
     const roster = el('section', 'run-end-section');
-    roster.append(el('h3', '', `유닛 ${end.roster.length}기`), el('p', 'run-end-list', end.roster.map((u) => `${u.name} ${'★'.repeat(u.star)}${u.onBoard ? '' : ' (벤치)'}`).join(' · ') || '없음'));
+    roster.append(el('h3', '', `유닛 ${end.roster.length}기`), el('p', 'run-end-list', end.roster.map((u) => `${unitSkinName(appSkin.current, u.unitId, u.name)} ${'★'.repeat(u.star)}${u.onBoard ? '' : ' (벤치)'}`).join(' · ') || '없음'));
     const relics = el('section', 'run-end-section');
     relics.append(el('h3', '', `유물 ${end.relics.length}개`), relicRow(end.relics, '없음'));
     card.append(deck, roster, relics);

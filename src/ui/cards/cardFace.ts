@@ -1,14 +1,10 @@
 import type { CardType } from '../../core/data/card';
 import type { Rarity } from '../../core/data/card';
 import { appSkin } from '../skin/SkinStore';
-import { unitArtUrl } from '../skin/skins';
+import { cardArtUnit, cardTypeSkinName, unitArtUrl } from '../skin/skins';
 
 /** 카드 그림 칸의 종류 문양 */
 const TYPE_GLYPHS: Record<CardType, string> = { operation: '⚑', command: '⚔', spell: '✦', equipment: '◈', curse: '☠' };
-/** 아카데미 스킨에서 카드 그림 칸에 깔아 두는 유닛 초상화 (종류별) */
-const ART_UNITS: Record<CardType, string> = {
-  operation: 'iron_shieldbearer', command: 'legion_centurion', spell: 'ember_kindler', equipment: 'ember_smith', curse: 'void_hierophant',
-};
 
 /** 카드 모양에 필요한 표시 정보 (손패 카드·보상 카드가 공통으로 만족한다) */
 export interface CardFaceSpec {
@@ -59,7 +55,7 @@ export function cardFaceElement(card: CardFaceSpec): HTMLElement {
   if (card.cost !== baseCost) cost.title = `기본 비용 ${baseCost} → ${card.cost} (${card.cost < baseCost ? '주술사 특성' : '방해 변이'})`;
 
   const art = node('div', 'hcard-art');
-  const artUrl = unitArtUrl(appSkin.current, ART_UNITS[card.type], 'portrait');
+  const artUrl = unitArtUrl(appSkin.current, cardArtUnit(card.type), 'portrait');
   if (artUrl) {
     const img = node('img', 'academy-card-art');
     img.src = artUrl;
@@ -74,7 +70,7 @@ export function cardFaceElement(card: CardFaceSpec): HTMLElement {
     cost,
     node('div', 'hcard-name', card.name),
     art,
-    node('div', 'hcard-type', `${card.typeLabel} · ${card.targetLabel}`),
+    node('div', 'hcard-type', `${cardTypeSkinName(appSkin.current, card.type, card.typeLabel)} · ${card.targetLabel}`),
     node('div', 'hcard-text', card.text),
   );
   if (card.tags.length > 0) root.append(node('div', 'hcard-tags', card.tags.join(' · ')));

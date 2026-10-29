@@ -76,6 +76,8 @@ export interface CommanderChoiceView {
   ultimateText: string;
   /** 시작 유닛 (예: '방패병 ×2') */
   units: string[];
+  /** 스킨에서 시작 유닛 이름을 바꾸는 데 쓰는 원본 식별자 */
+  startingUnits?: readonly { unitId: string; count: number }[];
   /** 시작 덱 요약 (예: '방진 유지 ×2') */
   deck: string[];
   deckCount: number;
@@ -95,6 +97,7 @@ export function buildCommanderChoices(
     ultimateName: c.ultimate?.name ?? '없음',
     ultimateText: c.ultimate?.text ?? '',
     units: c.startingUnits.map((u) => `${units.get(u.unitId)?.name ?? u.unitId} ×${u.count}`),
+    startingUnits: c.startingUnits.map(u => ({ unitId: u.unitId, count: u.count })),
     deck: c.startingDeck.map((d) => `${cards.get(d.cardId)?.name ?? d.cardId} ×${d.count}`),
     deckCount: c.startingDeck.reduce((sum, d) => sum + d.count, 0),
     unlock: c.unlock ?? null,
@@ -611,7 +614,7 @@ export interface EndScreenView {
   deck: { name: string; count: number }[];
   deckCount: number;
   /** 소유 유닛 요약 (보드 + 벤치) */
-  roster: { name: string; star: number; onBoard: boolean }[];
+  roster: { unitId: string; name: string; star: number; onBoard: boolean }[];
   /** 테스트 런이면 표시 문구와 통계에서 뺀 건너뛴 구간 기록 수 (일반 런은 null) */
   testRun: { badge: string; skippedRecords: number } | null;
   /** 위협 레벨 (0 = 기본 난이도) */
@@ -663,8 +666,8 @@ export function buildEndView(run: RunController, cards: CardCatalog, units: Unit
     deck: [...counts.values()],
     deckCount: deckCards(run.deck).length,
     roster: [
-      ...roster.board.map((u) => ({ name: unitName(u.unitId), star: u.star, onBoard: true })),
-      ...roster.bench.flatMap((u) => (u ? [{ name: unitName(u.unitId), star: u.star, onBoard: false }] : [])),
+      ...roster.board.map((u) => ({ unitId: u.unitId, name: unitName(u.unitId), star: u.star, onBoard: true })),
+      ...roster.bench.flatMap((u) => (u ? [{ unitId: u.unitId, name: unitName(u.unitId), star: u.star, onBoard: false }] : [])),
     ],
     testRun: info ? { badge: testBadgeText(info), skippedRecords } : null,
     threatLevel: run.threatLevel,

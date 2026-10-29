@@ -3,6 +3,8 @@ import { button, el, tagged } from './dom';
 import { encounterPreviewElement } from './encounterPreview';
 import { buildMapBoard, mapLegend } from './mapBoard';
 import type { MapView } from './runViews';
+import { appSkin } from '../skin/SkinStore';
+import { actPresentation } from '../skin/skins';
 
 /**
  * 맵 보기 창(모달): 전투 중에도 지금 액트의 경로를 확인한다. 읽기 전용 — 노드에 마우스를 올리거나 누르면
@@ -51,7 +53,7 @@ export class MapModal {
     this.map = map;
     this.selectedId = null;
     this.hoverId = null;
-    this.title.textContent = `맵 — 액트 ${map.act} ${map.actName}`;
+    this.title.textContent = `맵 — 액트 ${map.act} ${actPresentation(appSkin.current, map.act)?.name ?? map.actName}`;
     this.renderBoard();
     this.renderSide();
     this.root.hidden = false;
