@@ -20,6 +20,15 @@ export const MANAGEMENT = {
   XP_TO_NEXT: { 3: 4, 4: 8, 5: 12, 6: 20, 7: 32, 8: 48 } as Record<number, number>,
   // 원본 1성 개수. 2·3성은 각각 3·9개의 재고를 차지한다.
   POOL_COPIES: { 1: 18, 2: 16, 3: 14, 4: 10, 5: 8 } as Record<number, number>,
+  /**
+   * M5-4(유닛 14종 → 30종)에서 추가된 유닛. 그 전에 만든 저장본의 유닛 풀(`pool`)에는 이 유닛들의 재고가 없으므로,
+   * 복원할 때 빠져 있으면 등급별 기본 재고(`POOL_COPIES`)로 채운다. 저장본은 이 유닛을 소유하거나 진열한 적이 없다.
+   * 이 목록에 없는 유닛의 재고가 빠져 있으면 여전히 손상된 저장으로 거부한다.
+   */
+  POOL_ADDED_IN_M54: [
+    'bear_warrior', 'shadow_panther', 'battle_chaplain', 'ember_smith', 'ember_bladedancer', 'rift_stalker', 'void_sniper', 'wind_hunter',
+    'legion_centurion', 'siege_bombardier', 'magma_champion', 'abyss_sentinel', 'void_hierophant', 'volcano_oracle', 'muhon', 'elder_treeking',
+  ] as readonly string[],
 } as const;
 
 /** 레벨별 1~5등급 확률(%), DESIGN 3-3. */
@@ -244,7 +253,14 @@ export class Management {
     const poolKeys = [...this.pool.keys()];
     poolReader.onlyKeys(poolKeys);
     const pool = new Map<string, number>();
-    for (const unitId of poolKeys) pool.set(unitId, poolReader.int(unitId, 0));
+    for (const unitId of poolKeys) {
+      if (!poolReader.has(unitId) && MANAGEMENT.POOL_ADDED_IN_M54.includes(unitId)) {
+        // M5-4 이전 저장본: 새 유닛은 아직 아무도 가져가지 않았으니 기본 재고로 시작한다
+        pool.set(unitId, MANAGEMENT.POOL_COPIES[this.units.get(unitId)?.tier ?? 0] ?? 0);
+      } else {
+        pool.set(unitId, poolReader.int(unitId, 0));
+      }
+    }
 
     this.levelValue = level;
     this.xpValue = xp;

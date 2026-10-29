@@ -1,6 +1,8 @@
-import type { ResolvedEffect } from '../data/effect';
+import type { ResolvedEffect, TeleportDestination } from '../data/effect';
 import type { Deck } from '../cards/deck';
-import { backCol, BOARD_ROWS, chebyshev, frontCol, rayCells, sameCell, type Cell, type Side } from './board';
+import { backCol, BOARD_ROWS, chebyshev, fanRays, frontCol, HALF_COLS, rayCells, sameCell, type Cell, type Side } from './board';
+import { COMBAT } from './constants';
+import { DelayedStrikes } from './delayed';
 import type { UnitCatalog } from '../data/unitLoader';
 import type { CombatUnit } from './unit';
 import type { CombatWorld } from './world';
@@ -22,6 +24,15 @@ export interface CpGainSink {
   gainCp(amount: number, reason: 'abyss' | 'effect'): number;
 }
 
+/** 손패 카드 비용 조정 창구. 주술사 특성(handCostReduction)이 사용한다. 카드 시스템이 없는 전투에서는 주지 않는다 */
+export interface HandCostSink {
+  /**
+   * 손패에서 비용이 1 이상인 카드 중 sim Rng로 한 장을 골라 비용을 amount만큼(최소 0까지) 줄인다.
+   * 줄였으면 그 카드와 누적 조정값·실제로 줄어든 양, 줄일 카드가 없으면 null (Rng도 쓰지 않는다)
+   */
+  reduceRandomCost(amount: number): { instanceId: number; cardId: string; surcharge: number; delta: number } | null;
+}
+
 const durationToSeconds = (d: number | 'combat'): number => (d === 'combat' ? Infinity : d);
 const statusDuration = (seconds: number): number | 'combat' => (Number.isFinite(seconds) ? seconds : 'combat');
 
@@ -30,12 +41,17 @@ const statusDuration = (seconds: number): number | 'combat' => (Number.isFinite(
  * 효과는 목록 순서대로 적용되며, 선택자(selector)는 효과마다 그 시점의 상태로 다시 평가한다.
  */
 export class EffectExecutor {
-  /** cp: 아군(side 0)의 CP 수급 창구. null이면 cpOnKill 효과는 아무것도 하지 않는다 */
+  private delayedStrikes: DelayedStrikes | null = null;
+  /** 스킬로 CP를 얻은 횟수 (시전 유닛 uid별) */
+  private readonly skillCpUses = new Map<number, number>();
+
+  /** cp: 아군(side 0)의 CP 수급 창구. null이면 cpOnKill 효과는 아무것도 하지 않는다. handCost: 손패 비용 조정 창구(없으면 주술사 특성은 비용을 건드리지 않는다) */
   constructor(
     private readonly world: CombatWorld,
     private readonly cp: CpGainSink | null = null,
     private readonly deck: Deck | null = null,
     private readonly catalog: UnitCatalog | null = null,
+    private readonly handCost: HandCostSink | null = null,
   ) {}
 
   execute(effects: readonly ResolvedEffect[], ctx: EffectContext): void {
@@ -61,11 +77,11 @@ export class EffectExecutor {
       if (effect.kind === 'teleport') {
         const primary = ctx.targets[0];
         if (!primary || !primary.alive) return '순간이동의 기준이 될 대상이 없습니다';
-        for (const mover of this.select(effect.selector, ctx)) {
-          if (!this.teleportDestination(mover, primary)) return '순간이동할 빈 칸이 없습니다';
+        for (const mover of this.select(effect.selector, ctx, effect.selectorRadius ?? 1)) {
+          if (!this.teleportDestination(mover, primary, effect.destination)) return '순간이동할 빈 칸이 없습니다';
         }
       } else if (effect.kind === 'swapPositions') {
-        const units = this.select(effect.selector, ctx);
+        const units = this.select(effect.selector, ctx, effect.selectorRadius ?? 1);
         if (units.length !== 2) return '위치를 바꿀 유닛이 2명 필요합니다';
         if (units.some((u) => u.moving)) return '이동 중인 유닛은 위치를 바꿀 수 없습니다';
       }
@@ -74,9 +90,23 @@ export class EffectExecutor {
   }
 
   /** 선택자를 유닛 목록으로 변환 (살아 있는 유닛만) */
-  select(selector: ResolvedEffect['selector'], ctx: EffectContext): CombatUnit[] {
+  select(selector: ResolvedEffect['selector'], ctx: EffectContext, radius = 1): CombatUnit[] {
     const world = this.world;
     switch (selector) {
+      case 'alliesAroundSelf': {
+        const caster = ctx.caster;
+        return caster ? world.alliesOf(ctx.side).filter((u) => chebyshev(u.cell, caster.cell) <= radius) : [];
+      }
+      case 'enemiesAroundSelf': {
+        const caster = ctx.caster;
+        return caster ? world.enemiesOf(ctx.side).filter((u) => chebyshev(u.cell, caster.cell) <= radius) : [];
+      }
+      case 'allEnemies':
+        return world.enemiesOf(ctx.side);
+      case 'fanArrows':
+        return this.fanHits(ctx);
+      case 'fanTargets':
+        return [...new Set(this.fanHits(ctx))];
       case 'traitUnits': return ctx.targets.filter((u) => u.alive);
       case 'selfAndAdjacent': return ctx.caster ? world.alliesOf(ctx.side).filter((u) => chebyshev(u.cell, (ctx.caster as CombatUnit).cell) <= 1) : [];
       case 'targetArea2x2': {
@@ -119,6 +149,24 @@ export class EffectExecutor {
     return this.world.units.filter((u) => u.alive && include(u) && chebyshev(u.cell, area.cell) <= area.radius);
   }
 
+  /** 부채꼴 화살 5발이 각각 처음 맞히는 적 (화살 순서, 같은 적이 여러 번 나올 수 있음) */
+  private fanHits(ctx: EffectContext): CombatUnit[] {
+    const primary = ctx.targets[0];
+    if (!ctx.caster || !primary) return [];
+    const enemies = this.world.enemiesOf(ctx.side);
+    const hits: CombatUnit[] = [];
+    for (const ray of fanRays(ctx.caster.cell, primary.cell)) {
+      for (const cell of ray) {
+        const hit = enemies.find((e) => sameCell(e.cell, cell));
+        if (hit) {
+          hits.push(hit);
+          break;
+        }
+      }
+    }
+    return hits;
+  }
+
   /** 시전자에서 첫 대상 방향으로 보드 끝까지 뻗는 직선 위의 적 (가까운 순) */
   private unitsOnLine(ctx: EffectContext): CombatUnit[] {
     const primary = ctx.targets[0];
@@ -134,7 +182,7 @@ export class EffectExecutor {
 
   private apply(effect: ResolvedEffect, ctx: EffectContext): void {
     const world = this.world;
-    const units = this.select(effect.selector, ctx);
+    const units = this.select(effect.selector, ctx, effect.selectorRadius ?? 1);
     const sourceUid = ctx.caster ? ctx.caster.uid : null;
     // value가 없는 상태는 value 키 자체를 넣지 않는다 (JSON 비교 안정성)
     const applied = (unit: CombatUnit, status: string, seconds: number, value?: number) =>
@@ -236,7 +284,7 @@ export class EffectExecutor {
       case 'damageTakenMult': {
         const seconds = durationToSeconds(effect.duration);
         for (const u of units) {
-          u.statuses.addTakenMult(effect.mult, world.now + seconds);
+          u.statuses.addTakenMult(effect.mult, world.now + seconds, effect.dmgType);
           applied(u, 'damageTakenMult', seconds, effect.mult);
         }
         break;
@@ -245,7 +293,11 @@ export class EffectExecutor {
       case 'statMod':
       case 'statAdd': {
         const seconds = durationToSeconds(effect.duration);
+        const maxStacks = effect.kind === 'statMod' ? effect.maxStacks : undefined;
+        // 중첩 상한이 있으면 같은 시전자 종류가 건 같은 스탯 효과끼리 센다 (특성은 시전자가 없어 'trait')
+        const stackKey = maxStacks === undefined ? undefined : `${ctx.caster ? ctx.caster.def.id : 'trait'}:${effect.stat}`;
         for (const u of units) {
+          if (stackKey !== undefined && maxStacks !== undefined && u.statuses.stackCount(stackKey) >= maxStacks) continue;
           u.statuses.addStatMod({
             stat: effect.stat,
             pct: effect.kind === 'statMod' ? effect.pct : 0,
@@ -253,6 +305,7 @@ export class EffectExecutor {
             until: world.now + seconds,
             duration: seconds,
             refreshOnKill: effect.kind === 'statMod' && effect.refreshOnKill === true,
+            ...(stackKey === undefined ? {} : { stackKey }),
           });
           applied(u, `statMod:${effect.stat}`, seconds, effect.kind === 'statMod' ? effect.pct : effect.amount);
         }
@@ -291,12 +344,14 @@ export class EffectExecutor {
             raw: (caster.stat('atk') * effect.pctAtk) / 100,
             type: effect.dmgType,
             ignoreArmorPct: effect.ignoreArmorPct ?? 0,
+            canCrit: true,
           });
           if (!u.alive && effect.maxHpOnKill && caster.alive) {
             caster.maxHp += effect.maxHpOnKill;
             caster.hp += effect.maxHpOnKill;
             world.emit({ type: 'maxHp', unit: caster.uid, maxHp: caster.maxHp, hp: caster.hp });
           }
+          if (!u.alive && effect.manaOnKill && caster.alive) world.addMana(caster, effect.manaOnKill);
         }
         break;
       }
@@ -334,8 +389,8 @@ export class EffectExecutor {
         const primary = ctx.targets[0];
         if (!primary) break;
         for (const u of units) {
-          const cell = this.teleportDestination(u, primary);
-          if (cell) world.relocate(u, cell);
+          const cell = this.teleportDestination(u, primary, effect.destination);
+          if (cell && !sameCell(cell, u.cell)) world.relocate(u, cell);
         }
         break;
       }
@@ -373,7 +428,125 @@ export class EffectExecutor {
       case 'cpOnKill':
         this.registerCpOnKill(effect.amount, effect.maxPerCombat, ctx.side);
         break;
+
+      case 'flatShield':
+        for (const u of units) world.addShield(u, effect.amount, durationToSeconds(effect.duration));
+        break;
+
+      case 'cleanse':
+        for (const u of units) {
+          for (const status of u.statuses.cleanse()) world.emit({ type: 'statusRemoved', unit: u.uid, status });
+        }
+        break;
+
+      case 'damageAura':
+        for (const u of units) {
+          u.statuses.addPulse({ amount: effect.amount, dmgType: effect.dmgType, radius: effect.radius, intervalSeconds: effect.intervalSeconds, count: effect.count });
+          applied(u, 'damageAura', effect.intervalSeconds * effect.count, effect.amount);
+        }
+        break;
+
+      case 'empoweredAttack':
+        for (const u of units) {
+          u.statuses.setEmpoweredAttack({ pctAtk: effect.pctAtk, dmgType: effect.dmgType, manaPctOnKill: effect.manaPctOnKill ?? 0 });
+          applied(u, 'empoweredAttack', Infinity, effect.pctAtk);
+        }
+        break;
+
+      case 'reflect':
+        for (const u of units) {
+          u.statuses.addReflect(effect.pct, world.now + effect.duration);
+          applied(u, 'reflect', effect.duration, effect.pct);
+        }
+        break;
+
+      case 'regen':
+        for (const u of units) {
+          u.statuses.addRegen(effect.pctMaxHp, world.now + effect.duration);
+          applied(u, 'regen', effect.duration, effect.pctMaxHp);
+        }
+        break;
+
+      case 'delayedStrike': {
+        const caster = this.requireCaster(ctx, 'delayedStrike');
+        this.delayedStrikes ??= new DelayedStrikes(world, this);
+        this.delayedStrikes.schedule(caster, effect);
+        break;
+      }
+
+      case 'skillCpGain': {
+        const caster = this.requireCaster(ctx, 'skillCpGain');
+        const used = this.skillCpUses.get(caster.uid) ?? 0;
+        if (ctx.side !== 0 || !this.cp || used >= effect.maxPerCombat) break;
+        // 상한(CP 6)에 막혀 못 얻었으면 횟수를 쓰지 않는다
+        if (this.cp.gainCp(effect.amount, 'effect') > 0) this.skillCpUses.set(caster.uid, used + 1);
+        break;
+      }
+
+      case 'stackingStatMod':
+        this.registerStackingStatMod(effect, ctx);
+        break;
+
+      case 'startMana':
+        if (effect.amount > 0) for (const u of units) world.addMana(u, effect.amount);
+        break;
+
+      case 'handCostReduction':
+        this.registerHandCostReduction(effect.amount, effect.maxPerCombat, units, ctx.side);
+        break;
+
+      case 'backRowLeap': {
+        const members = [...units];
+        world.bus.on('onCombatStart', () => {
+          for (const u of members) {
+            if (!u.alive || u.moving) continue;
+            const cell = this.backRowLeapCell(u.side, u.cell);
+            if (cell) world.relocate(u, cell);
+          }
+        });
+        break;
+      }
+
+      case 'critical':
+        for (const u of units) {
+          u.critChance = Math.min(1, u.critChance + effect.chance);
+          u.critDamagePct = Math.max(u.critDamagePct, effect.damagePct);
+        }
+        break;
     }
+  }
+
+  /** 특성: intervalSeconds마다 (전투 시각 기준) selector 유닛에게 스탯 증가를 한 겹씩 쌓는다. 겹 수 상한을 넘으면 쌓지 않는다 */
+  private registerStackingStatMod(effect: Extract<ResolvedEffect, { kind: 'stackingStatMod' }>, ctx: EffectContext): void {
+    const world = this.world;
+    const interval = Math.max(1, Math.round(effect.intervalSeconds * COMBAT.TICKS_PER_SECOND));
+    const stackKey = `trait:${effect.stat}`;
+    world.bus.on('onTick', ({ tick }) => {
+      if (tick === 0 || tick % interval !== 0) return;
+      for (const u of this.select(effect.selector, ctx, effect.selectorRadius ?? 1)) {
+        if (u.statuses.stackCount(stackKey) >= effect.maxStacks) continue;
+        u.statuses.addStatMod({ stat: effect.stat, pct: effect.pct, flat: 0, until: Infinity, duration: Infinity, refreshOnKill: false, stackKey });
+        world.emit({ type: 'statusApplied', unit: u.uid, status: `statMod:${effect.stat}`, duration: 'combat', source: null, value: effect.pct });
+      }
+    });
+  }
+
+  /**
+   * 특성(주술사): 이 진영의 selector 유닛이 스킬을 쓸 때마다 손패 무작위 1장의 비용을 줄인다 (limit 0 = 무제한).
+   * 손패 창구가 없거나(카드 시스템 없음) 아군(side 0)이 아니면 아무것도 등록하지 않는다. 줄일 카드가 없으면 횟수를 쓰지 않는다.
+   */
+  private registerHandCostReduction(amount: number, limit: number, members: readonly CombatUnit[], side: Side): void {
+    const sink = this.handCost;
+    if (!sink || side !== 0) return;
+    const uids = new Set(members.map((u) => u.uid));
+    let used = 0;
+    this.world.bus.on('onSkillCast', ({ caster }) => {
+      if (!uids.has(caster.uid) || (limit > 0 && used >= limit)) return;
+      const change = sink.reduceRandomCost(amount);
+      if (!change) return;
+      used += 1;
+      this.world.emit({ type: 'cardCost', instanceId: change.instanceId, cardId: change.cardId, surcharge: change.surcharge, delta: -change.delta, source: caster.uid });
+    });
   }
 
   /**
@@ -401,10 +574,17 @@ export class EffectExecutor {
   }
 
   /**
-   * target의 "뒤" 칸: target에 인접한 빈 칸 중 mover에서 가장 먼 칸.
-   * 동률이면 target과 같은 행, 그다음 (열, 행) 오름차순. 빈 칸이 없으면 null.
+   * 순간이동 목적지 (종류는 TELEPORT_DESTINATIONS 설명 참고). 갈 칸이 없으면 null (lineEnd는 제자리 = mover.cell).
+   * behindTarget: target에 인접한 빈 칸 중 mover에서 가장 먼 칸, 동률이면 target과 같은 행, 그다음 (열, 행) 오름차순.
+   * besideTarget: 같은 후보 중 mover에서 가장 가까운 칸, 같은 동률 규칙.
    */
-  teleportDestination(mover: CombatUnit, target: CombatUnit): Cell | null {
+  teleportDestination(mover: CombatUnit, target: CombatUnit, destination: TeleportDestination = 'behindTarget'): Cell | null {
+    if (destination === 'enemyBackRow') return this.backRowLeapCell(mover.side, mover.cell);
+    if (destination === 'lineEnd') {
+      const free = rayCells(mover.cell, target.cell).filter((c) => this.world.board.isFree(c));
+      return free[free.length - 1] ?? mover.cell;
+    }
+    const nearest = destination === 'besideTarget';
     const candidates: Cell[] = [];
     for (let dc = -1; dc <= 1; dc++) {
       for (let dr = -1; dr <= 1; dr++) {
@@ -415,11 +595,33 @@ export class EffectExecutor {
     }
     candidates.sort(
       (a, b) =>
-        chebyshev(b, mover.cell) - chebyshev(a, mover.cell) ||
+        (nearest ? chebyshev(a, mover.cell) - chebyshev(b, mover.cell) : chebyshev(b, mover.cell) - chebyshev(a, mover.cell)) ||
         Math.abs(a.row - target.cell.row) - Math.abs(b.row - target.cell.row) ||
         a.col - b.col ||
         a.row - b.row,
     );
     return candidates[0] ?? null;
+  }
+
+  /**
+   * 도약 칸 (암살자 특성·균열 도약): side 유닛이 상대 진영 후열(가장 먼 열)의 빈 칸으로 간다.
+   * 후열 열에서 from과 행 차이가 가장 작은 빈 칸, 같으면 위쪽 행. 그 열이 가득 차면 한 열씩 앞으로 옮겨 찾고,
+   * 상대 진영 전체에 빈 칸이 없으면 null (호출 쪽에서 제자리로 둔다).
+   */
+  backRowLeapCell(side: Side, from: Cell): Cell | null {
+    const opponent: Side = side === 0 ? 1 : 0;
+    const back = backCol(opponent);
+    const step = opponent === 1 ? -1 : 1;
+    for (let i = 0; i < HALF_COLS; i++) {
+      const col = back + step * i;
+      let best: Cell | null = null;
+      for (let row = 0; row < BOARD_ROWS; row++) {
+        const cell = { col, row };
+        if (!this.world.board.isFree(cell)) continue;
+        if (!best || Math.abs(row - from.row) < Math.abs(best.row - from.row)) best = cell;
+      }
+      if (best) return best;
+    }
+    return null;
   }
 }

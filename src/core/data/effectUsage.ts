@@ -14,7 +14,13 @@ const UNIT_TARGET_KINDS: readonly string[] = ['allyUnit', 'enemyUnit', 'allyUnit
 const AREA_TARGET_KINDS: readonly string[] = ['cell', 'area3x3'];
 
 /** 시전자(스킬을 쓰는 유닛)가 있어야만 의미가 있는 선택자 */
-const CASTER_SELECTORS: readonly EffectSelector[] = ['self', 'lineThroughTarget', 'selfAndAdjacent', 'traitUnits', 'targetArea2x2'];
+const CASTER_SELECTORS: readonly EffectSelector[] = [
+  'self', 'lineThroughTarget', 'selfAndAdjacent', 'traitUnits', 'targetArea2x2', 'alliesAroundSelf', 'enemiesAroundSelf', 'fanArrows', 'fanTargets',
+];
+/** 스킬(시전 유닛이 있는 문맥)에서만 쓸 수 있는 효과 */
+const SKILL_ONLY_KINDS: readonly string[] = ['damageAura', 'empoweredAttack', 'delayedStrike', 'skillCpGain'];
+/** 특성에서만 쓸 수 있는 효과 */
+const TRAIT_ONLY_KINDS: readonly string[] = ['onAttackBurn', 'killFeast', 'marksman', 'stackingStatMod', 'startMana', 'handCostReduction', 'backRowLeap', 'critical'];
 /** 지정 유닛 대상이 있어야 하는 선택자 */
 const UNIT_SELECTORS: readonly EffectSelector[] = ['target', 'targetAndAdjacent'];
 const AREA_SELECTORS: readonly EffectSelector[] = ['enemiesInTargetArea', 'alliesInTargetArea'];
@@ -52,6 +58,7 @@ export function assertEffectsUsable(
     if (effect.kind === 'cpOnKill') {
       container.fail(`${at}.kind`, 'cpOnKill은 특성 전용 효과임');
     }
-    if (['onAttackBurn', 'killFeast', 'marksman'].includes(effect.kind)) container.fail(`${at}.kind`, `${effect.kind}는 특성 전용 효과임`);
+    if (TRAIT_ONLY_KINDS.includes(effect.kind)) container.fail(`${at}.kind`, `${effect.kind}는 특성 전용 효과임`);
+    if (SKILL_ONLY_KINDS.includes(effect.kind)) container.fail(`${at}.kind`, `${effect.kind}는 시전 유닛이 있는 스킬 전용 효과임`);
   });
 }

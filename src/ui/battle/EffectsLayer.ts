@@ -136,14 +136,23 @@ export class EffectsLayer {
         case 'damage': {
           if (age > TIMING.DAMAGE_TEXT) break;
           const physical = e.dmgType === 'physical';
-          this.showFloating(e.seq, live, e.unit, views, `-${e.amount}`, physical ? TEXT_COLORS.PHYSICAL : TEXT_COLORS.MAGIC, age / TIMING.DAMAGE_TEXT, {
+          // 치명타는 노란색 큰 글씨에 느낌표
+          this.showFloating(e.seq, live, e.unit, views, e.crit ? `-${e.amount}!` : `-${e.amount}`, e.crit ? TEXT_COLORS.CRIT : physical ? TEXT_COLORS.PHYSICAL : TEXT_COLORS.MAGIC, age / TIMING.DAMAGE_TEXT, {
             lift: MOTION.DAMAGE_RISE_PX,
             baseY: -62,
             jitter: ((e.seq % 5) - 2) * 9,
-            size: '22px',
+            size: e.crit ? '30px' : '22px',
           });
           break;
         }
+        case 'cardCost':
+          // 주술사 특성이 손패 비용을 깎으면 발동한 유닛 위에 "비용 -1"
+          if (e.unit !== null && e.delta !== 0 && age <= TIMING.CARD_COST_TEXT) {
+            this.showFloating(e.seq, live, e.unit, views, `카드 비용 ${e.delta}`, TEXT_COLORS.COST_DOWN, age / TIMING.CARD_COST_TEXT, {
+              lift: MOTION.SKILL_RISE_PX, baseY: -96, jitter: 0, size: '18px',
+            });
+          }
+          break;
         case 'heal':
           if (age > TIMING.HEAL_TEXT) break;
           this.showFloating(e.seq, live, e.unit, views, `+${e.amount}`, TEXT_COLORS.HEAL, age / TIMING.HEAL_TEXT, {
@@ -398,7 +407,7 @@ export class EffectsLayer {
     const top = first.cells[0];
     if (top) {
       const p = this.layout.center(top.col, 0);
-      this.telegraphLabel.setPosition(p.x, this.layout.originY - 14).setText(`열 강타 ${Math.max(0, first.fireAt - time).toFixed(1)}초`);
+      this.telegraphLabel.setPosition(p.x, this.layout.originY - 14).setText(`${first.label ?? '열 강타'} ${Math.max(0, first.fireAt - time).toFixed(1)}초`);
     }
   }
 

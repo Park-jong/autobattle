@@ -221,10 +221,10 @@
       "kind": "normal",
       "minFloor": 14,
       "maxFloor": 18,
-      "text": "광전사 둘이 달려들고 투석수들이 뒤에서 불을 붙인다.",
+      "text": "광전사와 대장장이가 전열을 서고 투석수들이 뒤에서 불을 붙인다.",
       "units": [
         { "unitId": "ember_berserker", "star": 1, "col": 4, "row": 1 },
-        { "unitId": "ember_berserker", "star": 1, "col": 4, "row": 3 },
+        { "unitId": "ember_smith", "star": 1, "col": 4, "row": 3 },
         { "unitId": "ember_slinger", "star": 1, "col": 6, "row": 0 },
         { "unitId": "ember_kindler", "star": 1, "col": 6, "row": 2 },
         { "unitId": "ember_slinger", "star": 1, "col": 6, "row": 4 }
@@ -236,12 +236,12 @@
       "kind": "normal",
       "minFloor": 14,
       "maxFloor": 19,
-      "text": "방패 뒤에서 점화사 둘이 불을 지피고 속삭임꾼이 침묵을 건다.",
+      "text": "대장장이가 앞을 막고 점화사 둘이 불을 지피며 군목이 상처를 돌본다.",
       "units": [
-        { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 2 },
+        { "unitId": "ember_smith", "star": 1, "col": 4, "row": 2 },
         { "unitId": "ember_kindler", "star": 1, "col": 6, "row": 1 },
         { "unitId": "ember_kindler", "star": 1, "col": 6, "row": 3 },
-        { "unitId": "abyss_whisperer", "star": 1, "col": 7, "row": 2 }
+        { "unitId": "battle_chaplain", "star": 1, "col": 7, "row": 2 }
       ]
     },
     {
@@ -250,11 +250,11 @@
       "kind": "normal",
       "minFloor": 15,
       "maxFloor": 20,
-      "text": "숲의 사수들이 고원 능선에서 후열을 노린다.",
+      "text": "숲의 사냥꾼들이 고원 능선에서 부채꼴 화살로 후열을 노린다.",
       "units": [
         { "unitId": "moss_warden", "star": 1, "col": 4, "row": 1 },
-        { "unitId": "shade_dagger", "star": 1, "col": 4, "row": 3 },
-        { "unitId": "grove_archer", "star": 2, "col": 6, "row": 0 },
+        { "unitId": "shadow_panther", "star": 1, "col": 4, "row": 3 },
+        { "unitId": "wind_hunter", "star": 1, "col": 6, "row": 0 },
         { "unitId": "grove_archer", "star": 2, "col": 6, "row": 4 },
         { "unitId": "grove_druid", "star": 1, "col": 7, "row": 2 }
       ]
@@ -265,10 +265,10 @@
       "kind": "normal",
       "minFloor": 16,
       "maxFloor": 21,
-      "text": "북소리로 사기를 올린 전열 뒤에서 잿불 주술이 쏟아진다.",
+      "text": "대장장이와 용암 챔피언이 전열을 막고 그 뒤에서 잿불 주술이 쏟아진다.",
       "units": [
-        { "unitId": "war_drummer", "star": 1, "col": 4, "row": 0 },
-        { "unitId": "ember_berserker", "star": 2, "col": 4, "row": 2 },
+        { "unitId": "ember_smith", "star": 1, "col": 4, "row": 0 },
+        { "unitId": "magma_champion", "star": 1, "col": 4, "row": 2 },
         { "unitId": "war_drummer", "star": 1, "col": 4, "row": 4 },
         { "unitId": "ember_slinger", "star": 2, "col": 6, "row": 1 },
         { "unitId": "ember_kindler", "star": 2, "col": 6, "row": 3 }
@@ -280,9 +280,9 @@
       "kind": "normal",
       "minFloor": 17,
       "maxFloor": 22,
-      "text": "첩보원이 후열을 파고드는 사이 점화사가 화상을 쌓는다.",
+      "text": "칼날무희가 후열을 파고드는 사이 점화사가 화상을 쌓는다.",
       "units": [
-        { "unitId": "legion_spy", "star": 1, "col": 4, "row": 1 },
+        { "unitId": "ember_bladedancer", "star": 1, "col": 4, "row": 1 },
         { "unitId": "ember_berserker", "star": 1, "col": 4, "row": 3 },
         { "unitId": "ember_slinger", "star": 1, "col": 6, "row": 0 },
         { "unitId": "ember_kindler", "star": 2, "col": 6, "row": 2 },
@@ -295,13 +295,13 @@
       "kind": "normal",
       "minFloor": 18,
       "maxFloor": 24,
-      "text": "심연에 물든 순례자들이 화상과 침묵으로 압박한다.",
+      "text": "심연에 물든 순례자들이 용암 강타와 공허 개방으로 압박한다.",
       "units": [
         { "unitId": "abyss_devourer", "star": 1, "col": 4, "row": 1 },
-        { "unitId": "ember_berserker", "star": 2, "col": 4, "row": 3 },
+        { "unitId": "magma_champion", "star": 1, "col": 4, "row": 3 },
         { "unitId": "ember_slinger", "star": 2, "col": 6, "row": 0 },
-        { "unitId": "abyss_whisperer", "star": 2, "col": 6, "row": 2 },
-        { "unitId": "ember_kindler", "star": 1, "col": 6, "row": 4 }
+        { "unitId": "void_hierophant", "star": 1, "col": 6, "row": 2 },
+        { "unitId": "ember_kindler", "star": 2, "col": 6, "row": 4 }
       ]
     },
     {
@@ -310,13 +310,13 @@
       "kind": "normal",
       "minFloor": 19,
       "maxFloor": 24,
-      "text": "두 겹의 방패 뒤에서 잿불 주술사 셋이 쉬지 않고 불을 던진다.",
+      "text": "대장장이와 방패병이 두 겹 방진을 치고 점화사 둘이 쉬지 않고 불을 던진다.",
       "units": [
-        { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 1 },
+        { "unitId": "ember_smith", "star": 2, "col": 4, "row": 1 },
         { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 3 },
         { "unitId": "ember_kindler", "star": 2, "col": 6, "row": 1 },
         { "unitId": "ember_kindler", "star": 2, "col": 6, "row": 3 },
-        { "unitId": "ember_slinger", "star": 2, "col": 7, "row": 2 }
+        { "unitId": "battle_chaplain", "star": 1, "col": 7, "row": 2 }
       ]
     },
     {
@@ -325,13 +325,13 @@
       "kind": "normal",
       "minFloor": 20,
       "maxFloor": 24,
-      "text": "대사제를 모시던 시종들. 북소리와 광전사가 길을 연다.",
+      "text": "대사제를 모시던 시종들. 칼날무희와 광전사가 길을 열고 공허 대사제가 뒤를 받친다.",
       "units": [
         { "unitId": "ember_berserker", "star": 2, "col": 4, "row": 1 },
-        { "unitId": "ember_berserker", "star": 2, "col": 4, "row": 3 },
+        { "unitId": "ember_bladedancer", "star": 2, "col": 4, "row": 3 },
         { "unitId": "war_drummer", "star": 2, "col": 5, "row": 2 },
         { "unitId": "ember_kindler", "star": 2, "col": 6, "row": 0 },
-        { "unitId": "abyss_whisperer", "star": 2, "col": 6, "row": 4 }
+        { "unitId": "void_hierophant", "star": 1, "col": 6, "row": 4 }
       ]
     },
     {
@@ -340,13 +340,13 @@
       "kind": "elite",
       "minFloor": 17,
       "maxFloor": 24,
-      "text": "3성 점화사를 중심으로 한 사제단. 후열 화력이 매섭다.",
+      "text": "대분화의 예언을 외는 화산 예언자가 사제단을 이끈다. 후열 화력이 매섭다.",
       "units": [
-        { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 3 },
+        { "unitId": "ember_smith", "star": 2, "col": 4, "row": 3 },
         { "unitId": "ember_berserker", "star": 2, "col": 4, "row": 1 },
         { "unitId": "ember_slinger", "star": 2, "col": 6, "row": 0 },
-        { "unitId": "ember_kindler", "star": 3, "col": 6, "row": 2 },
-        { "unitId": "ember_slinger", "star": 2, "col": 6, "row": 4 }
+        { "unitId": "volcano_oracle", "star": 1, "col": 6, "row": 2 },
+        { "unitId": "ember_kindler", "star": 2, "col": 6, "row": 4 }
       ]
     },
     {
@@ -355,12 +355,12 @@
       "kind": "elite",
       "minFloor": 17,
       "maxFloor": 22,
-      "text": "3성 수호목이 전열을 막고 북소리와 드루이드가 지원한다.",
+      "text": "3성 수호목이 전열을 막고 대장장이·북소리·군목이 지원한다.",
       "units": [
-        { "unitId": "war_drummer", "star": 2, "col": 4, "row": 0 },
+        { "unitId": "ember_smith", "star": 1, "col": 4, "row": 0 },
         { "unitId": "moss_warden", "star": 3, "col": 4, "row": 2 },
         { "unitId": "war_drummer", "star": 2, "col": 4, "row": 4 },
-        { "unitId": "grove_druid", "star": 2, "col": 6, "row": 1 },
+        { "unitId": "battle_chaplain", "star": 2, "col": 6, "row": 1 },
         { "unitId": "ember_kindler", "star": 2, "col": 6, "row": 3 }
       ]
     },
@@ -370,11 +370,11 @@
       "kind": "elite",
       "minFloor": 19,
       "maxFloor": 24,
-      "text": "광전사 셋이 한꺼번에 돌진한다. 화상이 쌓이기 전에 막아야 한다.",
+      "text": "칼날무희와 광전사, 용암 챔피언이 한꺼번에 돌진한다. 화상이 쌓이기 전에 막아야 한다.",
       "units": [
-        { "unitId": "ember_berserker", "star": 2, "col": 4, "row": 0 },
+        { "unitId": "ember_bladedancer", "star": 2, "col": 4, "row": 0 },
         { "unitId": "ember_berserker", "star": 3, "col": 4, "row": 2 },
-        { "unitId": "ember_berserker", "star": 2, "col": 4, "row": 4 },
+        { "unitId": "magma_champion", "star": 1, "col": 4, "row": 4 },
         { "unitId": "ember_kindler", "star": 2, "col": 6, "row": 1 },
         { "unitId": "ember_slinger", "star": 2, "col": 6, "row": 3 }
       ]
@@ -400,12 +400,12 @@
       "kind": "normal",
       "minFloor": 27,
       "maxFloor": 30,
-      "text": "폐허가 된 성문을 지키는 방패병과 석궁병들.",
+      "text": "폐허가 된 성문을 지키는 방패병과 백인대장, 석궁병과 공성 포병.",
       "units": [
         { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 1 },
-        { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 3 },
+        { "unitId": "legion_centurion", "star": 1, "col": 4, "row": 3 },
         { "unitId": "legion_crossbow", "star": 2, "col": 6, "row": 0 },
-        { "unitId": "legion_crossbow", "star": 2, "col": 6, "row": 2 },
+        { "unitId": "siege_bombardier", "star": 1, "col": 6, "row": 2 },
         { "unitId": "legion_crossbow", "star": 2, "col": 6, "row": 4 }
       ]
     },
@@ -415,13 +415,13 @@
       "kind": "normal",
       "minFloor": 27,
       "maxFloor": 31,
-      "text": "암살자들이 균열 사이를 누비며 후열을 노린다.",
+      "text": "암살자들이 균열 사이를 누비며 후열을 노린다. 시작과 동시에 아군 후열로 뛰어든다.",
       "units": [
         { "unitId": "shade_dagger", "star": 2, "col": 4, "row": 1 },
-        { "unitId": "shade_dagger", "star": 2, "col": 4, "row": 3 },
+        { "unitId": "rift_stalker", "star": 2, "col": 4, "row": 3 },
         { "unitId": "legion_spy", "star": 2, "col": 5, "row": 2 },
         { "unitId": "abyss_whisperer", "star": 2, "col": 6, "row": 0 },
-        { "unitId": "abyss_whisperer", "star": 2, "col": 6, "row": 4 }
+        { "unitId": "void_sniper", "star": 1, "col": 6, "row": 4 }
       ]
     },
     {
@@ -430,13 +430,13 @@
       "kind": "normal",
       "minFloor": 28,
       "maxFloor": 32,
-      "text": "군주에게 삼켜지지 않은 군단의 잔당. 북소리 아래 전열이 단단하다.",
+      "text": "군주에게 삼켜지지 않은 군단의 잔당. 백인대장의 명령 아래 전열이 단단하다.",
       "units": [
         { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 0 },
-        { "unitId": "war_drummer", "star": 2, "col": 4, "row": 2 },
+        { "unitId": "legion_centurion", "star": 1, "col": 4, "row": 2 },
         { "unitId": "arena_recruit", "star": 2, "col": 4, "row": 4 },
         { "unitId": "legion_crossbow", "star": 2, "col": 6, "row": 1 },
-        { "unitId": "legion_crossbow", "star": 2, "col": 6, "row": 3 }
+        { "unitId": "battle_chaplain", "star": 2, "col": 6, "row": 3 }
       ]
     },
     {
@@ -445,12 +445,13 @@
       "kind": "normal",
       "minFloor": 29,
       "maxFloor": 33,
-      "text": "포식자 둘이 먹이를 문다. 처치할 때마다 몸집이 커진다.",
+      "text": "포식자와 감시자가 먹이를 막아서고 공허 대사제와 추적자가 틈을 노린다.",
       "units": [
         { "unitId": "abyss_devourer", "star": 2, "col": 4, "row": 1 },
-        { "unitId": "abyss_devourer", "star": 2, "col": 4, "row": 3 },
-        { "unitId": "abyss_whisperer", "star": 2, "col": 6, "row": 2 },
-        { "unitId": "legion_spy", "star": 2, "col": 5, "row": 4 }
+        { "unitId": "abyss_sentinel", "star": 1, "col": 4, "row": 3 },
+        { "unitId": "void_hierophant", "star": 2, "col": 6, "row": 2 },
+        { "unitId": "rift_stalker", "star": 1, "col": 5, "row": 4 },
+        { "unitId": "abyss_whisperer", "star": 1, "col": 6, "row": 0 }
       ]
     },
     {
@@ -459,14 +460,13 @@
       "kind": "normal",
       "minFloor": 30,
       "maxFloor": 35,
-      "text": "3성 방패병이 선두에 서고 북소리와 석궁이 뒤를 받친다.",
+      "text": "백인대장이 3성 방패병과 함께 선두에 서고 포병과 군목이 뒤를 받친다.",
       "units": [
-        { "unitId": "war_drummer", "star": 2, "col": 4, "row": 0 },
+        { "unitId": "legion_centurion", "star": 2, "col": 4, "row": 0 },
         { "unitId": "iron_shieldbearer", "star": 3, "col": 4, "row": 2 },
         { "unitId": "war_drummer", "star": 2, "col": 4, "row": 4 },
-        { "unitId": "legion_crossbow", "star": 2, "col": 6, "row": 1 },
-        { "unitId": "legion_crossbow", "star": 2, "col": 6, "row": 3 },
-        { "unitId": "abyss_whisperer", "star": 2, "col": 7, "row": 2 }
+        { "unitId": "siege_bombardier", "star": 2, "col": 6, "row": 1 },
+        { "unitId": "battle_chaplain", "star": 1, "col": 6, "row": 3 }
       ]
     },
     {
@@ -475,13 +475,13 @@
       "kind": "normal",
       "minFloor": 31,
       "maxFloor": 36,
-      "text": "수도 궁정을 지키던 근위대. 포식자가 양 날개를 맡는다.",
+      "text": "수도 궁정을 지키던 근위대. 감시자가 중앙을 막고 포식자가 양 날개를 맡는다.",
       "units": [
         { "unitId": "abyss_devourer", "star": 2, "col": 4, "row": 0 },
-        { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 2 },
+        { "unitId": "abyss_sentinel", "star": 2, "col": 4, "row": 2 },
         { "unitId": "abyss_devourer", "star": 2, "col": 4, "row": 4 },
         { "unitId": "legion_spy", "star": 2, "col": 5, "row": 1 },
-        { "unitId": "abyss_whisperer", "star": 3, "col": 6, "row": 3 }
+        { "unitId": "void_hierophant", "star": 1, "col": 6, "row": 3 }
       ]
     },
     {
@@ -490,14 +490,14 @@
       "kind": "normal",
       "minFloor": 33,
       "maxFloor": 37,
-      "text": "속이 빈 갑옷에 심연이 깃든 군단. 3성 유닛이 섞여 있다.",
+      "text": "속이 빈 갑옷에 심연이 깃든 군단. 3성 포식자와 백인대장, 감시자가 섞여 있다.",
       "units": [
         { "unitId": "abyss_devourer", "star": 3, "col": 4, "row": 0 },
-        { "unitId": "war_drummer", "star": 3, "col": 4, "row": 2 },
-        { "unitId": "iron_shieldbearer", "star": 2, "col": 4, "row": 4 },
-        { "unitId": "legion_crossbow", "star": 3, "col": 6, "row": 1 },
-        { "unitId": "abyss_whisperer", "star": 2, "col": 6, "row": 3 },
-        { "unitId": "legion_spy", "star": 2, "col": 5, "row": 2 }
+        { "unitId": "legion_centurion", "star": 2, "col": 4, "row": 2 },
+        { "unitId": "abyss_sentinel", "star": 2, "col": 4, "row": 4 },
+        { "unitId": "void_sniper", "star": 2, "col": 6, "row": 1 },
+        { "unitId": "void_hierophant", "star": 2, "col": 6, "row": 3 },
+        { "unitId": "shade_dagger", "star": 2, "col": 5, "row": 2 }
       ]
     },
     {
@@ -506,14 +506,14 @@
       "kind": "normal",
       "minFloor": 34,
       "maxFloor": 37,
-      "text": "수도 마지막 방어선. 3성 방패병 둘과 석궁병 둘이 길을 막는다.",
+      "text": "수도 마지막 방어선. 백인대장과 3성 방패병이 길을 막고 포병이 포격을 퍼붓는다.",
       "units": [
-        { "unitId": "iron_shieldbearer", "star": 3, "col": 4, "row": 1 },
+        { "unitId": "legion_centurion", "star": 2, "col": 4, "row": 1 },
         { "unitId": "iron_shieldbearer", "star": 3, "col": 4, "row": 3 },
         { "unitId": "war_drummer", "star": 2, "col": 5, "row": 2 },
-        { "unitId": "legion_crossbow", "star": 3, "col": 6, "row": 0 },
+        { "unitId": "siege_bombardier", "star": 2, "col": 6, "row": 0 },
         { "unitId": "legion_crossbow", "star": 3, "col": 6, "row": 4 },
-        { "unitId": "abyss_whisperer", "star": 2, "col": 7, "row": 2 }
+        { "unitId": "battle_chaplain", "star": 2, "col": 7, "row": 2 }
       ]
     },
     {
@@ -522,13 +522,13 @@
       "kind": "elite",
       "minFloor": 30,
       "maxFloor": 37,
-      "text": "3성 방패병 둘이 만든 장벽 뒤에서 석궁이 쏟아진다.",
+      "text": "백인대장 둘과 3성 방패병이 만든 장벽 뒤에서 포격과 석궁이 쏟아진다.",
       "units": [
-        { "unitId": "iron_shieldbearer", "star": 3, "col": 4, "row": 1 },
-        { "unitId": "war_drummer", "star": 2, "col": 4, "row": 2 },
-        { "unitId": "iron_shieldbearer", "star": 3, "col": 4, "row": 3 },
-        { "unitId": "legion_crossbow", "star": 3, "col": 6, "row": 1 },
-        { "unitId": "legion_crossbow", "star": 3, "col": 6, "row": 3 }
+        { "unitId": "legion_centurion", "star": 2, "col": 4, "row": 1 },
+        { "unitId": "iron_shieldbearer", "star": 3, "col": 4, "row": 2 },
+        { "unitId": "legion_centurion", "star": 2, "col": 4, "row": 3 },
+        { "unitId": "siege_bombardier", "star": 2, "col": 6, "row": 1 },
+        { "unitId": "legion_crossbow", "star": 2, "col": 6, "row": 3 }
       ]
     },
     {
@@ -537,12 +537,12 @@
       "kind": "elite",
       "minFloor": 30,
       "maxFloor": 37,
-      "text": "포식자와 암살자가 앞을 열고 속삭임꾼이 침묵을 쏟는다.",
+      "text": "균열 추적자와 포식자가 앞을 열고 공허 대사제가 CP를 쥐어짠다.",
       "units": [
-        { "unitId": "shade_dagger", "star": 2, "col": 4, "row": 0 },
+        { "unitId": "rift_stalker", "star": 2, "col": 4, "row": 0 },
         { "unitId": "abyss_devourer", "star": 3, "col": 4, "row": 2 },
         { "unitId": "shade_dagger", "star": 2, "col": 4, "row": 4 },
-        { "unitId": "abyss_whisperer", "star": 3, "col": 6, "row": 1 },
+        { "unitId": "void_hierophant", "star": 2, "col": 6, "row": 1 },
         { "unitId": "abyss_whisperer", "star": 2, "col": 6, "row": 3 }
       ]
     },
@@ -552,12 +552,12 @@
       "kind": "elite",
       "minFloor": 32,
       "maxFloor": 37,
-      "text": "군주에게 맹세를 판 첩보원들. 급소 공격이 연달아 들어온다.",
+      "text": "군주에게 맹세를 판 첩보원들과 이름 없는 검객. 급소 공격이 연달아 들어온다.",
       "units": [
         { "unitId": "abyss_devourer", "star": 2, "col": 4, "row": 0 },
         { "unitId": "legion_spy", "star": 3, "col": 4, "row": 1 },
-        { "unitId": "legion_spy", "star": 2, "col": 4, "row": 3 },
-        { "unitId": "war_drummer", "star": 3, "col": 5, "row": 2 },
+        { "unitId": "muhon", "star": 1, "col": 4, "row": 3 },
+        { "unitId": "legion_centurion", "star": 2, "col": 5, "row": 2 },
         { "unitId": "legion_crossbow", "star": 2, "col": 6, "row": 2 }
       ]
     },

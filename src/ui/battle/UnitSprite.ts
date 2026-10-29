@@ -9,6 +9,8 @@ export class UnitSprite {
   private readonly container: Phaser.GameObjects.Container;
   private readonly gfx: Phaser.GameObjects.Graphics;
   private readonly badgeTexts: Phaser.GameObjects.Text[] = [];
+  /** 중첩이 2겹 이상인 배지 모서리에 붙이는 겹 수 */
+  private readonly stackTexts: Phaser.GameObjects.Text[] = [];
 
   constructor(
     private readonly scene: Phaser.Scene,
@@ -134,8 +136,22 @@ export class UnitSprite {
       this.gfx.fillRoundedRect(cx - size / 2, LAYOUT.BADGE_Y - size / 2, size, size, 3);
       const text = this.badgeText(i);
       text.setText(badge.label).setPosition(cx, LAYOUT.BADGE_Y).setVisible(true);
+      const stacks = Math.max(1, ...view.statuses.filter((s) => badge.match(s.name)).map((s) => s.stacks ?? 1));
+      const count = this.stackText(i);
+      count.setText(String(stacks)).setPosition(cx + size / 2, LAYOUT.BADGE_Y - size / 2).setVisible(stacks > 1);
     });
     for (let i = badges.length; i < this.badgeTexts.length; i++) this.badgeTexts[i]?.setVisible(false);
+    for (let i = badges.length; i < this.stackTexts.length; i++) this.stackTexts[i]?.setVisible(false);
+  }
+
+  private stackText(index: number): Phaser.GameObjects.Text {
+    let text = this.stackTexts[index];
+    if (!text) {
+      text = createText(this.scene, this.metrics, 0, 0, '', { fontSize: '10px', fontStyle: 'bold', color: '#ffffff', stroke: '#000000', strokeThickness: 3 }).setOrigin(0.5);
+      this.container.add(text);
+      this.stackTexts[index] = text;
+    }
+    return text;
   }
 
   private badgeText(index: number): Phaser.GameObjects.Text {

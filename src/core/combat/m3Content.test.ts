@@ -3,11 +3,11 @@ import { CombatSimulator } from './sim';
 import { cardCatalog, eventsOf, fillMana, formation, handSnapshot, makeCardSim, makeSim, stepUntil, traits, unitOf, units } from './testSupport';
 
 describe('M3 유닛·특성', () => {
-  it('14종 중 1등급 8종·2등급 6종이며 제공 카드 참조가 유효하다', () => {
-    expect(units.units.filter((u) => u.tier === 1)).toHaveLength(8);
-    expect(units.units.filter((u) => u.tier === 2)).toHaveLength(6);
+  it('상점 유닛 30종(등급별 8/8/6/5/3)이며 제공 카드 참조가 유효하고 특성 9개 모두 효과가 있다 (M5-4)', () => {
+    const shopUnits = units.units.filter((u) => !u.boss);
+    expect([1, 2, 3, 4, 5].map((tier) => shopUnits.filter((u) => u.tier === tier).length)).toEqual([8, 8, 6, 5, 3]);
     for (const unit of units.units) if (unit.grantedCard) expect(cardCatalog.get(unit.grantedCard)).toBeDefined();
-    expect(traits.traits.filter((t) => t.effects?.length)).toHaveLength(6);
+    expect(traits.traits.filter((t) => t.effects?.length)).toHaveLength(9);
   });
 
   it('잿불 시너지는 잿불 유닛의 기본 공격에만 화상을 부여한다', () => {

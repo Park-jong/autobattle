@@ -41,7 +41,7 @@ type TargetResolution = { ok: true; ctx: EffectContext } | { ok: false; reason: 
  */
 export class CardPlayer {
   private readonly usesByCard = new Map<string, number>();
-  /** 방해 변이로 올라간 카드 인스턴스별 추가 비용 (이번 전투 한정) */
+  /** 카드 인스턴스별 비용 조정: 방해 변이는 +, 주술사 특성은 − (이번 전투 한정). 실제 비용은 기본 비용 + 조정, 최소 0 */
   private readonly surcharges = new Map<number, number>();
   private playedCount = 0;
 
@@ -56,11 +56,33 @@ export class CardPlayer {
     private readonly modifiers: CardModifiers = NO_MODIFIERS,
   ) {}
 
-  /** 방해 변이: 손패 카드 한 장의 비용을 올린다. 누적 추가 비용을 반환 */
+  /** 손패 카드 한 장의 비용 조정을 더한다(방해 변이는 +, 주술사 특성은 −). 누적 조정값을 반환 */
   addSurcharge(instanceId: number, amount: number): number {
     const total = (this.surcharges.get(instanceId) ?? 0) + amount;
     this.surcharges.set(instanceId, total);
     return total;
+  }
+
+  /** 지금 이 카드를 쓰는 데 드는 CP: (연쇄·강화 반영한 기본 비용 + 조정), 최소 0 */
+  currentCost(card: Card, upgraded: boolean, instanceId: number): number {
+    return Math.max(0, effectiveCard(card, upgraded, this.playedCount).cost + this.surchargeOf(instanceId));
+  }
+
+  /**
+   * 주술사 특성: 손패에서 현재 비용이 1 이상인 카드 중 sim Rng로 한 장을 골라 비용을 amount만큼 줄인다 (0 밑으로는 내려가지 않음).
+   * 후보가 없으면 null이고 Rng를 쓰지 않는다.
+   */
+  reduceRandomCost(amount: number): { instanceId: number; cardId: string; surcharge: number; delta: number } | null {
+    const candidates = this.deck.hand.filter((instance) => {
+      const card = this.catalog.get(instance.cardId);
+      return card !== undefined && this.currentCost(card, instance.upgraded, instance.instanceId) > 0;
+    });
+    if (candidates.length === 0) return null;
+    const picked = this.world.rng.pick(candidates);
+    const card = this.catalog.get(picked.cardId) as Card;
+    const delta = Math.min(amount, this.currentCost(card, picked.upgraded, picked.instanceId));
+    const surcharge = this.addSurcharge(picked.instanceId, -delta);
+    return { instanceId: picked.instanceId, cardId: picked.cardId, surcharge, delta };
   }
 
   /** 이 전투에서 카드로 잃은 지휘관 HP 합계 */
@@ -106,7 +128,7 @@ export class CardPlayer {
 
     const view = effectiveCard(card, instance.upgraded, this.playedCount);
     const pool: CpPool = card.type === 'operation' || card.type === 'equipment' ? 'prep' : 'combat';
-    const cost = view.cost + this.surchargeOf(instanceId);
+    const cost = Math.max(0, view.cost + this.surchargeOf(instanceId));
     if (!this.cp.canSpend(pool, cost)) {
       const label = pool === 'prep' ? '준비 단계 작전 CP가' : '지휘력이';
       return fail(`${label} 부족합니다 (필요 ${cost}, 보유 ${this.cp.amount(pool)})`);

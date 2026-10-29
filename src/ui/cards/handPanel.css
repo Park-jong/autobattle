@@ -91,6 +91,8 @@
   background: #2b7fa8;
   font-weight: 700;
 }
+.hcard-cost.reduced { background: #2e8b57; box-shadow: 0 0 0 2px #9be29b; }
+.hcard-cost.raised { background: #a8432b; box-shadow: 0 0 0 2px #ff9a7a; }
 .hcard-name { font-weight: 700; font-size: 14px; }
 .hcard-meta { font-size: 11px; color: #9aa3b5; }
 .hcard-text { font-size: 12px; color: #dfe4f0; overflow: hidden; }

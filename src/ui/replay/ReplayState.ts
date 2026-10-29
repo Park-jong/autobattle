@@ -19,6 +19,8 @@ export interface ActiveStatus {
   /** 남은 시간(초). 전투 끝까지면 Infinity */
   remaining: number;
   value?: number;
+  /** 같은 이름의 상태가 여러 겹 쌓여 있으면 그 수 (한 겹이면 없음). 숲의 맹약 AS 중첩 등 */
+  stacks?: number;
 }
 
 /** 한 시각의 유닛 표시 상태 */
@@ -60,6 +62,8 @@ export type ReplayEffect =
       amount: number;
       absorbed: number;
       dmgType: DamageType;
+      /** 치명타였으면 true */
+      crit?: boolean;
     }
   | { kind: 'heal'; seq: number; t: number; unit: number; amount: number }
   | { kind: 'skill'; seq: number; t: number; unit: number; skill: string }
@@ -69,7 +73,9 @@ export type ReplayEffect =
   | { kind: 'cp'; seq: number; t: number; pool: CpPool; delta: number; cp: number; reason: CpReason }
   | { kind: 'teleport'; seq: number; t: number; unit: number; from: Cell; to: Cell }
   /** 보스 패턴 예고: t부터 fireAt까지 cells를 강조한다 */
-  | { kind: 'telegraph'; seq: number; t: number; id: number; cells: Cell[]; fireAt: number }
+  | { kind: 'telegraph'; seq: number; t: number; id: number; cells: Cell[]; fireAt: number; label?: string }
+  /** 주술사 특성 등으로 손패 카드 비용이 바뀜: unit = 발동한 유닛(방해 변이처럼 유닛이 없으면 null), delta는 바뀐 양(− = 할인) */
+  | { kind: 'cardCost'; seq: number; t: number; unit: number | null; cardId: string; delta: number }
   /** 예고된 패턴 발동 */
   | { kind: 'strike'; seq: number; t: number; id: number; cells: Cell[] }
   /** 궁극기 발동 (배너) */
@@ -109,6 +115,8 @@ export interface UltimateAuraView {
 export interface TelegraphView {
   id: number;
   cells: readonly Cell[];
+  /** 스킬 예고의 스킬 이름 (보스 열 강타에는 없음) */
+  label?: string;
   /** 예고가 시작된 시각 / 발동 예정 시각 */
   startedAt: number;
   fireAt: number;
@@ -276,7 +284,7 @@ export class ReplayState {
     for (const e of this.openTelegraphs.values()) {
       if (t >= e.fireAt - EPS) continue;
       const span = Math.max(EPS, e.fireAt - e.t);
-      out.push({ id: e.id, cells: e.cells, startedAt: e.t, fireAt: e.fireAt, progress: Math.min(1, Math.max(0, (t - e.t) / span)) });
+      out.push({ id: e.id, cells: e.cells, ...(e.label === undefined ? {} : { label: e.label }), startedAt: e.t, fireAt: e.fireAt, progress: Math.min(1, Math.max(0, (t - e.t) / span)) });
     }
     return out;
   }
@@ -380,6 +388,7 @@ export class ReplayState {
           amount: e.amount,
           absorbed: e.absorbed,
           dmgType: e.dmgType,
+          ...(e.crit ? { crit: true } : {}),
         });
         break;
       }
@@ -451,14 +460,18 @@ export class ReplayState {
         break;
 
       case 'telegraph': {
-        const effect = { kind: 'telegraph', seq, t: e.t, id: e.id, cells: e.cells, fireAt: e.fireAt } as const;
+        const effect = { kind: 'telegraph', seq, t: e.t, id: e.id, cells: e.cells, fireAt: e.fireAt, ...(e.label === undefined ? {} : { label: e.label }) } as const;
         this.effects.push(effect);
         this.openTelegraphs.set(e.id, effect);
         break;
       }
       case 'strike':
         this.openTelegraphs.delete(e.id);
-        this.effects.push({ kind: 'strike', seq, t: e.t, id: e.id, cells: e.cells });
+        // 시전자가 쓰러져 취소된 지연 타격은 예고만 지우고 번쩍임은 없다
+        if (!e.cancelled) this.effects.push({ kind: 'strike', seq, t: e.t, id: e.id, cells: e.cells });
+        break;
+      case 'cardCost':
+        this.effects.push({ kind: 'cardCost', seq, t: e.t, unit: e.source ?? null, cardId: e.cardId, delta: e.delta ?? 0 });
         break;
 
       case 'ultimateUsed':
@@ -607,6 +620,7 @@ export class ReplayState {
       const until = Math.max(...live.map((s) => s.until));
       const status: ActiveStatus = { name, until, remaining: until - t };
       if (last.value !== undefined) status.value = last.value;
+      if (live.length > 1) status.stacks = live.length;
       statuses.push(status);
     }
     const shield = u.shields.reduce((sum, s) => (s.expiresAt > t + EPS ? sum + s.amount : sum), 0);

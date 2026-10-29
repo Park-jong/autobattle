@@ -137,7 +137,9 @@ export class CombatSimulator {
       const deckOptions = relics.handLimitBonus > 0 ? { handLimit: CARDS.HAND_LIMIT + relics.handLimitBonus } : {};
       this.deck = Deck.restore(cardSetup.deck, cardCatalog, new Rng(0), deckOptions);
     }
-    const executor = new EffectExecutor(world, this.commandPoints, this.deck, units);
+    // 주술사 특성의 손패 비용 감소 창구: CardPlayer는 특성 계산 뒤에 만들어지므로 호출 시점에 this.player를 읽는다
+    const handCost = { reduceRandomCost: (amount: number) => this.player?.reduceRandomCost(amount) ?? null };
+    const executor = new EffectExecutor(world, this.commandPoints, this.deck, units, handCost);
     const enemyScale = { hp: setup.enemy?.hpMult ?? 1, atk: setup.enemy?.atkMult ?? 1 };
     new ManaSystem(world);
     this.rules = new StatusRules(world);
@@ -230,7 +232,7 @@ export class CombatSimulator {
     return result;
   }
 
-  /** 방해 변이로 이 카드에 붙은 추가 비용 (이번 전투 한정). 카드 시스템이 없으면 0 */
+  /** 이 카드에 붙은 비용 조정 (이번 전투 한정): 방해 변이는 +, 주술사 특성은 −. 카드 시스템이 없으면 0 */
   cardSurcharge(instanceId: number): number {
     return this.player?.surchargeOf(instanceId) ?? 0;
   }
@@ -272,6 +274,7 @@ export class CombatSimulator {
     if (this.phaseValue !== 'prep' || this.outcome) return;
     this.phaseValue = 'combat';
     this.commandPoints?.startCombat();
+    this.world.bus.emit('onCombatStart', {});
   }
 
   /**

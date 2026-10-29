@@ -37,6 +37,8 @@ export type CombatEvent = { t: number } & (
       dmgType: DamageType;
       /** 피해 적용 후 HP */
       hp: number;
+      /** 치명타였으면 true (치명타가 아니면 키 자체가 없다) */
+      crit?: true;
     }
   | { type: 'heal'; unit: number; source: number | null; amount: number; hp: number }
   | { type: 'shield'; unit: number; amount: number; duration: StatusDuration }
@@ -69,12 +71,15 @@ export type CombatEvent = { t: number } & (
   | { type: 'cp'; pool: CpPool; delta: number; cp: number; reason: CpReason }
   /** 적 진영에 걸린 정예 변이 (전투 시작 시각에 한 번씩) */
   | { type: 'mutation'; id: string }
-  /** 방해 변이: 손패 카드의 비용이 올랐다. surcharge는 그 카드의 누적 추가 비용 */
-  | { type: 'cardCost'; instanceId: number; cardId: string; surcharge: number }
-  /** 보스 패턴 예고: fireAt(초)에 cells 칸의 유닛이 공격받는다. id는 같은 시전의 strike와 짝 */
-  | { type: 'telegraph'; id: number; source: number; pattern: string; cells: Cell[]; fireAt: number }
+  /**
+   * 손패 카드의 비용이 바뀌었다. surcharge는 그 카드의 누적 비용 조정(방해 변이는 +, 주술사 특성은 −).
+   * source는 주술사 특성을 발동한 유닛(방해 변이에는 없음), delta는 이번에 바뀐 양
+   */
+  | { type: 'cardCost'; instanceId: number; cardId: string; surcharge: number; delta?: number; source?: number }
+  /** 보스 패턴·스킬 예고: fireAt(초)에 cells 칸의 유닛이 공격받는다. id는 같은 시전의 strike와 짝. label은 스킬 예고의 스킬 이름(보스 패턴에는 없음) */
+  | { type: 'telegraph'; id: number; source: number; pattern: string; cells: Cell[]; fireAt: number; label?: string }
   /** 예고된 패턴 발동 (피해는 이어지는 damage 이벤트) */
-  | { type: 'strike'; id: number; source: number; cells: Cell[] }
+  | { type: 'strike'; id: number; source: number; cells: Cell[]; cancelled?: true }
   /**
    * 쌍둥이 보스 한쪽(unit)이 죽었다: 짝(partner)이 fireAt(초)까지 죽지 않으면 unit이 부활한다.
    * 짝도 그 전에 죽으면 부활은 취소되고(reviveCancel) 둘 다 처치된 것이다

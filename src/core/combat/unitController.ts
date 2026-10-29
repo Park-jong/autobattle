@@ -87,10 +87,23 @@ export class UnitController {
     if (charged && unit.statuses.extraShots === 0) {
       world.emit({ type: 'statusRemoved', unit: unit.uid, status: 'extraShots' });
     }
+    // 강화된 다음 공격(균열 도약): 첫 발만 ATK의 pctAtk% 피해
+    const empowered = unit.statuses.consumeEmpoweredAttack();
+    if (empowered) world.emit({ type: 'statusRemoved', unit: unit.uid, status: 'empoweredAttack' });
     world.emit({ type: 'attack', unit: unit.uid, target: target.uid, shots });
     world.bus.emit('onAttack', { attacker: unit, target, shots });
     for (let i = 0; i < shots; i++) {
-      world.dealDamage({ source: unit, target, raw: unit.stat('atk'), type: 'physical' });
+      const strong = empowered !== null && i === 0;
+      world.dealDamage({
+        source: unit,
+        target,
+        raw: strong ? (unit.stat('atk') * empowered.pctAtk) / 100 : unit.stat('atk'),
+        type: strong ? empowered.dmgType : 'physical',
+        canCrit: true,
+      });
+      if (strong && empowered.manaPctOnKill > 0 && !target.alive && unit.alive) {
+        world.addMana(unit, (unit.maxMana * empowered.manaPctOnKill) / 100);
+      }
     }
     this.scheduleNextAction(unit);
   }

@@ -1,5 +1,7 @@
 import type { CardCatalog } from '../../core/data/cardLoader';
+import type { TraitCatalog } from '../../core/data/traitLoader';
 import type { UnitCatalog } from '../../core/data/unitLoader';
+import type { UnitDef } from '../../core/data/unit';
 import type { OwnedUnit } from '../../core/management';
 import type { DebugController } from '../debug/contracts';
 import { clientToStage } from '../cards/stagePoint';
@@ -24,6 +26,8 @@ export interface ManagementPanelOptions {
   title?: string;
   /** 경제 플레이 시작·종료·새로 시작 버튼 표시 (기본 true) */
   modeControls?: boolean;
+  /** 주면 상점 진열과 유닛 설명에 기원·직업 이름을 함께 보여 준다 */
+  traits?: TraitCatalog;
 }
 
 interface UnitPress { id: number; x: number; y: number; origin: 'board' | 'bench' | 'canvas'; dragging: boolean; }
@@ -73,10 +77,12 @@ export class ManagementPanel {
     controls.append(reroll, xp, lock);
     const offers = el('div', 'management-offers');
     state.offers.forEach((offer, slot) => {
-      const buy = button(offer ? `${this.units.get(offer.unitId)?.name ?? '유닛'}\n${offer.tier}등급 · ${offer.cost}G` : '품절', () => this.controller.buyUnit(slot));
+      const def = offer ? this.units.get(offer.unitId) : undefined;
+      const traitLine = def && this.options.traits ? `\n${this.traitNames(def).join('\n')}` : '';
+      const buy = button(offer ? `${def?.name ?? '유닛'}\n${offer.tier}등급 · ${offer.cost}G${traitLine}` : '품절', () => this.controller.buyUnit(slot));
       buy.classList.add('management-offer');
       buy.disabled = !canManage || !offer || state.gold < offer.cost;
-      if (offer) buy.title = this.units.get(offer.unitId)?.skill.text ?? '';
+      if (def) buy.title = this.describe(def);
       offers.append(buy);
     });
 
@@ -125,6 +131,19 @@ export class ManagementPanel {
     );
   }
 
+  /** 기원·직업 이름 (특성 카탈로그가 없으면 빈 목록) */
+  private traitNames(def: UnitDef): string[] {
+    const traits = this.options.traits;
+    return traits ? [traits.get(def.origin)?.name ?? def.origin, traits.get(def.job)?.name ?? def.job] : [];
+  }
+
+  /** 툴팁: 등급·기원·직업과 스킬 이름·설명 */
+  private describe(def: UnitDef): string {
+    const traits = this.traitNames(def);
+    const head = traits.length > 0 ? `${def.tier}등급 · ${traits.join(' · ')}\n` : '';
+    return `${head}${def.skill.name}: ${def.skill.text}`;
+  }
+
   private unitName(unit: OwnedUnit): string {
     return `${this.units.get(unit.unitId)?.name ?? '유닛'} ${'★'.repeat(unit.star)}`;
   }
@@ -136,7 +155,7 @@ export class ManagementPanel {
     node.disabled = !enabled;
     const def = this.units.get(unit.unitId);
     const grant = def?.grantedCard ? this.cards?.get(def.grantedCard)?.name : null;
-    node.title = `${def?.skill.text ?? ''}${grant ? ` / 배치 중 제공 카드: ${grant}` : ''}`;
+    node.title = `${def ? this.describe(def) : ''}${grant ? ` / 배치 중 제공 카드: ${grant}` : ''}`;
     node.addEventListener('pointerdown', (event) => {
       if (event.button !== 0 || !enabled) return;
       this.beginPress(unit.id, event.clientX, event.clientY, origin);

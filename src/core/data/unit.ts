@@ -1,7 +1,15 @@
 import type { DamageType, EffectDef } from './effect';
 
 export const PATTERN_KINDS = ['columnStrike', 'twinRevive', 'phaseSummon'] as const;
-export const SKILL_TARGETINGS = ['self', 'currentTarget', 'lowestHpEnemy', 'randomEnemies'] as const;
+/**
+ * 스킬 대상 선택 방식.
+ * - self / currentTarget(현재 공격 대상, 사거리 안) / lowestHpEnemy / highestHpEnemy(현재 HP 기준, 사거리 무관) / randomEnemies
+ * - farthestEnemy: 시전자에서 가장 먼 적 (동률은 uid 작은 쪽, 사거리 무관)
+ * - lowestHpRatioAllies: HP 비율이 가장 낮은 아군 targetCount명 (시전자 포함, 동률은 uid 작은 쪽)
+ */
+export const SKILL_TARGETINGS = [
+  'self', 'currentTarget', 'lowestHpEnemy', 'randomEnemies', 'highestHpEnemy', 'farthestEnemy', 'lowestHpRatioAllies',
+] as const;
 export type SkillTargeting = (typeof SKILL_TARGETINGS)[number];
 
 /** 1성 기준 능력치 */

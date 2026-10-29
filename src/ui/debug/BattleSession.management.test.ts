@@ -87,8 +87,15 @@ describe('경제 플레이 통합', () => {
   });
 
   it('유닛 카드 공급은 보드에만 연결되고 벤치 이동·판매 시 제거된다', () => {
-    const s = session();
-    s.buyUnit(2); // 시드1: 전쟁 군악대
+    // 진열은 시드와 유닛 풀 구성에 따라 달라지므로 전쟁 군악대가 진열된 시드를 찾아서 쓴다
+    let s = session();
+    let slot = -1;
+    for (let seed = 1; seed <= 200 && slot < 0; seed++) {
+      s = session(seed);
+      slot = state(s).offers.findIndex((offer) => offer?.unitId === 'war_drummer');
+    }
+    expect(slot).toBeGreaterThanOrEqual(0);
+    s.buyUnit(slot);
     const provider = state(s).bench.find((unit) => unit?.unitId === 'war_drummer');
     if (!provider) throw new Error('군악대 없음');
     const ids = () => [...s.cardView().hand, ...s.cardView().draw.entries, ...s.cardView().discard.entries, ...s.cardView().exhaust.entries].map((card) => card.cardId);

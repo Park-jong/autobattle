@@ -21,8 +21,26 @@ export const EFFECT_SELECTORS = [
   'traitUnits',
   'selfAndAdjacent',
   'targetArea2x2',
+  /** 시전자 반경 `selectorRadius`칸(기본 1) 안의 아군(시전자 포함) / 적 */
+  'alliesAroundSelf',
+  'enemiesAroundSelf',
+  'allEnemies',
+  /** 부채꼴 5발: 화살마다 맞은 첫 적(같은 적이 여러 번 나올 수 있음) / 맞은 적을 한 번씩만 */
+  'fanArrows',
+  'fanTargets',
 ] as const;
-export const TELEPORT_DESTINATIONS = ['behindTarget'] as const;
+/** `selectorRadius`를 받을 수 있는 선택자 */
+export const RADIUS_SELECTORS = ['alliesAroundSelf', 'enemiesAroundSelf'] as const;
+/**
+ * 순간이동 목적지.
+ * - behindTarget: 대상에 인접한 빈 칸 중 이동자에서 가장 먼 칸
+ * - besideTarget: 대상에 인접한 빈 칸 중 이동자에서 가장 가까운 칸 (도약)
+ * - enemyBackRow: 상대 진영 후열의 빈 칸 (후열이 차 있으면 한 열씩 앞으로)
+ * - lineEnd: 대상 방향 직선 위의 가장 먼 빈 칸 (질주). 빈 칸이 없으면 제자리
+ */
+export const TELEPORT_DESTINATIONS = ['behindTarget', 'besideTarget', 'enemyBackRow', 'lineEnd'] as const;
+/** 지연 타격이 노리는 범위 */
+export const DELAYED_AREAS = ['densestEnemies3x3', 'allEnemies'] as const;
 export const COMBAT_EFFECT_KINDS = [
   'shield',
   'damageTakenMult',
@@ -47,12 +65,17 @@ export const COMBAT_EFFECT_KINDS = [
   'cpGain',
   'root', 'hpCost', 'lifesteal', 'onAttackBurn', 'killFeast', 'marksman', 'attackMana', 'summon', 'scout',
   'taunt',
+  // 유닛 스킬용 (M5-4)
+  'flatShield', 'cleanse', 'damageAura', 'empoweredAttack', 'reflect', 'regen', 'delayedStrike', 'skillCpGain',
+  // 특성 전용 (M5-4)
+  'stackingStatMod', 'startMana', 'handCostReduction', 'backRowLeap', 'critical',
 ] as const;
 
 export type CombatStat = (typeof COMBAT_STATS)[number];
 export type DamageType = (typeof DAMAGE_TYPES)[number];
 export type EffectSelector = (typeof EFFECT_SELECTORS)[number];
 export type TeleportDestination = (typeof TELEPORT_DESTINATIONS)[number];
+export type DelayedArea = (typeof DELAYED_AREAS)[number];
 export type CombatEffectKind = (typeof COMBAT_EFFECT_KINDS)[number];
 
 /** 숫자 하나 또는 [1성, 2성, 3성] */
@@ -61,9 +84,21 @@ export type StarValue = number | readonly [number, number, number];
 export type EffectDuration<V> = V | 'combat';
 
 /** V = StarValue이면 데이터 형태, V = number이면 성급이 확정된 실행 형태 */
-export type EffectOf<V> =
+export type EffectOf<V> = EffectBody<V> & {
+  /** `alliesAroundSelf`/`enemiesAroundSelf`의 반경(칸, 체비쇼프). 생략하면 1 */
+  selectorRadius?: number;
+};
+
+type EffectBody<V> =
   | { kind: 'shield'; selector: EffectSelector; pctMaxHp: V; duration: EffectDuration<V> }
-  | { kind: 'damageTakenMult'; selector: EffectSelector; mult: V; duration: EffectDuration<V> }
+  | {
+      kind: 'damageTakenMult';
+      selector: EffectSelector;
+      mult: V;
+      duration: EffectDuration<V>;
+      /** 지정하면 그 종류의 피해에만 적용 (생략하면 모든 피해) */
+      dmgType?: DamageType;
+    }
   | {
       kind: 'statMod';
       selector: EffectSelector;
@@ -72,6 +107,8 @@ export type EffectOf<V> =
       duration: EffectDuration<V>;
       /** true면 효과 지속 중 적을 처치할 때 지속 시간이 초기화됨 */
       refreshOnKill?: boolean;
+      /** 지정하면 같은 시전자 종류가 건 이 효과가 대상에 최대 이만큼만 쌓인다 (넘치면 새로 걸리지 않음) */
+      maxStacks?: V;
     }
   | { kind: 'statAdd'; selector: EffectSelector; stat: CombatStat; amount: V; duration: EffectDuration<V> }
   | { kind: 'forceTarget'; selector: EffectSelector; duration: V }
@@ -85,6 +122,8 @@ export type EffectOf<V> =
       /** 대상 방어력 무시 비율(%) */
       ignoreArmorPct?: V;
       maxHpOnKill?: V;
+      /** 이 피해로 대상을 처치하면 시전자 마나 회복 (처치 1명당) */
+      manaOnKill?: V;
     }
   | { kind: 'stun'; selector: EffectSelector; duration: V }
   | { kind: 'heal'; selector: EffectSelector; amount: V }
@@ -127,7 +166,37 @@ export type EffectOf<V> =
    * 전투 시작 시 등록되는 트리거: 효과를 적용한 진영의 유닛이 적을 처치하면 CP를 amount만큼 얻는다.
    * 실제로 얻은 CP 합계가 maxPerCombat에 도달하면 더 얻지 않는다. selector는 allAllies만 허용.
    */
-  | { kind: 'cpOnKill'; selector: EffectSelector; amount: V; maxPerCombat: V };
+  | { kind: 'cpOnKill'; selector: EffectSelector; amount: V; maxPerCombat: V }
+  /** 고정 수치 보호막 (최대 HP 비례가 아님) */
+  | { kind: 'flatShield'; selector: EffectSelector; amount: V; duration: EffectDuration<V> }
+  /** 해로운 상태(기절·침묵·속박·화상·도발당함·받는 피해 증가·스탯 감소) 제거 */
+  | { kind: 'cleanse'; selector: EffectSelector }
+  /** 시전자 주변 `radius`칸 적에게 `intervalSeconds`마다 고정 피해, 총 `count`회 (첫 피해는 한 간격 뒤) */
+  | { kind: 'damageAura'; selector: EffectSelector; amount: V; dmgType: DamageType; radius: V; intervalSeconds: V; count: V }
+  /** 다음 기본 공격 1회가 ATK의 pctAtk% 피해. 그 공격으로 대상을 처치하면 최대 마나의 manaPctOnKill% 회복 */
+  | { kind: 'empoweredAttack'; selector: EffectSelector; pctAtk: V; dmgType: DamageType; manaPctOnKill?: V }
+  /** 받은 피해(방어·보호막 흡수 전 확정 피해)의 pct%를 공격자에게 방어 무시로 돌려준다 */
+  | { kind: 'reflect'; selector: EffectSelector; pct: V; duration: V }
+  /** 지속 중 1초마다 최대 HP의 pctMaxHp% 회복 */
+  | { kind: 'regen'; selector: EffectSelector; pctMaxHp: V; duration: V }
+  /**
+   * 지연 타격: delay초 뒤 area 범위에 중첩된 effects를 시전자 기준으로 실행한다 (시전자가 그 전에 죽으면 취소).
+   * 범위는 시전 시점에 정해져 telegraph 이벤트로 예고되고, 발동 시 strike 이벤트가 나온다.
+   * densestEnemies3x3이면 effects 안에서 enemiesInTargetArea, allEnemies면 allEnemies 선택자를 쓴다.
+   */
+  | { kind: 'delayedStrike'; selector: EffectSelector; delay: V; area: DelayedArea; effects: EffectOf<V>[] }
+  /** 스킬로 전투 CP를 얻는다 (아군 진영·카드 시스템이 있을 때만). 시전 유닛마다 전투당 maxPerCombat번 */
+  | { kind: 'skillCpGain'; selector: EffectSelector; amount: V; maxPerCombat: V }
+  /** 특성 전용: intervalSeconds마다 selector 유닛에게 스탯 증가를 전투 끝까지 쌓는다 (최대 maxStacks중첩) */
+  | { kind: 'stackingStatMod'; selector: EffectSelector; stat: CombatStat; pct: V; intervalSeconds: V; maxStacks: V }
+  /** 특성 전용: 전투 시작 마나 증가 */
+  | { kind: 'startMana'; selector: EffectSelector; amount: V }
+  /** 특성 전용: selector 유닛이 스킬을 쓸 때마다 손패 무작위 1장의 비용 −amount (전투당 maxPerCombat번, 0 = 무제한) */
+  | { kind: 'handCostReduction'; selector: EffectSelector; amount: V; maxPerCombat: V }
+  /** 특성 전용: 전투 시작 시 selector 유닛이 상대 후열로 도약 */
+  | { kind: 'backRowLeap'; selector: EffectSelector }
+  /** 특성 전용: selector 유닛의 ATK 비례 피해(기본 공격·damage 효과)가 chance 확률로 damagePct% 피해 */
+  | { kind: 'critical'; selector: EffectSelector; chance: V; damagePct: V };
 
 export type EffectDef = EffectOf<StarValue>;
 export type ResolvedEffect = EffectOf<number>;
@@ -136,7 +205,8 @@ export type ResolvedEffect = EffectOf<number>;
 export function resolveEffect(def: EffectDef, index: number): ResolvedEffect {
   const out: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(def)) {
-    out[key] = Array.isArray(value) ? value[index] : value;
+    if (key === 'effects' && Array.isArray(value)) out[key] = (value as EffectDef[]).map((nested) => resolveEffect(nested, index));
+    else out[key] = Array.isArray(value) ? value[index] : value;
   }
   return out as ResolvedEffect;
 }

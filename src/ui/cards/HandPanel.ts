@@ -185,7 +185,9 @@ export class HandPanel {
     node.title = card.reason ? `사용 불가: ${card.reason}` : `${card.name}: ${card.text}`;
 
     const head = el('div', 'hcard-head');
-    head.append(el('span', 'hcard-cost', String(card.cost)), el('span', 'hcard-name', card.name));
+    const cost = el('span', card.cost < card.baseCost ? 'hcard-cost reduced' : card.cost > card.baseCost ? 'hcard-cost raised' : 'hcard-cost', String(card.cost));
+    if (card.cost !== card.baseCost) cost.title = `기본 비용 ${card.baseCost} → ${card.cost} (${card.cost < card.baseCost ? '주술사 특성' : '방해 변이'})`;
+    head.append(cost, el('span', 'hcard-name', card.name));
     const meta = el('div', 'hcard-meta', `${card.typeLabel} · ${card.targetLabel}`);
     const text = el('div', 'hcard-text', card.text);
     node.append(head, meta, text);

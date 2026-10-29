@@ -360,7 +360,7 @@ describe('M1 스킬 6종', () => {
   it('그림자 찌르기: HP가 가장 낮은 적 뒤로 순간이동 + ATK 220% 물리 피해', () => {
     const sim = makeSim(
       [['shade_dagger', 1, 0, 0]],
-      [['moss_warden', 1, 4, 2], ['grove_archer', 1, 6, 3]], // 궁수 HP 430이 가장 낮음
+      [['moss_warden', 1, 4, 2], ['ember_slinger', 1, 6, 3]], // 투석수 HP 440이 가장 낮음 (숲 특성이 켜지지 않게 숲 유닛은 1종만)
     );
     fillMana(sim, 0);
     sim.step();
@@ -368,7 +368,7 @@ describe('M1 스킬 6종', () => {
     expect(eventsOf(sim, 'teleport')[0]).toMatchObject({ unit: 0, from: { col: 0, row: 0 }, to: { col: 7, row: 3 } });
     expect(unitOf(sim, 0).cell).toEqual({ col: 7, row: 3 });
     const hit = eventsOf(sim, 'damage').find((e) => e.source === 0);
-    expect(hit).toMatchObject({ unit: 2, amount: 110, hp: 320 }); // 121 × 100/110
+    expect(hit).toMatchObject({ unit: 2, amount: 110, hp: 330 }); // 121 × 100/110
     expect(sim.world.board.occupantAt({ col: 7, row: 3 })).toBe(0);
   });
 
@@ -439,7 +439,8 @@ describe('statusApplied 수치(value)', () => {
 });
 
 describe('효과 시스템 (카드와 공유)', () => {
-  const setup = () => makeSim([['moss_warden', 1, 3, 2], ['grove_archer', 1, 1, 1]], [['arena_recruit', 1, 7, 4]]);
+  // 숲의 맹약(2종 이상)이 켜지지 않도록 숲 유닛은 1종만 쓴다
+  const setup = () => makeSim([['moss_warden', 1, 3, 2], ['ember_slinger', 1, 1, 1]], [['arena_recruit', 1, 7, 4]]);
 
   it('shield: 최대 HP 비례 보호막, 만료 시 제거 이벤트', () => {
     const sim = setup();
@@ -489,7 +490,7 @@ describe('효과 시스템 (카드와 공유)', () => {
     expect(unitOf(sim, 0).statuses.takenMultiplier()).toBe(1);
     expect(unitOf(sim, 0).stat('atk')).toBeCloseTo(38.5);
     expect(unitOf(sim, 0).stat('as')).toBeCloseTo(0.55 * 1.3); // 근접
-    expect(unitOf(sim, 1).stat('as')).toBeCloseTo(0.75); // 원거리는 제외
+    expect(unitOf(sim, 1).stat('as')).toBeCloseTo(0.7); // 원거리는 제외
     stepTicks(sim, 42);
     expect(unitOf(sim, 0).stat('as')).toBeCloseTo(0.55); // 4초 후 만료
     expect(unitOf(sim, 0).stat('atk')).toBeCloseTo(38.5); // 전투 끝까지

@@ -29,6 +29,7 @@
   combat/          전투 시뮬 (Phaser·DOM 비의존, 상수는 constants.ts)
     ultimate.ts      궁극기(UltimateSystem): 게이지·1회 제한·HP 소모·운석 연타, ULTIMATE 상수(constants.ts). relicRules.ts: 보유 유물의 전투 효과(RelicCombatRules)
     mutations.ts     정예 변이 4종(장갑·분노·전파·방해), bossPattern.ts 보스 열 강타(예고→발동)+보스 패턴 설치(`installBossPatterns`), twinRevive.ts 쌍둥이 부활, phaseSummon.ts 군주 페이즈 전환(증원·버프 해제), bossInfo.ts 패턴 설명, commanderHp.ts 카드 HP 비용 장부
+    delayed.ts       지연 타격 스킬(DelayedStrikes: 공성 포병 포격·화산 예언자 대분화의 예언): 시전 때 범위 확정 → `telegraph` 예고 → 발동 `strike`, 시전자가 죽으면 취소 (M5-4)
     sim.ts           CombatSimulator: 0.1초 틱 루프(step/runUntil/run), 종료 판정, 이벤트 로그. setup.cards로 카드 시스템(CP·덱·지휘관 패시브) 켬
     cardPlayer.ts    카드 사용 검증·실행 (지휘관·유물의 주문 피해·HP 비용 보정 포함) (단계/CP/대상/제한/전제조건 → 공통 EffectExecutor), cardCommand.ts 명령·대상 타입
     combatCp.ts      전투 CP + cp 이벤트, 심연 특성의 CP 수급 창구. cardPlan.ts: 카드 사용 계획(헤드리스용)
@@ -90,6 +91,13 @@
 - **core**: `RunController.createTest(deps, setup)`로 만들고 `controller.test`(`TestRunTools`)가 명령을 받는다. 일반 런이면 모든 명령이 `{ ok:false, reason }`. 상태의 `test` 표시는 저장 v3의 **선택 필드**(`test: { startAct, startPosition }`, 없으면 일반 런)이며 일반 런 저장본·검증은 그대로다. 이전 액트·건너뛴 구간은 맵 경로를 실제로 지나온 것으로 기록(visited·승리 history·seenEvents)해서 구조 검증을 그대로 통과한다. 테스트 런에서만 완화되는 검증은 최대 HP 기본값 일치와 시작 덱 장수 보존 두 가지. 상세는 data/README.md "플레이 테스트 런".
 - **UI**: `ui/run/testViews.ts`(선택지 카탈로그·도구 상태 순수 빌더), `TestStartPanel`(시작 화면, DOM을 한 번만 만들어 입력 유지), `TestToolsPanel`(런 중 패널, `RunShell`이 body에 붙임, `testTools.css`), 계약은 `contracts.ts`의 `TestCommands`/`TestToolCommand`(RunCommands와 별도). `RunSession`이 `startTestRun`·`testCommand`를 구현하고, 강제 결과는 `RunBattleHost.forceRunResult` → `BattleSession`이 재생 중인 시뮬에 `forceCombatResult`를 적용해 일반 종료·정산을 탄다. 전투 준비 중 편집은 준비 시뮬을 다시 만든다.
 
+## 유닛 30종·특성 9개 (M5-4 1부, 카드 확장은 2부)
+- `data/units.json`: 상점 유닛 30종(CHARACTERS.md 4·5장 U01~U30, 등급 8/8/6/5/3) + 보스 전용 4기. 신규 16종(곰 전사·그림자표범·전투 사제·잿불 대장장이·잿불 칼날무희·균열 추적자·공허 저격수·바람 사냥꾼·군단 백인대장·공성 포병·용암 챔피언·심연 감시자·공허 대사제·화산 예언자·무혼·태고의 수목왕)는 기존 공통 효과 시스템(`EffectExecutor` + `EffectValidator`)으로 표현하며, 없던 기능은 효과 종류·선택자·대상 선택·트리거를 일반화해 추가했다: 효과 `flatShield`·`cleanse`·`damageAura`·`empoweredAttack`·`reflect`·`regen`·`delayedStrike`·`skillCpGain`(스킬), `stackingStatMod`·`startMana`·`handCostReduction`·`backRowLeap`·`critical`(특성 전용), 옵션 `statMod.maxStacks`·`damageTakenMult.dmgType`·`damage.manaOnKill`·공통 `selectorRadius`, 선택자 `alliesAroundSelf`·`enemiesAroundSelf`·`allEnemies`·`fanArrows`·`fanTargets`, 순간이동 목적지 `besideTarget`·`enemyBackRow`·`lineEnd`, 스킬 대상 `highestHpEnemy`·`farthestEnemy`·`lowestHpRatioAllies`. 종류별 규칙은 data/README.md "전투 효과 (공통)"와 units.json 절.
+- **특성 3개**(data/README.md traits.json 절): 숲의 맹약 = 전투 시작 아군 전체 보호막 + 3초마다 아군 전체 AS 중첩(최대 10), 주술사 = 스킬을 쓸 때 손패 무작위 1장(비용 ≥ 1) 비용 −1(전투당 2/5/무제한) + 2단계(주술사 4종)부터 시작 마나 +20, 암살자 = `startCombat()`에서 상대 후열로 도약 + 치명타(15/35/50%, 150%). 적 진영도 같은 규칙. 카드 비용은 `max(0, 기본 + 조정값)`이며 `sim.cardSurcharge`가 방해 변이(+)와 주술사(−)를 합친 조정값을 준다(손패 UI가 표시).
+- 상점 풀: 등급 확률표(DESIGN 3-3)와 풀 개수(18/16/14/10/8)는 그대로이고 신규 유닛이 등급별로 섞여 나온다. 유닛 14종 시절 저장본은 복원할 때 빠진 신규 유닛 재고를 기본값으로 채운다(`MANAGEMENT.POOL_ADDED_IN_M54`, 저장 version 3 그대로).
+- 액트 2·3 일반·정예 편성은 신규 유닛으로 재구성(액트 2 잿불·주술사, 액트 3 강철군단·심연). 액트 1과 보스 편성은 불변. 덱 추가 카드(균열 개방·예언된 재앙 등)와 카드 확장은 M5-4 2부.
+- 회귀 기준: 새 특성이 켜지지 않는 편성의 전투 로그는 4b33a11과 같고(Rng 사용도 없음), 헤드리스 `npm run run` 출력은 상점 풀·편성·특성이 바뀌어 달라진다(같은 시드는 두 번 돌려도 같다).
+
 ## 골드 경제 (M3-1)
 - `src/core/economy`: 시작 10G, 일반/정예/보스 승리 5/8/15G, 패배·무승부 3G. 이자는 **정산 전 잔고** 10G당 1G, 최대 3G. 모든 금액은 0 이상의 안전한 정수다.
 - `Economy.settleBattle(id, kind, outcome)`는 동일 ID에 한 번만 지급하고 최초 영수증을 다시 반환한다. `spend`는 잔고 부족 시 false이며 상태를 바꾸지 않는다.
@@ -102,7 +110,7 @@
 - `ManagementRun`은 `Management`와 `Economy`를 소유하며 5연전 사이에 소유 로스터·덱·장비·골드를 유지한다. 다음 전투 때 무료 상점 갱신(잠금이면 1회 유지 후 해제), 마지막 두 판은 정예/보스 보상 등급이다. 전투 진행 중 관리 명령은 거부한다.
 - 제공 카드는 `syncGrantedCards`에 보드 소유 유닛 ID를 공급한다. 기본 덱의 동명 카드와 구분해 벤치·판매·3성 합성을 동기화한다. 영구 장비는 아군 원본 formation 인덱스(시뮬 UID)와 소유 ID를 대응해 `setEquipment`로 저장하며 징집 UID는 읽지 않는다.
 - 장비 준비 카드 사용 시 원본 준비 덱에서도 해당 인스턴스만 소모 처리해 재배치/리셋으로 복제되지 않게 한다. 상점 리롤·잠금·XP처럼 편성이 바뀌지 않는 관리 동작은 준비 단계 작전 효과를 되돌리지 않는다.
-- 유닛14종(+보스 전용 성문 파괴자), 특성 효과6종(강철군단·잿불·심연·수호자·검투사·사수). 숲·주술사·암살자 정의는 유지하며 고유 특성 효과는 후속 범위다. 맵·지휘관 HP·카드 보상·런 저장의 core는 M4-A(아래 "런 코어"), 화면은 M4-B다.
+- 유닛 **30종**(상점 유닛, 등급 8/8/6/5/3; M5-4에서 16종 추가) + 보스 전용 4기, 특성 효과 **9개 모두 구현**(강철군단·잿불·심연·**숲의 맹약**·수호자·검투사·사수·**주술사**·**암살자**; 숲·주술사·암살자는 M5-4). 상세는 아래 "유닛 30종·특성 9개 (M5-4 1부)". 맵·지휘관 HP·카드 보상·런 저장의 core는 M4-A(아래 "런 코어"), 화면은 M4-B다.
 
 ## 런 코어 (M4-A, UI는 M4-B, 3액트는 M5-1)
 `src/core/run`의 `RunController`가 **3액트**(액트당 13층) 한 판을 진행한다 (`RunOptions.acts`로 1~3 지정, 1이면 액트 1 보스 처치가 승리). Phaser·DOM 비의존이며 맵·노드·종료 화면 UI와 저장/이어하기(M4-B, `src/ui/run`)는 이 API만 보고 만들었다. UI용 읽기 전용 접근자 `RunRoster.formation()`만 core에 추가했다. 전체 규칙·수치는 [data/README.md](data/README.md)의 "런 코어" 절.

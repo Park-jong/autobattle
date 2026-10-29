@@ -9,6 +9,8 @@ export interface TriggerPayloads {
   onDeath: { unit: CombatUnit; killer: CombatUnit | null };
   onSkillCast: { caster: CombatUnit; skillName: string; targets: readonly CombatUnit[] };
   onTick: { tick: number; time: number };
+  /** 준비 단계가 끝나고 전투가 시작되는 순간 (startCombat). 첫 카드 명령·첫 틱 처리보다 먼저 */
+  onCombatStart: Record<string, never>;
   /** 플레이어(side 0)가 카드를 사용했을 때. 효과 실행 전에 발행 */
   onCardPlay: { cardId: string; instanceId: number };
 }
@@ -28,6 +30,7 @@ export class TriggerBus {
     onDeath: [],
     onSkillCast: [],
     onTick: [],
+    onCombatStart: [],
     onCardPlay: [],
   };
 

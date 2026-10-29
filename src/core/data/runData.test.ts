@@ -170,7 +170,10 @@ describe('events.json', () => {
     expect(() => loadEvents(data, cards, units)).toThrow(/cards\.json에 없는 카드 id "ghost_card"/);
     data.events[0]!.choices[0]!.effects = [{ kind: 'gainCard', mode: 'choose', rarity: 'epic', count: 3 }];
     expect(() => loadEvents(data, cards, units)).toThrow(/epic 보상 카드가 3장 이상 필요함/);
+    data.events[0]!.choices[0]!.effects = [{ kind: 'gainUnit', tier: 6 }];
+    expect(() => loadEvents(data, cards, units)).toThrow(/6등급 유닛이 없음/);
+    // 5등급은 상점 유닛 3종(M5-4)이 있어 통과한다. 보스 전용 유닛만 있는 등급이라면 후보가 아니다
     data.events[0]!.choices[0]!.effects = [{ kind: 'gainUnit', tier: 5 }];
-    expect(() => loadEvents(data, cards, units)).toThrow(/5등급 유닛이 없음/); // 보스는 제외
+    expect(() => loadEvents(data, cards, units)).not.toThrow();
   });
 });

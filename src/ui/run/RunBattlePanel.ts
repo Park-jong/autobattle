@@ -1,4 +1,5 @@
 import type { CardCatalog } from '../../core/data/cardLoader';
+import type { TraitCatalog } from '../../core/data/traitLoader';
 import type { UnitCatalog } from '../../core/data/unitLoader';
 import { ManagementPanel } from '../economy/ManagementPanel';
 import { PLAYBACK_SPEEDS, type DebugController } from '../debug/contracts';
@@ -28,10 +29,11 @@ export class RunBattlePanel {
     units: UnitCatalog,
     cards: CardCatalog,
     canvasHost: HTMLElement,
+    traits?: TraitCatalog,
   ) {
     root.classList.add('run-battle-panel');
     root.replaceChildren(this.top, this.errorBox, this.result, this.controls, this.previewHost, this.managementHost);
-    new ManagementPanel(this.managementHost, battle, units, cards, canvasHost, { title: '유닛 상점 / 배치', modeControls: false });
+    new ManagementPanel(this.managementHost, battle, units, cards, canvasHost, { title: '유닛 상점 / 배치', modeControls: false, ...(traits ? { traits } : {}) });
     view.subscribe(() => this.render());
     battle.subscribe(() => this.render());
   }

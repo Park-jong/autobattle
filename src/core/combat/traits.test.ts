@@ -41,10 +41,10 @@ describe('특성 단계 계산', () => {
     expect(tierOf([def('iron_shieldbearer')], 'ember')).toBeUndefined();
   });
 
-  it('상점 유닛 14종(보스 제외)의 기원·직업 종류 수를 계산한다', () => {
+  it('상점 유닛 30종(보스 제외)의 기원·직업 종류 수는 CHARACTERS 유닛 분포(8/7/8/7, 6×5)와 같다', () => {
     const all = units.units.filter((u) => !u.boss);
     const byId = Object.fromEntries(engine.compute(all).map((t) => [t.traitId, t.count]));
-    expect(byId).toMatchObject({ iron_legion: 5, guardian: 3, forest_pact: 3, marksman: 3, abyss: 3, assassin: 2, ember: 3, mystic: 3, gladiator: 3 });
+    expect(byId).toMatchObject({ iron_legion: 8, ember: 7, abyss: 8, forest_pact: 7, guardian: 6, gladiator: 6, marksman: 6, mystic: 6, assassin: 6 });
   });
 });
 

@@ -8,7 +8,7 @@ import { RunSaveStore } from './ui/run/RunSaveStore';
 import { RunSession } from './ui/run/RunSession';
 import { RunShell } from './ui/run/RunShell';
 import { BrowserRunStorage } from './ui/run/RunStorage';
-import { loadGameData } from './ui/gameData';
+import { loadGameData, unitAbbreviation } from './ui/gameData';
 import { computeHiDpi } from './ui/hidpi';
 import { COLORS } from './ui/theme';
 
@@ -70,7 +70,7 @@ function bootstrap(): void {
     suggestSeed: randomSeed,
     commanderId: data.defaultCommanderId ?? data.commanders.commanders[0]?.id ?? '',
   });
-  new RunBattlePanel(battleHost, runSession, runSession, session, data.units, data.cards, gameHost);
+  new RunBattlePanel(battleHost, runSession, runSession, session, data.units, data.cards, gameHost, data.traits);
   new RunShell(runSession, runSession, { debugHost, battleHost });
 
   // 개발 서버 전용: 브라우저 자동화(Playwright)가 세션을 들여다볼 수 있게 한다. 프로덕션 빌드에서는 제거된다.
@@ -79,7 +79,7 @@ function bootstrap(): void {
   // HiDPI: 캔버스 = 1280x720 x DPR, 카메라 줌 = DPR (hidpi.ts). Scale.FIT로 화면에 맞춘다.
   const metrics = computeHiDpi();
   const labels: SceneLabels = {
-    unitAbbreviation: (unitId) => (data.units.get(unitId)?.name ?? unitId).replace(/\s+/g, '').slice(0, 2),
+    unitAbbreviation: (unitId) => unitAbbreviation(data.units.get(unitId)?.name ?? unitId),
     cardName: (cardId, upgraded) => `${data.cards.get(cardId)?.name ?? cardId}${upgraded ? '+' : ''}`,
   };
   new Phaser.Game({

@@ -80,7 +80,31 @@
         4,
         6
       ],
-      "text": "전투 시작 시 최대 HP 10% / 20% / 35% 보호막, 3초마다 AS 증가. (효과 미구현)"
+      "text": "전투 시작 시 아군 전체 최대 HP의 10% / 20% / 35% 보호막. 3초마다 아군 전체 AS +5% / +8% / +12% (최대 10중첩).",
+      "effects": [
+        {
+          "kind": "shield",
+          "selector": "allAllies",
+          "pctMaxHp": [
+            10,
+            20,
+            35
+          ],
+          "duration": "combat"
+        },
+        {
+          "kind": "stackingStatMod",
+          "selector": "allAllies",
+          "stat": "as",
+          "pct": [
+            5,
+            8,
+            12
+          ],
+          "intervalSeconds": 3,
+          "maxStacks": 10
+        }
+      ]
     },
     {
       "id": "guardian",
@@ -164,7 +188,28 @@
         4,
         6
       ],
-      "text": "주술사 스킬 사용 시 손패 카드 비용 -1. (효과 미구현)"
+      "text": "주술사가 스킬을 쓸 때마다 손패 무작위 1장의 비용 -1 (전투당 2회 / 5회 / 무제한). 2단계(주술사 4종)부터 주술사 시작 마나 +20.",
+      "effects": [
+        {
+          "kind": "handCostReduction",
+          "selector": "traitUnits",
+          "amount": 1,
+          "maxPerCombat": [
+            2,
+            5,
+            0
+          ]
+        },
+        {
+          "kind": "startMana",
+          "selector": "traitUnits",
+          "amount": [
+            0,
+            20,
+            20
+          ]
+        }
+      ]
     },
     {
       "id": "assassin",
@@ -175,7 +220,23 @@
         4,
         6
       ],
-      "text": "전투 시작 시 적 후열로 도약, 치명타. (효과 미구현)"
+      "text": "전투 시작 시 적 후열로 도약. 치명타 확률 15% / 35% / 50% (치명 피해 150%).",
+      "effects": [
+        {
+          "kind": "backRowLeap",
+          "selector": "traitUnits"
+        },
+        {
+          "kind": "critical",
+          "selector": "traitUnits",
+          "chance": [
+            0.15,
+            0.35,
+            0.5
+          ],
+          "damagePct": 150
+        }
+      ]
     }
   ]
 }
