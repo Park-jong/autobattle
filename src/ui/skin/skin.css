@@ -1,0 +1,35 @@
+.skin-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #aab3c5;
+}
+.skin-picker .skin-select {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.skin-panel-row {
+  padding: 8px 12px;
+  border-bottom: 1px solid #2a2f3d;
+}
+.skin-start-row {
+  margin: 8px 0;
+}
+.skin-portrait {
+  display: block;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 4px;
+  object-fit: contain;
+  pointer-events: none;
+}
+.skin-portrait-small {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  margin: 0 4px 0 0;
+  vertical-align: middle;
+  object-fit: contain;
+  pointer-events: none;
+}

@@ -49,6 +49,7 @@
   live/            LiveBattle(실시간 시뮬+재생), Gauntlet(고정 편성 5연전), ManagementRun(가변 로스터·상점·장비·제공 카드·골드 이어받기) — 모두 Phaser·DOM 비의존
   economy/         ManagementPanel: 상점·레벨·벤치·판매 UI와 캔버스↔벤치 유닛 드래그
   cards/           CardInteraction(카드 선택→대상 지정 상태 머신), playbackScale(배속×슬로모션/정지), cardAvailability(사용 불가 사유), cardPanelView(손패 패널 표시 정보 빌더), dealDeck, stagePoint(화면→게임 좌표) — 순수 TS, HandPanel(DOM)+handPanel.css
+  skin/            화면 스킨(기본 도형 / 아카데미 원화): skins.ts(스킨 목록·유닛 id↔U01~U30·원화 URL/텍스처 키 순수 함수), SkinStore(현재 스킨·localStorage `autochess-skin`·구독, 앱 공용 `appSkin`), SkinPicker(선택 상자 DOM)+skin.css
   battle/          BattleScene(씬), BoardLayout(칸<->좌표), BoardPicker(좌표→칸/유닛, 보간 위치 기준), BoardRenderer, UnitSprite, EffectsLayer(궁극기 배너·운석 예고/착탄·지속 효과 링 포함), TargetingOverlay(대상 강조)
   debug/           BattleSession(편성·지휘관·덱·전투·연전·런 전투 연결을 묶는 파사드, Phaser·DOM 비의존), contracts.ts(씬용 BattleViewSource / 패널용 DebugController / 손패용 CardController 인터페이스), runLink.ts(런 전투 연결 RunBattleLink·RunBattleHost, 로스터 명령 RosterCommands), DebugPanel(DOM) + debugPanel.css
   run/             런 UI (M4-B 1액트, M5-1 3액트: 액트 표시·보스 유물 선택·액트 소개 화면). RunSession(파사드: RunController + BattleSession 연결 + 자동 저장, Phaser·DOM 비의존), contracts.ts(RunViewSource/RunCommands/RunSnapshot), runViews.ts(맵·미리보기·카드·보상·상점·이벤트·야영지·결과·종료 표시 정보 순수 빌더), RunSaveStore(저장 직렬화·복원 검증·같은 내용 재저장 생략) + RunStorage(주입 가능한 저장소: BrowserRunStorage=localStorage try/catch, MemoryRunStorage), RunBattleAdapter(RunController → RunBattleLink). 화면(DOM, runScreens.css): RunShell(화면 전환·알림), StartScreen, MapScreen, NodeScreens(보상·상점·이벤트·야영지), EndScreen, RunBattlePanel(전투 오른쪽 패널), cardElements(카드·덱 카드 고르기 공통), relicElements(유물 칩·호버/포커스 설명·카드), encounterPreview, hudElement(액트·유물 줄 포함), NodeScreens의 BossRelicScreen·ActIntroScreen. 플레이 테스트 도구: testViews.ts·TestStartPanel·TestToolsPanel·testTools.css(아래 "플레이 테스트 도구" 절). testSupport.ts는 테스트 전용
@@ -91,6 +92,7 @@
 - **자동 저장**(저장 형식 v3 — 지휘관·유물·액트별 맵 포함, v1·v2 저장본은 액트 1로 읽음): 노드 입장·보상·상점/이벤트/야영지 처리·전투 준비 중 로스터 변경·전투 정산 직후마다 `controller.serialize()`를 저장한다(전투 중이면 battlePrep으로). 런이 끝나면 저장을 지운다(종료 화면만 보여주고 이어하기 대상에서 제외). 저장 실패는 알림만 띄우고 게임은 계속된다. 새 런 시드는 core가 32비트 정수(`seed | 0`)로 다루므로 범위를 `-2^31~2^31-1`로 제한한다.
 - **보스 연출**: `ReplayState`가 `telegraph`/`strike`를 재생 시각 기준으로 다룬다(`telegraphs()` = 예고~발동 전, `strike`는 `recentEffects`). `EffectsLayer`가 예고 열을 붉게 칠하고 남은 시간을 표시, 발동 순간 번쩍인다. `BattleViewSource.telegraphs()`로 씬에 전달. M5-1: 쌍둥이 부활 대기는 `reviveWatches()`(죽은 쪽 링 + "부활까지 N초", 짝에 "N초 안에 처치!" 표시), 부활·처치 확정·군주 페이즈 배너·버프 해제 링은 `revive`/`reviveCancel`/`phase`/`dispel` 연출 이벤트.
 - **액트 UI (M5-1)**: HUD·맵에 "액트 N — 이름", 보스 유물 선택 화면(`bossRelic`)·액트 소개 화면(`actIntro`: 지역·보스 패턴·회복 결과)은 전체 화면 오버레이, 전투 미리보기에 보스 패턴 설명, 종료 화면에 도달 액트·층. `RunCommands`에 `claimBossRelic`·`skipBossRelic`·`continueAct`.
+- **스킨 (표시 전용)**: 시작 화면과 오른쪽 패널 맨 위의 "스킨" 선택에서 기본(진영색 도형 + 이름 약자) / 아카데미 원화를 고른다(`appSkin`, 마지막 선택을 기억). 게임 규칙·데이터·저장·전투 로그에는 영향이 없다. 원화 스킨이면 `BattleScene`이 처음 한 번 SD 텍스처를 읽고 스프라이트를 다시 만들며(`UnitSprite`: 반투명 진영 받침 + 원화, 적은 좌우 반전, 화상이면 색조), `ManagementPanel`의 상점·벤치·배치 목록에 초상화를 붙인다. 원화가 없는 유닛(보스 4기)·읽기 실패는 기본 표시. 게임용 원화는 `public/skins/academy/{sd,portrait}/Uxx.png`(SD 256px·초상화 128px, 합계 약 4.5MB)이고 원본 `characters/Uxx`에서 `tools/skin-assets.ps1`로 만든다(원화를 바꾸면 다시 실행).
 - 레이아웃: 왼쪽 열 `#stage`(`#game` 캔버스 + 아래 `#hand` 손패 바, 지휘관이 없으면 숨김) + `#panel`(340px 사이드). 폭 800px 이하면 위아래로 쌓는다.
 
 ## 위협 레벨 1~10 (M5-6)
@@ -159,7 +161,7 @@
 - 주소: https://park-jong.github.io/autobattle/ (원격 `Park-jong/autobattle`). `npm run deploy`가 `predeploy`(빌드) 후 `gh-pages -d dist --nojekyll`로 `gh-pages` 브랜치에 올린다.
 - 첫 배포 후 GitHub 저장소 Settings → Pages에서 Source를 `gh-pages` 브랜치 / root로 지정해야 한다.
 - Vite `base`는 `./`(상대 경로): 저장소 이름이 바뀌어도 하위 경로에서 동작하고 dev 서버(`/`)에도 영향이 없다. 데이터 JSON은 import로 번들되어 별도 fetch 파일이 없다.
-- 캐릭터 원화는 `characters/U01`~`U30`에서 관리하며, 빌드 시 대표 PNG 3종과 `asset-manifest.json`을 `dist/characters/`에 포함한다. 기존 유닛 렌더러의 도형 표시를 원화로 교체하는 작업은 별도다.
+- 캐릭터 원본 원화는 `characters/U01`~`U30`에서 관리하며 **배포하지 않는다**(약 194MB). 게임 화면과 배포판은 축소본 `public/skins/academy`(약 4.5MB)만 쓴다(위 "스킨").
 
 ## 문서
 - [DESIGN.md](DESIGN.md) 게임 설계, 10장 구현 구조

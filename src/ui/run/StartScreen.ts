@@ -1,6 +1,7 @@
 import { button, el, tagged } from './dom';
 import type { RunCommands, RunSnapshot, TestCommands } from './contracts';
 import { MetaPanel } from './MetaPanel';
+import { SkinPicker } from '../skin/SkinPicker';
 import { TestStartPanel } from './TestStartPanel';
 import { clampThreatLevel } from './threatViews';
 
@@ -41,6 +42,8 @@ export class StartScreen {
   private readonly testPanel: TestStartPanel;
   /** 전공(메타 진행) 패널 */
   private readonly metaPanel: MetaPanel;
+  /** 화면 스킨 선택 (기본 / 원화). 런 규칙과 무관한 표시 설정 */
+  private readonly skinPicker = new SkinPicker(undefined, 'start-skin-select');
 
   constructor(private readonly commands: RunCommands, testCommands: TestCommands) {
     this.testPanel = new TestStartPanel(testCommands);
@@ -71,6 +74,8 @@ export class StartScreen {
     card.append(tagged(el('p', 'run-meta-points-line', start.meta.status === 'ok' ? `보유 전공 ${start.meta.points}` : '전공 기록 손상'), 'meta-points'));
     card.append(this.commanderPicker(start));
     card.append(this.threatPicker(start));
+    this.skinPicker.root.classList.add('skin-start-row');
+    card.append(this.skinPicker.root);
     const seedRow = el('label', 'run-seed-row');
     seedRow.append(el('span', '', '시드'), this.seedInput);
     const newRun = tagged(button('새 런', () => this.startNew(), 'dbg-btn dbg-primary run-big-button'), 'new-run');

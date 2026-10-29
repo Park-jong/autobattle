@@ -4,10 +4,17 @@ import type { UnitView } from '../replay/ReplayState';
 import { COLORS, LAYOUT, STATUS_BADGES, TEXT_COLORS, TIMING } from '../theme';
 import type { BoardLayout } from './BoardLayout';
 
-/** 유닛 하나의 표시: 진영색 도형 + 이름 약자 + 성급 + HP/보호막/마나 바 + 상태 배지. UnitView만 보고 그린다. */
+/**
+ * 유닛 하나의 표시: 진영색 도형 + 이름 약자(또는 스킨 원화) + 성급 + HP/보호막/마나 바 + 상태 배지. UnitView만 보고 그린다.
+ * 원화 텍스처 키를 주면(아카데미 스킨) 도형은 반투명 받침이 되고 그 위에 원화를 올린다. 적은 원화를 좌우 반전해 왼쪽을 보게 한다.
+ */
 export class UnitSprite {
   private readonly container: Phaser.GameObjects.Container;
+  /** 몸체 도형 (원화가 있으면 그 아래 받침) */
+  private readonly base: Phaser.GameObjects.Graphics;
+  /** 오라·막대·배지 (원화 위에 그린다) */
   private readonly gfx: Phaser.GameObjects.Graphics;
+  private readonly art: Phaser.GameObjects.Image | null;
   private readonly badgeTexts: Phaser.GameObjects.Text[] = [];
   /** 중첩이 2겹 이상인 배지 모서리에 붙이는 겹 수 */
   private readonly stackTexts: Phaser.GameObjects.Text[] = [];
@@ -18,18 +25,25 @@ export class UnitSprite {
     private readonly layout: BoardLayout,
     abbreviation: string,
     star: number,
+    artKey: string | null = null,
   ) {
+    this.base = scene.add.graphics();
     this.gfx = scene.add.graphics();
-    const name = createText(scene, metrics, 0, 0, abbreviation, {
-      fontSize: '20px',
-      fontStyle: 'bold',
-      color: TEXT_COLORS.UNIT_NAME,
-    }).setOrigin(0.5);
+    this.art = artKey && scene.textures.exists(artKey)
+      ? scene.add.image(0, LAYOUT.SKIN_ART_Y, artKey).setDisplaySize(LAYOUT.SKIN_ART_SIZE, LAYOUT.SKIN_ART_SIZE)
+      : null;
     const stars = createText(scene, metrics, 0, LAYOUT.STAR_Y, '★'.repeat(star), {
       fontSize: '14px',
       color: TEXT_COLORS.STAR,
     }).setOrigin(0.5);
-    this.container = scene.add.container(0, 0, [this.gfx, name, stars]).setDepth(10);
+    const middle: Phaser.GameObjects.GameObject[] = this.art
+      ? [this.art]
+      : [createText(scene, metrics, 0, 0, abbreviation, {
+        fontSize: '20px',
+        fontStyle: 'bold',
+        color: TEXT_COLORS.UNIT_NAME,
+      }).setOrigin(0.5)];
+    this.container = scene.add.container(0, 0, [this.base, ...middle, this.gfx, stars]).setDepth(10);
   }
 
   update(view: UnitView, time: number): void {
@@ -56,26 +70,32 @@ export class UnitSprite {
   }
 
   private drawBody(view: UnitView): void {
+    const b = this.base;
     const g = this.gfx;
+    b.clear();
     g.clear();
     const ally = view.side === 0;
     const stunned = view.statuses.some((s) => s.name === 'stun');
     const burning = view.statuses.some((s) => s.name === 'burn');
 
-    g.fillStyle(ally ? COLORS.ALLY_UNIT : COLORS.ENEMY_UNIT, 1);
-    g.lineStyle(3, stunned ? 0xffd54a : burning ? 0xff8a3d : COLORS.UNIT_OUTLINE, 1);
+    b.fillStyle(ally ? COLORS.ALLY_UNIT : COLORS.ENEMY_UNIT, this.art ? LAYOUT.SKIN_BASE_ALPHA : 1);
+    b.lineStyle(3, stunned ? 0xffd54a : burning ? 0xff8a3d : ally || !this.art ? COLORS.UNIT_OUTLINE : COLORS.ENEMY_UNIT, 1);
     if (ally) {
-      g.fillCircle(0, 0, LAYOUT.UNIT_RADIUS);
-      g.strokeCircle(0, 0, LAYOUT.UNIT_RADIUS);
+      b.fillCircle(0, 0, LAYOUT.UNIT_RADIUS);
+      b.strokeCircle(0, 0, LAYOUT.UNIT_RADIUS);
     } else {
       // 적은 사각형으로 구분 (색약 대비)
       const r = LAYOUT.UNIT_RADIUS;
-      g.fillRoundedRect(-r, -r, r * 2, r * 2, 6);
-      g.strokeRoundedRect(-r, -r, r * 2, r * 2, 6);
+      b.fillRoundedRect(-r, -r, r * 2, r * 2, 6);
+      b.strokeRoundedRect(-r, -r, r * 2, r * 2, 6);
     }
-    if (burning) {
-      g.fillStyle(0xff8a3d, 0.35);
-      g.fillCircle(0, 0, LAYOUT.UNIT_RADIUS);
+    if (this.art) {
+      this.art.setFlipX(!ally);
+      if (burning) this.art.setTint(0xffb27a);
+      else this.art.clearTint();
+    } else if (burning) {
+      b.fillStyle(0xff8a3d, 0.35);
+      b.fillCircle(0, 0, LAYOUT.UNIT_RADIUS);
     }
     this.drawAuras(view);
 
