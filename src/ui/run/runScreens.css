@@ -317,7 +317,8 @@
 .cl-panel { width: min(1100px, 100%); align-items: stretch; }
 .cl-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .cl-close { min-width: 36px; font-size: 18px; line-height: 1; }
-.cl-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 14px 12px; padding: 8px 4px; overflow-y: auto; min-height: 120px; }
+/* 한 줄에 5장, 왼쪽부터 채운다 (좁은 화면에서는 가로로 스크롤) */
+.cl-grid { display: grid; grid-template-columns: repeat(5, max-content); justify-content: start; align-items: start; gap: 14px 12px; padding: 8px 4px; overflow: auto; min-height: 120px; }
 .cl-item { position: relative; zoom: 1.25; padding: 4px 4px 8px; }
 /* 손패의 부채꼴 배치(절대 위치·기울기)는 끄고 제자리에 둔다 */
 .cl-item .hcard.cl-card { position: relative; left: auto; bottom: auto; margin: 0; transform: none; cursor: default; touch-action: auto; }
@@ -326,5 +327,5 @@
   position: absolute; top: -2px; right: -2px; z-index: 2; padding: 1px 6px; font-size: 12px; font-weight: 700; color: #fff;
   background: #3a4a78; border: 1px solid #8fa3e0; border-radius: 10px; box-shadow: 0 2px 4px #000a;
 }
-.cl-empty { margin: 24px auto; color: #9aa3b5; }
+.cl-empty { grid-column: 1 / -1; margin: 24px 0; color: #9aa3b5; }
 .rw-panel.cl-panel .rw-hint { align-self: center; }
