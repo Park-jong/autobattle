@@ -47,6 +47,7 @@ export class TestStartPanel {
   private readonly commander = tagged(el('select', 'dbg-input'), 'test-commander');
   private deck!: HTMLSelectElement;
   private startAct!: HTMLSelectElement;
+  private threat!: HTMLSelectElement;
   private startPosition!: HTMLSelectElement;
   private gold!: HTMLInputElement;
   private hp!: HTMLInputElement;
@@ -95,15 +96,16 @@ export class TestStartPanel {
     const seedRow = el('label', 'run-test-field');
     seedRow.append(el('span', '', '시드'), this.seed);
     const deck = selectField<DeckPreset>('시작 덱', 'test-deck', [['starter', '지휘관 기본 덱'], ['test', '확장 카드 테스트 덱']]);
+    const threat = selectField('위협 레벨', 'test-threat', catalog.threat.rows.map((row) => [String(row.level), row.label] as [string, string]));
     const act = selectField('시작 액트', 'test-act', [['1', '액트 1'], ['2', '액트 2'], ['3', '액트 3']]);
     const position = selectField<TestStartPosition>('시작 위치', 'test-position', [['actStart', '액트 처음 (1층 노드 선택)'], ['bossGate', '보스 직전 (12층 야영지를 지남)']]);
     const gold = numberField('골드', 'test-gold', '10', 0, 99999);
     const hp = numberField('지휘관 현재 HP', 'test-hp', '최대 HP', 1, 9999);
     const maxHp = numberField('지휘관 최대 HP', 'test-max-hp', '지휘관 기본값', 1, 9999);
     const level = numberField('레벨 (인구)', 'test-level', '3', 3, 9);
-    this.deck = deck.select; this.startAct = act.select; this.startPosition = position.select;
+    this.deck = deck.select; this.threat = threat.select; this.startAct = act.select; this.startPosition = position.select;
     this.gold = gold.input; this.hp = hp.input; this.maxHp = maxHp.input; this.level = level.input;
-    basics.append(commanderRow, seedRow, deck.row, act.row, position.row, gold.row, hp.row, maxHp.row, level.row);
+    basics.append(commanderRow, seedRow, deck.row, threat.row, act.row, position.row, gold.row, hp.row, maxHp.row, level.row);
     body.append(basics);
 
     // 유물 체크리스트
@@ -219,6 +221,8 @@ export class TestStartPanel {
       startAct: Number(this.startAct.value),
       startPosition: this.startPosition.value as TestStartPosition,
     };
+    const threatLevel = Number(this.threat.value);
+    if (threatLevel > 0) setup.threatLevel = threatLevel;
     const gold = readNumber(this.gold);
     const hp = readNumber(this.hp);
     const maxHp = readNumber(this.maxHp);

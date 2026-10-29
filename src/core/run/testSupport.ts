@@ -5,6 +5,7 @@ import encountersJson from '../../../data/encounters.json';
 import eventsJson from '../../../data/events.json';
 import migrationsJson from '../../../data/migrations.json';
 import relicsJson from '../../../data/relics.json';
+import threatJson from '../../../data/threat.json';
 import traitsJson from '../../../data/traits.json';
 import unitsJson from '../../../data/units.json';
 import { parseCardPlan, type CombatSimulator } from '../combat';
@@ -15,7 +16,7 @@ import { loadRunDeps } from './runData';
 
 export const rawRunData = {
   traits: traitsJson, units: unitsJson, cards: cardsJson,
-  commanders: commandersJson, encounters: encountersJson, events: eventsJson, relics: relicsJson, migrations: migrationsJson,
+  commanders: commandersJson, encounters: encountersJson, events: eventsJson, relics: relicsJson, migrations: migrationsJson, threat: threatJson,
 };
 
 export const runDeps = loadRunDeps(rawRunData);

@@ -27,3 +27,6 @@ export { RelicValidator } from './relicValidator';
 export * from './meta';
 export * from './metaLoader';
 export { MetaValidator } from './metaValidator';
+export * from './threat';
+export * from './threatLoader';
+export { ThreatValidator } from './threatValidator';

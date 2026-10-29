@@ -14,11 +14,11 @@
 | `npm run sim -- --a A.json --b B.json --n 1000 --seed 1` | 헤드리스 전투 시뮬: 편성 A vs B N회 승률·평균 시간 (tsx). 편성 예시는 `tools/formations/` |
 | `npm run sim -- ... --commander cmd_harten\|cmd_isera\|cmd_nox [--plan tools/plans/harten-basic.json]` | 지휘관 패시브 적용(3명 모두), 카드 사용 계획을 넣으면 "카드 없음"과 같은 시드로 비교 출력. 계획 항목 `{ "ultimate": true }`로 궁극기도 지정 (계획 형식은 data/README.md). 시작 편성 `tools/formations/{harten,isera,nox}-start.json` |
 | `npm run sim -- --a tools/formations/harten-start.json --b tools/formations/series-3.json --n 100 --seed 1 --commander cmd_harten --deck test --plan tools/plans/expanded-cards.json` | 추가 5종을 포함한 테스트 덱으로 카드 사용 전후 비교 |
-| `npm run run -- --seed 1 --n 20 [--commander cmd_harten\|cmd_isera\|cmd_nox] [--path first\|random] [--plan 파일 \| --no-cards] [--deck starter\|test] [--no-relics] [--no-ultimate] [--acts 1\|2\|3] [--verbose]` | 헤드리스 자동 런: 단순 정책으로 **기본 3액트**(액트당 13층)를 끝까지 진행해 승리/사망·도달 액트·층·남은 HP·전투 시간 출력 (`tools/run.ts`). `--acts 1`이면 액트 1 보스 처치가 승리이고 출력 형식이 3액트 도입 전과 같다(회귀 비교용). 지휘관별 카드 계획(`tools/plans/*-basic.json`), 유물 획득·궁극기 사용 정책이 기본 켜짐 — `--no-relics --no-ultimate --acts 1`이면 M4와 같은 출력(회귀 비교용) |
+| `npm run run -- --seed 1 --n 20 [--commander cmd_harten\|cmd_isera\|cmd_nox] [--path first\|random] [--plan 파일 \| --no-cards] [--deck starter\|test] [--no-relics] [--no-ultimate] [--acts 1\|2\|3] [--threat 0~10] [--verbose]` | 헤드리스 자동 런: 단순 정책으로 **기본 3액트**(액트당 13층)를 끝까지 진행해 승리/사망·도달 액트·층·남은 HP·전투 시간 출력 (`tools/run.ts`). `--acts 1`이면 액트 1 보스 처치가 승리이고 출력 형식이 3액트 도입 전과 같다(회귀 비교용). 지휘관별 카드 계획(`tools/plans/*-basic.json`), 유물 획득·궁극기 사용 정책이 기본 켜짐 — `--no-relics --no-ultimate --acts 1`이면 M4와 같은 출력(회귀 비교용) |
 
 ## 폴더 구조
 ```
-/data            게임 콘텐츠 JSON (카드, 유닛, 특성, 지휘관 3명, 유물 relics 20개, 적 편성 encounters, 이벤트 events). 형식은 data/README.md
+/data            게임 콘텐츠 JSON (카드, 유닛, 특성, 지휘관 3명, 유물 relics 20개, 적 편성 encounters, 이벤트 events, 메타 진행 meta, 위협 레벨 threat). 형식은 data/README.md
 /src/core        Phaser 비의존 순수 로직 (RNG, 데이터 로더/검증, 이후 런·덱·전투 시뮬)
   rng.ts           시드 기반 RNG (Rng 클래스)
   data/            카드·유닛·특성·지휘관·유물·효과 타입, 검증기(Card/Unit/Trait/Commander/Relic/EffectValidator — 카드·지휘관·유물의 전투 효과도 공통 효과 검증기를 씀), 로더(loadCards/loadUnits/loadTraits/loadCommanders/loadRelics/loadEncounters/loadEvents — 편성·이벤트는 유닛·카드 참조와 층 커버리지까지 확인)
@@ -92,6 +92,12 @@
 - **보스 연출**: `ReplayState`가 `telegraph`/`strike`를 재생 시각 기준으로 다룬다(`telegraphs()` = 예고~발동 전, `strike`는 `recentEffects`). `EffectsLayer`가 예고 열을 붉게 칠하고 남은 시간을 표시, 발동 순간 번쩍인다. `BattleViewSource.telegraphs()`로 씬에 전달. M5-1: 쌍둥이 부활 대기는 `reviveWatches()`(죽은 쪽 링 + "부활까지 N초", 짝에 "N초 안에 처치!" 표시), 부활·처치 확정·군주 페이즈 배너·버프 해제 링은 `revive`/`reviveCancel`/`phase`/`dispel` 연출 이벤트.
 - **액트 UI (M5-1)**: HUD·맵에 "액트 N — 이름", 보스 유물 선택 화면(`bossRelic`)·액트 소개 화면(`actIntro`: 지역·보스 패턴·회복 결과)은 전체 화면 오버레이, 전투 미리보기에 보스 패턴 설명, 종료 화면에 도달 액트·층. `RunCommands`에 `claimBossRelic`·`skipBossRelic`·`continueAct`.
 - 레이아웃: 왼쪽 열 `#stage`(`#game` 캔버스 + 아래 `#hand` 손패 바, 지휘관이 없으면 숨김) + `#panel`(340px 사이드). 폭 800px 이하면 위아래로 쌓는다.
+
+## 위협 레벨 1~10 (M5-6)
+- `data/threat.json`(검증기·로더 `ThreatValidator`/`loadThreat`, `ThreatCatalog`): 레벨 1~10의 이름·설명·패널티 효과 목록 데이터. 레벨 0 = 기본(패널티 없음), **레벨 N은 1~N의 패널티를 누적**. 효과 종류 7가지: `enemyStatPct`(종류별 적 HP·ATK %)·`startGoldDelta`·`startCurse`(기존 저주 카드)·`actHealPct`·`shopPricePct`·`eliteMutationsMin`·`commanderMaxHpPct`. 레벨표(초안)와 적용 지점은 data/README.md "threat.json".
+- core: `src/core/run/threatRules.ts`의 `ThreatRules`(누적 효과 질의, 상태·난수 없음). `RunOptions.threatLevel`(0~10, 기본 0)을 `RunController.create`(시작 골드·덱 저주·최대 HP)·`EncounterPlanner`(적 스탯·정예 변이 수, 미리보기=실제 전투)·상점 가격·액트 사이 회복에 적용. **레벨 0은 이전과 비트 단위로 같다.** 저장 v3 선택 필드 `threatLevel`(0이면 생략, 없으면 0). `RunDeps.threat`, `TestRunSetup.threatLevel`, `runSummary().threatLevel`.
+- 메타 연동: `MetaProgress.maxThreatLevel`(기본 0)·`MetaSave.threatUnlocked`(선택 필드, 메타 저장 version 1 그대로). 승리한 런의 레벨이 최고 해금 레벨과 같으면 +1(최대 10), 정산 결과 `threatUnlocked`. 전공 포인트 보너스는 `meta.json points.threatBonusPctPerLevel`(초안 10%/레벨, 반올림), `earned.threat`. 일반 런은 `unlocks.maxThreat`보다 높은 레벨 시작을 거부(세션이 알림), 테스트 런·편성 디버그·5연전·경제 플레이는 해금과 무관하며 헤드리스는 `--threat N`(기본 0).
+- UI: 시작 화면 "위협 레벨" 선택(`threat-select`, 해금된 레벨만 활성·잠긴 칸은 "레벨 N 승리 시 해금", 고른 레벨의 누적 패널티 `threat-penalties`와 전공 보너스 `threat-bonus`, 마지막 선택은 localStorage `autochess-threat-level`에 기억), HUD 위협 레벨 배지(`threat-badge`, 0이면 숨김), 종료 화면 위협 레벨·보너스 줄·새로 열린 레벨(`end-meta-threat-unlock`), 테스트 시작 패널 `test-threat`(0~10, 잠금 없음). 표시 정보는 `ui/run/threatViews.ts` 순수 빌더.
 
 ## 플레이 테스트 도구 (배포판에서 밸런스 확인용)
 - **목적**: 사용자가 GitHub Pages 배포판에서 직접 플레이하며 액트 2·3·지휘관별 밸런스를 확인한다. 프로덕션 빌드에서도 동작하며 dev 전용 `window.__tactics`와 별개. 일반 런과 명확히 구분(HUD 보라색 "테스트 런" 배지)되고 일반 런의 규칙·저장 검증은 불변이다.

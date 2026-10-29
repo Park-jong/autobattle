@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "levels": [
+    {
+      "level": 1, "name": "단단한 적",
+      "text": "모든 적의 HP가 10% 늘어난다.",
+      "effects": [{ "kind": "enemyStatPct", "kinds": ["normal", "elite", "boss"], "hp": 10 }]
+    },
+    {
+      "level": 2, "name": "가벼운 주머니",
+      "text": "시작 골드가 5G 줄어든다.",
+      "effects": [{ "kind": "startGoldDelta", "amount": -5 }]
+    },
+    {
+      "level": 3, "name": "날 선 칼날",
+      "text": "모든 적의 공격력이 10% 늘어난다.",
+      "effects": [{ "kind": "enemyStatPct", "kinds": ["normal", "elite", "boss"], "atk": 10 }]
+    },
+    {
+      "level": 4, "name": "비싼 보급",
+      "text": "상점의 카드·유물·카드 제거 가격이 20% 오른다.",
+      "effects": [{ "kind": "shopPricePct", "pct": 20 }]
+    },
+    {
+      "level": 5, "name": "불길한 시작",
+      "text": "시작 덱에 저주 카드 공포 1장이 섞여 있다.",
+      "effects": [{ "kind": "startCurse", "cardId": "dread", "count": 1 }]
+    },
+    {
+      "level": 6, "name": "변이 정예",
+      "text": "정예는 언제나 변이를 2개 가진다.",
+      "effects": [{ "kind": "eliteMutationsMin", "count": 2 }]
+    },
+    {
+      "level": 7, "name": "지친 지휘관",
+      "text": "지휘관의 최대 HP가 10% 줄어든다.",
+      "effects": [{ "kind": "commanderMaxHpPct", "pct": -10 }]
+    },
+    {
+      "level": 8, "name": "짧은 휴식",
+      "text": "액트 사이에 회복하는 HP 비율이 25%p 줄어든다.",
+      "effects": [{ "kind": "actHealPct", "delta": -25 }]
+    },
+    {
+      "level": 9, "name": "강철 군단",
+      "text": "정예와 보스의 HP가 15%, 공격력이 10% 더 늘어난다.",
+      "effects": [{ "kind": "enemyStatPct", "kinds": ["elite", "boss"], "hp": 15, "atk": 10 }]
+    },
+    {
+      "level": 10, "name": "최후의 시험",
+      "text": "시작 덱에 저주 카드 부상 1장, 시작 골드 5G 감소, 보스 HP가 20% 더 늘어난다.",
+      "effects": [
+        { "kind": "startCurse", "cardId": "wound", "count": 1 },
+        { "kind": "startGoldDelta", "amount": -5 },
+        { "kind": "enemyStatPct", "kinds": ["boss"], "hp": 20 }
+      ]
+    }
+  ]
+}

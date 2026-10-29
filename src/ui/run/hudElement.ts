@@ -25,8 +25,14 @@ export function hudElement(hud: RunHud): HTMLElement {
     badge.append(el('strong', 'run-test-badge-title', '테스트 런'), el('span', 'run-test-badge-text', hud.test.replace('테스트 런 · ', '')));
     root.append(badge);
   }
+  root.append(act);
+  if (hud.threatLevel > 0) {
+    const badge = tagged(el('div', 'run-hud-item run-threat-badge'), 'threat-badge');
+    badge.title = `위협 레벨 ${hud.threatLevel} — ${hud.threatName ?? ''}`;
+    badge.append(el('span', 'run-hud-label', '위협 레벨'), el('strong', 'run-hud-value', `${hud.threatLevel} · ${hud.threatName ?? ''}`));
+    root.append(badge);
+  }
   root.append(
-    act,
     item('지휘관', hud.commanderName),
     item('층', `${hud.floor} / ${hud.floorCount}`),
     hp,

@@ -129,6 +129,9 @@ export interface RunHud {
   relics: RelicView[];
   /** 테스트 런이면 배지 문구 (일반 런이면 null) */
   test: string | null;
+  /** 위협 레벨 (0 = 패널티 없음 → 배지를 그리지 않는다)와 그 이름 */
+  threatLevel: number;
+  threatName: string | null;
 }
 
 export function buildHud(run: RunController): RunHud {
@@ -149,6 +152,8 @@ export function buildHud(run: RunController): RunHud {
     location: node ? `${node.floor}층 ${NODE_TYPE_INFO[node.type].label}` : '출발 전',
     relics: run.relics.map(buildRelicView),
     test: run.testInfo ? testBadgeText(run.testInfo) : null,
+    threatLevel: run.threatLevel,
+    threatName: run.threatName,
   };
 }
 
@@ -577,6 +582,8 @@ export interface EndScreenView {
   roster: { name: string; star: number; onBoard: boolean }[];
   /** 테스트 런이면 표시 문구와 통계에서 뺀 건너뛴 구간 기록 수 (일반 런은 null) */
   testRun: { badge: string; skippedRecords: number } | null;
+  /** 위협 레벨 (0 = 기본 난이도) */
+  threatLevel: number;
 }
 
 export function buildEndView(run: RunController, cards: CardCatalog, units: UnitCatalog, relics: RelicCatalog): EndScreenView {
@@ -628,6 +635,7 @@ export function buildEndView(run: RunController, cards: CardCatalog, units: Unit
       ...roster.bench.flatMap((u) => (u ? [{ name: unitName(u.unitId), star: u.star, onBoard: false }] : [])),
     ],
     testRun: info ? { badge: testBadgeText(info), skippedRecords } : null,
+    threatLevel: run.threatLevel,
   };
 }
 

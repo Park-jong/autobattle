@@ -35,12 +35,13 @@ export class MetaValidator {
   }
 
   private validatePoints(r: FieldReader): PointsRule {
-    r.onlyKeys(['perFloor', 'perBoss', 'perElite', 'victoryBonus']);
+    r.onlyKeys(['perFloor', 'perBoss', 'perElite', 'victoryBonus', 'threatBonusPctPerLevel']);
     return {
       perFloor: r.int('perFloor', 0),
       perBoss: r.int('perBoss', 0),
       perElite: r.int('perElite', 0),
       victoryBonus: r.int('victoryBonus', 0),
+      threatBonusPctPerLevel: r.int('threatBonusPctPerLevel', 0),
     };
   }
 

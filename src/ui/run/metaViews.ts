@@ -1,6 +1,7 @@
-import type { CommanderCatalog, MetaCatalog, RelicCatalog, UnlockTarget } from '../../core/data';
+import type { CommanderCatalog, MetaCatalog, RelicCatalog, ThreatCatalog, UnlockTarget } from '../../core/data';
 import { describeCondition, type MetaStats, type PointsBreakdown, type RunSummary, type UnlockItemView, type UnlockVia } from '../../core/meta';
 import type { MetaStatus } from './MetaStore';
+import { threatName } from './threatViews';
 
 /** 해금 항목 한 줄의 상태: 잠김 / 조건 달성(아직 정산 전) / 해금됨 */
 export type MetaItemState = 'locked' | 'ready' | 'unlocked';
@@ -99,7 +100,7 @@ export function buildMetaStartView(status: MetaStatus, catalog: MetaCatalog, com
     totalEarned: progress.totalEarned,
     items,
     commanders: byCommander,
-    statLines: buildStatLines(progress.statsView(), progress.totalEarned),
+    statLines: [...buildStatLines(progress.statsView(), progress.totalEarned), `해금한 최고 위협 레벨 ${progress.maxThreatLevel}`],
     baseText: `처음부터 열려 있음: 지휘관 ${baseCommanders.join(', ') || '없음'} · 유물 ${baseRelics}개 · 카드와 유닛은 잠기지 않습니다`,
   };
 }
@@ -112,18 +113,23 @@ export function metaNameResolver(commanders: CommanderCatalog, relics: RelicCata
 
 /** 종료 화면에 보여줄 정산 결과 */
 export type EndMetaView =
-  | { kind: 'settled'; rows: { label: string; value: string }[]; total: number; balance: number; unlocks: { name: string; targetLabel: string; conditionText: string }[] }
+  | {
+    kind: 'settled'; rows: { label: string; value: string }[]; total: number; balance: number;
+    unlocks: { name: string; targetLabel: string; conditionText: string }[];
+    /** 이번 런에서 새로 열린 위협 레벨 (없으면 null) */
+    newThreat: { level: number; name: string } | null;
+  }
   | { kind: 'test'; message: string }
   | { kind: 'failed'; reason: string };
 
 /** 세션이 정산 한 번의 결과를 화면용으로 들고 있는 형태 */
 export type EndSettlement =
-  | { kind: 'settled'; summary: RunSummary; earned: PointsBreakdown; newUnlocks: string[]; balance: number }
+  | { kind: 'settled'; summary: RunSummary; earned: PointsBreakdown; newUnlocks: string[]; balance: number; threatUnlocked: number | null }
   | { kind: 'test' }
   | { kind: 'failed'; reason: string };
 
 export function buildEndMetaView(
-  settlement: EndSettlement, catalog: MetaCatalog, commanders: CommanderCatalog, relics: RelicCatalog,
+  settlement: EndSettlement, catalog: MetaCatalog, commanders: CommanderCatalog, relics: RelicCatalog, threat: ThreatCatalog,
 ): EndMetaView {
   if (settlement.kind === 'test') return { kind: 'test', message: '테스트 런은 전공에 반영되지 않습니다.' };
   if (settlement.kind === 'failed') return { kind: 'failed', reason: settlement.reason };
@@ -135,10 +141,15 @@ export function buildEndMetaView(
     { label: '정예 처치', value: `${summary.eliteKills}회 × ${rule.perElite} = ${earned.elites}` },
     { label: '승리 보너스', value: `${earned.victory}` },
   ];
+  if (summary.threatLevel > 0) {
+    rows.push({ label: `위협 레벨 ${summary.threatLevel} 보너스`, value: `+${earned.threat} (×${summary.threatLevel * rule.threatBonusPctPerLevel}%)` });
+  }
   const names = metaNameResolver(commanders, relics);
   const unlocks = settlement.newUnlocks.flatMap((id) => {
     const entry = catalog.get(id);
     return entry ? [{ name: names(entry.target, id), targetLabel: TARGET_LABEL[entry.target], conditionText: describeCondition(entry.condition) }] : [];
   });
-  return { kind: 'settled', rows, total: earned.total, balance: settlement.balance, unlocks };
+  const level = settlement.threatUnlocked;
+  const newThreat = level === null ? null : { level, name: threatName(threat, level) };
+  return { kind: 'settled', rows, total: earned.total, balance: settlement.balance, unlocks, newThreat };
 }

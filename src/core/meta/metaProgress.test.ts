@@ -10,7 +10,7 @@ const catalog = loadMeta(metaJson, runDeps.commanders, runDeps.relics);
 const newMeta = (): MetaProgress => new MetaProgress(catalog);
 
 const summary = (patch: Partial<RunSummary> = {}): RunSummary => ({
-  runId: 'run-1', test: false, commanderId: 'cmd_harten', outcome: 'dead', floorsReached: 5, bossActsKilled: [],
+  runId: 'run-1', threatLevel: 0, test: false, commanderId: 'cmd_harten', outcome: 'dead', floorsReached: 5, bossActsKilled: [],
   eliteKills: 0, ultimateUses: 0, shopVisits: 0, unitStar3: false, bossEntryGold: 0, deckSize: 10, ...patch,
 });
 
@@ -53,7 +53,7 @@ describe('전공 포인트 공식', () => {
   it('도달 층 + 보스 + 정예 + 승리 보너스', () => {
     const rule = catalog.points;
     expect(calculateRunPoints(rule, summary({ floorsReached: 13, bossActsKilled: [1], eliteKills: 3 }))).toEqual({
-      floors: 13 * rule.perFloor, bosses: rule.perBoss, elites: 3 * rule.perElite, victory: 0,
+      floors: 13 * rule.perFloor, bosses: rule.perBoss, elites: 3 * rule.perElite, victory: 0, threat: 0,
       total: 13 * rule.perFloor + rule.perBoss + 3 * rule.perElite,
     });
     const win = calculateRunPoints(rule, summary({ outcome: 'victory', floorsReached: 39, bossActsKilled: [1, 2, 3], eliteKills: 8 }));

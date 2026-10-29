@@ -9,6 +9,7 @@ import type { UnitDef } from '../data/unit';
 import type { EncounterCatalog } from '../data/encounterLoader';
 import type { EventDef } from '../data/event';
 import type { EventCatalog } from '../data/eventLoader';
+import type { ThreatCatalog } from '../data/threatLoader';
 import type { TraitCatalog } from '../data/traitLoader';
 import type { UnitCatalog } from '../data/unitLoader';
 import type { BattleKind, BattleOutcome, EconomyView } from '../economy';
@@ -31,6 +32,7 @@ import { RunSerializer, type RunSave } from './runSerializer';
 import { RunState, type BattleSettlement, type NodeSession, type RunOutcome, type RunPhase, type RunRecord, type TestRunInfo } from './runState';
 import { deriveSeed, normalizeRunSeed } from './seeds';
 import { TestRunTools, type TestRunSetup } from './testRun';
+import { assertThreatLevel, ThreatRules } from './threatRules';
 
 /** 런 코어가 쓰는 검증된 게임 데이터 */
 export interface RunDeps {
@@ -42,6 +44,7 @@ export interface RunDeps {
   events: EventCatalog;
   relics: RelicCatalog;
   migrations: ContentMigrations;
+  threat: ThreatCatalog;
 }
 
 export interface RunOptions {
@@ -58,6 +61,11 @@ export interface RunOptions {
   unlocks?: RunUnlocks;
   /** 메타 정산 중복 방지용 런 식별자 (저장됨). 메타 정산을 하려면 호출자가 새 런마다 다르게 정해 준다 */
   runId?: string;
+  /**
+   * 위협 레벨 (기본 0 = 패널티 없음, 0~10의 정수). 레벨 N은 1~N의 패널티를 모두 적용한다 (data/threat.json).
+   * unlocks.maxThreat를 주면 그 값을 넘는 레벨은 거부한다. 런에 저장되어 도중에 바뀌지 않는다
+   */
+  threatLevel?: number;
 }
 
 export type RunResult = { ok: true } | { ok: false; reason: string };
@@ -127,6 +135,8 @@ export class RunController {
   private readonly relicRewards: RelicRewardGenerator;
   private readonly director: EventDirector;
   private readonly serializer: RunSerializer;
+  /** 이 런의 위협 레벨 누적 패널티 */
+  private readonly threat: ThreatRules;
   /** 이 컨트롤러가 발급한 전투 시뮬 → 발급 당시 노드·시도·정산 여부. completeBattle이 현재 전투의 결과만 받게 묶는다 */
   private readonly issued = new WeakMap<CombatSimulator, { nodeId: string; tries: number; settled: boolean }>();
   private notices: string[] = [];
@@ -139,7 +149,8 @@ export class RunController {
     private readonly deps: RunDeps,
     private readonly state: RunState,
   ) {
-    this.planner = new EncounterPlanner(deps.units, deps.encounters, state.seed);
+    this.threat = new ThreatRules(deps.threat, state.threatLevel);
+    this.planner = new EncounterPlanner(deps.units, deps.encounters, state.seed, this.threat);
     this.rewards = new CardRewardGenerator(deps.cards, state.commanderId);
     this.relicRewards = new RelicRewardGenerator(deps.relics, state.allowedRelics);
     this.director = new EventDirector(deps.events, this.rewards, state.seed, deps.cards);
@@ -174,14 +185,26 @@ export class RunController {
     if (!Number.isInteger(totalActs) || totalActs < 1 || totalActs > RUN.ACTS.COUNT) {
       throw new Error(`액트 수는 1~${RUN.ACTS.COUNT}의 정수여야 합니다 (실제: ${totalActs})`);
     }
+    const threatLevel = options.threatLevel ?? 0;
+    assertThreatLevel(threatLevel, deps.threat.maxLevel);
+    if (options.unlocks?.maxThreat !== undefined && threatLevel > options.unlocks.maxThreat) {
+      throw new Error(`아직 해금하지 않은 위협 레벨입니다: ${threatLevel} (선택 가능: 최대 ${options.unlocks.maxThreat})`);
+    }
+    const threat = new ThreatRules(deps.threat, threatLevel);
     const forces = PlayerForces.create(
       deps.units, deps.cards, commander,
       { management: deriveSeed(seed, 'management'), deck: deriveSeed(seed, 'deck') },
       preset,
       deps.relics,
     );
-    const health = new CommanderHealth(commander.maxHp ?? RUN.START_HP);
+    // 위협 레벨 시작 패널티: 시작 골드(0 밑으로는 내려가지 않음)·시작 덱 저주. 레벨 0이면 아무것도 하지 않는다
+    const goldDelta = threat.startGoldDelta;
+    if (goldDelta > 0) forces.economy.gain(goldDelta);
+    else if (goldDelta < 0) forces.economy.spend(Math.min(forces.economy.gold, -goldDelta));
+    for (const curse of threat.startCurses()) for (let i = 0; i < curse.count; i += 1) forces.addCard(curse.cardId);
+    const health = new CommanderHealth(threat.maxHp(commander.maxHp ?? RUN.START_HP));
     const state = new RunState(seed, commander.id, preset, [new MapGenerator().generate(seed, 1)], health, forces, totalActs);
+    state.threatLevel = threatLevel;
     state.runId = options.runId ?? null;
     state.allowedRelics = options.unlocks ? [...options.unlocks.relics] : null;
     return new RunController(deps, state);
@@ -192,7 +215,7 @@ export class RunController {
    * 설정이 틀리면 Error(한국어)이고 아무 런도 만들지 않는다. 이후 규칙(전투·정산·보상)은 일반 런과 같다.
    */
   static createTest(deps: RunDeps, setup: TestRunSetup): RunController {
-    const run = RunController.create(deps, { seed: setup.seed, ...(setup.commanderId ? { commanderId: setup.commanderId } : {}), ...(setup.deckPreset ? { deckPreset: setup.deckPreset } : {}) });
+    const run = RunController.create(deps, { seed: setup.seed, ...(setup.threatLevel !== undefined ? { threatLevel: setup.threatLevel } : {}),...(setup.commanderId ? { commanderId: setup.commanderId } : {}), ...(setup.deckPreset ? { deckPreset: setup.deckPreset } : {}) });
     run.test.validateSetup(setup);
     run.state.test = { startAct: setup.startAct ?? 1, startPosition: setup.startPosition ?? 'actStart' };
     run.test.build(setup);
@@ -233,6 +256,10 @@ export class RunController {
   get actInfo(): { name: string; region: string; text: string } { return RUN.ACTS.INFO[this.state.act - 1] as { name: string; region: string; text: string }; }
   /** 테스트 런 표시 (일반 런이면 null) */
   get testInfo(): TestRunInfo | null { return this.state.test; }
+  /** 위협 레벨 (0 = 패널티 없음) */
+  get threatLevel(): number { return this.state.threatLevel; }
+  /** 위협 레벨의 이름 (레벨 0이면 null) */
+  get threatName(): string | null { return this.deps.threat.get(this.state.threatLevel)?.name ?? null; }
   /** 메타 정산용 런 식별자 (없으면 null) */
   get runId(): string | null { return this.state.runId; }
   /** 런을 시작할 때 허용된 유물 id (모두 허용이면 null) */
@@ -531,9 +558,9 @@ export class RunController {
     if (session?.kind !== 'shop') return null;
     const discount = this.cardDiscountPct();
     return {
-      cards: session.cards.map((slot) => ({ ...slot, price: discounted(slot.price, discount) })),
-      relics: session.relics.map((slot) => ({ ...slot })),
-      removalPrice: discounted(removalPrice(this.state.removals), discount),
+      cards: session.cards.map((slot) => ({ ...slot, price: this.threat.shopPrice(discounted(slot.price, discount)) })),
+      relics: session.relics.map((slot) => ({ ...slot, price: this.threat.shopPrice(slot.price) })),
+      removalPrice: this.threat.shopPrice(discounted(removalPrice(this.state.removals), discount)),
       removable: removableCards(this.state.forces.deck),
     };
   }
@@ -544,7 +571,7 @@ export class RunController {
     const entry = session.cards[slot];
     if (!entry) return fail('올바른 카드 슬롯을 고르세요');
     if (entry.sold) return fail('이미 구매한 카드입니다');
-    if (!this.state.forces.economy.spend(discounted(entry.price, this.cardDiscountPct()))) return fail('카드를 구매할 골드가 부족합니다');
+    if (!this.state.forces.economy.spend(this.threat.shopPrice(discounted(entry.price, this.cardDiscountPct())))) return fail('카드를 구매할 골드가 부족합니다');
     this.state.forces.addCard(entry.cardId);
     entry.sold = true;
     return OK;
@@ -558,7 +585,7 @@ export class RunController {
     if (!entry) return fail('올바른 유물 슬롯을 고르세요');
     if (entry.sold) return fail('이미 구매한 유물입니다');
     if (this.state.forces.relics.has(entry.relicId)) return fail('이미 가진 유물입니다');
-    if (!this.state.forces.economy.spend(entry.price)) return fail('유물을 구매할 골드가 부족합니다');
+    if (!this.state.forces.economy.spend(this.threat.shopPrice(entry.price))) return fail('유물을 구매할 골드가 부족합니다');
     entry.sold = true;
     this.acquireRelic(entry.relicId);
     return OK;
@@ -568,7 +595,7 @@ export class RunController {
   removeCardForGold(instanceId: number): RunResult {
     if (this.state.session?.kind !== 'shop') return fail('상점이 아닙니다');
     if (!removableCards(this.state.forces.deck).some((card) => card.instanceId === instanceId)) return fail('제거할 수 없는 카드입니다');
-    if (!this.state.forces.economy.spend(discounted(removalPrice(this.state.removals), this.cardDiscountPct()))) return fail('카드를 제거할 골드가 부족합니다');
+    if (!this.state.forces.economy.spend(this.threat.shopPrice(discounted(removalPrice(this.state.removals), this.cardDiscountPct())))) return fail('카드를 제거할 골드가 부족합니다');
     this.state.forces.removeCard(instanceId);
     this.state.removals += 1;
     return OK;
@@ -715,6 +742,7 @@ export class RunController {
     }
     return {
       runId: this.state.runId,
+      threatLevel: this.state.threatLevel,
       test: this.state.test !== null,
       commanderId: this.state.commanderId,
       outcome: this.state.outcome,
@@ -817,7 +845,7 @@ export class RunController {
     const { health, maps } = this.state;
     maps.push(new MapGenerator().generate(this.state.seed, maps.length + 1));
     const hpBefore = health.hp;
-    const healed = health.heal(Math.ceil((health.max * RUN.ACTS.TRANSITION_HEAL_PCT) / 100));
+    const healed = health.heal(Math.ceil((health.max * this.threat.actHealPct()) / 100));
     this.state.session = { kind: 'actIntro', hpBefore, healed };
     this.state.phase = 'actIntro';
   }

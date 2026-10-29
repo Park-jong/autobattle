@@ -5,6 +5,7 @@ import type { RunUnlocks } from '../../core/meta';
 import type { RunBattleHost } from '../debug/runLink';
 import type { MetaStore } from './MetaStore';
 import { buildEndMetaView, buildMetaStartView, type EndSettlement } from './metaViews';
+import { buildThreatPicker } from './threatViews';
 import { RunBattleAdapter } from './RunBattleAdapter';
 import type { RunSaveStore } from './RunSaveStore';
 import type {
@@ -128,7 +129,7 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
       camp: live && campView ? buildCampView(campView, run, this.cards, this.units) : null,
       ended: live && screen === 'ended' ? buildEndView(run, this.cards, this.units, this.o.deps.relics) : null,
       endMeta: live && screen === 'ended' && this.endSettlement
-        ? buildEndMetaView(this.endSettlement, this.o.meta.catalog, this.o.deps.commanders, this.o.deps.relics) : null,
+        ? buildEndMetaView(this.endSettlement, this.o.meta.catalog, this.o.deps.commanders, this.o.deps.relics, this.o.deps.threat) : null,
       testTools: live && screen !== 'ended' ? buildTestToolsView(run, this.o.deps, this.testCatalog(), this.resultPending) : null,
     };
   }
@@ -144,6 +145,7 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
       suggestedSeed: this.suggestedSeed,
       commanders: buildCommanderChoices(this.o.deps.commanders.commanders, this.cards, this.units, RUN.START_HP),
       meta: buildMetaStartView(this.o.meta.status(), this.o.meta.catalog, this.o.deps.commanders, this.o.deps.relics),
+      threat: buildThreatPicker(this.o.deps.threat, this.o.meta.progress?.maxThreatLevel ?? 0, this.o.meta.catalog.points.threatBonusPctPerLevel),
       defaultCommanderId: this.o.commanderId,
       testCatalog: this.testCatalog(),
     };
@@ -156,7 +158,7 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
 
   // ---- RunCommands: 시작 화면 ----
 
-  newRun(seed: number | null, commanderId?: string): void {
+  newRun(seed: number | null, commanderId?: string, threatLevel = 0): void {
     const value = seed ?? this.suggestedSeed;
     if (!Number.isInteger(value) || value < SEED_MIN || value > SEED_MAX) {
       return this.fail(`시드는 ${SEED_MIN}~${SEED_MAX} 사이의 정수여야 합니다.`);
@@ -167,8 +169,14 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
     if (this.o.deps.commanders.get(id) && !unlocks.commanders.includes(id)) {
       return this.fail(`아직 해금하지 않은 지휘관입니다: ${this.o.deps.commanders.get(id)?.name ?? id}`);
     }
+    if (!Number.isInteger(threatLevel) || threatLevel < 0 || threatLevel > this.o.deps.threat.maxLevel) {
+      return this.fail(`위협 레벨은 0~${this.o.deps.threat.maxLevel}의 정수여야 합니다.`);
+    }
+    if (threatLevel > (unlocks.maxThreat ?? 0)) {
+      return this.fail(`아직 해금하지 않은 위협 레벨입니다: ${threatLevel} (레벨 ${threatLevel - 1}을 승리하면 열립니다).`);
+    }
     try {
-      this.adopt(RunController.create(this.o.deps, { seed: value, commanderId: id, unlocks, runId: this.o.newRunId() }));
+      this.adopt(RunController.create(this.o.deps, { seed: value, commanderId: id, unlocks, runId: this.o.newRunId(), threatLevel }));
     } catch (e) {
       return this.fail(`새 런을 만들 수 없습니다: ${(e as Error).message}`);
     }
@@ -414,7 +422,7 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
       const summary = run.runSummary();
       const result = progress.settleRun(summary);
       this.endSettlement = result.ok
-        ? { kind: 'settled', summary, earned: result.earned, newUnlocks: result.newUnlocks, balance: result.balance }
+        ? { kind: 'settled', summary, earned: result.earned, newUnlocks: result.newUnlocks, balance: result.balance, threatUnlocked: result.threatUnlocked }
         : { kind: 'failed', reason: `전공을 정산하지 못했습니다: ${result.reason}` };
       if (result.ok) {
         const error = this.o.meta.save();

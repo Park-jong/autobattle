@@ -1,6 +1,6 @@
 import { assertCardUnitReferences, assertUnitCardReferences } from '../cards';
 import {
-  loadCards, loadCommanders, loadEncounters, loadEvents, loadRelics, loadTraits, loadUnits,
+  loadCards, loadCommanders, loadEncounters, loadEvents, loadRelics, loadThreat, loadTraits, loadUnits,
 } from '../data';
 import { RUN } from './constants';
 import { ContentMigrations } from './contentMigration';
@@ -18,6 +18,8 @@ export interface RawRunData {
   relics: unknown;
   /** data/migrations.json (콘텐츠 마이그레이션) */
   migrations: unknown;
+  /** data/threat.json (위협 레벨 1~10) */
+  threat: unknown;
 }
 
 const range = (from: number, to: number): number[] => Array.from({ length: to - from + 1 }, (_, i) => from + i);
@@ -44,5 +46,6 @@ export function loadRunDeps(raw: RawRunData): RunDeps {
   const events = loadEvents(raw.events, cards, units);
   const relics = loadRelics(raw.relics);
   const migrations = ContentMigrations.load(raw.migrations, { cards, relics, commanders });
-  return { units, traits, cards, commanders, encounters, events, relics, migrations };
+  const threat = loadThreat(raw.threat, cards);
+  return { units, traits, cards, commanders, encounters, events, relics, migrations, threat };
 }

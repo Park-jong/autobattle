@@ -38,6 +38,8 @@ export interface TestRunSetup {
   seed: number;
   commanderId?: string;
   deckPreset?: DeckPreset;
+  /** 위협 레벨 0~10 (기본 0). 메타 해금과 무관하게 아무 레벨이나 고를 수 있다 */
+  threatLevel?: number;
   /** 시작 액트 1~3 (기본 1). 이전 액트는 맵만 만들고 보스까지 지나간 것으로 처리한다 */
   startAct?: number;
   startPosition?: TestStartPosition;

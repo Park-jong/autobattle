@@ -7,6 +7,7 @@ import { Rng } from '../rng';
 import { RUN } from './constants';
 import { globalFloor, type MapNode } from './runMap';
 import { deriveSeed } from './seeds';
+import type { ThreatRules } from './threatRules';
 
 /** 미리보기에 보이는 적 유닛 한 기: 층 보정이 반영된 실제 전투 스탯 */
 export interface PlannedUnit {
@@ -66,6 +67,8 @@ export class EncounterPlanner {
     private readonly units: UnitCatalog,
     private readonly encounters: EncounterCatalog,
     private readonly runSeed: number,
+    /** 위협 레벨 패널티 (적 스탯·정예 변이 수). 생략하면 레벨 0과 같다 */
+    private readonly threat?: ThreatRules,
   ) {}
 
   /** 전투·정예·보스 노드만 계획할 수 있다. 그 외 노드는 null */
@@ -78,12 +81,16 @@ export class EncounterPlanner {
     const encounter = new Rng(deriveSeed(this.runSeed, 'encounter', node.id)).pick(candidates);
 
     const scale = floorScale(total);
+    // 위협 레벨: 층 보정에 종류별 HP·ATK 배율을 곱한다 (레벨 0이면 둘 다 정확히 층 보정 그대로)
+    const threatMult = this.threat?.enemyMult(kind) ?? { hp: 1, atk: 1 };
+    const hpMult = scale * threatMult.hp;
+    const atkMult = scale * threatMult.atk;
     const mutations = kind === 'elite' ? this.pickMutations(node) : [];
     const formation: FormationEntry[] = encounter.units.map((u) => ({ unitId: u.unitId, star: u.star, cell: { col: u.col, row: u.row } }));
     const units: PlannedUnit[] = formation.map((entry) => {
       const def = this.units.get(entry.unitId);
       if (!def) throw new Error(`알 수 없는 유닛 "${entry.unitId}"`);
-      const scaled = scaledHpAtk(def, entry.star, { hp: scale, atk: scale });
+      const scaled = scaledHpAtk(def, entry.star, { hp: hpMult, atk: atkMult });
       return {
         unitId: def.id, name: def.name, tier: def.tier, star: entry.star, cell: { ...entry.cell },
         hp: scaled.hp, atk: scaled.atk, as: def.stats.as, range: def.stats.rng, arm: def.stats.arm, res: def.stats.res,
@@ -104,14 +111,17 @@ export class EncounterPlanner {
     return {
       nodeId: node.id, act, floor: node.floor, globalFloor: total, kind, encounterId: encounter.id, name: encounter.name, text: encounter.text,
       scale, mutations, formation, units, bossPatterns,
-      enemy: { hpMult: scale, atkMult: scale, mutations },
+      enemy: { hpMult, atkMult, mutations },
     };
   }
 
-  /** 정예 노드마다 결정적으로 1개(확률 ELITE_MUTATION_TWO_CHANCE로 2개), 서로 다른 변이 */
+  /**
+   * 정예 노드마다 결정적으로 1개(확률 ELITE_MUTATION_TWO_CHANCE로 2개), 서로 다른 변이.
+   * 위협 레벨의 최소 변이 수가 더 크면 그 수로 올린다 (난수 사용은 그대로라 같은 노드의 변이 종류 순서는 변하지 않는다)
+   */
   private pickMutations(node: MapNode): MutationId[] {
     const rng = new Rng(deriveSeed(this.runSeed, 'mutation', node.id));
-    const count = rng.next() < RUN.ELITE_MUTATION_TWO_CHANCE ? 2 : 1;
+    const count = Math.max(rng.next() < RUN.ELITE_MUTATION_TWO_CHANCE ? 2 : 1, this.threat?.eliteMutationsMin ?? 0);
     return rng.shuffle(MUTATION_IDS).slice(0, count);
   }
 }

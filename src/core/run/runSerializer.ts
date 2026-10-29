@@ -5,6 +5,8 @@ import type { CommanderCatalog } from '../data/commanderLoader';
 import { FieldReader } from '../data/fieldReader';
 import type { EventCatalog } from '../data/eventLoader';
 import type { RelicCatalog } from '../data/relicLoader';
+import type { ThreatCatalog } from '../data/threatLoader';
+import { ThreatRules } from './threatRules';
 import type { UnitCatalog } from '../data/unitLoader';
 import type { BattleOutcome } from '../economy';
 import { cardPrice } from './cardMarket';
@@ -56,6 +58,8 @@ export interface RunSave {
   runId?: string;
   /** v3의 선택 필드. 런 시작 때 허용된 유물 id(메타 해금). 없으면 모든 유물 허용. 카탈로그에 없는 id는 복원할 때 무시한다 */
   allowedRelics?: string[];
+  /** v3의 선택 필드. 위협 레벨 1~10 (0이면 저장하지 않고, 없는 저장본은 0으로 읽는다) */
+  threatLevel?: number;
 }
 
 /** 복원에 필요한 데이터 카탈로그 */
@@ -66,6 +70,7 @@ export interface SerializerDeps {
   events: EventCatalog;
   relics: RelicCatalog;
   migrations: ContentMigrations;
+  threat: ThreatCatalog;
 }
 
 const isDefaultStats = (stats: RunStats): boolean => {
@@ -105,6 +110,7 @@ export class RunSerializer {
       ...(isDefaultStats(state.stats) ? {} : { stats: { ...state.stats } }),
       ...(state.runId !== null ? { runId: state.runId } : {}),
       ...(state.allowedRelics !== null ? { allowedRelics: [...state.allowedRelics] } : {}),
+      ...(state.threatLevel !== 0 ? { threatLevel: state.threatLevel } : {}),
     };
   }
 
@@ -118,7 +124,7 @@ export class RunSerializer {
     // v1에는 유물 필드가 없다: 하르텐(commanderId는 v1에도 있음)·유물 없음으로 읽는다.
     // v1·v2에는 액트 필드가 없다: 단일 `map`을 액트 1의 맵으로 읽는다 (v3는 `maps`와 `totalActs`)
     const keys = ['format', 'version', 'contentVersion', 'seed', 'commanderId', 'deckPreset', 'position', 'health', 'forces', 'removals', 'seenEvents', 'phase', 'session', 'outcome', 'history'];
-    r.onlyKeys([...keys, ...(version >= 2 ? ['relics'] : []), ...(version >= 3 ? ['maps', 'totalActs', 'test', 'stats', 'runId', 'allowedRelics'] : ['map'])]);
+    r.onlyKeys([...keys, ...(version >= 2 ? ['relics'] : []), ...(version >= 3 ? ['maps', 'totalActs', 'test', 'stats', 'runId', 'allowedRelics', 'threatLevel'] : ['map'])]);
 
     if (r.has('contentVersion') && r.int('contentVersion', 0) > this.deps.migrations.current) {
       r.fail('contentVersion', `현재 게임의 콘텐츠 버전(${this.deps.migrations.current})보다 높음`);
@@ -142,6 +148,11 @@ export class RunSerializer {
     if (r.has('stats')) state.stats = this.parseStats(r.object('stats'));
     if (r.has('runId')) state.runId = r.string('runId');
     if (r.has('allowedRelics')) state.allowedRelics = this.parseAllowedRelics(r);
+    if (r.has('threatLevel')) {
+      const level = r.int('threatLevel', 0);
+      if (level > this.deps.threat.maxLevel) r.fail('threatLevel', `0~${this.deps.threat.maxLevel}이어야 함 (실제: ${level})`);
+      state.threatLevel = level;
+    }
 
     const position = r.object('position');
     position.onlyKeys(['currentNodeId', 'visited']);
@@ -237,7 +248,8 @@ export class RunSerializer {
 
     // 유물: 최대 HP는 지휘관 기본값 + 보유 유물의 최대 HP 증가의 합
     const commander = this.deps.commanders.get(state.commanderId);
-    const expectedMax = (commander?.maxHp ?? RUN.START_HP) + state.forces.relics.sum('maxHp', (e) => e.amount);
+    const threat = new ThreatRules(this.deps.threat, state.threatLevel);
+    const expectedMax = threat.maxHp(commander?.maxHp ?? RUN.START_HP) + state.forces.relics.sum('maxHp', (e) => e.amount);
     // 테스트 런은 최대 HP를 직접 정할 수 있어 기본값과 같을 필요가 없다 (1 이상은 CommanderHealth가 확인)
     if (state.test === null && state.health.max !== expectedMax) r.fail('health.maxHp', `지휘관 기본 최대 HP와 보유 유물에서 계산한 ${expectedMax}여야 함 (실제: ${state.health.max})`);
 
@@ -298,7 +310,7 @@ export class RunSerializer {
       if (act < 2 || currentAct !== act - 1 || type !== 'boss') r.fail('phase', 'actIntro 단계는 지난 액트의 보스 노드에서 다음 액트로 넘어온 직후여야 함');
     }
     if (session?.kind === 'actIntro') {
-      const maxHeal = Math.ceil((state.health.max * RUN.ACTS.TRANSITION_HEAL_PCT) / 100);
+      const maxHeal = Math.ceil((state.health.max * threat.actHealPct()) / 100);
       if (session.healed > maxHeal) r.fail('session.healed', `액트 전환 회복량은 ${maxHeal} 이하여야 함 (실제: ${session.healed})`);
       if (session.hpBefore + session.healed !== state.health.hp) r.fail('session', `회복 전 HP(${session.hpBefore})와 회복량(${session.healed})의 합이 현재 HP(${state.health.hp})와 같아야 함`);
     }
