@@ -153,7 +153,7 @@ export class BattleScene extends Phaser.Scene {
   private updateTexts(editing: boolean, time: number, targetHint: string): void {
     const modern = this.skin.current === 'modern';
     this.hintText.setColor(modern ? '#5b7e95' : TEXT_COLORS.MUTED);
-    this.hintText.setPosition(modern ? this.scale.width / 2 : 20, modern ? this.scale.height - 24 : 20)
+    this.hintText.setPosition(modern ? STAGE.WIDTH / 2 : 20, modern ? STAGE.HEIGHT - 24 : 20)
       .setOrigin(modern ? 0.5 : 0, modern ? 1 : 0).setFontSize(modern ? 12 : 16);
     if (editing) {
       this.timeText.setText(this.source.prepping ? '준비 단계' : '편성 중').setColor(modern ? '#5b7e95' : TEXT_COLORS.MUTED);

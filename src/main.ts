@@ -10,7 +10,7 @@ import { RunSession } from './ui/run/RunSession';
 import { RunShell } from './ui/run/RunShell';
 import { BrowserRunStorage, META_SAVE_KEY } from './ui/run/RunStorage';
 import { loadGameData, unitAbbreviation } from './ui/gameData';
-import { computeHiDpi } from './ui/hidpi';
+import { needsBattleRenderer, renderProfile } from './ui/rendering';
 import { SkinPicker } from './ui/skin/SkinPicker';
 import { COLORS } from './ui/theme';
 import { installPresentation } from './ui/skin/presentation';
@@ -106,23 +106,42 @@ function bootstrap(): void {
   // 개발 서버 전용: 브라우저 자동화(Playwright)가 세션을 들여다볼 수 있게 한다. 프로덕션 빌드에서는 제거된다.
   if (import.meta.env.DEV) (window as unknown as { __tactics: unknown }).__tactics = { battle: session, run: runSession };
 
-  // HiDPI: 캔버스 = 1280x720 x DPR, 카메라 줌 = DPR (hidpi.ts). Scale.FIT로 화면에 맞춘다.
-  const metrics = computeHiDpi();
+  // Keep the start/menu screens free of GPU allocations. Create the game on first battle/debug entry.
   const labels: SceneLabels = {
     unitAbbreviation: (unitId, skin = 'default') => unitAbbreviation(unitSkinName(skin, unitId, data.units.get(unitId)?.name ?? unitId)),
     cardName: (cardId, upgraded) => `${data.cards.get(cardId)?.name ?? cardId}${upgraded ? '+' : ''}`,
     attackProfile: (unitId, skin) => attackProfile(data.units.get(unitId), skin),
     unitIsBoss: (unitId) => !!data.units.get(unitId)?.boss,
   };
-  new Phaser.Game({
-    type: Phaser.AUTO,
-    parent: gameHost,
-    width: metrics.canvasWidth,
-    height: metrics.canvasHeight,
-    backgroundColor: COLORS.BACKGROUND,
-    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-    scene: [new BattleScene(session, metrics, labels)],
-  });
+  let game: Phaser.Game | undefined;
+  let rendererActive = false;
+  const syncRenderer = (): void => {
+    const active = needsBattleRenderer(runSession.screen);
+    if (active === rendererActive) return;
+    rendererActive = active;
+    if (!game) {
+      if (!active) return;
+      const profile = renderProfile({
+        width: window.innerWidth,
+        height: window.innerHeight,
+        devicePixelRatio: window.devicePixelRatio,
+        coarsePointer: window.matchMedia('(pointer: coarse)').matches,
+      });
+      game = new Phaser.Game({
+        type: profile.renderer === 'canvas' ? Phaser.CANVAS : Phaser.AUTO,
+        parent: gameHost,
+        width: profile.metrics.canvasWidth,
+        height: profile.metrics.canvasHeight,
+        backgroundColor: COLORS.BACKGROUND,
+        fps: { target: profile.fps, limit: profile.fps },
+        scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+        scene: [new BattleScene(session, profile.metrics, labels)],
+      });
+    } else if (active) game.loop.wake();
+    else game.loop.sleep();
+  };
+  runSession.subscribe(syncRenderer);
+  syncRenderer();
 }
 
 bootstrap();
