@@ -47,6 +47,11 @@ export interface BattleScreenCatalogs {
  */
 export class BattleScreen {
   private readonly overlay = el('div', 'bt-overlay-host');
+  private readonly traitToggle = tagged(button('특성', () => {
+    const open = this.traitPanel.root.classList.toggle('mobile-open');
+    this.traitToggle.textContent = open ? '특성 닫기' : '특성';
+    this.traitToggle.setAttribute('aria-expanded', String(open));
+  }, 'bt-btn bt-trait-toggle'), 'trait-toggle');
   private readonly errorBox = tagged(el('div', 'bt-error'), 'battle-error');
   private readonly resultBackdrop = el('div', 'bt-result-backdrop');
   private readonly topBar: BattleTopBar;
@@ -75,9 +80,12 @@ export class BattleScreen {
     this.resultBackdrop.hidden = true;
     this.errorBox.hidden = true;
     this.traitPanel = new TraitPanel(catalogs.traits);
+    this.traitPanel.root.id = 'battle-trait-panel';
+    this.traitToggle.setAttribute('aria-controls', 'battle-trait-panel');
+    this.traitToggle.setAttribute('aria-expanded', 'false');
     this.info = new UnitInfoPanel(catalogs.units, catalogs.traits, catalogs.cards, battle, () => this.closeInfo());
     this.tooltip = new UnitTooltip(hosts.arena, hosts.canvasHost, hover, catalogs.units, catalogs.traits, () => this.cards.cardView().holding || this.drag.dragging);
-    this.overlay.append(this.traitPanel.root, this.info.root, this.errorBox, this.resultBackdrop);
+    this.overlay.append(this.traitToggle, this.traitPanel.root, this.info.root, this.errorBox, this.resultBackdrop);
     hosts.arena.append(this.overlay, this.tooltip.root);
     this.overlay.hidden = true;
 
@@ -115,8 +123,8 @@ export class BattleScreen {
     const stage = snap.battle.stage;
     if (stage !== this.stage) {
       // 준비 단계는 상점이, 전투가 시작되면 카드가 앞으로 나온다
-      if (stage === 'prep') this.tray.bringFront('shop');
-      if (stage === 'playing') this.tray.bringFront('cards');
+      if (stage === 'prep') this.tray.bringFront('shop', false);
+      if (stage === 'playing') this.tray.bringFront('cards', false);
       if (stage === 'prep') this.inspectUid = null;
       this.stage = stage;
     }
@@ -196,7 +204,8 @@ export class BattleScreen {
   };
 
   private onKey = (event: KeyboardEvent): void => {
-    if (!this.active || event.ctrlKey || event.metaKey || event.altKey || isTyping(event.target)) return;
+    if (!this.active || event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || isTyping(event.target)) return;
+    if (event.key === 'Enter' && event.target instanceof HTMLElement && event.target.closest('button, summary')) return;
     if (event.key === 'Escape' && !this.cards.cardView().holding) return this.closeInfo();
     if (this.stage !== 'prep') return;
     if (event.key === 'Enter') {

@@ -67,6 +67,7 @@ export interface CardPanelView {
   visible: boolean;
   phaseLabel: string;
   commanderName: string;
+  commanderId?: string;
   passiveName: string;
   passiveText: string;
   hand: HandCardView[];
@@ -154,6 +155,7 @@ export class CardPanelViewBuilder {
       visible: true,
       phaseLabel: phase ? PHASE_LABELS[phase] : '준비 단계',
       commanderName: input.commander.name,
+      commanderId: input.commander.id,
       passiveName: input.commander.passive.name,
       passiveText: input.commander.passive.text,
       hand: input.piles.hand.map((c) => this.handCard(c, input)),

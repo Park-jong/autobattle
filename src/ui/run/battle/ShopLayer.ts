@@ -2,7 +2,7 @@ import type { TraitCatalog } from '../../../core/data/traitLoader';
 import type { UnitCatalog } from '../../../core/data/unitLoader';
 import { MANAGEMENT, type ShopOffer } from '../../../core/management';
 import type { DebugController, SessionSnapshot } from '../../debug/contracts';
-import { unitArtUrl } from '../../skin/skins';
+import { unitArtUrl, unitSkinName } from '../../skin/skins';
 import { appSkin } from '../../skin/SkinStore';
 import { unitAbbreviation } from '../../gameData';
 import { button, el, tagged } from '../dom';
@@ -97,7 +97,10 @@ export class ShopLayer {
       node.title = `${name} · ${offer.tier}등급\n${def.skill.name}: ${def.skill.text}`;
     }
     const foot = el('div', 'bt-offer-foot');
-    foot.append(el('b', '', name), el('span', 'bt-offer-cost', `${offer.cost}G`));
+    const label = el('div', 'academy-offer-label');
+    label.append(el('b', '', unitSkinName(appSkin.current, offer.unitId, name)));
+    if (appSkin.current === 'academy') label.append(el('small', '', name));
+    foot.append(label, el('span', 'bt-offer-cost', `${offer.cost}G`));
     node.append(art, foot);
     return node;
   }

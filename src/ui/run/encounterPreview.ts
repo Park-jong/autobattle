@@ -1,5 +1,8 @@
 import { el, tagged } from './dom';
 import type { EncounterPreviewView } from './runViews';
+import { appSkin } from '../skin/SkinStore';
+import { unitSkinName } from '../skin/skins';
+import { unitFace } from './battle/unitFace';
 
 /** 적 편성 미리보기: 편성 이름·층 보정·변이·유닛(등급·성급·보정 후 HP/ATK) */
 export function encounterPreviewElement(view: EncounterPreviewView): HTMLElement {
@@ -19,8 +22,12 @@ export function encounterPreviewElement(view: EncounterPreviewView): HTMLElement
   const table = el('div', 'run-preview-units');
   for (const u of view.units) {
     const row = el('div', `run-preview-unit${u.boss ? ' boss' : ''}`);
+    const name = el('strong', 'academy-preview-name');
+    if (appSkin.current === 'academy') name.append(unitFace(u.unitId, u.name, u.tier, { enemy: true }));
+    name.append(`${unitSkinName(appSkin.current, u.unitId, u.name)} ${'★'.repeat(u.star)}`);
+    name.title = u.name;
     row.append(
-      el('strong', '', `${u.name} ${'★'.repeat(u.star)}`),
+      name,
       el('span', 'run-preview-tier', `${u.tier}등급`),
       el('span', '', `HP ${u.hp}`),
       el('span', '', `ATK ${u.atk}`),

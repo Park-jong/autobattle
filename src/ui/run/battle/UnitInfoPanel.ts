@@ -5,6 +5,7 @@ import type { OwnedUnit } from '../../../core/management';
 import type { DebugController } from '../../debug/contracts';
 import type { UnitView } from '../../replay/ReplayState';
 import { appSkin } from '../../skin/SkinStore';
+import { unitArtUrl, unitSkinName } from '../../skin/skins';
 import { button, el, tagged } from '../dom';
 import { unitFace } from './unitFace';
 import { buildUnitInfo, sellRefund, statusLabel, type StarLevel, type StatOverride, type UnitInfoView } from './unitInfoView';
@@ -52,6 +53,15 @@ export class UnitInfoPanel {
     const close = tagged(button('×', () => this.onClose(), 'bt-info-close'), 'unit-info-close');
     close.title = '닫기 (Esc)';
     const nodes: HTMLElement[] = [close, infoHead(info, enemy)];
+    const artUrl = unitArtUrl(appSkin.current, def.id, 'illustration');
+    if (artUrl) {
+      const art = el('img', 'academy-unit-illustration');
+      art.src = artUrl;
+      art.alt = `${unitSkinName(appSkin.current, def.id, info.name)} 전신 원화`;
+      art.draggable = false;
+      art.addEventListener('error', () => art.remove());
+      nodes.push(art);
+    }
     if (subject.kind === 'live') nodes.push(liveLine(subject.view));
     nodes.push(statsGrid(info), skillBlock(info));
 
@@ -87,12 +97,12 @@ export class UnitInfoPanel {
 export function infoHead(info: UnitInfoView, enemy: boolean, options: { large?: boolean } = { large: true }): HTMLElement {
   const head = el('div', 'bt-info-head');
   const text = el('div');
-  const name = el('div', 'bt-info-name', info.name);
+  const name = el('div', 'bt-info-name', unitSkinName(appSkin.current, info.unitId, info.name));
   name.append(' ', el('span', 'bt-info-stars', '★'.repeat(info.star)));
   if (info.boss) name.append(el('span', 'bt-tooltip-tag', '보스'));
   const chips = el('div', 'bt-traitchips');
   for (const trait of info.traits) chips.append(el('span', 'bt-traitchip', trait));
-  text.append(name, el('div', 'bt-info-sub', `${info.tier}등급${enemy ? ' · 적' : ''}`), chips);
+  text.append(name, el('div', 'bt-info-sub', `${appSkin.current === 'academy' ? `${info.name} · ` : ''}${info.tier}등급${enemy ? ' · 적' : ''}`), chips);
   head.append(unitFace(info.unitId, info.name, info.tier, { large: options.large ?? true, enemy }), text);
   return head;
 }

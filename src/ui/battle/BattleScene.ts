@@ -4,14 +4,16 @@ import type { Cell } from '../../core/combat';
 import type { BattleViewSource } from '../debug/contracts';
 import { applyHiDpiCamera, createText, type HiDpiMetrics } from '../hidpi';
 import type { UnitView } from '../replay/ReplayState';
-import { COLORS, LAYOUT, STAGE, TEXT_COLORS, TIMING } from '../theme';
+import { ACADEMY_COLORS, COLORS, LAYOUT, STAGE, TEXT_COLORS, TIMING } from '../theme';
 import { BoardLayout } from './BoardLayout';
 import { BoardRenderer } from './BoardRenderer';
 import { EffectsLayer } from './EffectsLayer';
 import { TargetingOverlay } from './TargetingOverlay';
 import { UnitSprite } from './UnitSprite';
-import { skinArtList, unitTextureKey, type SkinId } from '../skin/skins';
+import { commanderArtList, skinArtList, unitTextureKey, type SkinId } from '../skin/skins';
 import { appSkin, type SkinStore } from '../skin/SkinStore';
+import { motionPreferences } from '../skin/presentation';
+import { buildCombatVisualFrame, type AttackProfile } from './combatVisuals';
 
 /** 씬이 화면에 쓸 이름을 얻는 창구 (데이터 카탈로그를 직접 알 필요가 없게) */
 export interface SceneLabels {
@@ -19,6 +21,8 @@ export interface SceneLabels {
   unitAbbreviation(unitId: string): string;
   /** 카드 id → 카드 이름 (강화면 + 표기) */
   cardName(cardId: string, upgraded: boolean): string;
+  attackProfile?(unitId: string): AttackProfile;
+  unitIsBoss?(unitId: string): boolean;
 }
 
 /**
@@ -35,6 +39,8 @@ export class BattleScene extends Phaser.Scene {
   private sprites = new Map<number, UnitSprite>();
   private signature = '';
   private hoverCell: Cell | null = null;
+  /** 최종 타격·사망 연출만 마저 재생하는 시간. 시뮬레이션은 종료 시각에 그대로 둔다. */
+  private outroElapsed = 0;
   /** 원화 텍스처를 다 읽어 둔 스킨 (읽는 동안은 기본 표시) */
   private readonly loadedSkins = new Set<SkinId>();
   private readonly loadingSkins = new Set<SkinId>();
@@ -93,15 +99,17 @@ export class BattleScene extends Phaser.Scene {
     this.syncSprites(views);
 
     const time = this.source.time;
+    this.outroElapsed = this.source.phase === 'finished' ? Math.min(TIMING.EFFECT_WINDOW + 1, this.outroElapsed + delta / 1000) : 0;
+    const visualTime = time + this.outroElapsed;
     const byUid = new Map<number, UnitView>();
-    for (const view of views) {
-      byUid.set(view.uid, view);
-      this.sprites.get(view.uid)?.update(view, time);
-    }
-    this.effects.update(time, this.source.recentEffects(TIMING.EFFECT_WINDOW), byUid, this.source.telegraphs(), {
+    for (const view of views) byUid.set(view.uid, view);
+    const recent = this.source.recentEffects(TIMING.EFFECT_WINDOW);
+    const frame = buildCombatVisualFrame(visualTime, recent, byUid, this.labels.attackProfile, motionPreferences.reduced);
+    for (const view of views) this.sprites.get(view.uid)?.update(view, visualTime, frame.poses.get(view.uid));
+    this.effects.update(visualTime, recent, byUid, this.source.telegraphs(), {
       meteors: this.source.meteors(),
       aura: this.source.ultimateAura(),
-    }, { revives: this.source.reviveWatches(), zones: this.source.zones() });
+    }, { revives: this.source.reviveWatches(), zones: this.source.zones() }, frame);
 
     const targeting = this.source.targeting();
     this.targetingOverlay.update(targeting, byUid, performance.now());
@@ -144,9 +152,11 @@ export class BattleScene extends Phaser.Scene {
   /** 스킨이 바뀌면 원화를 (처음 한 번) 읽고 스프라이트를 다시 만든다. 읽기에 실패한 원화는 기본 표시로 남는다 */
   private applySkin(): void {
     const skin = this.skin.current;
+    this.board.setAcademy(skin === 'academy');
+    this.cameras.main.setBackgroundColor(skin === 'academy' ? ACADEMY_COLORS.BACKGROUND : COLORS.BACKGROUND);
     this.signature = '';
     if (this.loadedSkins.has(skin) || this.loadingSkins.has(skin)) return;
-    const pending = skinArtList(skin, 'sd').filter((art) => !this.textures.exists(art.key));
+    const pending = [...skinArtList(skin, 'sd'), ...(skin === 'academy' ? commanderArtList() : [])].filter((art) => !this.textures.exists(art.key));
     if (pending.length === 0) {
       this.loadedSkins.add(skin);
       return;
@@ -172,7 +182,8 @@ export class BattleScene extends Phaser.Scene {
       this.sprites.set(
         view.uid,
         new UnitSprite(this, this.metrics, this.layout, this.labels.unitAbbreviation(view.unitId), view.star,
-          unitTextureKey(this.skin.current, view.unitId, 'sd')),
+          unitTextureKey(this.skin.current, view.unitId, 'sd'),
+          this.skin.current === 'academy' && !!this.labels.unitIsBoss?.(view.unitId)),
       );
     }
     this.effects.clear();

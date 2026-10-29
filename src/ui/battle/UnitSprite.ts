@@ -3,6 +3,7 @@ import { createText, type HiDpiMetrics } from '../hidpi';
 import type { UnitView } from '../replay/ReplayState';
 import { COLORS, LAYOUT, STATUS_BADGES, TEXT_COLORS, TIMING } from '../theme';
 import type { BoardLayout } from './BoardLayout';
+import type { UnitPose } from './combatVisuals';
 
 /**
  * 유닛 하나의 표시: 진영색 도형 + 이름 약자(또는 스킨 원화) + 성급 + HP/보호막/마나 바 + 상태 배지. UnitView만 보고 그린다.
@@ -10,6 +11,7 @@ import type { BoardLayout } from './BoardLayout';
  */
 export class UnitSprite {
   private readonly container: Phaser.GameObjects.Container;
+  private readonly actor: Phaser.GameObjects.Container;
   /** 몸체 도형 (원화가 있으면 그 아래 받침) */
   private readonly base: Phaser.GameObjects.Graphics;
   /** 오라·막대·배지 (원화 위에 그린다) */
@@ -26,6 +28,7 @@ export class UnitSprite {
     abbreviation: string,
     star: number,
     artKey: string | null = null,
+    private readonly bossCrest = false,
   ) {
     this.base = scene.add.graphics();
     this.gfx = scene.add.graphics();
@@ -38,15 +41,16 @@ export class UnitSprite {
     }).setOrigin(0.5);
     const middle: Phaser.GameObjects.GameObject[] = this.art
       ? [this.art]
-      : [createText(scene, metrics, 0, 0, abbreviation, {
+      : [this.base, createText(scene, metrics, 0, 0, abbreviation, {
         fontSize: '20px',
         fontStyle: 'bold',
         color: TEXT_COLORS.UNIT_NAME,
       }).setOrigin(0.5)];
-    this.container = scene.add.container(0, 0, [this.base, ...middle, this.gfx, stars]).setDepth(10);
+    this.actor = scene.add.container(0, 0, middle);
+    this.container = scene.add.container(0, 0, [...(this.art ? [this.base] : []), this.actor, this.gfx, stars]).setDepth(10);
   }
 
-  update(view: UnitView, time: number): void {
+  update(view: UnitView, time: number, pose?: UnitPose): void {
     const alpha = this.alphaOf(view, time);
     this.container.setVisible(alpha > 0);
     if (alpha <= 0) return;
@@ -54,9 +58,13 @@ export class UnitSprite {
     const p = this.layout.center(view.pos.col, view.pos.row);
     this.container.setPosition(p.x, p.y);
     // 죽은 유닛은 살아 있는 유닛 아래에 깔리게 한다
-    this.container.setDepth(view.alive ? 10 + view.uid * 0.001 : 5);
+    this.container.setDepth(view.alive ? 10 + view.pos.row * 0.03 + view.uid * 0.0001 : 5);
+    this.actor.setPosition(pose?.x ?? 0, pose?.y ?? 0);
+    this.actor.setRotation(pose?.rotation ?? 0).setScale(pose?.scaleX ?? 1, pose?.scaleY ?? 1);
 
     this.drawBody(view);
+    if (pose?.flash) this.art?.setTintFill(0xffffff);
+    else if (pose?.hurt) this.art?.setTint(0xffbabd);
     this.syncBadges(view);
   }
 
@@ -80,7 +88,26 @@ export class UnitSprite {
 
     b.fillStyle(ally ? COLORS.ALLY_UNIT : COLORS.ENEMY_UNIT, this.art ? LAYOUT.SKIN_BASE_ALPHA : 1);
     b.lineStyle(3, stunned ? 0xffd54a : burning ? 0xff8a3d : ally || !this.art ? COLORS.UNIT_OUTLINE : COLORS.ENEMY_UNIT, 1);
-    if (ally) {
+    if (this.bossCrest && !this.art) {
+      const points = Array.from({ length: 7 }, (_, i) => ({ x: Math.cos(Math.PI / 6 + i * Math.PI / 3) * 29, y: Math.sin(Math.PI / 6 + i * Math.PI / 3) * 29 }));
+      b.fillStyle(0x40283f, 1);
+      b.fillPoints(points, true);
+      b.lineStyle(3, 0xd7a586, 1);
+      b.strokePoints(points, true);
+      b.lineStyle(1, 0xf09ca4, 0.65);
+      b.strokeCircle(0, 0, 35);
+      b.fillStyle(0xe5c694, 1);
+      b.fillTriangle(-14, -26, -8, -38, -3, -27);
+      b.fillTriangle(3, -27, 8, -38, 14, -26);
+    } else if (this.art) {
+      b.fillStyle(0x080c17, 0.6);
+      b.fillEllipse(0, 29, 54, 14);
+      b.fillStyle(ally ? COLORS.ALLY_UNIT : COLORS.ENEMY_UNIT, 0.23);
+      b.fillEllipse(0, 27, 52, 16);
+      b.lineStyle(2, ally ? COLORS.ALLY_UNIT : COLORS.ENEMY_UNIT, 0.85);
+      if (ally) b.strokeEllipse(0, 27, 52, 16);
+      else b.strokeRoundedRect(-25, 21, 50, 13, 3);
+    } else if (ally) {
       b.fillCircle(0, 0, LAYOUT.UNIT_RADIUS);
       b.strokeCircle(0, 0, LAYOUT.UNIT_RADIUS);
     } else {

@@ -1,10 +1,13 @@
 import { el, tagged } from './dom';
 import { relicRow } from './relicElements';
 import type { RunHud } from './runViews';
+import { commanderArt } from '../skin/commanderArt';
 
 /** 상단 상태 줄: 액트 · 층 · 지휘관 HP · 골드 · 덱 장수 · 시드 */
 export function hudElement(hud: RunHud): HTMLElement {
   const root = tagged(el('div', 'run-hud'), 'hud');
+  const portrait = commanderArt(hud.commanderId, 'portrait', 'academy-hud-portrait');
+  if (portrait) root.append(portrait);
   const item = (label: string, value: string, className = ''): HTMLElement => {
     const box = el('div', `run-hud-item ${className}`.trim());
     box.append(el('span', 'run-hud-label', label), el('strong', 'run-hud-value', value));

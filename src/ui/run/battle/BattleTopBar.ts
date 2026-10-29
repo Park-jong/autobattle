@@ -1,6 +1,8 @@
 import type { CardPanelView, PileView } from '../../cards/cardPanelView';
 import { PLAYBACK_SPEEDS, type DebugController, type SessionSnapshot } from '../../debug/contracts';
 import { SkinPicker } from '../../skin/SkinPicker';
+import { commanderArt } from '../../skin/commanderArt';
+import { motionPreferences } from '../../skin/presentation';
 import type { RunSnapshot } from '../contracts';
 import { button, el, tagged } from '../dom';
 import { relicRow } from '../relicElements';
@@ -57,6 +59,9 @@ export class BattleTopBar {
     if (hud.threatLevel > 0) chips.push(this.tipChip('bt-chip threat', `위협 ${hud.threatLevel}`, `위협 레벨 ${hud.threatLevel} — ${hud.threatName ?? ''}`));
     const hpRatio = hud.maxHp > 0 ? Math.max(0, Math.min(1, hud.hp / hud.maxHp)) : 0;
     const hp = tagged(el('span', 'bt-chip bt-hp'), 'hud-hp');
+    hp.classList.toggle('low', hpRatio <= 0.3);
+    const portrait = commanderArt(hud.commanderId, 'portrait', 'academy-hud-portrait');
+    if (portrait) hp.append(portrait);
     const bar = el('span', 'bt-hp-bar');
     const fill = el('span', 'bt-hp-fill');
     fill.style.display = 'block';
@@ -132,6 +137,13 @@ export class BattleTopBar {
     }
     speeds.title = '배속';
     nodes.push(speeds, this.skin.root);
+    const motion = tagged(button(motionPreferences.reduced ? '연출: 간결' : '연출: 풍부', () => {
+      motionPreferences.setReduced(!motionPreferences.reduced);
+      this.renderControls(stage, session);
+    }, 'bt-btn'), 'motion-toggle');
+    motion.setAttribute('aria-pressed', String(motionPreferences.reduced));
+    motion.title = '공격 모션과 빛 번짐을 줄입니다. 전투 규칙과 배속은 유지됩니다.';
+    nodes.push(motion);
     this.controls.replaceChildren(...nodes);
   }
 

@@ -1,39 +1,44 @@
-# 아카데미 스킨용 축소 이미지 생성: characters/Uxx/{sd,portrait}.png → public/skins/academy/{sd,portrait}/Uxx.png
-# 원화(1~3MB)를 게임에서 그대로 쓰면 무거우므로 전투 SD 256px, 상점 초상화 128px로 줄여 둔다.
-# 사용: powershell -ExecutionPolicy Bypass -File tools/skin-assets.ps1  (Windows PowerShell 5.1, 추가 설치 없음)
+﻿# 원본을 보존하고 배포용 PNG만 축소한다.
 Add-Type -AssemblyName System.Drawing
+$assetRoot = Split-Path -Parent $PSScriptRoot
 
-$root = Split-Path -Parent $PSScriptRoot
-$targets = @(
-  @{ Kind = 'sd'; Size = 256 },
-  @{ Kind = 'portrait'; Size = 128 }
-)
-
-foreach ($target in $targets) {
-  $outDir = Join-Path $root "public/skins/academy/$($target.Kind)"
+function Export-SkinArt([string]$Code, [string]$Kind, [int]$Width, [int]$Height) {
+  $source = Join-Path $assetRoot "characters/$Code/$Kind.png"
+  if (-not (Test-Path -LiteralPath $source)) { throw "Missing character art: $source" }
+  $outDir = Join-Path $assetRoot "public/skins/academy/$Kind"
   New-Item -ItemType Directory -Force $outDir | Out-Null
-  for ($n = 1; $n -le 30; $n++) {
-    $code = 'U{0:D2}' -f $n
-    $src = Join-Path $root "characters/$code/$($target.Kind).png"
-    if (-not (Test-Path $src)) { Write-Warning "없음: $src"; continue }
-    $image = [System.Drawing.Image]::FromFile($src)
-    try {
-      $size = $target.Size
-      $bitmap = New-Object System.Drawing.Bitmap $size, $size, ([System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
-      $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
-      $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
-      $graphics.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
-      $graphics.CompositingMode = [System.Drawing.Drawing2D.CompositingMode]::SourceCopy
-      # 정사각형이 아니면 긴 변 기준으로 맞추고 가운데 정렬 (투명 여백)
-      $scale = [Math]::Min($size / $image.Width, $size / $image.Height)
-      $w = [int]($image.Width * $scale); $h = [int]($image.Height * $scale)
-      $graphics.DrawImage($image, [int](($size - $w) / 2), [int](($size - $h) / 2), $w, $h)
-      $graphics.Dispose()
-      $bitmap.Save((Join-Path $outDir "$code.png"), [System.Drawing.Imaging.ImageFormat]::Png)
-      $bitmap.Dispose()
-    } finally {
-      $image.Dispose()
-    }
+  $image = [System.Drawing.Image]::FromFile($source)
+  $bitmap = $null
+  $graphics = $null
+  try {
+    $bitmap = New-Object System.Drawing.Bitmap $Width, $Height, ([System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+    $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+    $graphics.Clear([System.Drawing.Color]::Transparent)
+    $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+    $graphics.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
+    $graphics.CompositingMode = [System.Drawing.Drawing2D.CompositingMode]::SourceCopy
+    $scale = [Math]::Min($Width / $image.Width, $Height / $image.Height)
+    $scaledWidth = [int]($image.Width * $scale)
+    $scaledHeight = [int]($image.Height * $scale)
+    $graphics.DrawImage($image, [int](($Width - $scaledWidth) / 2), [int](($Height - $scaledHeight) / 2), $scaledWidth, $scaledHeight)
+    $bitmap.Save((Join-Path $outDir "$Code.png"), [System.Drawing.Imaging.ImageFormat]::Png)
+  } finally {
+    if ($graphics) { $graphics.Dispose() }
+    if ($bitmap) { $bitmap.Dispose() }
+    $image.Dispose()
   }
 }
-Write-Output '완료: public/skins/academy'
+
+for ($n = 1; $n -le 30; $n++) {
+  $code = 'U{0:D2}' -f $n
+  Export-SkinArt $code 'sd' 256 256
+  Export-SkinArt $code 'portrait' 256 256
+  Export-SkinArt $code 'illustration' 384 576
+}
+for ($n = 1; $n -le 3; $n++) {
+  $code = 'C{0:D2}' -f $n
+  Export-SkinArt $code 'sd' 256 256
+  Export-SkinArt $code 'portrait' 512 512
+  Export-SkinArt $code 'illustration' 640 960
+}
+Write-Output 'Saved 99 game assets: public/skins/academy'

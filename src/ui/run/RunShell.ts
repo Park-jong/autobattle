@@ -6,6 +6,7 @@ import { ActIntroScreen, BossRelicScreen, CampScreen, EventScreen, RewardScreen,
 import { StartScreen } from './StartScreen';
 import { TestToolsPanel } from './TestToolsPanel';
 import './runScreens.css';
+import { appSkin } from '../skin/SkinStore';
 
 /** 전체 화면 오버레이로 그리는 화면 (그 외 battle은 캔버스 + 오른쪽 패널, debug는 기존 디버그 패널) */
 interface OverlayScreen {
@@ -58,6 +59,7 @@ export class RunShell {
     this.testTools = new TestToolsPanel(view, commands);
     document.body.append(this.overlay, this.toast, this.backButton, this.testTools.root);
     view.subscribe(() => this.render());
+    appSkin.subscribe(() => this.render());
     this.render();
   }
 

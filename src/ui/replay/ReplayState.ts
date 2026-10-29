@@ -53,12 +53,14 @@ export interface UnitView {
 
 /** 일정 시간 보여줄 연출 이벤트. seq는 이벤트 로그 안의 순번(고유 키) */
 export type ReplayEffect =
-  | { kind: 'attack'; seq: number; t: number; unit: number; target: number; shots: number }
+  | { kind: 'attack'; seq: number; t: number; unit: number; target: number; shots: number; from?: CellPos; to?: CellPos }
   | {
       kind: 'damage';
       seq: number;
       t: number;
       unit: number;
+      source?: number | null;
+      origin?: CellPos;
       amount: number;
       absorbed: number;
       dmgType: DamageType;
@@ -406,9 +408,15 @@ export class ReplayState {
         break;
       }
 
-      case 'attack':
-        this.effects.push({ kind: 'attack', seq, t: e.t, unit: e.unit, target: e.target, shots: e.shots });
+      case 'attack': {
+        const attacker = this.units.get(e.unit);
+        const target = this.units.get(e.target);
+        this.effects.push({ kind: 'attack', seq, t: e.t, unit: e.unit, target: e.target, shots: e.shots,
+          ...(attacker ? { from: this.positionOf(attacker, e.t) } : {}),
+          ...(target ? { to: this.positionOf(target, e.t) } : {}),
+        });
         break;
+      }
 
       case 'damage': {
         const u = this.units.get(e.unit);
@@ -421,6 +429,8 @@ export class ReplayState {
           seq,
           t: e.t,
           unit: e.unit,
+          source: e.source,
+          ...(u ? { origin: this.positionOf(u, e.t) } : {}),
           amount: e.amount,
           absorbed: e.absorbed,
           dmgType: e.dmgType,

@@ -2,8 +2,11 @@ import Phaser from 'phaser';
 import { createText, type HiDpiMetrics } from '../hidpi';
 import type { MeteorView, ReplayEffect, ReviveWatchView, TelegraphView, UltimateAuraView, UnitView, ZoneView } from '../replay/ReplayState';
 import { BOARD_COLS, BOARD_ROWS } from '../../core/combat/board';
-import { COLORS, LAYOUT, MOTION, STAGE, TEXT_COLORS, TIMING } from '../theme';
+import { COLORS, COMBAT_FX, LAYOUT, MOTION, STAGE, TEXT_COLORS, TIMING } from '../theme';
 import type { BoardLayout } from './BoardLayout';
+import { buildCombatVisualFrame, damageLabels, projectilePoint, type AttackVisual, type CombatVisualFrame, type HitVisual } from './combatVisuals';
+import { commanderTextureKey } from '../skin/skins';
+import { appSkin } from '../skin/SkinStore';
 
 interface PooledText {
   text: Phaser.GameObjects.Text;
@@ -51,6 +54,7 @@ export class EffectsLayer {
   private readonly telegraphLabel: Phaser.GameObjects.Text;
   private readonly ultimateBanner: Phaser.GameObjects.Text;
   private readonly phaseBanner: Phaser.GameObjects.Text;
+  private cutin: Phaser.GameObjects.Image | null = null;
   /** 부활 대기 쌍둥이마다 하나씩: 죽은 쪽 위의 남은 시간, 짝 위의 "처치" 표시 */
   private readonly reviveLabels = new Map<string, Phaser.GameObjects.Text>();
 
@@ -120,8 +124,11 @@ export class EffectsLayer {
     telegraphs: readonly TelegraphView[] = [],
     ultimate: UltimateVisuals = NO_ULTIMATE,
     boss: BossVisuals = NO_BOSS,
+    combat?: CombatVisualFrame,
   ): void {
     this.lines.clear();
+    const visual = combat ?? buildCombatVisualFrame(time, effects, views);
+    this.cutin?.setVisible(false);
     let ultimateText: { text: string; alpha: number } | null = null;
     let phaseText: { text: string; alpha: number } | null = null;
     const live = new Set<number>();
@@ -133,20 +140,8 @@ export class EffectsLayer {
       const age = time - e.t;
       switch (e.kind) {
         case 'attack':
-          if (age <= TIMING.ATTACK_LINE) this.drawAttack(e, age, views);
           break;
         case 'damage': {
-          if (age > TIMING.DAMAGE_TEXT) break;
-          const physical = e.dmgType === 'physical';
-          // 치명타는 노란색 큰 글씨에 느낌표
-          // 카드의 조건부 추가 피해(연소 폭발·처형)는 주황색 큰 글씨에 별표
-          const color = e.crit ? TEXT_COLORS.CRIT : e.bonus ? TEXT_COLORS.BONUS : physical ? TEXT_COLORS.PHYSICAL : TEXT_COLORS.MAGIC;
-          this.showFloating(e.seq, live, e.unit, views, e.crit ? `-${e.amount}!` : e.bonus ? `-${e.amount}★` : `-${e.amount}`, color, age / TIMING.DAMAGE_TEXT, {
-            lift: MOTION.DAMAGE_RISE_PX,
-            baseY: -62,
-            jitter: ((e.seq % 5) - 2) * 9,
-            size: e.crit ? '30px' : e.bonus ? '26px' : '22px',
-          });
           break;
         }
         case 'cardCost':
@@ -159,6 +154,7 @@ export class EffectsLayer {
           break;
         case 'heal':
           if (age > TIMING.HEAL_TEXT) break;
+          if (age < 0.5) this.drawCast(e.unit, views, age / 0.5, 0x95e0b9, visual.reduced);
           this.showFloating(e.seq, live, e.unit, views, `+${e.amount}`, TEXT_COLORS.HEAL, age / TIMING.HEAL_TEXT, {
             lift: MOTION.DAMAGE_RISE_PX,
             baseY: -62,
@@ -168,6 +164,7 @@ export class EffectsLayer {
           break;
         case 'skill':
           if (age > TIMING.SKILL_TEXT) break;
+          if (age < 0.6) this.drawCast(e.unit, views, age / 0.6, 0xe4c991, visual.reduced);
           this.showFloating(e.seq, live, e.unit, views, e.skill, TEXT_COLORS.SKILL, age / TIMING.SKILL_TEXT, {
             lift: MOTION.SKILL_RISE_PX,
             baseY: -78,
@@ -195,6 +192,7 @@ export class EffectsLayer {
           if (age <= TIMING.STRIKE_FLASH) this.drawStrike(e.cells, age / TIMING.STRIKE_FLASH);
           break;
         case 'ultimate':
+          if (age < 1.25 && !visual.reduced) this.drawCommanderCutin(e.commanderId, age / 1.25);
           if (age <= TIMING.ULTIMATE_BANNER) {
             ultimateText = { text: `✦ ${e.name} ✦`, alpha: 1 - Math.max(0, age / TIMING.ULTIMATE_BANNER - 0.6) / 0.4 };
           }
@@ -253,6 +251,18 @@ export class EffectsLayer {
     this.drawAura(time, ultimate.aura, views);
     this.drawRevives(time, boss.revives, views);
     this.drawZones(time, boss.zones ?? []);
+    for (const attack of visual.attacks) this.drawAttack(attack, visual.reduced);
+    for (const hit of visual.hits) this.drawHit(hit, visual.reduced);
+    for (const label of damageLabels(time, effects, visual)) {
+      const guard = label.amount === 0 && label.absorbed > 0;
+      const text = guard ? '방어' : `-${label.amount}${label.crit ? '!' : label.bonus ? '★' : ''}`;
+      const color = guard ? '#a7dbef' : label.crit ? TEXT_COLORS.CRIT : label.bonus ? TEXT_COLORS.BONUS
+        : label.dmgType === 'physical' ? TEXT_COLORS.PHYSICAL : TEXT_COLORS.MAGIC;
+      this.showFloating(label.seq, live, label.unit, views, text, color, label.age / TIMING.DAMAGE_TEXT, {
+        lift: MOTION.DAMAGE_RISE_PX, baseY: -54 - label.lane * 14, jitter: (label.lane - 1) * 17,
+        size: label.crit ? '28px' : label.bonus ? '25px' : guard ? '17px' : '22px',
+      });
+    }
     if (phaseText && curseText) phaseText = { text: `${phaseText.text}  ${curseText.text}`, alpha: Math.max(phaseText.alpha, curseText.alpha) };
     else if (curseText) phaseText = curseText;
     if (phaseText) this.phaseBanner.setText(phaseText.text).setAlpha(phaseText.alpha).setVisible(true);
@@ -282,6 +292,7 @@ export class EffectsLayer {
     for (const label of this.reviveLabels.values()) label.destroy();
     this.reviveLabels.clear();
     this.telegraphLabel.setVisible(false);
+    this.cutin?.setVisible(false);
   }
 
   /**
@@ -488,32 +499,140 @@ export class EffectsLayer {
     }
   }
 
-  private drawAttack(
-    e: Extract<ReplayEffect, { kind: 'attack' }>,
-    age: number,
-    views: ReadonlyMap<number, UnitView>,
-  ): void {
-    const from = views.get(e.unit);
-    const to = views.get(e.target);
-    if (!from || !to) return;
-    const a = this.layout.center(from.pos.col, from.pos.row);
-    const b = this.layout.center(to.pos.col, to.pos.row);
-    const fade = 1 - age / TIMING.ATTACK_LINE;
-    const color = from.side === 0 ? COLORS.ATTACK_ALLY : COLORS.ATTACK_ENEMY;
-    const dx = b.y - a.y;
-    const dy = a.x - b.x;
-    const len = Math.hypot(dx, dy) || 1;
-    for (let i = 0; i < e.shots; i++) {
-      // 2발이면 평행하게 약간 벌려 그린다
-      const off = e.shots === 1 ? 0 : (i - 0.5) * 8;
-      const ox = (dx / len) * off;
-      const oy = (dy / len) * off;
-      this.lines.lineStyle(3, color, fade);
-      this.lines.lineBetween(a.x + ox, a.y + oy, b.x + ox, b.y + oy);
+  /** 발사체는 실제로 이동하고 근접 공격은 대상 앞에 짧은 호를 남긴다. */
+  private drawAttack(attack: AttackVisual, reduced: boolean): void {
+    const { profile, age, impactAt, event } = attack;
+    const a = this.layout.center(attack.from.col, attack.from.row);
+    const b = this.layout.center(attack.to.col, attack.to.row);
+    const angle = Math.atan2(b.y - a.y, b.x - a.x);
+    const g = this.lines;
+    if (!profile.ranged) {
+      if (age < COMBAT_FX.WINDUP) return;
+      const p = Math.min(1, (age - COMBAT_FX.WINDUP) / (attack.duration - COMBAT_FX.WINDUP));
+      const fade = 1 - p;
+      const passes = profile.style === 'claw' ? 3 : 1;
+      for (let i = 0; i < passes; i++) {
+        const r = 18 + i * 8 + p * 12;
+        g.lineStyle(reduced ? 2 : 5 - i, profile.color, fade * 0.9);
+        g.beginPath();
+        g.arc(b.x - Math.cos(angle) * 10, b.y - Math.sin(angle) * 10, r, angle - 1.25 + p * 0.8, angle + 0.5 + p * 0.8);
+        g.strokePath();
+        if (!reduced) {
+          g.lineStyle(1.5, 0xfff3df, fade);
+          g.beginPath();
+          g.arc(b.x - Math.cos(angle) * 10, b.y - Math.sin(angle) * 10, r - 3, angle - 1.1 + p * 0.8, angle + 0.45 + p * 0.8);
+          g.strokePath();
+        }
+      }
+      return;
     }
-    // 피격 플래시
-    this.lines.fillStyle(0xffffff, 0.6 * fade);
-    this.lines.fillCircle(b.x, b.y, 14 + 10 * (1 - fade));
+    const progress = (age - COMBAT_FX.WINDUP) / (impactAt - COMBAT_FX.WINDUP);
+    if (progress < 0) {
+      if (!reduced) {
+        g.lineStyle(2, profile.color, 0.6);
+        g.strokeCircle(a.x, a.y, 7 + age * 160);
+      }
+      return;
+    }
+    if (progress > 1) {
+      const fade = Math.max(0, 1 - (age - impactAt) / COMBAT_FX.ATTACK_FADE);
+      g.lineStyle(2, profile.color, fade * 0.7);
+      g.strokeCircle(b.x, b.y, 8 + (1 - fade) * (profile.style === 'shell' ? 34 : 20));
+      return;
+    }
+    const shots = Math.max(1, Math.min(3, event.shots));
+    for (let i = 0; i < shots; i++) {
+      const spread = (i - (shots - 1) / 2) * 10;
+      const ox = -Math.sin(angle) * spread, oy = Math.cos(angle) * spread;
+      const cell = projectilePoint(attack, progress);
+      const head = this.layout.center(cell.col, cell.row);
+      const x = head.x + ox, y = head.y + oy;
+      const trails = reduced ? 2 : 6;
+      for (let j = trails; j >= 1; j--) {
+        const tail = projectilePoint(attack, Math.max(0, progress - j * 0.045));
+        const next = projectilePoint(attack, Math.max(0, progress - (j - 1) * 0.045));
+        const t = this.layout.center(tail.col, tail.row), n = this.layout.center(next.col, next.row);
+        g.lineStyle(profile.style === 'arrow' ? 2 : 2 + (trails - j) * 0.8, profile.color, 0.1 + (1 - j / (trails + 1)) * 0.6);
+        g.lineBetween(t.x + ox, t.y + oy, n.x + ox, n.y + oy);
+      }
+      if (profile.style === 'arrow') {
+        const dx = Math.cos(angle), dy = Math.sin(angle);
+        g.lineStyle(2, 0xf7f1d9, 1);
+        g.lineBetween(x - dx * 17, y - dy * 17, x, y);
+        g.fillStyle(profile.color, 1);
+        g.fillTriangle(x + dx * 7, y + dy * 7, x - dx * 3 - dy * 4, y - dy * 3 + dx * 4, x - dx * 3 + dy * 4, y - dy * 3 - dx * 4);
+      } else {
+        const r = profile.style === 'shell' ? 7 : 5;
+        if (!reduced) { g.fillStyle(profile.color, 0.15); g.fillCircle(x, y, r * 2.6); }
+        g.fillStyle(profile.color, 0.95); g.fillCircle(x, y, r);
+        g.fillStyle(0xfff4db, 1); g.fillCircle(x - 1, y - 1, r * 0.42);
+        if (profile.style === 'orb' && !reduced) {
+          g.lineStyle(1, profile.color, 0.8);
+          g.strokeCircle(x, y, r + 5);
+        }
+        if (profile.style === 'ember' && !reduced) {
+          g.fillStyle(0xffe7ad, 0.7);
+          g.fillCircle(x + Math.sin(age * 80 + i) * 9, y + Math.cos(age * 60 + i) * 9, 2);
+        }
+      }
+    }
+  }
+
+  /** 피격 순간의 별 모양 섬광, 방패 문장, 바깥으로 튀는 파편. */
+  private drawHit(hit: HitVisual, reduced: boolean): void {
+    const { event, age, pos } = hit;
+    const p = age / COMBAT_FX.HIT, fade = 1 - p;
+    const c = this.layout.center(pos.col, pos.row), g = this.lines;
+    const guard = event.absorbed >= event.amount && event.absorbed > 0;
+    const color = guard ? 0xa6e4ff : event.crit ? 0xffdf92 : event.dmgType === 'magic' ? 0xc9a7ff : 0xffe3c2;
+    if (event.absorbed > 0) {
+      const r = 22 + p * 14;
+      const points = Array.from({ length: 7 }, (_, i) => ({ x: c.x + Math.cos(i * Math.PI / 3) * r, y: c.y + Math.sin(i * Math.PI / 3) * r }));
+      g.lineStyle(2.5, 0xa6e4ff, fade); g.strokePoints(points, false);
+    }
+    if (!reduced) {
+      g.fillStyle(color, 0.22 * fade); g.fillCircle(c.x, c.y, 12 + p * 19);
+      const count = event.crit ? 8 : 5;
+      for (let i = 0; i < count; i++) {
+        const angle = i * Math.PI * 2 / count + event.seq * 0.7;
+        const inner = 4 + p * 15, outer = inner + (event.crit ? 18 : 10) * fade;
+        g.lineStyle(i % 2 ? 1.5 : 2.5, color, fade);
+        g.lineBetween(c.x + Math.cos(angle) * inner, c.y + Math.sin(angle) * inner, c.x + Math.cos(angle) * outer, c.y + Math.sin(angle) * outer);
+      }
+    }
+    g.lineStyle(2, color, fade * 0.9); g.strokeCircle(c.x, c.y, 5 + p * 24);
+    if (age < 0.08) {
+      const r = (event.crit ? 15 : 9) * fade;
+      g.fillStyle(0xfff9ed, fade);
+      g.fillTriangle(c.x, c.y - r, c.x - 3, c.y, c.x + 3, c.y);
+      g.fillTriangle(c.x, c.y + r, c.x - 3, c.y, c.x + 3, c.y);
+    }
+  }
+
+  private drawCast(uid: number, views: ReadonlyMap<number, UnitView>, progress: number, color: number, reduced: boolean): void {
+    const view = views.get(uid);
+    if (!view) return;
+    const p = this.layout.center(view.pos.col, view.pos.row), g = this.lines;
+    const radius = 22 + progress * 25;
+    g.lineStyle(2, color, (1 - progress) * 0.8);
+    g.strokeEllipse(p.x, p.y + 21, radius * 2, radius * 0.65);
+    if (reduced) return;
+    for (let i = 0; i < 5; i++) {
+      const angle = i * Math.PI * 2 / 5 + progress * 2;
+      g.fillStyle(color, 1 - progress);
+      g.fillCircle(p.x + Math.cos(angle) * radius, p.y + Math.sin(angle) * radius * 0.35 - progress * 24, 2.5);
+    }
+  }
+
+  private drawCommanderCutin(commanderId: string, progress: number): void {
+    const key = commanderTextureKey(commanderId);
+    if (appSkin.current !== 'academy' || !this.scene.textures.exists(key)) return;
+    if (!this.cutin) this.cutin = this.scene.add.image(0, 0, key).setDepth(38);
+    const fade = progress < 0.7 ? 1 : (1 - progress) / 0.3;
+    const entrance = Math.min(1, progress / 0.16);
+    this.cutin.setTexture(key).setDisplaySize(190, 190).setPosition(300 - 35 * (1 - entrance), 365).setAlpha(fade).setVisible(true);
+    this.lines.lineStyle(2, auraColor(commanderId), fade * 0.6);
+    this.lines.strokeCircle(300, 365, 100);
   }
 
   /** 카드 대상에 퍼지는 링: 유닛 대상은 해당 유닛, 칸 대상은 칸 중심 */
@@ -599,6 +718,7 @@ export class EffectsLayer {
       this.texts.set(seq, pooled);
     }
     const eased = 1 - (1 - progress) * (1 - progress);
+    pooled.text.setText(label).setColor(color);
     pooled.text.setPosition(x, y - opt.lift * eased);
     pooled.text.setAlpha(progress < 0.6 ? 1 : 1 - (progress - 0.6) / 0.4);
   }
