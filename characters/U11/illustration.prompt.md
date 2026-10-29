@@ -1,0 +1,73 @@
+# U11 라비 — illustration 생성 프롬프트
+
+성인 게임 지향. 내장 이미지 생성 도구 사용.
+
+참조: characters/U01/illustration.png
+
+```text
+Use case: stylized-concept. Production game asset for a coherent roster of 30 adult women. The setting is an adult postsecondary magical academy fantasy game for adult audiences. All characters are explicitly adult women age 20 or older, including adult female spirits. Use attractive mature anime character design, crisp elegant linework, refined controlled cel shading, detailed metal and cloth, consistent soft neutral upper-left lighting, a clear silhouette. Follow the revealing opaque fantasy fashion specified in the character brief: adult shoulders, collarbones, waist or thighs visible as described. Preserve role-specific equipment and faction palette. Natural proportions, fully opaque clothing covering intimate areas, no sexual action. Real transparent PNG alpha; no background, scenery, floor, vignette, glow outside the silhouette, painted checkerboard, text, labels, frames, UI, watermark or extra characters. Create U11 라비: ONE finished full-body character illustration, portrait 2:3 canvas. Reference image is STYLE ONLY: match rendering polish and linework, but create this DIFFERENT character with her own face, hair, costume, equipment, palette and pose from the brief. Do not copy Rine, her brown bob, blue ribbon, shield or notebook unless explicitly in this brief. Adult full-size anatomy about 7–8 heads tall, eye-level near-front three-quarter view, complete head-to-boot-soles framing, include all hair ornaments and primary equipment with margins. Pose and expression reflect her personality. No alternate views or prop sheet.
+
+CHARACTER BRIEF (Korean):
+# U11 — 과출력 결투생 라비
+
+
+
+## 기본 설정
+
+| 항목 | 설정 |
+|---|---|
+| 번호 | U11 |
+| 이름 | 라비 |
+| 포지션 | 과출력 결투생 라비 |
+| 성별 | 여성 |
+| 작품 지향 | 성인 대상 게임 · 노출 있는 판타지 의상 |
+| 연령 | 23세 |
+| 소속 | 폭발물 마법학부 |
+| 등급·직업 | 2 · 검투사 |
+| 기존 유닛 | 잿불 광전사 |
+| 데이터 ID | `ember_berserker` |
+
+## 성인 게임 아트 방향
+
+성인 대상 게임을 지향한다. 전원 성인 여성 설정을 유지하고, 어깨·쇄골·허리·허벅지가 드러나는 의상과 몸에 맞는 실루엣을 기본으로 한다. 노출 위치와 의상 형태는 캐릭터의 역할·성격·소속에 따라 차별화한다.
+
+- **노출 포인트:** 어깨·팔·복부·허벅지. 마력 회로와 단단한 운동 체형을 드러낸다.
+- **의상 기준:** 불투명한 주요 의복, 소속 문장과 대표 장비를 유지한다.
+
+## 성격·배경
+
+지기 싫어서 안전장치를 매번 푼다. 동료가 건네는 회복 간식은 모른 척 주머니에 챙긴다.
+
+## 외형 요약
+
+선홍색 짧은 머리, 팔의 발광 회로, 균열 난 마력 건틀릿
+
+## 체격
+
+| 항목 | 설정 |
+|---|---|
+| 키 | 170 cm |
+| 쓰리사이즈 B/W/H | 86/64/90 cm |
+| 체형·골격 | 어깨와 등이 발달한 날렵한 운동형. 긴 팔과 단단한 복부. |
+| 피부·신체 특징 | 햇볕에 그을린 구릿빛 피부. 양팔의 붉은 마력 회로와 오른쪽 눈썹 위 훈련 흉터. |
+
+키는 맨발 기준으로 귀·왕관·장식은 제외한다. B/W/H는 가슴둘레/허리둘레/엉덩이둘레이며 의상·장비 두께를 제외한다. 정령과 계약 존재도 성인 여성 인간형 기준이다.
+
+## 외형 상세
+
+| 항목 | 설정 |
+|---|---|
+| 머리색·헤어스타일 | 선홍색 `#D83D4C`. 짧고 거친 레이어드컷, 한쪽 관자놀이를 짧게 정리한다. |
+| 눈색·눈매 | 황금색 `#E2B94D`. 좁고 위로 향한 눈매, 발동 시 동공 둘레가 붉어진다. |
+| 얼굴·기본 표정 | 각진 턱선, 짙은 눈썹, 도전적으로 웃는 입. 얼굴에 훈련 흔적을 남긴다. |
+| 복식·신발 | 가슴을 완전히 덮는 불투명 주홍 운동 탑, 허리에 묶은 짧은 실험 재킷, 옆선이 짧은 강화 반바지, 건틀릿과 금속 발등 전투화. |
+| 장비·자세·식별 포인트 | 큰 마력 건틀릿과 노출된 팔의 발광 회로. 앞으로 기울인 상체와 벌린 손가락이 먼저 보인다. |
+
+## 스킬·전투 연출
+
+**제한장치 해제!** — 체력을 대가로 회로가 붉게 달아올라 공격력이 오르고, 타격 시 생명력을 흡수한다.
+
+기존 전투 효과와 수치는 유지하며, 위 설명은 스킨의 이름과 연출 제안이다.
+
+
+```

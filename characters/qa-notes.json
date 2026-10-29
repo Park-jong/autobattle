@@ -1,0 +1,17 @@
+{
+  "pending": [],
+  "resolved": [
+    {
+      "uid": "U15",
+      "kind": "illustration",
+      "issue": "Three visible hands. Keep exactly two: one holding the botanical book, one holding the watering-can staff. Remove the loose lower-left arm and hand; preserve all other design details.",
+      "resolution": "Corrected full-body anatomy to exactly two arms/hands, then regenerated SD from the corrected full body; visually verified."
+    },
+    {
+      "uid": "U15",
+      "kind": "sd",
+      "issue": "Extra hand inherited from full-body reference. Regenerate SD from the corrected full body with exactly two arms and hands.",
+      "resolution": "Corrected full-body anatomy to exactly two arms/hands, then regenerated SD from the corrected full body; visually verified."
+    }
+  ]
+}
