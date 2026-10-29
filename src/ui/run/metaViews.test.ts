@@ -13,10 +13,10 @@ const summary = (over: Partial<RunSummary> = {}): RunSummary => ({
 const startView = (progress: MetaProgress) => buildMetaStartView({ kind: 'ok', progress }, catalog, deps.commanders, deps.relics);
 
 describe('buildMetaStartView', () => {
-  it('처음에는 해금 13개가 모두 잠김이고 지휘관 잠금 행에 조건·진행도·구매 불가가 담긴다', () => {
+  it('처음에는 해금 14개가 모두 잠김이고 지휘관 잠금 행에 조건·진행도·구매 불가가 담긴다', () => {
     const view = startView(new MetaProgress(catalog));
     expect(view.status).toBe('ok');
-    expect(view.items).toHaveLength(13);
+    expect(view.items).toHaveLength(14);
     expect(view.items.every((i) => i.state === 'locked')).toBe(true);
     const isera = view.commanders['cmd_isera']!;
     expect(isera).toMatchObject({ name: expect.stringContaining('이세라'), targetLabel: '지휘관', price: 30, progressText: '0/1', canPurchase: false, shortfall: 30, state: 'locked' });

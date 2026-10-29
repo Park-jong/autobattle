@@ -14,7 +14,7 @@ import {
   damageCommander, driveTo, finishBattle, forceEvent, grantGold, grantRelic, newRun, newRunAs, runDeps, spendAllGold,
 } from './testSupport';
 
-/** 효과 테스트를 마친 유물. 마지막 테스트가 유물 20개 전부가 여기 들어 있는지 확인한다 */
+/** 효과 테스트를 마친 유물. 마지막 테스트가 유물 28개 전부가 여기 들어 있는지 확인한다 */
 const covered = new Set<string>();
 const covers = (...ids: string[]): void => ids.forEach((id) => covered.add(id));
 
@@ -22,11 +22,11 @@ const jsonOf = (run: RunController): string => JSON.stringify(run.serialize());
 const roundtrip = (run: RunController): RunController => RunController.restore(runDeps, JSON.parse(JSON.stringify(run.serialize())));
 
 describe('유물 데이터', () => {
-  it('유물 20개: 일반 9 / 희귀 8 / 보스 3, id 중복 없음', () => {
+  it('유물 28개: 일반 9 / 희귀 8 / 보스 11, id 중복 없음', () => {
     const relics = relicCatalog.relics;
-    expect(relics).toHaveLength(20);
-    expect(new Set(relics.map((r) => r.id)).size).toBe(20);
-    expect([relicCatalog.ofRarity('common').length, relicCatalog.ofRarity('rare').length, relicCatalog.ofRarity('boss').length]).toEqual([9, 8, 3]);
+    expect(relics).toHaveLength(28);
+    expect(new Set(relics.map((r) => r.id)).size).toBe(28);
+    expect([relicCatalog.ofRarity('common').length, relicCatalog.ofRarity('rare').length, relicCatalog.ofRarity('boss').length]).toEqual([9, 8, 11]);
   });
 
   it('DESIGN 8-1의 6개가 들어 있다', () => {
@@ -555,7 +555,111 @@ describe('저장 v2와 v1 마이그레이션', () => {
   });
 });
 
-describe('유물 20개 전부 효과 테스트가 있다', () => {
+describe('보스 유물 (0.20.0에 추가된 8개)', () => {
+  it('전쟁군주의 왕관: 아군 유닛이 쓰러지면 CP +1 (전투당 최대 2), 궁극기 게이지 충전량 +50%', () => {
+    covers('war_crown');
+    const five = Array.from({ length: 5 }, (_, i) => ['iron_shieldbearer', 1, 3, i] as const);
+    const sim = makeCardSim({ commander: harten, a: five, relics: relicEffects('war_crown') });
+    sim.startCombat();
+    for (let uid = 0; uid < 4; uid++) sim.world.dealDamage({ source: null, target: unitOf(sim, uid), raw: 1e9, type: 'magic' });
+    expect(cpEvents(sim).filter((e) => e.reason === 'effect').map((e) => e.delta)).toEqual([1, 1]);
+    expect(sim.commandPoints?.combat).toBe(4);
+    const charge = makeCardSim({ commander: harten, hand: ['hold_the_line'], relics: relicEffects('war_crown') });
+    charge.startCombat();
+    charge.playCard(1, { kind: 'unit', uid: 0 });
+    expect(charge.ultimate?.charge).toBe(Math.round(ULTIMATE.CARD_CHARGE * 1.5));
+  });
+
+  it('황금 장부: 전투 승리 골드 +4, 이자 상한 +2G', () => {
+    covers('golden_ledger');
+    const run = newRun(3);
+    grantRelic(run, 'golden_ledger');
+    grantGold(run, 70); // 80G → 이자 상한 5 + 2 = 7
+    run.chooseNode(run.availableNodes()[0]!.id);
+    const settle = finishBattle(run, 'win');
+    expect(settle.ok && settle.settlement.reward).toMatchObject({ base: 5, interest: 7, bonus: 4 });
+  });
+
+  it('마력의 샘: 전투 시작 시 아군 전체 마나 +30, 처치하면 그 유닛 마나 +10', () => {
+    covers('mana_wellspring');
+    const sim = makeCardSim({ commander: null, relics: relicEffects('mana_wellspring'), b: [['arena_recruit', 1, 4, 2], ['legion_crossbow', 1, 6, 2]] });
+    sim.startCombat();
+    CARD_A.forEach((_, uid) => expect(unitOf(sim, uid).mana).toBe(30));
+    const killer = unitOf(sim, 0);
+    sim.world.dealDamage({ source: killer, target: unitOf(sim, 3), raw: 1e9, type: 'magic' });
+    expect(killer.mana).toBe(40);
+  });
+
+  it('불사조의 잔불: 전투 승리 시 지휘관 HP +4, 야영지 휴식 회복량 +20%p', () => {
+    covers('phoenix_ember');
+    const run = newRun(7);
+    grantRelic(run, 'phoenix_ember');
+    damageCommander(run, 30);
+    run.chooseNode(run.availableNodes()[0]!.id);
+    const hp = run.hp;
+    const settle = finishBattle(run, 'win');
+    expect(settle.ok && settle.settlement.healed).toBe(4);
+    expect(run.hp).toBe(hp + 4);
+    const camp = newRun(6);
+    grantRelic(camp, 'phoenix_ember');
+    damageCommander(camp, 60);
+    driveTo(camp, 'camp');
+    expect(camp.campView()!.healAmount).toBe(40); // 최대 HP 80 × (30% + 20%p)
+  });
+
+  it('대마도서: 주문 카드 피해 +40%, 전투 시작 CP +1', () => {
+    covers('arcane_codex');
+    const burn = (...ids: string[]): number => {
+      const sim = makeCardSim({ commander: null, hand: ['ember_arrow'], relics: relicEffects(...ids), a: [['iron_shieldbearer', 1, 3, 2]], b: [['arena_recruit', 1, 4, 2]] });
+      sim.startCombat();
+      sim.playCard(1, { kind: 'unit', uid: 1 });
+      return eventsOf(sim, 'statusApplied').find((e) => e.status === 'burn')?.value ?? 0;
+    };
+    expect(burn()).toBe(20);
+    expect(burn('arcane_codex')).toBe(28);
+    const sim = makeCardSim({ commander: harten, relics: relicEffects('arcane_codex') });
+    sim.startCombat();
+    expect(sim.commandPoints?.combat).toBe(3);
+  });
+
+  it('대전략가의 가방: 손패 상한 +1, 전투 준비 때 카드 2장 더 뽑기', () => {
+    covers('strategist_satchel');
+    const run = newRun(1);
+    grantRelic(run, 'strategist_satchel');
+    run.chooseNode(run.availableNodes()[0]!.id);
+    expect(run.createSimulator().deck?.hand).toHaveLength(RUN_HAND + 2);
+    const hand = Array.from({ length: 10 }, (_, i) => ({ instanceId: i + 1, cardId: 'war_drums', upgraded: false }));
+    const deck: DeckSnapshot = { nextInstanceId: 12, draw: [{ instanceId: 11, cardId: 'war_drums', upgraded: false }], hand, discard: [], exhaust: [], rngState: 1 };
+    const sim = makeCardSim({ commander: harten, deck, relics: relicEffects('strategist_satchel') });
+    sim.deck?.draw(1);
+    expect(sim.deck?.hand).toHaveLength(11);
+  });
+
+  it('명장의 대장간: 획득 즉시 덱 카드 4장 강화, 카드 보상 선택지 +1장', () => {
+    covers('master_forge');
+    const run = newRun(8);
+    const upgradedBefore = deckCards(run.deck).filter((c) => c.upgraded).length;
+    grantRelic(run, 'master_forge');
+    expect(deckCards(run.deck).filter((c) => c.upgraded).length).toBe(upgradedBefore + 4);
+    run.chooseNode(run.availableNodes()[0]!.id);
+    finishBattle(run, 'win');
+    expect(run.rewardOffer()).toHaveLength(RUN.REWARD.CHOICES + 1);
+  });
+
+  it('대군기: 같은 특성 유닛 4기 이상이면 단계 +1 (다섯 번째 깃발보다 한 기 적게)', () => {
+    covers('grand_banner');
+    const tier = (count: number, ...ids: string[]): number | undefined => {
+      const units = Array.from({ length: count }, (_, i) => ['iron_shieldbearer', 1, 3, i] as const);
+      const sim = makeCardSim({ commander: harten, a: units, relics: relicEffects(...ids) });
+      return sim.activeTraits[0].find((t) => t.traitId === 'guardian')?.tier;
+    };
+    expect(tier(4)).toBe(0);
+    expect(tier(4, 'grand_banner')).toBe(1);
+    expect(tier(3, 'grand_banner')).toBe(0);
+  });
+});
+
+describe('유물 28개 전부 효과 테스트가 있다', () => {
   it('relics.json의 모든 유물 id가 위 테스트에서 다뤄졌다', () => {
     expect([...covered].sort()).toEqual(relicCatalog.relics.map((r) => r.id).sort());
   });

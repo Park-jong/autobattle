@@ -153,7 +153,9 @@ describe('액트 진행', () => {
     expect(result.ok && result.settlement).toMatchObject({ kind: 'boss', outcome: 'win', runEnded: null, actCleared: 1, cardOffer: null });
     expect(run.phase).toBe('bossRelic');
     const offer = run.bossRelicChoices();
-    expect(offer.sort()).toEqual(['iron_heart', 'legion_seal', 'rift_heart']);
+    expect(offer).toHaveLength(3); // 보스 유물 11개 중 무작위 3개 (중복 없음)
+    expect(new Set(offer).size).toBe(3);
+    expect(offer.every((id) => runDeps.relics.get(id)?.rarity === 'boss')).toBe(true);
     expect(run.outcome).toBeNull();
     expect(run.bossRelicOffer()).toEqual([]); // 종료 화면용 후보는 승리로 끝난 런에서만
     const goldAfterBoss = run.gold;
@@ -190,7 +192,7 @@ describe('액트 진행', () => {
     expect(run.phase).toBe('ended');
     expect(run.outcome).toBe('victory');
     expect(run.act).toBe(3);
-    expect(run.bossRelicOffer()).toHaveLength(1); // 이미 2개를 받았으므로 남은 1개 (받을 수는 없고 표시만)
+    expect(run.bossRelicOffer()).toHaveLength(3); // 이미 2개를 받았어도 남은 보스 유물 중 3개 (받을 수는 없고 표시만)
   });
 
   it('보스 유물은 건너뛸 수 있다 (유물 없이 다음 액트로)', () => {
@@ -205,7 +207,7 @@ describe('액트 진행', () => {
 
   it('보스 유물이 남지 않았으면 선택 없이 바로 다음 액트 소개로 넘어간다', () => {
     const run = newRun(13, 'starter', 3);
-    for (const id of ['rift_heart', 'legion_seal', 'iron_heart']) {
+    for (const id of runDeps.relics.ofRarity('boss').map((r) => r.id)) {
       (run as unknown as { acquireRelic(id: string): void }).acquireRelic(id);
     }
     driveTo(run, 'boss');
@@ -268,7 +270,7 @@ describe('액트 진행', () => {
     expect(run.phase).toBe('battlePrep');
     const result = finishBattle(run, 'win');
     expect(result.ok && result.settlement.actCleared).toBe(2);
-    expect(run.bossRelicChoices()).toHaveLength(2);
+    expect(run.bossRelicChoices()).toHaveLength(3); // 하나를 가졌어도 남은 보스 유물이 충분하다
     run.claimBossRelic(1);
     run.continueAct();
     expect(run.act).toBe(3);
@@ -280,7 +282,13 @@ describe('보스 유물을 실제로 받으면 효과가 나온다', () => {
     const run = newRun(17, 'starter', 3);
     driveTo(run, 'boss');
     finishBattle(run, 'win');
-    run.claimBossRelic(run.bossRelicChoices().indexOf(relicId));
+    // 후보 3개는 무작위라 원하는 유물이 없을 수 있다: 후보에 있으면 고르고, 없으면 건너뛴 뒤 같은 획득 경로로 받는다
+    const index = run.bossRelicChoices().indexOf(relicId);
+    if (index >= 0) run.claimBossRelic(index);
+    else {
+      run.skipBossRelic();
+      (run as unknown as { acquireRelic(id: string): void }).acquireRelic(relicId);
+    }
     run.continueAct();
     return run;
   };

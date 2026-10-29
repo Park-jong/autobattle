@@ -18,7 +18,7 @@
 
 ## 폴더 구조
 ```
-/data            게임 콘텐츠 JSON (카드, 유닛, 특성, 지휘관 3명, 유물 relics 20개, 적 편성 encounters, 이벤트 events, 메타 진행 meta, 위협 레벨 threat). 형식은 data/README.md
+/data            게임 콘텐츠 JSON (카드, 유닛, 특성, 지휘관 3명, 유물 relics 28개, 적 편성 encounters, 이벤트 events, 메타 진행 meta, 위협 레벨 threat). 형식은 data/README.md
 /src/core        Phaser 비의존 순수 로직 (RNG, 데이터 로더/검증, 이후 런·덱·전투 시뮬)
   rng.ts           시드 기반 RNG (Rng 클래스)
   data/            카드·유닛·특성·지휘관·유물·효과 타입, 검증기(Card/Unit/Trait/Commander/Relic/EffectValidator — 카드·지휘관·유물의 전투 효과도 공통 효과 검증기를 씀), 로더(loadCards/loadUnits/loadTraits/loadCommanders/loadRelics/loadEncounters/loadEvents — 편성·이벤트는 유닛·카드 참조와 층 커버리지까지 확인)
@@ -68,11 +68,11 @@
 ## 지휘관·궁극기·유물 요약 (M5-A)
 - **지휘관 3명** (`data/commanders.json`): 하르텐(HP 80, 보호막 패시브, 방패병 ×2, 불굴의 방진) / 이세라(HP 70, 주문 피해 +25%·시작 CP +1, 잿불 점화사+숲 궁수, 대분화) / 녹스(HP 65, 승리 시 남은 CP 1당 1G, 그림자 단검 ×2, 대가 지불, 고유 카드 피의 대가). 시작 덱은 모두 10장. 해금(`unlock`)은 M5-5 범위라 데이터에만 있고 지금은 모두 선택 가능. 패시브 보정은 `passive.spellDamagePct`/`goldPerLeftoverCp`, 효과 없는 패시브는 `effects: []`.
 - **궁극기** (`combat/ultimate.ts`): 게이지 0→100(카드 사용 +15, 아군 사망 +25, 전투당 1회). `sim.useUltimate()`는 카드와 같은 명령 로그(`cardInstanceId: -1`)·예약(`setup.cards.commands`)에 들어가 재현되고, 실패는 `{ok:false, reason}`·상태 불변. `sim.ultimate`(UltimateView)로 UI가 읽으며 **게이지 변화는 이벤트가 아니라 상태 조회**(쓰지 않으면 로그가 도입 전과 동일). 이벤트는 `ultimateUsed`·`ultimateTelegraph`·`ultimateImpact`(+HP 소모는 `commanderHp`, 카드 HP 비용과 같은 장부·정산). 새 효과 `taunt`(도발). 카드 사용 계획에서 `{ "ultimate": true }`로 지정.
-- **유물** (`data/relics.json` 20개: 일반 9/희귀 8/보스 3): 전투(`RelicCombatRules`가 `CombatSetup.cards.relics`를 읽음)·경제(`Economy.setModifiers`, `Management` perks)·덱(`PlayerForces`)·런(`RunController`) 훅에 효과 종류별로 연결. 획득: 정예 승리 보상(`claimRelic`)·상점(`buyShopRelic`)·이벤트 `gainRelic`, 보스 유물은 액트 1·2 보스 처치 후 후보 3개 중 1개 선택(`claimBossRelic`/`skipBossRelic`, M5-1)하고 마지막 액트 보스 후에는 후보(`bossRelicOffer`)만 종료 화면에 표시. 중복 획득 금지, 모든 무작위는 `deriveSeed` 파생 Rng. 저장은 `relics`(보유·거울/무료 리롤 사용량)를 담고(v2부터) v1은 유물 없음으로 읽는다.
+- **유물** (`data/relics.json` 28개: 일반 9/희귀 8/보스 11 — 보스 유물 7개는 처음부터 열려 첫 런에도 매 액트 3개 중 1개 선택, 4개는 메타 해금; 목록은 data/README.md relics.json 절): 전투(`RelicCombatRules`가 `CombatSetup.cards.relics`를 읽음)·경제(`Economy.setModifiers`, `Management` perks)·덱(`PlayerForces`)·런(`RunController`) 훅에 효과 종류별로 연결. 획득: 정예 승리 보상(`claimRelic`)·상점(`buyShopRelic`)·이벤트 `gainRelic`, 보스 유물은 액트 1·2 보스 처치 후 후보 3개 중 1개 선택(`claimBossRelic`/`skipBossRelic`, M5-1)하고 마지막 액트 보스 후에는 후보(`bossRelicOffer`)만 종료 화면에 표시. 중복 획득 금지, 모든 무작위는 `deriveSeed` 파생 Rng. 저장은 `relics`(보유·거울/무료 리롤 사용량)를 담고(v2부터) v1은 유물 없음으로 읽는다.
 
 ## 메타 진행 (M5-5A core, M5-5B 화면)
 - **UI (M5-5B)**: `ui/run/MetaStore`(주입 가능한 `RunStorage`로 `MetaProgress` 저장, 키 `autochess-meta-save`, 손상이면 broken 상태로 덮어쓰지 않고 "전공 기록 초기화"로만 복구)·`metaViews.ts`(순수 빌더: 시작 화면 잠금·전공 목록·종료 정산)·`MetaPanel`(시작 화면 접이식 전공 패널)·`StartScreen`(전공 포인트·지휘관 잠금/구매, 잠긴 지휘관은 새 런 비활성)·`EndScreen`(정산 내역·새 해금). `RunSession`은 `meta`·`newRunId` 옵션을 받아 새 일반 런에 `unlocks`+`runId`를 넘기고, 런이 ended가 되는 순간 `settleRun`을 한 번만 호출한다(정산 → 메타 저장 → 런 저장 삭제). runId 없는 옛 저장본은 이어하기 때 `assignRunId`로 한 번 붙인다. **테스트 런·경제 플레이·편성 디버그·헤드리스에는 unlocks/runId를 넘기지 않고 정산도 하지 않는다**(`TestStartPanel`은 잠금 표시 없음). 명령은 `RunCommands.purchaseUnlock`/`resetMeta`.
-- `data/meta.json`(`loadMeta`): 전공 포인트 공식(도달 층·보스·정예·승리 보너스)과 해금 항목 13개(지휘관 이세라·녹스, `unlock` 문구가 있는 유물 11개) — 각 `{ 대상, 조건, 가격 }`. 조건을 달성하면 런 정산 때 자동 해금, 달성 전이라도 전공 포인트로 먼저 구매할 수 있다. 하르텐·조건 없는 유물 9개는 처음부터 열림, 카드·유닛은 안 잠금, 시작 유물 선택 없음. `unlock` 문자열은 표시용이고 로더가 meta.json과 대조한다. 상세·조건 해석·포인트 공식은 data/README.md "meta.json".
+- `data/meta.json`(`loadMeta`): 전공 포인트 공식(도달 층·보스·정예·승리 보너스)과 해금 항목 14개(지휘관 이세라·녹스, `unlock` 문구가 있는 유물 12개 — 희귀 8·보스 4) — 각 `{ 대상, 조건, 가격 }`. 조건을 달성하면 런 정산 때 자동 해금, 달성 전이라도 전공 포인트로 먼저 구매할 수 있다. 하르텐·조건 없는 유물 16개(일반 9·보스 7)는 처음부터 열림, 카드·유닛은 안 잠금, 시작 유물 선택 없음. `unlock` 문자열은 표시용이고 로더가 meta.json과 대조한다. 상세·조건 해석·포인트 공식은 data/README.md "meta.json".
 - `MetaProgress`: `settleRun(controller.runSummary())`(같은 `runId` 1회, 테스트 런 제외) · `purchase(id)` · `isUnlocked`/`progress`/`items()`/`runUnlocks()` · `serialize()`/`restore()`.
 - **잠금은 일반 런에만**: `RunController.create`의 `unlocks`(허용 지휘관·유물)를 주면 잠긴 지휘관 거부 + 유물 후보 필터, 허용 유물은 저장본의 선택 필드 `allowedRelics`(+ `runId`, `stats`)에 저장되어 도중에 메타가 바뀌어도 후보가 불변. 후보가 모자라면 있는 만큼만(0개면 그 보상 생략, 보스 유물 후보 0개면 선택 단계 건너뜀).
 - **테스트 환경은 메타를 무시한다**: 테스트 런(`createTest`), 편성 디버그·5연전·경제 플레이, 헤드리스(`tools/run.ts`·`tools/sim.ts`·`AutoRunner`)는 `unlocks`를 주지 않아 모든 지휘관·유물을 쓴다(`allowedRelics` null). 새 코드도 이 경로에 해금 정보를 넘기지 말 것.

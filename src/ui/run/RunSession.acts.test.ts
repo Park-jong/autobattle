@@ -24,7 +24,8 @@ describe('RunSession: 액트 전환 화면', () => {
     const h = openSaved(run);
     let snap = h.session.snapshot();
     expect(snap.screen).toBe('bossRelic');
-    expect(snap.bossRelic!.relics.map((r) => r.id).sort()).toEqual(['iron_heart', 'legion_seal', 'rift_heart']);
+    expect(snap.bossRelic!.relics).toHaveLength(3); // 보스 유물 11개 중 무작위 3개
+    expect(snap.bossRelic!.relics.every((r) => gameData.run.relics.get(r.id)?.rarity === 'boss')).toBe(true);
     expect(snap.bossRelic).toMatchObject({ act: 1, actName: '회색 관문', actCount: 3 });
     expect(snap.hud).toMatchObject({ act: 1, actName: '회색 관문', actCount: 3 });
 
@@ -94,7 +95,7 @@ describe('RunSession: 액트 전환 화면', () => {
     expect(run.phase).toBe('ended');
     const end = buildEndView(run, gameData.cards, gameData.units, gameData.run.relics);
     expect(end).toMatchObject({ outcome: 'victory', title: '3액트 돌파', act: 3, actCount: 3, actName: '몰락한 수도 아스트라', floorReached: 13 });
-    expect(end.bossRelicOffer).toHaveLength(1);
+    expect(end.bossRelicOffer).toHaveLength(3); // 이미 2개를 받았어도 남은 보스 유물 중 3개
   });
 });
 

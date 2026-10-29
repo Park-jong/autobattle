@@ -128,7 +128,7 @@ describe('유물 후보는 허용된 유물만', () => {
   it('새 런을 해금 전 상태로 시작하면 잠긴 유물이 후보에 나오지 않는다', () => {
     const unlocks = freshUnlocks();
     const locked = new Set(allRelics.filter((id) => !unlocks.relics.includes(id)));
-    expect(locked.size).toBe(11);
+    expect(locked.size).toBe(12);
     for (let seed = 1; seed <= 4; seed++) {
       const run = create(unlocks, { seed });
       driveTo(run, 'shop');
