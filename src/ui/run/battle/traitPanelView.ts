@@ -29,18 +29,27 @@ export function buildTraitRows(active: readonly ActiveTrait[], lookup: (id: stri
   for (const t of active) {
     const def = lookup(t.traitId);
     if (!def || t.count <= 0) continue;
-    const nextAt = def.thresholds.find((n) => n > t.count) ?? null;
-    rows.push({
-      traitId: def.id,
-      name: def.name,
-      kind: def.kind === 'job' ? 'job' : 'origin',
-      count: t.count,
-      tier: t.tier,
-      thresholds: def.thresholds,
-      nextAt,
-      currentText: skillTextForStar(def.text, (t.tier === 0 ? 1 : t.tier) as 1 | 2 | 3),
-      fullText: def.text,
-    });
+    rows.push(traitRowFor(def, t));
   }
   return rows.sort((a, b) => b.tier - a.tier || b.count - a.count || a.name.localeCompare(b.name, 'ko'));
+}
+
+/**
+ * 특성 하나의 표시 정보 (상점·유닛 정보 창의 특성 칩 팝업도 쓴다).
+ * 진영에 그 특성이 없으면(active 없음) 0종·미달로 본다.
+ */
+export function traitRowFor(def: TraitDef, active: ActiveTrait | undefined): TraitRowView {
+  const count = active?.count ?? 0;
+  const tier = active?.tier ?? 0;
+  return {
+    traitId: def.id,
+    name: def.name,
+    kind: def.kind === 'job' ? 'job' : 'origin',
+    count,
+    tier,
+    thresholds: def.thresholds,
+    nextAt: def.thresholds.find((n) => n > count) ?? null,
+    currentText: skillTextForStar(def.text, (tier === 0 ? 1 : tier) as 1 | 2 | 3),
+    fullText: def.text,
+  };
 }

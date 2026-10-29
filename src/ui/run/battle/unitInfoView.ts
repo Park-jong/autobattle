@@ -27,6 +27,8 @@ export interface UnitInfoView {
   tier: number;
   /** 기원·직업 이름 */
   traits: string[];
+  /** 기원·직업 id (traits와 같은 순서) */
+  traitIds: string[];
   stats: StatRow[];
   skillName: string;
   /** 1·2·3성 스킬 설명 (값 표기가 없으면 한 줄만) */
@@ -99,6 +101,7 @@ export function buildUnitInfo(def: UnitDef, star: StarLevel, names: InfoNames, o
     star,
     tier: def.tier,
     traits: [names.traitName(def.origin), names.traitName(def.job)],
+    traitIds: [def.origin, def.job],
     stats,
     skillName: def.skill.name,
     skillLines,

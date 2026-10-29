@@ -818,9 +818,10 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
 
   /** 편성 단계에서 칸 편집: erase(우클릭)이거나 지우기 모드면 제거, 아니면 현재 브러시를 배치 */
   clickCell(cell: Cell, erase: boolean): void {
-    if (this.managementRun) {
+    const roster = this.roster;
+    if (roster) {
       if (!this.canPlaceAt(cell)) return;
-      const owned = this.managementRun.management.snapshot().board.find((unit) => unit.cell && sameCell(unit.cell, cell));
+      const owned = roster.snapshot().board.find((unit) => unit.cell && sameCell(unit.cell, cell));
       if (erase && owned) return this.moveManagedToBench(owned.id);
       if (owned) return this.selectManagedUnit(owned.id);
       if (this.selectedOwnedId !== null) return this.moveManagedToBoard(this.selectedOwnedId, cell);

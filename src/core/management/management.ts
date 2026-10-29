@@ -431,7 +431,14 @@ export class Management {
   buyXp(): ManagementResult {
     if (this.levelValue >= MANAGEMENT.MAX_LEVEL) return fail('이미 최고 레벨입니다');
     if (!this.economy.spend(MANAGEMENT.XP_COST)) return fail('경험치를 구매할 골드가 부족합니다');
-    this.xpValue += MANAGEMENT.XP_PER_PURCHASE;
+    this.gainXp(MANAGEMENT.XP_PER_PURCHASE);
+    return OK;
+  }
+
+  /** 경험치를 얻는다 (구매·전투 승리 보상). 레벨업하고 남은 XP는 이월, 최고 레벨이면 얻지 않는다. 실제로 얻은 양을 돌려준다 */
+  gainXp(amount: number): number {
+    if (!Number.isSafeInteger(amount) || amount <= 0 || this.levelValue >= MANAGEMENT.MAX_LEVEL) return 0;
+    this.xpValue += amount;
     while (this.levelValue < MANAGEMENT.MAX_LEVEL) {
       const needed = MANAGEMENT.XP_TO_NEXT[this.levelValue];
       if (needed === undefined || this.xpValue < needed) break;
@@ -439,7 +446,7 @@ export class Management {
       this.levelValue++;
     }
     if (this.levelValue === MANAGEMENT.MAX_LEVEL) this.xpValue = 0;
-    return OK;
+    return amount;
   }
 
   moveToBoard(id: number, cell: Cell): ManagementResult {

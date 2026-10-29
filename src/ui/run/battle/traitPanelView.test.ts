@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import traitsJson from '../../../../data/traits.json';
 import type { TraitDef } from '../../../core/data/trait';
-import { buildTraitRows } from './traitPanelView';
+import { buildTraitRows, traitRowFor } from './traitPanelView';
 
 const traits = (traitsJson as unknown as { traits: TraitDef[] }).traits;
 const lookup = (id: string): TraitDef | undefined => traits.find((t) => t.id === id);
@@ -22,5 +22,15 @@ describe('buildTraitRows', () => {
 
   it('최고 단계면 다음 기준이 없다', () => {
     expect(buildTraitRows([{ traitId: 'iron_legion', count: 6, tier: 3 }], lookup)[0]?.nextAt).toBeNull();
+  });
+});
+
+describe('traitRowFor (상점·정보 창의 특성 칩 팝업)', () => {
+  it('진영에 없는 특성은 0종·미달, 1단계 문장과 1단계 기준', () => {
+    expect(traitRowFor(lookup('iron_legion')!, undefined)).toMatchObject({ count: 0, tier: 0, nextAt: 2, currentText: '아군 전체 ARM +15.' });
+  });
+
+  it('진영에 있으면 그 종류 수·단계', () => {
+    expect(traitRowFor(lookup('iron_legion')!, { traitId: 'iron_legion', count: 4, tier: 2 })).toMatchObject({ count: 4, tier: 2, nextAt: 6 });
   });
 });

@@ -36,6 +36,16 @@ describe('BattleSession 런 전투 연결', () => {
     expect(battle.cardView().hand).toHaveLength(5);
   });
 
+  it('보드의 아군 칸을 클릭하면 그 유닛이 선택되고 다시 클릭하면 해제된다', () => {
+    const { battle, link } = setup();
+    battle.attachRun(link);
+    const unit = battle.snapshot().management!.state.board.find((u) => u.cell)!;
+    battle.clickCell(unit.cell!, false);
+    expect(battle.snapshot().management?.selectedUnitId).toBe(unit.id);
+    battle.clickCell(unit.cell!, false);
+    expect(battle.snapshot().management?.selectedUnitId).toBeNull();
+  });
+
   it('로스터를 바꾸면 준비 시뮬을 다시 만들어 마지막으로 발급한 시뮬만 정산할 수 있다', () => {
     const { battle, run, link } = setup();
     battle.attachRun(link);

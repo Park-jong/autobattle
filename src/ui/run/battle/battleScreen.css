@@ -129,7 +129,7 @@ button.bt-chip:hover, .bt-chip.open { border-color: var(--bt-gold); }
 .bt-error[hidden] { display: none; }
 
 /* 왼쪽: 특성 */
-.bt-traits { position: absolute; left: 12px; top: 12px; width: 214px; max-height: calc(100% - 24px); overflow-y: auto; padding: 10px; box-sizing: border-box; }
+.bt-traits { position: absolute; left: 12px; top: 12px; width: 214px; padding: 10px; box-sizing: border-box; }
 .bt-traits[hidden] { display: none; }
 .bt-trait {
   display: grid; grid-template-columns: 30px 1fr; gap: 0 8px; align-items: center;
@@ -150,8 +150,17 @@ button.bt-chip:hover, .bt-chip.open { border-color: var(--bt-gold); }
 .bt-trait-name { font-size: 13px; font-weight: 700; }
 .bt-trait-steps { font-size: 11px; color: var(--bt-muted); }
 .bt-trait-steps .reached { color: var(--bt-gold); font-weight: 700; }
-.bt-trait .bt-pop { left: calc(100% + 8px); top: 0; width: 240px; }
-.bt-trait:hover > .bt-pop { display: block; }
+.bt-trait { cursor: help; }
+/* 떠 있는 설명 팝업(HoverPop): 패널에 잘리지 않게 body에 두고 기준 요소 옆에 맞춘다 */
+.bt-float-pop { position: fixed; z-index: 90; pointer-events: none; }
+.bt-float-pop.open { display: block; }
+.bt-trait-pop { width: 240px; }
+.bt-unit-pop { width: 300px; max-width: 300px; }
+.bt-unit-pop-cost { margin-top: 6px; font-size: 11px; color: var(--bt-gold); }
+.bt-unit-pop .bt-stats { margin: 6px 0; }
+/* 마우스를 올리면 특성 설명이 뜨는 칩 */
+.bt-trait-hover { cursor: help; }
+.bt-trait-hover:hover { color: var(--bt-gold); border-color: var(--bt-gold-dim); }
 .bt-trait-group + .bt-trait-group { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--bt-border); }
 .bt-trait-group.enemy .bt-title { color: #ff9a9a; }
 .bt-trait-empty { font-size: 12px; color: var(--bt-muted); }

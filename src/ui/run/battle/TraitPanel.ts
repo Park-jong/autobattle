@@ -1,17 +1,21 @@
 import type { ActiveTrait } from '../../../core/combat/traits';
 import type { TraitCatalog } from '../../../core/data/traitLoader';
 import { el, tagged } from '../dom';
-import { buildTraitRows, type TraitRowView } from './traitPanelView';
+import { traitPopContent, type HoverPop } from './hoverPop';
+import { buildTraitRows, traitRowFor, type TraitRowView } from './traitPanelView';
 
 /**
  * 보드 왼쪽의 특성 패널: 아군 특성(켜진 것 먼저, 미달은 흐리게)과 적의 켜진 특성.
- * 줄에 마우스를 올리면 지금 단계의 효과와 단계별 원문을 오른쪽 팝업으로 보여 준다.
+ * 줄에 마우스를 올리면 지금 단계의 효과와 단계별 원문을 줄 오른쪽 팝업(공용 특성 팝업)으로 보여 준다.
  */
 export class TraitPanel {
   readonly root = tagged(el('section', 'bt-panel bt-traits'), 'battle-traits');
   private signature = '';
 
-  constructor(private readonly traits: TraitCatalog) {}
+  constructor(
+    private readonly traits: TraitCatalog,
+    private readonly pop: HoverPop,
+  ) {}
 
   render(ally: readonly ActiveTrait[], enemy: readonly ActiveTrait[]): void {
     const signature = JSON.stringify([ally, enemy]);
@@ -33,6 +37,8 @@ export class TraitPanel {
       nodes.push(enemyGroup);
     }
     this.root.replaceChildren(...nodes);
+    // 종류 수가 바뀌어 다시 그렸으므로 이 패널에서 띄운 팝업은 닫는다 (다른 곳의 특성 칩 팝업은 유지)
+    this.pop.reattach(this.root);
   }
 
   private row(row: TraitRowView): HTMLElement {
@@ -42,14 +48,30 @@ export class TraitPanel {
       if (i > 0) steps.append(' › ');
       steps.append(el('span', row.count >= n ? 'reached' : '', String(n)));
     });
-    const pop = el('div', 'bt-pop');
-    pop.append(
-      el('strong', '', `${row.name} (${row.kind === 'origin' ? '기원' : '직업'}) · ${row.count}종`),
-      el('div', '', row.tier > 0 ? `${row.tier}단계: ${row.currentText}` : `미달 — ${row.nextAt}종이 되면 1단계: ${row.currentText}`),
-      el('div', 'bt-trait-steps', `단계 기준 ${row.thresholds.join(' / ')}종 · ${row.fullText}`),
-    );
-    if (row.tier > 0 && row.nextAt !== null) pop.append(el('div', 'bt-trait-steps', `다음 단계까지 ${row.nextAt - row.count}종`));
-    node.append(el('div', 'bt-trait-badge', String(row.count)), el('div', 'bt-trait-name', row.name), steps, pop);
+    node.append(el('div', 'bt-trait-badge', String(row.count)), el('div', 'bt-trait-name', row.name), steps);
+    node.addEventListener('mouseenter', () => this.pop.show(node, () => traitPopContent(row)));
+    node.addEventListener('mouseleave', () => this.pop.hide());
     return node;
   }
+}
+
+/**
+ * 특성 칩(상점·유닛 정보 창)에 마우스를 올리면 공용 특성 팝업을 띄운다.
+ * 종류 수·단계는 올린 순간의 진영 특성(side)으로 계산한다.
+ */
+export function bindTraitChip(
+  chip: HTMLElement,
+  traitId: string,
+  traits: TraitCatalog,
+  pop: HoverPop,
+  active: () => readonly ActiveTrait[],
+): void {
+  chip.dataset.traitId = traitId;
+  chip.dataset.popKey = `trait:${traitId}`;
+  chip.classList.add('bt-trait-hover');
+  chip.addEventListener('mouseenter', () => {
+    const def = traits.get(traitId);
+    if (def) pop.show(chip, () => traitPopContent(traitRowFor(def, active().find((t) => t.traitId === traitId))));
+  });
+  chip.addEventListener('mouseleave', () => pop.hide());
 }
