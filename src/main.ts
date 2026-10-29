@@ -3,7 +3,7 @@ import { BattleScene, type SceneLabels } from './ui/battle/BattleScene';
 import { HandPanel } from './ui/cards/HandPanel';
 import { BattleSession } from './ui/debug/BattleSession';
 import { DebugPanel } from './ui/debug/DebugPanel';
-import { RunBattlePanel } from './ui/run/RunBattlePanel';
+import { BattleScreen } from './ui/run/battle/BattleScreen';
 import { MetaStore } from './ui/run/MetaStore';
 import { RunSaveStore } from './ui/run/RunSaveStore';
 import { RunSession } from './ui/run/RunSession';
@@ -41,7 +41,13 @@ function bootstrap(): void {
   const gameHost = document.getElementById('game');
   const panelHost = document.getElementById('panel');
   const handHost = document.getElementById('hand');
-  if (!gameHost || !panelHost || !handHost) throw new Error('#game, #hand, #panel 요소가 없음');
+  const arenaHost = document.getElementById('arena');
+  const topHost = document.getElementById('battle-top');
+  const benchHost = document.getElementById('battle-bench');
+  const trayHost = document.getElementById('tray');
+  if (!gameHost || !panelHost || !handHost || !arenaHost || !topHost || !benchHost || !trayHost) {
+    throw new Error('#game, #hand, #panel, #arena, #battle-top, #battle-bench, #tray 요소가 없음');
+  }
 
   let data;
   try {
@@ -58,16 +64,14 @@ function bootstrap(): void {
     startFormations: data.startFormations,
     seriesStages: data.seriesStages,
   });
-  // 오른쪽 패널: 기존 디버그 패널 / 런 전투 패널 중 하나만 보인다 (RunShell이 전환)
+  // 오른쪽 패널: 디버그 화면에서만 보인다 (런 전투 화면은 BattleScreen이 화면에 직접 배치)
   const debugHost = document.createElement('div');
   debugHost.id = 'debug-host';
-  const battleHost = document.createElement('div');
-  battleHost.id = 'run-battle-host';
   // 패널 맨 위: 화면 스킨 선택 (디버그·전투 패널 어느 쪽이든 보인다)
   const skinRow = document.createElement('div');
   skinRow.className = 'skin-panel-row';
   skinRow.append(new SkinPicker().root);
-  panelHost.replaceChildren(skinRow, debugHost, battleHost);
+  panelHost.replaceChildren(skinRow, debugHost);
   new DebugPanel(debugHost, session, data.units, data.traits, data.commanders, gameHost, data.cards);
   new HandPanel(handHost, session, gameHost);
 
@@ -86,8 +90,12 @@ function bootstrap(): void {
     suggestSeed: randomSeed,
     commanderId: data.defaultCommanderId ?? data.commanders.commanders[0]?.id ?? '',
   });
-  new RunBattlePanel(battleHost, runSession, runSession, session, data.units, data.cards, gameHost, data.traits);
-  new RunShell(runSession, runSession, { debugHost, battleHost });
+  new BattleScreen(
+    { top: topHost, arena: arenaHost, canvasHost: gameHost, bench: benchHost, tray: trayHost, hand: handHost },
+    runSession, runSession, session, session, session,
+    { units: data.units, cards: data.cards, traits: data.traits },
+  );
+  new RunShell(runSession, runSession, { debugHost, panelHost });
 
   // 개발 서버 전용: 브라우저 자동화(Playwright)가 세션을 들여다볼 수 있게 한다. 프로덕션 빌드에서는 제거된다.
   if (import.meta.env.DEV) (window as unknown as { __tactics: unknown }).__tactics = { battle: session, run: runSession };

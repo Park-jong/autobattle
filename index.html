@@ -6,10 +6,14 @@
     <title>전술 지휘관 (가제)</title>
     <style>
       html, body { margin: 0; height: 100%; background: #111; overflow: hidden; }
-      /* 왼쪽 열(캔버스 + 아래 손패) + 디버그 패널(오른쪽). 좁은 창에서는 위아래로 쌓는다 */
+      /*
+       * 왼쪽 열: 상단 바(런 전투) / 보드 영역(캔버스) / 벤치 줄(런 전투) / 하단 트레이(손패·상점)
+       * 오른쪽: 디버그 패널 (런 전투 화면에서는 숨김). 좁은 창에서는 위아래로 쌓는다
+       */
       #app { display: flex; height: 100%; }
-      #stage { flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
-      #game { position: relative; flex: 1 1 auto; min-width: 0; min-height: 0; }
+      #stage { flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; background: #10131b; }
+      #arena { position: relative; flex: 1 1 auto; min-width: 0; min-height: 0; }
+      #game { position: absolute; inset: 0; }
       #hand { flex: 0 0 auto; }
       #panel { flex: 0 0 340px; width: 340px; overflow-y: auto; border-left: 1px solid #2a2f3d; }
       @media (max-width: 800px) {
@@ -22,8 +26,10 @@
   <body>
     <div id="app">
       <div id="stage">
-        <div id="game"></div>
-        <section id="hand" hidden></section>
+        <header id="battle-top" hidden></header>
+        <div id="arena"><div id="game"></div></div>
+        <div id="battle-bench" hidden></div>
+        <div id="tray"><section id="hand" hidden></section></div>
       </div>
       <aside id="panel"></aside>
     </div>

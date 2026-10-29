@@ -245,6 +245,12 @@ export interface PreviewUnitView {
   /** 층 보정 후 최대 HP / ATK */
   hp: number;
   atk: number;
+  /** 그 밖의 전투 수치 (전투 화면 적 툴팁용) */
+  as: number;
+  range: number;
+  arm: number;
+  res: number;
+  mana: number;
   skillName: string;
   boss: boolean;
 }
@@ -286,7 +292,8 @@ export function buildEncounterPreview(plan: EncounterPlan): EncounterPreviewView
     scaleLabel: bonus > 0 ? `HP·ATK +${bonus}%` : '층 보정 없음',
     mutations: plan.mutations.map((id) => ({ id, ...MUTATION_INFO[id] })),
     units: plan.units.map((u) => ({
-      unitId: u.unitId, name: u.name, tier: u.tier, star: u.star, hp: u.hp, atk: u.atk, skillName: u.skillName, boss: u.boss,
+      unitId: u.unitId, name: u.name, tier: u.tier, star: u.star, hp: u.hp, atk: u.atk,
+      as: u.as, range: u.range, arm: u.arm, res: u.res, mana: u.mana, skillName: u.skillName, boss: u.boss,
     })),
     bossPatterns: plan.bossPatterns.map((p) => ({ unitName: p.unitName, title: p.title, lines: [...p.lines] })),
   };

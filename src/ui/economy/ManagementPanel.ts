@@ -4,7 +4,7 @@ import type { UnitCatalog } from '../../core/data/unitLoader';
 import type { UnitDef } from '../../core/data/unit';
 import type { OwnedUnit } from '../../core/management';
 import type { DebugController } from '../debug/contracts';
-import { clientToStage } from '../cards/stagePoint';
+import { RosterDrag } from './RosterDrag';
 import { unitArtUrl } from '../skin/skins';
 import { appSkin, type SkinStore } from '../skin/SkinStore';
 import './managementPanel.css';
@@ -34,12 +34,9 @@ export interface ManagementPanelOptions {
   skin?: SkinStore;
 }
 
-interface UnitPress { id: number; x: number; y: number; origin: 'board' | 'bench' | 'canvas'; dragging: boolean; }
-
 /** 상점·레벨·벤치 UI. 보드와 벤치 사이의 드래그도 DOM 좌표를 게임 좌표로 바꿔 명령만 전달한다. */
 export class ManagementPanel {
-  private press: UnitPress | null = null;
-  private ghost: HTMLElement | null = null;
+  private readonly drag: RosterDrag;
 
   constructor(
     private readonly root: HTMLElement,
@@ -50,7 +47,7 @@ export class ManagementPanel {
     private readonly options: ManagementPanelOptions = {},
   ) {
     this.root.className = 'management-panel';
-    canvasHost?.addEventListener('pointerdown', this.onCanvasDown, true);
+    this.drag = new RosterDrag({ controller, canvasHost, isActive: () => this.isActive() });
     controller.subscribe(() => this.render());
     (options.skin ?? appSkin).subscribe(() => this.render());
     this.render();
@@ -177,13 +174,7 @@ export class ManagementPanel {
     node.title = `${def ? this.describe(def) : ''}${grant ? ` / 배치 중 제공 카드: ${grant}` : ''}`;
     const face = this.portrait(unit.unitId, 'skin-portrait-small');
     if (face) node.prepend(face);
-    node.addEventListener('pointerdown', (event) => {
-      if (event.button !== 0 || !enabled) return;
-      this.beginPress(unit.id, event.clientX, event.clientY, origin);
-    });
-    node.addEventListener('click', (event) => {
-      if (event.detail === 0) this.controller.selectManagedUnit(unit.id);
-    });
+    this.drag.bind(node, unit.id, origin, enabled);
     return node;
   }
 
@@ -191,64 +182,4 @@ export class ManagementPanel {
   private isActive(): boolean {
     return this.root.isConnected && this.root.getClientRects().length > 0;
   }
-
-  private onCanvasDown = (event: PointerEvent): void => {
-    if (event.button !== 0 || !this.isActive()) return;
-    const point = this.stagePoint(event);
-    if (!point) return;
-    const id = this.controller.managedUnitAtStage(point.x, point.y);
-    if (id !== null) this.beginPress(id, event.clientX, event.clientY, 'canvas');
-  };
-
-  private beginPress(id: number, x: number, y: number, origin: 'board' | 'bench' | 'canvas'): void {
-    this.endPress();
-    this.press = { id, x, y, origin, dragging: false };
-    window.addEventListener('pointermove', this.onMove, { passive: false });
-    window.addEventListener('pointerup', this.onUp);
-    window.addEventListener('pointercancel', this.endPress);
-  }
-
-  private onMove = (event: PointerEvent): void => {
-    const press = this.press;
-    if (!press) return;
-    if (!press.dragging && Math.hypot(event.clientX - press.x, event.clientY - press.y) >= 8) {
-      press.dragging = true;
-      this.ghost = el('div', 'management-unit-ghost', '유닛 이동');
-      document.body.append(this.ghost);
-    }
-    if (this.ghost) {
-      event.preventDefault();
-      this.ghost.style.left = `${event.clientX}px`;
-      this.ghost.style.top = `${event.clientY}px`;
-    }
-  };
-
-  private onUp = (event: PointerEvent): void => {
-    const press = this.press;
-    this.endPress();
-    if (!press) return;
-    if (!press.dragging) {
-      // 캔버스 클릭 선택은 Phaser 쪽에서 이미 처리한다.
-      if (press.origin !== 'canvas') this.controller.selectManagedUnit(press.id);
-      return;
-    }
-    const point = this.stagePoint(event);
-    if (point) return this.controller.dropManagedToBoard(press.id, point.x, point.y);
-    const target = event.target instanceof Element ? event.target.closest<HTMLElement>('.management-bench-cell') : null;
-    if (target?.dataset.benchIndex !== undefined) this.controller.moveManagedToBench(press.id, Number(target.dataset.benchIndex));
-  };
-
-  private stagePoint(event: PointerEvent): { x: number; y: number } | null {
-    const canvas = this.canvasHost?.querySelector('canvas');
-    return canvas ? clientToStage(event.clientX, event.clientY, canvas.getBoundingClientRect()) : null;
-  }
-
-  private endPress = (): void => {
-    this.press = null;
-    this.ghost?.remove();
-    this.ghost = null;
-    window.removeEventListener('pointermove', this.onMove);
-    window.removeEventListener('pointerup', this.onUp);
-    window.removeEventListener('pointercancel', this.endPress);
-  };
 }

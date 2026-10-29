@@ -160,7 +160,7 @@ export const CARD_UI = {
   /** 토스트 표시 시간(초, 실시간) */
   TOAST_SECONDS: 3.2,
   /** 손패 영역 높이(px, CSS) */
-  HAND_HEIGHT: 176,
+  HAND_HEIGHT: 206,
 } as const;
 
 export const MOTION = {

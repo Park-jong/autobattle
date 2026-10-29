@@ -1,12 +1,18 @@
 import type { CardController } from '../debug/contracts';
 import { CARD_UI } from '../theme';
 import { ultimateCostLabel, type CardPanelView, type HandCardView, type PileView } from './cardPanelView';
+import { fanLayout } from './cardFan';
+import type { CardType } from '../../core/data/card';
 import { clientToStage } from './stagePoint';
 import './handPanel.css';
 
 type PileKey = 'draw' | 'discard' | 'exhaust';
 const PILE_LABELS: Record<PileKey, string> = { draw: '뽑을 더미', discard: '버린 더미', exhaust: '소모 더미' };
 const PILE_KEYS: readonly PileKey[] = ['draw', 'discard', 'exhaust'];
+/** 카드 그림 칸의 종류 문양 */
+const TYPE_GLYPHS: Record<CardType, string> = { operation: '⚑', command: '⚔', spell: '✦', equipment: '◈', curse: '☠' };
+/** 부채꼴 배치에 쓰는 카드 폭 (handPanel.css의 --card-w와 같다) */
+const CARD_WIDTH = 112;
 
 function el<K extends keyof HTMLElementTagNameMap>(tag: K, className?: string, text?: string): HTMLElementTagNameMap[K] {
   const node = document.createElement(tag);
@@ -73,8 +79,10 @@ export class HandPanel {
       // 궁극기 단축키 U (입력칸에 글자를 쓰는 중에는 무시)
       const target = e.target as HTMLElement | null;
       const typing = target !== null && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
-      if ((e.key === 'u' || e.key === 'U') && !typing && !e.ctrlKey && !e.metaKey && !e.altKey && this.visible) this.controller.useUltimate();
+      if ((e.key === 'u' || e.key === 'U' || e.code === 'KeyU') && !typing && !e.ctrlKey && !e.metaKey && !e.altKey && this.visible) this.controller.useUltimate();
     });
+    // 손패 칸 폭이 바뀌면 부채꼴을 다시 편다
+    new ResizeObserver(() => this.layoutFan()).observe(this.cards);
     this.loop();
   }
 
@@ -174,23 +182,39 @@ export class HandPanel {
       const nodes = view.hand.map((c) => this.cardNode(c));
       if (view.notice) nodes.unshift(el('p', 'hand-notice', view.notice));
       this.cards.replaceChildren(...nodes);
+      this.layoutFan();
     }
   }
 
+  /** 손패를 호(부채꼴)로 편다: 장수가 많으면 겹치고 양 끝은 기울어져 내려간다 */
+  private layoutFan(): void {
+    const nodes = [...this.cards.querySelectorAll<HTMLElement>('.hcard')];
+    const width = this.cards.clientWidth || 600;
+    const slots = fanLayout(nodes.length, { cardWidth: CARD_WIDTH, maxWidth: Math.max(CARD_WIDTH, width - 24) });
+    nodes.forEach((node, i) => {
+      const slot = slots[i];
+      if (!slot) return;
+      node.style.setProperty('--fx', `${slot.x}px`);
+      node.style.setProperty('--fy', `${slot.y}px`);
+      node.style.setProperty('--fr', `${slot.rotate}deg`);
+      node.style.setProperty('--fz', String(slot.z));
+    });
+  }
+
   private cardNode(card: HandCardView): HTMLElement {
-    const node = el('div', `hcard type-${card.type}`);
+    const node = el('div', `hcard type-${card.type} rarity-${card.rarity}`);
+    node.dataset.testid = `hand-card-${card.instanceId}`;
     node.classList.toggle('selected', card.selected);
     node.classList.toggle('disabled', !card.playable);
     node.classList.toggle('upgraded', card.upgraded);
     node.title = card.reason ? `사용 불가: ${card.reason}` : `${card.name}: ${card.text}`;
 
-    const head = el('div', 'hcard-head');
     const cost = el('span', card.cost < card.baseCost ? 'hcard-cost reduced' : card.cost > card.baseCost ? 'hcard-cost raised' : 'hcard-cost', String(card.cost));
     if (card.cost !== card.baseCost) cost.title = `기본 비용 ${card.baseCost} → ${card.cost} (${card.cost < card.baseCost ? '주술사 특성' : '방해 변이'})`;
-    head.append(cost, el('span', 'hcard-name', card.name));
-    const meta = el('div', 'hcard-meta', `${card.typeLabel} · ${card.targetLabel}`);
+    const art = el('div', 'hcard-art', TYPE_GLYPHS[card.type]);
+    const meta = el('div', 'hcard-type', `${card.typeLabel} · ${card.targetLabel}`);
     const text = el('div', 'hcard-text', card.text);
-    node.append(head, meta, text);
+    node.append(cost, el('div', 'hcard-name', card.name), art, meta, text);
     if (card.tags.length > 0) node.append(el('div', 'hcard-tags', card.tags.join(' · ')));
     if (card.reason) node.append(el('div', 'hcard-reason', card.reason));
     if (card.playable && card.targetKind === 'none') {

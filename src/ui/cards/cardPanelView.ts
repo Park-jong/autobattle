@@ -1,6 +1,6 @@
 import { CARDS, CP_REGEN_TICKS, effectiveCard, type CardInstance } from '../../core/cards';
 import { COMBAT, ULTIMATE, type CombatPhase, type UltimateView } from '../../core/combat';
-import type { CardType, TargetKind } from '../../core/data/card';
+import type { CardType, Rarity, TargetKind } from '../../core/data/card';
 import type { CardCatalog } from '../../core/data/cardLoader';
 import type { CommanderDef } from '../../core/data/commander';
 import { explainUnplayable } from './cardAvailability';
@@ -13,6 +13,8 @@ export interface HandCardView {
   name: string;
   type: CardType;
   typeLabel: string;
+  /** 희귀도 (카드 테두리·이름 띠 색) */
+  rarity: Rarity;
   /** 지금 내야 하는 CP (연쇄·강화·방해 변이·주술사 특성을 모두 반영, 최소 0) */
   cost: number;
   /** 변이·특성 조정 전 비용. cost와 다르면 UI가 올랐는지(빨강)/내렸는지(초록) 표시한다 */
@@ -200,6 +202,7 @@ export class CardPanelViewBuilder {
       name: instance.upgraded ? `${card.name}+` : card.name,
       type: card.type,
       typeLabel: CARD_TYPE_LABELS[card.type],
+      rarity: card.rarity,
       cost: Math.max(0, view.cost + costAdjust),
       baseCost: view.cost,
       upgraded: instance.upgraded,

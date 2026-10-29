@@ -55,61 +55,106 @@
 .hand-ult-cost { font-size: 11px; color: #ff9a8a; }
 .hand-ult-reason { font-size: 11px; color: #ffb4a0; overflow: hidden; }
 
-.hand-cards { flex: 1 1 auto; min-width: 0; display: flex; gap: 8px; align-items: stretch; overflow-x: auto; overflow-y: hidden; padding-bottom: 2px; }
-.hand-empty, .hand-notice { margin: auto; color: #9aa3b5; }
-.hand-notice { margin: 0; align-self: center; max-width: 120px; color: #ffb4a0; font-size: 12px; }
+/* 손패: 카드를 호(부채꼴)로 펼친다. 위치는 HandPanel이 --fx/--fy/--fr/--fz로 준다 (cardFan.ts) */
+.hand-cards { position: relative; flex: 1 1 auto; min-width: 0; overflow: visible; }
+.hand-empty, .hand-notice { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); margin: 0; color: #9aa3b5; white-space: nowrap; }
+.hand-notice { top: 4px; transform: translateX(-50%); color: #ffb4a0; font-size: 12px; z-index: 60; }
 
 .hcard {
-  position: relative;
-  flex: 0 0 142px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 6px 7px;
-  background: #1f2433;
-  border: 2px solid #3a4152;
-  border-radius: 6px;
-  cursor: grab;
-  touch-action: none;
+  --card-w: 112px;
+  --card-h: 158px;
+  --frame: #59627a;
+  --frame-light: #8a93a8;
+  --art-a: #2c3550;
+  --art-b: #161b29;
+  position: absolute; left: 50%; bottom: 6px;
+  box-sizing: border-box; width: var(--card-w); height: var(--card-h); margin-left: calc(var(--card-w) / -2);
+  display: flex; flex-direction: column; align-items: stretch;
+  padding: 5px 6px 6px;
+  background: linear-gradient(180deg, #262c3d 0%, #1a1e2b 100%);
+  border: 2px solid var(--frame);
+  border-radius: 9px;
+  box-shadow: 0 6px 14px #000b, inset 0 0 0 1px #ffffff10;
+  transform: translate(var(--fx, 0px), var(--fy, 0px)) rotate(var(--fr, 0deg));
+  transform-origin: 50% 110%;
+  z-index: var(--fz, 1);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+  cursor: grab; touch-action: none;
+  color: #e6e9f0;
 }
-.hcard.type-operation { border-color: #b0883a; }
-.hcard.type-command { border-color: #4a7ec2; }
-.hcard.type-spell { border-color: #9a5fd0; }
-.hcard:hover:not(.disabled) { background: #272d42; transform: translateY(-3px); }
-.hcard.selected { outline: 3px solid #ffd54a; background: #3a3720; transform: translateY(-6px); }
-.hcard.disabled { opacity: 0.45; cursor: not-allowed; }
-.hcard.upgraded .hcard-name { color: #9be29b; }
-.hcard-head { display: flex; align-items: center; gap: 6px; }
+.hcard.type-operation { --frame: #b08a3a; --frame-light: #e0bd6a; --art-a: #4a3a1a; --art-b: #1e180c; }
+.hcard.type-command { --frame: #3f6fb0; --frame-light: #7fb0f0; --art-a: #1c3460; --art-b: #0e1628; }
+.hcard.type-spell { --frame: #8a52c4; --frame-light: #c79af0; --art-a: #3a1f5a; --art-b: #170c26; }
+.hcard.type-equipment { --frame: #3a9a86; --frame-light: #7fd8c4; --art-a: #173f38; --art-b: #0b1a17; }
+.hcard.type-curse { --frame: #8a2f3a; --frame-light: #e07a86; --art-a: #3e1218; --art-b: #18070a; }
+.hcard::after {
+  /* 희귀도 보석 (아래 가운데) */
+  content: ''; position: absolute; left: 50%; bottom: -6px; width: 10px; height: 10px; margin-left: -5px;
+  transform: rotate(45deg); border: 1px solid #0008; background: #8a93a8;
+}
+.hcard.rarity-common::after { background: #c8d0de; }
+.hcard.rarity-rare::after { background: #4aa3ff; box-shadow: 0 0 6px #4aa3ff; }
+.hcard.rarity-epic::after { background: #c77dff; box-shadow: 0 0 8px #c77dff; }
+.hcard.rarity-starter::after { background: #6c7488; }
+.hcard:hover:not(.selected) {
+  transform: translate(var(--fx, 0px), -34px) rotate(0deg) scale(1.22);
+  z-index: 100;
+  box-shadow: 0 14px 28px #000d, 0 0 0 1px var(--frame-light);
+}
+.hcard.selected {
+  transform: translate(var(--fx, 0px), -26px) rotate(0deg) scale(1.12);
+  z-index: 90;
+  border-color: #ffd54a;
+  box-shadow: 0 0 0 2px #ffd54a, 0 0 18px #ffd54a88, 0 12px 24px #000c;
+}
+.hcard.disabled { filter: grayscale(0.7) brightness(0.62); cursor: not-allowed; }
+.hcard.disabled:hover { filter: grayscale(0.3) brightness(0.85); }
+
 .hcard-cost {
-  flex: 0 0 auto;
-  width: 22px;
-  height: 22px;
-  line-height: 22px;
-  text-align: center;
-  border-radius: 50%;
-  background: #2b7fa8;
-  font-weight: 700;
+  position: absolute; left: -9px; top: -9px; z-index: 2;
+  width: 28px; height: 28px; line-height: 26px; box-sizing: border-box;
+  text-align: center; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #7fd6ff, #1f6c96 70%);
+  border: 2px solid #0d1a26; box-shadow: 0 2px 6px #000a;
+  font-weight: 800; font-size: 15px; color: #fff; text-shadow: 0 1px 2px #000;
 }
-.hcard-cost.reduced { background: #2e8b57; box-shadow: 0 0 0 2px #9be29b; }
-.hcard-cost.raised { background: #a8432b; box-shadow: 0 0 0 2px #ff9a7a; }
-.hcard-name { font-weight: 700; font-size: 14px; }
-.hcard-meta { font-size: 11px; color: #9aa3b5; }
-.hcard-text { font-size: 12px; color: #dfe4f0; overflow: hidden; }
-.hcard-tags { font-size: 11px; color: #ffd54a; }
-.hcard-reason { margin-top: auto; font-size: 11px; color: #ffb4a0; }
+.hcard-cost.reduced { background: radial-gradient(circle at 35% 30%, #a6f0b8, #2e8b57 70%); }
+.hcard-cost.raised { background: radial-gradient(circle at 35% 30%, #ffb09a, #a8432b 70%); }
+.hcard-name {
+  margin: 0 0 3px 14px; padding: 1px 4px;
+  font-weight: 800; font-size: 12px; line-height: 1.3; text-align: center;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: linear-gradient(90deg, transparent, #00000066 15%, #00000066 85%, transparent);
+  border-radius: 3px;
+}
+.hcard.upgraded .hcard-name { color: #9be29b; }
+.hcard-art {
+  flex: 0 0 40px; display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--frame); border-radius: 5px;
+  background: radial-gradient(circle at 50% 40%, var(--art-a), var(--art-b));
+  color: var(--frame-light); font-size: 22px; text-shadow: 0 0 10px var(--frame);
+}
+.hcard-type { margin-top: 3px; font-size: 10px; line-height: 1.2; color: var(--frame-light); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hcard-text {
+  flex: 1 1 auto; min-height: 0; margin-top: 3px; padding: 3px 4px;
+  background: #0d1018aa; border-radius: 4px;
+  font-size: 10px; line-height: 1.3; color: #dfe4f0; overflow: hidden;
+}
+.hcard-tags { margin-top: 2px; font-size: 9.5px; color: #ffd54a; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hcard-reason {
+  position: absolute; left: 4px; right: 4px; bottom: 6px; z-index: 2;
+  padding: 2px 4px; border-radius: 3px; background: #3a1414e6;
+  font-size: 9.5px; line-height: 1.25; color: #ffb4a0; text-align: center;
+}
 .hcard-use {
-  margin-top: auto;
-  padding: 2px 4px;
-  background: #1f5f3a;
-  color: inherit;
-  border: 1px solid #2f8f58;
-  border-radius: 4px;
-  font: inherit;
-  font-size: 12px;
-  cursor: pointer;
+  position: absolute; left: 50%; bottom: -12px; z-index: 3; transform: translateX(-50%);
+  padding: 1px 8px;
+  background: linear-gradient(180deg, #2f8f58, #1f5f3a);
+  color: #fff; border: 1px solid #49b876; border-radius: 10px;
+  font: inherit; font-size: 11px; font-weight: 700; white-space: nowrap;
+  cursor: pointer; box-shadow: 0 2px 6px #000a;
 }
-.hcard-use:hover { background: #28784a; }
+.hcard-use:hover { background: linear-gradient(180deg, #38a868, #257046); }
 
 .hcard-ghost {
   position: fixed;
