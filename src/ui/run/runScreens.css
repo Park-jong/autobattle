@@ -228,3 +228,39 @@
 .run-preview-patterns { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
 .run-boss-pattern { display: flex; flex-direction: column; gap: 2px; padding: 6px 8px; background: #331a22; border: 1px solid #c01f3a; border-radius: 4px; font-size: 12px; }
 .run-boss-pattern strong { color: #ff8a8a; }
+
+/* 시작 화면: 지휘관 잠금 */
+.run-commander-slot { display: flex; flex-direction: column; gap: 6px; }
+.run-commander-slot > .run-commander { flex: 1; }
+.run-commander.locked { opacity: 0.7; border-style: dashed; }
+.run-commander-lock { padding: 8px 10px; background: #241d1d; border: 1px solid #6a4a4a; border-radius: 6px; display: flex; flex-direction: column; gap: 4px; font-size: 12px; }
+.run-commander-lock p { margin: 0; color: #cfd6e6; }
+.run-commander-lock strong { color: #ff9a8a; }
+
+/* 전공(메타 진행) */
+.run-meta-points-line { margin: 4px 0 0; text-align: center; color: #ffd54a; font-weight: 600; }
+.run-new-blocked { color: #ff9a8a; margin: 0; }
+.run-meta { margin-top: 12px; border-top: 1px solid #2a2f3d; padding-top: 10px; }
+.run-meta-summary { cursor: pointer; font-size: 13px; color: #8a93a8; font-weight: 600; }
+.run-meta-body { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+.run-meta-points { margin: 0; color: #ffd54a; font-weight: 600; }
+.run-meta-heading { font-size: 13px; color: #9aa3b5; margin: 4px 0 0; }
+.run-meta-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.run-meta-table th { text-align: left; color: #8a93a8; font-weight: 600; padding: 4px 6px; border-bottom: 1px solid #2a2f3d; }
+.run-meta-table td { padding: 4px 6px; border-bottom: 1px solid #1f2433; vertical-align: middle; }
+.run-meta-row.unlocked { color: #8fd0a0; }
+.run-meta-row.ready { color: #ffd54a; }
+.run-meta-name { font-weight: 600; }
+.run-meta-stats { margin: 0; padding-left: 18px; font-size: 12px; color: #cfd6e6; }
+.run-meta-reset { margin-top: 6px; }
+
+/* 종료 화면: 전공 정산 */
+.run-end-meta { padding: 10px 12px; background: #1b1f2d; border: 1px solid #323a52; border-radius: 6px; }
+.run-end-meta h3 { font-size: 13px; color: #ffd54a; margin: 0 0 6px; }
+.run-end-meta p { margin: 4px 0 0; font-size: 12px; }
+.run-end-meta dl { display: grid; grid-template-columns: auto 1fr; gap: 2px 14px; margin: 0; font-size: 12px; }
+.run-end-meta dd { margin: 0; }
+.run-end-meta .total { font-weight: 700; color: #ffd54a; }
+.run-end-unlocks { margin: 6px 0 0; padding-left: 18px; font-size: 12px; color: #8fd0a0; }
+.run-end-meta.failed { border-color: #7a3a3a; color: #ff9a8a; }
+.run-end-meta.test { border-color: #a07be0; }

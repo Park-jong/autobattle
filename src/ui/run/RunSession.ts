@@ -1,7 +1,10 @@
 import { RUN, RunController, type ForcedResult, type RunDeps, type RunResult, type TestRunSetup } from '../../core/run';
 import type { CardCatalog } from '../../core/data/cardLoader';
 import type { UnitCatalog } from '../../core/data/unitLoader';
+import type { RunUnlocks } from '../../core/meta';
 import type { RunBattleHost } from '../debug/runLink';
+import type { MetaStore } from './MetaStore';
+import { buildEndMetaView, buildMetaStartView, type EndSettlement } from './metaViews';
 import { RunBattleAdapter } from './RunBattleAdapter';
 import type { RunSaveStore } from './RunSaveStore';
 import type {
@@ -24,6 +27,10 @@ export interface LegacyModes {
 export interface RunSessionOptions {
   deps: RunDeps;
   store: RunSaveStore;
+  /** 메타 진행(전공·해금) 저장소. 일반 런에만 적용한다 (테스트 런·경제 플레이·편성 디버그는 해금과 무관) */
+  meta: MetaStore;
+  /** 새 런 식별자 발급 (메타 정산 중복 방지용. core가 아니므로 crypto/시간 기반이어도 된다) */
+  newRunId: () => string;
   battle: RunBattleHost;
   legacy: LegacyModes;
   /** 새 런 시드 제안 (core가 아니므로 시간·crypto 기반이어도 된다) */
@@ -50,6 +57,8 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
   private suggestedSeed: number;
   private resultPending = false;
   private handledSettlement: unknown = null;
+  /** 이 런의 전공 정산 결과 (런이 끝나는 순간 한 번만 만든다. 화면을 다시 그려도 재정산하지 않는다) */
+  private endSettlement: EndSettlement | null = null;
   /** 전투 연결을 건 (노드, 시도). 같은 전투 준비는 한 번만 연결한다 */
   private attachedKey: string | null = null;
   /** 연결한 전투의 시도 번호(1부터). 정산 후에는 tries가 늘어 있으므로 결과 화면은 이 값을 쓴다 */
@@ -118,6 +127,8 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
       event: live && eventView ? buildEventView(eventView, run, this.cards) : null,
       camp: live && campView ? buildCampView(campView, run, this.cards, this.units) : null,
       ended: live && screen === 'ended' ? buildEndView(run, this.cards, this.units, this.o.deps.relics) : null,
+      endMeta: live && screen === 'ended' && this.endSettlement
+        ? buildEndMetaView(this.endSettlement, this.o.meta.catalog, this.o.deps.commanders, this.o.deps.relics) : null,
       testTools: live && screen !== 'ended' ? buildTestToolsView(run, this.o.deps, this.testCatalog(), this.resultPending) : null,
     };
   }
@@ -132,6 +143,7 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
       save: this.o.store.status(),
       suggestedSeed: this.suggestedSeed,
       commanders: buildCommanderChoices(this.o.deps.commanders.commanders, this.cards, this.units, RUN.START_HP),
+      meta: buildMetaStartView(this.o.meta.status(), this.o.meta.catalog, this.o.deps.commanders, this.o.deps.relics),
       defaultCommanderId: this.o.commanderId,
       testCatalog: this.testCatalog(),
     };
@@ -149,8 +161,14 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
     if (!Number.isInteger(value) || value < SEED_MIN || value > SEED_MAX) {
       return this.fail(`시드는 ${SEED_MIN}~${SEED_MAX} 사이의 정수여야 합니다.`);
     }
+    const id = commanderId ?? this.o.commanderId;
+    const unlocks = this.currentUnlocks();
+    if (typeof unlocks === 'string') return this.fail(unlocks);
+    if (this.o.deps.commanders.get(id) && !unlocks.commanders.includes(id)) {
+      return this.fail(`아직 해금하지 않은 지휘관입니다: ${this.o.deps.commanders.get(id)?.name ?? id}`);
+    }
     try {
-      this.adopt(RunController.create(this.o.deps, { seed: value, commanderId: commanderId ?? this.o.commanderId }));
+      this.adopt(RunController.create(this.o.deps, { seed: value, commanderId: id, unlocks, runId: this.o.newRunId() }));
     } catch (e) {
       return this.fail(`새 런을 만들 수 없습니다: ${(e as Error).message}`);
     }
@@ -177,6 +195,8 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
     if (loaded === null) return this.fail('이어할 저장본이 없습니다.');
     if (!loaded.ok) return this.fail(loaded.message);
     this.adopt(loaded.controller);
+    // 메타 진행 도입 이전 저장본은 런 식별자가 없다: 이어할 때 한 번 붙여 끝났을 때 정산할 수 있게 한다 (테스트 런은 제외)
+    if (loaded.controller.testInfo === null && loaded.controller.runId === null) loaded.controller.assignRunId(this.o.newRunId());
     this.afterChange();
     // 콘텐츠 데이터가 바뀌어 저장본이 고쳐졌다면 무엇이 바뀌었는지 한 번 알려 준다
     const changes = loaded.controller.contentNotices;
@@ -187,6 +207,22 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
     this.o.store.clear();
     this.notice = null;
     this.notify();
+  }
+
+  purchaseUnlock(id: string): void {
+    const progress = this.o.meta.progress;
+    if (!progress) return this.fail('전공 기록이 손상되어 해금할 수 없습니다. 먼저 전공 기록을 초기화하세요.');
+    const result = progress.purchase(id);
+    if (!result.ok) return this.fail(result.reason);
+    const error = this.o.meta.save();
+    if (error) return this.setNotice('error', `해금했지만 전공 기록 저장에 실패했습니다. ${error}`);
+    this.notice = null;
+    this.notify();
+  }
+
+  resetMeta(): void {
+    this.o.meta.reset();
+    this.setNotice('info', '전공 기록을 초기화했습니다. (진행 중인 런 저장본은 그대로입니다)');
   }
 
   openManagement(): void {
@@ -329,6 +365,7 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
     this.controller = null; // 연결을 풀며 전투 세션이 알림을 보내도 옛 런을 건드리지 않게 먼저 비운다
     this.resultPending = false;
     this.handledSettlement = null;
+    this.endSettlement = null;
     this.attachedKey = null;
     this.attachedAttempt = 1;
     this.o.battle.detachRun();
@@ -353,9 +390,44 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
     this.o.battle.attachRun(new RunBattleAdapter(run));
   }
 
+  /** 현재 메타 진행으로 런에 줄 해금 집합. 전공 기록이 손상되었으면 사유 문자열 */
+  private currentUnlocks(): RunUnlocks | string {
+    const progress = this.o.meta.progress;
+    if (!progress) return '전공 기록이 손상되어 새 런을 시작할 수 없습니다. 시작 화면에서 전공 기록을 초기화하세요.';
+    return progress.runUnlocks(this.o.deps.commanders.commanders.map((c) => c.id), this.o.deps.relics.relics.map((r) => r.id));
+  }
+
+  /**
+   * 런이 끝난 순간 전공을 정산한다 (런마다 한 번). 정산 → 메타 저장을 마친 뒤에 런 저장이 지워지므로
+   * 새로고침으로 종료 화면을 다시 볼 수 없어도 정산은 끝나 있다. 테스트 런은 정산하지 않는다.
+   */
+  private settleOnEnd(run: RunController): void {
+    if (run.phase !== 'ended' || this.endSettlement) return;
+    if (run.testInfo !== null) {
+      this.endSettlement = { kind: 'test' };
+      return;
+    }
+    const progress = this.o.meta.progress;
+    if (!progress) {
+      this.endSettlement = { kind: 'failed', reason: '전공 기록이 손상되어 이번 런을 정산하지 못했습니다.' };
+    } else {
+      const summary = run.runSummary();
+      const result = progress.settleRun(summary);
+      this.endSettlement = result.ok
+        ? { kind: 'settled', summary, earned: result.earned, newUnlocks: result.newUnlocks, balance: result.balance }
+        : { kind: 'failed', reason: `전공을 정산하지 못했습니다: ${result.reason}` };
+      if (result.ok) {
+        const error = this.o.meta.save();
+        if (error) this.setNotice('error', `전공 기록 저장에 실패했습니다. ${error}`);
+      }
+    }
+    if (this.endSettlement.kind === 'failed') this.setNotice('error', this.endSettlement.reason);
+  }
+
   private persist(): void {
     const run = this.controller;
     if (!run) return;
+    this.settleOnEnd(run);
     const error = this.o.store.save(run);
     if (error) this.setNotice('error', `자동 저장에 실패했습니다. ${error}`);
   }

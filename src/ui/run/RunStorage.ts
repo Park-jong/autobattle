@@ -18,6 +18,8 @@ export interface StorageLike {
 }
 
 export const RUN_SAVE_KEY = 'autochess-run-save';
+/** 메타 진행(전공 포인트·해금) 저장 키. 런 저장과 별개라 서로 지우지 않는다 */
+export const META_SAVE_KEY = 'autochess-meta-save';
 
 /** 브라우저 localStorage 저장소. 접근 자체가 막혀 있어도(시크릿 모드, 정책 등) 게임은 계속된다 */
 export class BrowserRunStorage implements RunStorage {

@@ -1,4 +1,5 @@
 import type { ForcedResult, TestRunSetup } from '../../core/run';
+import type { EndMetaView, MetaStartView } from './metaViews';
 import type { SaveStatus } from './RunSaveStore';
 import type {
   ActIntroView, BossRelicView, CommanderChoiceView, CampScreenView, EncounterPreviewView, EndScreenView, EventScreenView, MapView, RewardView, RunHud,
@@ -16,8 +17,10 @@ export interface StartInfo {
   save: SaveStatus;
   /** 새 런 입력칸에 미리 채울 시드 */
   suggestedSeed: number;
-  /** 고를 수 있는 지휘관 (해금은 M5-5 전까지 적용하지 않아 모두 선택 가능) */
+  /** 지휘관 목록 (잠금 여부는 meta.commanders로 본다. 테스트 시작 패널은 잠금과 무관하게 모두 고른다) */
   commanders: CommanderChoiceView[];
+  /** 메타 진행(전공 포인트·해금 목록·통계) */
+  meta: MetaStartView;
   /** 처음 선택해 둘 지휘관 id */
   defaultCommanderId: string;
   /** "테스트 시작" 패널의 선택지 (유물·카드·유닛 목록) */
@@ -56,6 +59,8 @@ export interface RunSnapshot {
   event: EventScreenView | null;
   camp: CampScreenView | null;
   ended: EndScreenView | null;
+  /** 종료 화면의 전공 정산 결과 (일반 런은 정산 내역, 테스트 런은 제외 안내) */
+  endMeta: EndMetaView | null;
   /** 테스트 런 중의 "테스트 도구" 패널 정보 (일반 런·시작 화면이면 null) */
   testTools: TestToolsView | null;
 }
@@ -75,6 +80,10 @@ export interface RunCommands {
   newRun(seed: number | null, commanderId?: string): void;
   continueRun(): void;
   deleteSave(): void;
+  /** 전공 포인트로 해금 항목을 구매한다 */
+  purchaseUnlock(id: string): void;
+  /** 전공 기록(포인트·해금·통계)을 처음으로 되돌린다. 런 저장본은 건드리지 않는다 (확인은 화면이 한다) */
+  resetMeta(): void;
   openManagement(): void;
   openDebug(): void;
   /** 런을 저장해 둔 채 시작 화면으로 */

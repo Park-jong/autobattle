@@ -290,7 +290,7 @@ M2에서 추가된 유닛
 | `startCpBonus` | 전투 시작 CP 보정 (기본 2에 더함). 하르텐 0, 이세라 1, 녹스 0 |
 | `maxHp` | 선택. 런 시작·최대 지휘관 HP (생략하면 80). 하르텐 80, 이세라 70, 녹스 65 (이세라·녹스는 CHARACTERS에 수치가 없어 잡은 초안) |
 | `ultimate` | 선택. 궁극기 (아래) |
-| `unlock` | 선택. 해금 조건 설명 문자열. **해금은 M5-5(메타 진행) 범위라 지금은 데이터로만 두고 모든 지휘관을 선택할 수 있다** (이세라 "런 1회 완료", 녹스 "액트 2 보스 처치") |
+| `unlock` | 선택. 해금 조건 설명 문자열. **표시용 문구이고 실제 해금 조건·가격은 `meta.json`이 정한다(M5-5A, 아래 "meta.json"). 일반 런만 잠기고 테스트·디버그·헤드리스는 모든 지휘관을 쓴다** (이세라 "런 1회 완료", 녹스 "액트 2 보스 처치") |
 
 | 지휘관 | 패시브 | 시작 유닛 | 시작 덱 (10) | 궁극기 |
 |---|---|---|---|---|
@@ -369,7 +369,7 @@ M2에서 추가된 유닛
 |---|---|
 | `id`, `name`, `text` | 영문 키, 표시 이름, 설명 |
 | `rarity` | `common`(일반) / `rare`(희귀) / `boss`(보스) |
-| `unlock` | 선택. 해금 조건 설명. **해금은 M5-5(메타 진행) 범위라 지금은 데이터로만 두고 모든 유물이 획득 후보다** |
+| `unlock` | 선택. 해금 조건 설명. **표시용 문구이고 실제 해금 조건·가격은 `meta.json`이 정한다(M5-5A). 일반 런은 해금된 유물만 후보가 되고 테스트·디버그·헤드리스는 모든 유물이 후보다** |
 | `effects` | 효과 목록(최소 1개). 아래 종류 |
 
 **효과 종류** (수치는 모두 1 이상의 정수; 읽는 곳이 효과를 합산한다. `RelicInventory.sum`)
@@ -482,6 +482,50 @@ M5-A에서 관문 대장장이("낡은 휘장": 지휘관 HP −6, 일반 유물
 
 ---
 
+## meta.json (메타 진행, M5-5A)
+런을 넘어 이어지는 **전공 포인트**와 **해금**의 데이터. 로더 `loadMeta(data, commanders, relics)`(`src/core/data/metaLoader.ts`)가 검증한다 — 모르는 필드·잘못된 값은 `unlocks[2].condition.count: …`처럼 경로가 담긴 한국어 오류.
+```json
+{ "version": 1,
+  "points": { "perFloor": 1, "perBoss": 10, "perElite": 2, "victoryBonus": 30 },
+  "unlocks": [ { "target": "commander", "id": "cmd_isera", "price": 30, "condition": { "type": "runsCompleted", "count": 1 } }, … ] }
+```
+- **해금 방식**: 항목의 달성 조건을 만족하면 런 정산 때 **자동 해금**되고, 조건을 달성하기 전이라도 **전공 포인트로 먼저 구매**할 수 있다(`price`, 1 이상). 잠그는 대상은 지휘관(이세라·녹스)과 `relics.json`에서 `unlock`이 있는 유물 11개뿐이다. 하르텐과 조건 없는 유물 9개는 처음부터 열려 있고 카드·유닛 풀은 잠그지 않는다(시작 유물 선택 기능도 없음).
+- **`commanders.json`/`relics.json`의 `unlock` 문자열은 표시용**으로 유지한다. 로더가 둘을 대조한다: 해금 항목의 `id`는 실제 지휘관·유물이어야 하고, **잠그는 대상 집합 = `unlock` 문구가 있는 항목 집합**이 아니면 오류(문구 있는데 항목 없음 / 항목 있는데 문구 없음). 중복 id도 오류.
+- **조건 종류** (`condition.type`, 통계 정의는 아래 "런 통계"):
+
+| type | 필드 | 해석 (진행도 current/target) |
+|---|---|---|
+| `runsCompleted` | `count` | 끝난 런 누적 `count`회 (승패 무관, 테스트 런 제외) |
+| `bossKilled` | `act` | 액트 `act`의 보스를 (어느 런에서든) 한 번이라도 처치. 0/1 |
+| `eliteKills` | `count` | 정예 처치 누적 |
+| `unitStar3` | 없음 | 어느 런에서든 유닛 3성 달성. 0/1 |
+| `runCompletedWithDeckSize` | `minSize` | 끝난 런(승패 무관) 중 종료 시 덱이 `minSize`장 이상인 런이 있음. current = 최대 덱 장수 |
+| `ultimateUses` | `count` | 궁극기 사용 누적(전투 합계) |
+| `reachBossWithGold` | `gold` | 보스 노드 입장 시 보유 골드가 `gold` 이상인 적이 있음. current = 최고 기록 |
+| `shopVisits` | `count` | 상점 노드 방문 누적 |
+
+- **전공 포인트 공식** (런이 끝날 때 1회, `calculateRunPoints`): `도달 층 × perFloor + 처치한 보스 수 × perBoss + 처치한 정예 수 × perElite + (승리면) victoryBonus`. 도달 층은 전체 층(액트 2 보스 = 26층). 초안: 1/10/2/30, 가격은 이세라 30, 녹스 120, 희귀 유물 25, 보스 유물 40. 하르텐으로 액트 1 보스까지 가면 약 29~35점(이세라 가격 근처), 3액트 승리는 약 115점 안팎이라 1~2회면 녹스를 살 수 있다. 수치는 플레이 감각으로 조정할 초안이다.
+- **통계는 테스트 런을 포함하지 않는다**: 테스트 런(`test` 표시)과 끝나지 않은 런·런 id가 없는 요약은 `settleRun`이 `{ ok:false, reason }`으로 거부한다.
+
+### 메타 진행 코어 (`src/core/meta`, Phaser·DOM 비의존)
+- `MetaProgress(catalog)`: 전공 포인트 `points`/`totalEarned`, 누적 통계 `statsView()`, 해금 집합(항목별 `via`: `condition`/`purchase`), 정산한 런 id 기록(최근 100개).
+  - `isUnlocked(id)`(잠글 수 없는 id는 항상 true) · `isLockable(id)` · `progress(id)`(`{current,target,met}`, 잠글 수 없으면 null) · `items()`(해금 화면용: 대상·가격·조건·진행도·해금 여부·`canPurchase`) · `runUnlocks(전체 지휘관 id, 전체 유물 id)`(→ `RunOptions.unlocks`).
+  - `purchase(id)`: 포인트 부족·이미 해금·모르는/잠글 수 없는 id는 `{ ok:false, reason }`이고 상태 불변.
+  - `settleRun(summary)`: 통계 누적 → 포인트 지급 → 새로 조건을 만족한 항목 자동 해금. 같은 `runId`는 한 번만. 성공하면 `{ ok:true, earned:{floors,bosses,elites,victory,total}, newUnlocks, balance }`.
+  - `serialize()`/`MetaProgress.restore(catalog, json)`: `{ format:"autochess-meta", version:1, points, totalEarned, stats, unlocked:[{id,via}], settledRuns }`. 잘못된 데이터는 `meta.stats.runsCompleted: …` 같은 한국어 오류. meta.json에서 사라진 해금 id는 무시하고 복원한다. 저장소(localStorage)는 UI(`ui/run/MetaStore`)가 맡는다: 키 `autochess-meta-save`(런 저장 `autochess-run-save`와 별개). 손상·형식·버전 불일치는 한국어 오류로 "손상" 상태가 되고(덮어쓰지 않음) 시작 화면 "전공 기록 초기화"(확인 후)로만 새로 시작한다. 구매·런 종료 정산 직후 저장하며 저장 실패는 알림만 띄운다.
+- 런 요약 `RunSummary`(`controller.runSummary()`): `runId, test, commanderId, outcome, floorsReached, bossActsKilled, eliteKills, ultimateUses, shopVisits, unitStar3, bossEntryGold, deckSize`.
+- **런 통계 정의**: 도달 층 = 입장한 노드의 전체 층 최대 / 보스 처치 = 보스 승리 기록의 액트 / 정예 처치 = 정예 승리 기록 수(노드당 1) / 상점 방문 = 입장한 상점 노드 수 / 궁극기 사용 = 정산한 전투의 `ultimateUsed` 이벤트 합 / 3성 = 전투 정산·노드 입장·요약 시점에 보드·벤치에 3성 이상이 있었는가 / 보스 입장 골드 = 보스 노드에 들어간 순간 골드의 최댓값 / 덱 장수 = 런 종료 시 4개 더미 합. 앞의 셋은 기록(`history`·`visited`)에서 계산하고 궁극기·3성·보스 입장 골드만 `RunState.stats`에 저장한다.
+
+### 런 ID 발급·정산 시점 (UI, M5-5B)
+- 새 일반 런마다 UI가 `runId`(`crypto.randomUUID`, 없으면 시간+난수)를 발급해 `RunController.create`의 `runId`와 `unlocks`(= `MetaProgress.runUnlocks`)로 넘긴다. 테스트 런·경제 플레이·편성 디버그에는 넘기지 않는다.
+- **옛 저장본(runId 없음)**: 이어하기 때 `controller.assignRunId(id)`로 한 번 붙인다(core API: 이미 있거나 테스트 런이면 거부). `allowedRelics` 필드가 없으면 모든 유물 허용 그대로.
+- **정산**: 일반 런이 `ended`가 되는 순간(전투 정산 직후) `settleRun(runSummary())` → 메타 저장 → 그다음 런 저장 삭제 순서로 한 번만 한다. 정산 실패(전공 기록 손상 등)도 런 저장 삭제 규칙은 같다. 테스트 런은 정산하지 않고 종료 화면에 "테스트 런은 전공에 반영되지 않습니다"를 표시한다.
+
+### 잠금 적용 범위 (일반 런만)
+- `RunController.create(deps, { …, unlocks?: { commanders, relics }, runId? })`. **`unlocks`를 주면** 잠긴 지휘관으로는 `Error("아직 해금하지 않은 지휘관입니다: 이름")`를 던지고, 유물 후보(정예 보상·상점 진열·이벤트 `gainRelic`·보스 유물 후보·종료 화면 `bossRelicOffer`)는 `relics`에 든 유물만 나온다(`RelicRewardGenerator`의 `allowed`). **`unlocks`를 주지 않으면 모두 허용** — 테스트 런(`createTest`)·`AutoRunner`/`tools/run.ts`/`tools/sim.ts`·편성 디버그·5연전·경제 플레이는 해금 정보를 받지 않으므로 메타와 무관하게 모든 지휘관·유물을 쓴다. 이 환경이 해금 없이 모든 콘텐츠를 검사하는 방법이다.
+- **허용 집합 저장**: 런 시작 때의 허용 유물을 `RunSave.allowedRelics`(선택 필드)에 저장하고 복원 때 그것을 쓴다. 런 도중 메타가 바뀌어도 진행 중 런의 후보는 변하지 않는다. 필드가 없는 저장본(기존 v1~v3)은 "모두 허용". 현재 `relics.json`에 없는 id는 복원할 때 무시한다. `runId`(중복 정산 방지용 식별자, 호출자가 새 런마다 다르게 정함)와 `stats`도 선택 필드다.
+- **후보 부족 규칙**: 허용·미보유 유물이 부족하면 **있는 만큼만 제시**하고 0개면 그 보상을 생략한다 — 정예 보상은 유물 없이 카드 보상만, 상점 진열은 빈 칸 없이 있는 만큼, 이벤트 유물 선택지는 "더 받을 수 있는 유물이 없습니다"로 선택 불가, 보스 유물 후보가 0개면 보스 유물 선택 단계를 건너뛰고 바로 액트 소개로 간다(기존 규칙 그대로). 처음에는 보스 유물 3개가 잠겨 있어 액트 1·2 보스 처치 때 보스 유물 선택이 나오지 않는다(액트 1 보스 처치가 정산되어 해금된 뒤부터 나온다).
+
 ## 런 코어 (M4-A, M5-1 3액트)
 
 `src/core/run`. 수치는 `RUN`(`run/constants.ts`)에 모여 있다. UI(M4-B)는 `RunController`만 보고 만든다.
@@ -549,7 +593,7 @@ M5-A에서 관문 대장장이("낡은 휘장": 지휘관 HP −6, 일반 유물
 - **야영지(택1)**: 휴식 = 최대 HP의 30%(올림, 유물 야전 천막 +20%p) 회복 / 단련 = 덱 카드 1장 강화(유닛 제공 카드·이미 강화된 카드 제외) / 승급 = 유닛 1기 +1성. 승급 비용 = 4 + (풀에서 추가로 가져오는 원본 수 × 유닛 등급): 1→2성은 원본 +2개(2성 = 3개), 2→3성은 +6개(3성 = 9개)를 유닛 풀에서 가져와 일반 합성과 같은 재고를 쓰므로 판매 시 돌려주는 개수(1/3/9)와 어긋나지 않는다. 재고나 골드가 모자라면 불가, 승급 뒤 같은 성급 3기가 되면 자동 합성한다.
 
 ### 저장 (`RunSave`)
-- `{ format: "autochess-run", version: 3, seed, commanderId, deckPreset, totalActs, maps, position, health, forces{economy, management, managementRng, carryDeck}, relics{owned, mirrorUsed, freeRerollsUsed}, removals, seenEvents, phase, session, outcome, history, test?, contentVersion? }` (`contentVersion`은 아래 "콘텐츠 마이그레이션", `test`는 플레이 테스트 런에만 있는 선택 필드, 아래 "플레이 테스트 런"). **v3(M5-1)**: 단일 `map` 대신 액트 1부터 지금 액트까지의 맵 배열 `maps`와 전체 액트 수 `totalActs`를 저장한다 (지난 액트의 맵도 기록 검증용으로 남는다). `position.visited`·`history`는 모든 액트를 이어서 담고(노드 id가 액트마다 달라 겹치지 않음), 단계 `bossRelic`(세션 `{ kind: 'bossRelic', offer }`)·`actIntro`(세션 `{ kind: 'actIntro', hpBefore, healed }`)가 늘었다. **v2(M5-A)**: 지휘관 id(`commanderId`, 이미 v1에도 있었음)와 유물 상태 `relics`가 저장 형식의 일부가 되었다. 세션은 보상 `relic`(정예 보상 유물 id 또는 null)·상점 `relics`(유물 진열 `{ relicId, price, sold }`)가 늘었고, 경제 영수증에는 선택 필드 `bonus`가 생겼다.
+- `{ format: "autochess-run", version: 3, seed, commanderId, deckPreset, totalActs, maps, position, health, forces{economy, management, managementRng, carryDeck}, relics{owned, mirrorUsed, freeRerollsUsed}, removals, seenEvents, phase, session, outcome, history, test?, stats?, runId?, allowedRelics?, contentVersion? }` (`contentVersion`은 아래 "콘텐츠 마이그레이션", `test`는 플레이 테스트 런에만 있는 선택 필드, 아래 "플레이 테스트 런"). **v3(M5-1)**: 단일 `map` 대신 액트 1부터 지금 액트까지의 맵 배열 `maps`와 전체 액트 수 `totalActs`를 저장한다 (지난 액트의 맵도 기록 검증용으로 남는다). `position.visited`·`history`는 모든 액트를 이어서 담고(노드 id가 액트마다 달라 겹치지 않음), 단계 `bossRelic`(세션 `{ kind: 'bossRelic', offer }`)·`actIntro`(세션 `{ kind: 'actIntro', hpBefore, healed }`)가 늘었다. **v2(M5-A)**: 지휘관 id(`commanderId`, 이미 v1에도 있었음)와 유물 상태 `relics`가 저장 형식의 일부가 되었다. 세션은 보상 `relic`(정예 보상 유물 id 또는 null)·상점 `relics`(유물 진열 `{ relicId, price, sold }`)가 늘었고, 경제 영수증에는 선택 필드 `bonus`가 생겼다.
 - **v1·v2 마이그레이션**: 버전 1~3을 읽는다. v1·v2(1액트 시절) 저장본은 단일 `map`을 액트 1의 맵으로 읽고 `totalActs`는 3으로 둔다(이어 하면 액트 1 보스 처치 뒤 액트 2로 넘어간다). 이미 승리로 끝난 v1·v2 저장본만 `totalActs` 1로 읽어 승리가 유효하다. v1·v2에 v3 필드가 섞여 있거나 v3에 `map`이 있으면 거부한다. 다시 저장하면 v3가 된다.
 - **M5-4 유닛 풀 호환**: 유닛 14종 → 30종 전에 만든 v3 저장본(`forces.management.pool`)에는 신규 16종 재고가 없다. 복원할 때 `MANAGEMENT.POOL_ADDED_IN_M54`에 있는 유닛의 재고가 빠져 있으면 등급별 기본 재고(18/16/14/10/8)로 채운다(그 저장본은 신규 유닛을 소유·진열한 적이 없다). 이 목록 밖 유닛의 재고가 빠졌거나 모르는 유닛이 있으면 여전히 손상된 저장으로 거부한다. 저장 `version`은 3 그대로다(읽기 호환만 추가, `runSaveV3M53.fixture.json`이 4b33a11에서 만든 일반·테스트 런 저장본으로 검증한다). 저장된 전투 준비·노드는 같은 편성 id의 새 구성 유닛으로 치러진다.
 - **v1 마이그레이션(유물)**: v1 저장본은 `relics`가 없으면(있으면 오류) 유물 없음·무료 리롤·거울 사용량 0으로, 보상 `relic`·상점 `relics`가 없으면 null·빈 목록으로 읽고 지휘관은 저장된 `commanderId`(v1 시절엔 항상 하르텐)를 그대로 쓴다. 다시 저장하면 v3가 된다(`runSaveV1.fixture.json`이 M4 시절 실제 저장본으로 이를 검증한다). v4 이상은 거부한다.

@@ -23,11 +23,16 @@ export function relicPrice(rarity: DroppableRarity): number {
  * 무작위는 호출하는 쪽이 (런 시드, 용도, 노드)에서 파생한 Rng를 넘긴다.
  */
 export class RelicRewardGenerator {
-  constructor(private readonly catalog: RelicCatalog) {}
+  /** allowed가 null이면 모든 유물, 아니면 그 id만 후보로 나온다 (메타 해금). 허용 집합이 작아 후보가 모자라면 있는 만큼만 제시한다 */
+  private readonly allowed: ReadonlySet<string> | null;
 
-  /** 아직 없는 해당 희귀도 유물 (파일 순서) */
+  constructor(private readonly catalog: RelicCatalog, allowed: readonly string[] | null = null) {
+    this.allowed = allowed === null ? null : new Set(allowed);
+  }
+
+  /** 아직 없고 허용된 해당 희귀도 유물 (파일 순서) */
   available(owned: readonly string[], rarity: RelicRarity): RelicDef[] {
-    return this.catalog.ofRarity(rarity).filter((relic) => !owned.includes(relic.id));
+    return this.catalog.ofRarity(rarity).filter((relic) => !owned.includes(relic.id) && (this.allowed === null || this.allowed.has(relic.id)));
   }
 
   /** 정예 보상 1개: 희귀도 가중치로 고르고, 그 등급이 바닥나면 다른 등급에서. 줄 유물이 없으면 null */

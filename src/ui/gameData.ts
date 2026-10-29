@@ -2,13 +2,14 @@ import cardsJson from '../../data/cards.json';
 import commandersJson from '../../data/commanders.json';
 import encountersJson from '../../data/encounters.json';
 import eventsJson from '../../data/events.json';
+import metaJson from '../../data/meta.json';
 import migrationsJson from '../../data/migrations.json';
 import relicsJson from '../../data/relics.json';
 import traitsJson from '../../data/traits.json';
 import unitsJson from '../../data/units.json';
 import { parseFormation, type FormationEntry } from '../core/combat';
 import { loadRunDeps, type RunDeps } from '../core/run';
-import type { CardCatalog, CommanderCatalog, TraitCatalog, UnitCatalog } from '../core/data';
+import { loadMeta, type CardCatalog, type CommanderCatalog, type MetaCatalog, type TraitCatalog, type UnitCatalog } from '../core/data';
 import formationA from '../../tools/formations/a.json';
 import formationB from '../../tools/formations/b.json';
 import hartenStart from '../../tools/formations/harten-start.json';
@@ -37,6 +38,8 @@ export interface GameData {
   seriesStages: readonly GauntletStage[];
   /** 런 코어가 쓰는 검증된 데이터 (적 편성·이벤트 포함). 위 카탈로그와 같은 인스턴스를 공유한다 */
   run: RunDeps;
+  /** 메타 진행(전공 포인트 공식·해금 항목). 일반 런 시작 화면만 쓰고 테스트 경로는 쓰지 않는다 */
+  meta: MetaCatalog;
 }
 
 /** 디버그 화면을 처음 열 때 선택되어 있는 지휘관 (데이터에 없으면 지휘관 없음으로 떨어진다) */
@@ -80,5 +83,6 @@ export function loadGameData(): GameData {
     ]),
     seriesStages,
     run,
+    meta: loadMeta(metaJson, commanders, run.relics),
   };
 }

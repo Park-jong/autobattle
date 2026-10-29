@@ -4,10 +4,11 @@ import { HandPanel } from './ui/cards/HandPanel';
 import { BattleSession } from './ui/debug/BattleSession';
 import { DebugPanel } from './ui/debug/DebugPanel';
 import { RunBattlePanel } from './ui/run/RunBattlePanel';
+import { MetaStore } from './ui/run/MetaStore';
 import { RunSaveStore } from './ui/run/RunSaveStore';
 import { RunSession } from './ui/run/RunSession';
 import { RunShell } from './ui/run/RunShell';
-import { BrowserRunStorage } from './ui/run/RunStorage';
+import { BrowserRunStorage, META_SAVE_KEY } from './ui/run/RunStorage';
 import { loadGameData, unitAbbreviation } from './ui/gameData';
 import { computeHiDpi } from './ui/hidpi';
 import { COLORS } from './ui/theme';
@@ -25,6 +26,14 @@ function randomSeed(): number {
   const buffer = new Uint32Array(1);
   crypto.getRandomValues(buffer);
   return 100000 + ((buffer[0] ?? 0) % 900000);
+}
+
+/** 런 식별자 (메타 정산 중복 방지용). core가 아니므로 crypto/시간 기반 */
+function newRunId(): string {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID();
+  const buffer = new Uint32Array(2);
+  crypto.getRandomValues(buffer);
+  return `${Date.now().toString(36)}-${buffer[0]!.toString(36)}${buffer[1]!.toString(36)}`;
 }
 
 function bootstrap(): void {
@@ -61,6 +70,8 @@ function bootstrap(): void {
   const runSession = new RunSession({
     deps: data.run,
     store: new RunSaveStore(new BrowserRunStorage(), data.run),
+    meta: new MetaStore(new BrowserRunStorage(undefined, META_SAVE_KEY), data.meta),
+    newRunId,
     battle: session,
     legacy: {
       openManagement: () => session.startManagementRun(),

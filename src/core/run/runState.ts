@@ -48,6 +48,18 @@ export interface TestRunInfo {
   startPosition: TestStartPosition;
 }
 
+/** 메타 정산에 필요한 런 통계 (기록·방문에서 구할 수 없는 값만. 정예 처치·상점 방문·보스 처치·도달 층은 history·visited에서 계산) */
+export interface RunStats {
+  /** 궁극기를 쓴 횟수 (정산한 전투의 합계) */
+  ultimateUses: number;
+  /** 보스 노드에 입장했을 때 보유 골드의 최댓값 */
+  bossEntryGold: number;
+  /** 유닛 3성을 달성한 적이 있는가 */
+  unitStar3: boolean;
+}
+
+export const emptyRunStats = (): RunStats => ({ ultimateUses: 0, bossEntryGold: 0, unitStar3: false });
+
 /** 지나온 전투의 기록 */
 export interface RunRecord {
   nodeId: string;
@@ -113,6 +125,12 @@ export class RunState {
   history: RunRecord[] = [];
   /** 플레이 테스트 런 표시 (일반 런이면 null). 테스트 명령 허용과 저장 검증 완화 여부를 정한다 */
   test: TestRunInfo | null = null;
+  /** 메타 정산용 통계 */
+  stats: RunStats = emptyRunStats();
+  /** 메타 정산 중복 방지용 런 식별자 (호출자가 정함. 없으면 null) */
+  runId: string | null = null;
+  /** 런을 시작할 때 허용된 유물 id (메타 해금 결과). null이면 모든 유물을 허용한다. 진행 중에는 바뀌지 않는다 */
+  allowedRelics: readonly string[] | null = null;
 
   constructor(
     readonly seed: number,

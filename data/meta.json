@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "points": {
+    "perFloor": 1,
+    "perBoss": 10,
+    "perElite": 2,
+    "victoryBonus": 30
+  },
+  "unlocks": [
+    { "target": "commander", "id": "cmd_isera", "price": 30, "condition": { "type": "runsCompleted", "count": 1 } },
+    { "target": "commander", "id": "cmd_nox", "price": 120, "condition": { "type": "bossKilled", "act": 2 } },
+    { "target": "relic", "id": "blood_oath", "price": 25, "condition": { "type": "eliteKills", "count": 5 } },
+    { "target": "relic", "id": "fifth_banner", "price": 25, "condition": { "type": "runsCompleted", "count": 1 } },
+    { "target": "relic", "id": "twin_mirror", "price": 25, "condition": { "type": "unitStar3" } },
+    { "target": "relic", "id": "heralds_bag", "price": 25, "condition": { "type": "runsCompleted", "count": 1 } },
+    { "target": "relic", "id": "tacticians_journal", "price": 25, "condition": { "type": "runCompletedWithDeckSize", "minSize": 20 } },
+    { "target": "relic", "id": "war_record", "price": 25, "condition": { "type": "ultimateUses", "count": 10 } },
+    { "target": "relic", "id": "fat_purse", "price": 25, "condition": { "type": "reachBossWithGold", "gold": 50 } },
+    { "target": "relic", "id": "wholesale_voucher", "price": 25, "condition": { "type": "shopVisits", "count": 5 } },
+    { "target": "relic", "id": "rift_heart", "price": 40, "condition": { "type": "bossKilled", "act": 1 } },
+    { "target": "relic", "id": "legion_seal", "price": 40, "condition": { "type": "bossKilled", "act": 1 } },
+    { "target": "relic", "id": "iron_heart", "price": 40, "condition": { "type": "bossKilled", "act": 1 } }
+  ]
+}

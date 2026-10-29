@@ -8,6 +8,30 @@ export class EndScreen {
 
   constructor(private readonly commands: RunCommands) {}
 
+  /** 전공 정산 내역: 항목별 포인트·합계·보유 전공·새로 해금된 항목 (테스트 런은 제외 안내) */
+  private metaSection(meta: NonNullable<RunSnapshot['endMeta']>): HTMLElement {
+    const box = tagged(el('section', `run-end-meta ${meta.kind}`), 'end-meta');
+    if (meta.kind === 'test') {
+      box.append(el('h3', '', '전공'), tagged(el('p', '', meta.message), 'end-meta-test'));
+      return box;
+    }
+    if (meta.kind === 'failed') {
+      box.append(el('h3', '', '전공'), tagged(el('p', '', meta.reason), 'end-meta-failed'));
+      return box;
+    }
+    box.append(el('h3', '', '획득 전공'));
+    const list = tagged(el('dl'), 'end-meta-rows');
+    for (const row of meta.rows) list.append(el('dt', '', row.label), el('dd', '', row.value));
+    list.append(el('dt', 'total', '합계'), tagged(el('dd', 'total', `+${meta.total}`), 'end-meta-total'));
+    box.append(list, tagged(el('p', '', `보유 전공 ${meta.balance}`), 'end-meta-balance'));
+    if (meta.unlocks.length > 0) {
+      const unlocks = tagged(el('ul', 'run-end-unlocks'), 'end-meta-unlocks');
+      for (const u of meta.unlocks) unlocks.append(el('li', '', `새로 해금: ${u.targetLabel} ${u.name} (${u.conditionText})`));
+      box.append(unlocks);
+    }
+    return box;
+  }
+
   render(snap: RunSnapshot): void {
     const end = snap.ended;
     if (!end) return;
@@ -40,6 +64,7 @@ export class EndScreen {
     const relics = el('section', 'run-end-section');
     relics.append(el('h3', '', `유물 ${end.relics.length}개`), relicRow(end.relics, '없음'));
     card.append(deck, roster, relics);
+    if (snap.endMeta) card.append(this.metaSection(snap.endMeta));
     if (end.outcome === 'victory' && end.bossRelicOffer.length > 0) {
       const boss = tagged(el('section', 'run-end-section'), 'boss-relic-offer');
       boss.append(
