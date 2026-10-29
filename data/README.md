@@ -171,7 +171,7 @@ M3 추가 카드: `call_reserves`(예비대 호출, 3CP·강화 2CP, 후열 빈 
 | `siege_bombardier` 공성 포병 | 포격 | `delayedStrike` 2초 `densestEnemies3x3`: `damage enemiesInTargetArea` 250/300/400% 물리 |
 | `magma_champion` 용암 챔피언 | 용암 강타 | `currentTarget`: `enemiesAroundSelf`에 `flatDamage` 마법 200/300/550 + `stun` 1초 + `burn` *(초당 ATK 100%, 3초 — 점화사와 같은 초안)* |
 | `abyss_sentinel` 심연 감시자 | 심연의 시선 | `taunt` self 반경 2·3초 + `damageTakenMult` 0.6 3초 + `reflect` 20% 3초 |
-| `void_hierophant` 공허 대사제 | 공허 개방 | `flatDamage targetAndAdjacent`(대상 중심 3×3) 마법 150/230/400 + `skillCpGain` +1 *(시전 유닛당 전투 2회)* |
+| `void_hierophant` 공허 대사제 | 공허 개방 | `flatDamage targetAndAdjacent`(대상 중심 3×3) 마법 150/230/400 + `skillCpGain` +1 *(이 유닛 기준 전투당 2회 — 공허 대사제가 여러 기면 각각 셈)* |
 | `volcano_oracle` 화산 예언자 | 대분화의 예언 | `delayedStrike` 4초 `allEnemies`: `flatDamage allEnemies` 마법 300/450/1200 + `burn` *(초당 ATK 100%, 3초)* |
 | `muhon` 무혼 | 무명의 일섬 | `damage lineThroughTarget` 300/350/600% + `manaOnKill 30` → `teleport lineEnd`(직선 끝 빈 칸으로 질주) |
 | `elder_treeking` 태고의 수목왕 | 태고의 숨결 | `shield allAllies` 최대 HP 20/30/60% *(전투 끝까지)* + `regen` 2%/초 5초 + `taunt` self *반경 2*·3초 |

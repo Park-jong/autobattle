@@ -149,7 +149,7 @@ export class EffectsLayer {
           // 주술사 특성이 손패 비용을 깎으면 발동한 유닛 위에 "비용 -1"
           if (e.unit !== null && e.delta !== 0 && age <= TIMING.CARD_COST_TEXT) {
             this.showFloating(e.seq, live, e.unit, views, `카드 비용 ${e.delta}`, TEXT_COLORS.COST_DOWN, age / TIMING.CARD_COST_TEXT, {
-              lift: MOTION.SKILL_RISE_PX, baseY: -96, jitter: 0, size: '18px',
+              lift: MOTION.SKILL_RISE_PX, baseY: MOTION.CARD_COST_BASE_Y, jitter: 0, size: '16px',
             });
           }
           break;
