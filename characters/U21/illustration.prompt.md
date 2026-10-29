@@ -1,0 +1,73 @@
+# U21 베가 — illustration 생성 프롬프트
+
+성인 게임 지향. 내장 이미지 생성 도구 사용.
+
+참조: characters/U01/illustration.png
+
+```text
+Use case: stylized-concept. Production game asset for a coherent roster of 30 adult women. The setting is an adult postsecondary magical academy fantasy game for adult audiences. All characters are explicitly adult women age 20 or older, including adult female spirits. Use attractive mature anime character design, crisp elegant linework, refined controlled cel shading, detailed metal and cloth, consistent soft neutral upper-left lighting, a clear silhouette. Follow the revealing opaque fantasy fashion specified in the character brief: adult shoulders, collarbones, waist or thighs visible as described. Preserve role-specific equipment and faction palette. Natural proportions, fully opaque clothing covering intimate areas, no sexual action. Anatomy: exactly two arms and exactly two hands, each visibly connected to its own shoulder. If holding two props, use one hand per prop and do not add a third resting arm or hand. Real transparent PNG alpha; no background, scenery, floor, vignette, glow outside the silhouette, painted checkerboard, text, labels, frames, UI, watermark or extra characters. Create U21 베가: ONE finished full-body character illustration, portrait 2:3 canvas. Reference image is STYLE ONLY: match rendering polish and linework, but create this DIFFERENT character with her own face, hair, costume, equipment, palette and pose from the brief. Do not copy Rine, her brown bob, blue ribbon, shield or notebook unless explicitly in this brief. Adult full-size anatomy about 7–8 heads tall, eye-level near-front three-quarter view, complete head-to-boot-soles framing, include all hair ornaments and primary equipment with margins. Pose and expression reflect her personality. No alternate views or prop sheet.
+
+CHARACTER BRIEF (Korean):
+# U21 — 천문저격부 베가
+
+
+
+## 기본 설정
+
+| 항목 | 설정 |
+|---|---|
+| 번호 | U21 |
+| 이름 | 베가 |
+| 포지션 | 천문저격부 베가 |
+| 성별 | 여성 |
+| 작품 지향 | 성인 대상 게임 · 노출 있는 판타지 의상 |
+| 연령 | 26세 |
+| 소속 | 금서 연구회 |
+| 등급·직업 | 3 · 사수 |
+| 기존 유닛 | 공허 저격수 |
+| 데이터 ID | `void_sniper` |
+
+## 성인 게임 아트 방향
+
+성인 대상 게임을 지향한다. 전원 성인 여성 설정을 유지하고, 어깨·쇄골·허리·허벅지가 드러나는 의상과 몸에 맞는 실루엣을 기본으로 한다. 노출 위치와 의상 형태는 캐릭터의 역할·성격·소속에 따라 차별화한다.
+
+- **노출 포인트:** 어깨·쇄골·허리·허벅지. 긴 코트와 짧은 안쪽 복장의 길이 대비.
+- **의상 기준:** 불투명한 주요 의복, 소속 문장과 대표 장비를 유지한다.
+
+## 성격·배경
+
+대화 중에도 먼 곳을 보는 몽상가. 가장 큰 위험부터 없애야 모두가 별을 볼 수 있다고 믿는다.
+
+## 외형 요약
+
+푸른빛 흑발 생머리, 한쪽 눈의 별자리 렌즈, 망원경형 장총
+
+## 체격
+
+| 항목 | 설정 |
+|---|---|
+| 키 | 176 cm |
+| 쓰리사이즈 B/W/H | 86/64/92 cm |
+| 체형·골격 | 긴 팔과 넓은 어깨의 장신 사수 체형. 골반을 고정하고 상체를 천천히 움직인다. |
+| 피부·신체 특징 | 차가운 상아색 피부. 오른쪽 눈가의 아주 작은 별점 네 개, 오른손 검지의 굳은살. |
+
+키는 맨발 기준으로 귀·왕관·장식은 제외한다. B/W/H는 가슴둘레/허리둘레/엉덩이둘레이며 의상·장비 두께를 제외한다. 정령과 계약 존재도 성인 여성 인간형 기준이다.
+
+## 외형 상세
+
+| 항목 | 설정 |
+|---|---|
+| 머리색·헤어스타일 | 푸른빛 흑색 `#26344C`. 허리까지 곧게 내려오는 생머리, 눈썹을 스치는 긴 앞머리. |
+| 눈색·눈매 | 왼눈 은청색 `#9EBAD7`, 오른눈 진보라색 `#73689F`. 오른눈 위에 별자리 렌즈. |
+| 얼굴·기본 표정 | 긴 타원형 얼굴, 가는 입술, 거의 무표정한 입매. 시선은 늘 조금 먼 곳에 둔다. |
+| 복식·신발 | 열어 입은 긴 사격 코트, 어깨 트임의 불투명 남색 크롭 탑, 높은 허리의 짧은 사격 반바지, 허벅지 탄약 벨트와 무릎 높이 사격 부츠. |
+| 장비·자세·식별 포인트 | 긴 망원경형 장총과 오른눈의 별자리 원환. 한쪽 무릎을 굽혀 반동을 받을 준비를 한다. |
+
+## 스킬·전투 연출
+
+**가장 무거운 별** — 체력이 가장 많은 적을 별자리로 표시하고, 방어력을 무시하는 압축 공허탄을 발사한다.
+
+기존 전투 효과와 수치는 유지하며, 위 설명은 스킨의 이름과 연출 제안이다.
+
+
+```
