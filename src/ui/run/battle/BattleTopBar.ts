@@ -6,6 +6,7 @@ import { commanderArt } from '../../skin/commanderArt';
 import { motionPreferences } from '../../skin/presentation';
 import type { RunSnapshot } from '../contracts';
 import { button, el, tagged } from '../dom';
+import { iconButton } from '../iconButton';
 import { CardListModal, type CardListSpec } from '../CardListModal';
 import { relicRow } from '../relicElements';
 
@@ -38,6 +39,7 @@ export class BattleTopBar {
     private readonly battle: DebugController,
     private readonly cardView: () => CardPanelView,
     private readonly listModal = new CardListModal(),
+    private readonly onOpenMap: () => void = () => {},
   ) {
     root.replaceChildren(this.node, this.chips, this.controls);
   }
@@ -111,11 +113,10 @@ export class BattleTopBar {
       chip.addEventListener('click', () => this.openCardList(key));
       return chip;
     });
-    const deckButton = tagged(button('덱 보기', () => this.openCardList('deck'), 'bt-btn'), 'open-deck');
     const deck = el('span', 'bt-chip-label', '덱');
     this.piles.className = 'bt-top-chips';
     this.piles.style.flex = '0 0 auto';
-    this.piles.replaceChildren(deck, ...nodes, deckButton);
+    this.piles.replaceChildren(deck, ...nodes);
   }
 
   /** 덱 전체 또는 더미 하나를 카드 목록 창으로 연다 (닫히면 갱신 대상에서 빠진다) */
@@ -143,11 +144,17 @@ export class BattleTopBar {
   }
 
   private renderControls(stage: 'prep' | 'playing' | 'result', session: SessionSnapshot): void {
-    const nodes: HTMLElement[] = [];
+    // 맵 보기·덱 보기: 준비·전투 중·결과 어느 단계에서나 지금 액트의 경로와 덱을 확인한다
+    const nodes: HTMLElement[] = [
+      tagged(iconButton('map', '맵 보기', () => this.onOpenMap(), 'bt-btn'), 'open-map'),
+      tagged(iconButton('deck', '덱 보기', () => this.openCardList('deck'), 'bt-btn'), 'open-deck'),
+    ];
     if (stage === 'playing') {
       nodes.push(
-        tagged(button(session.phase === 'paused' ? '재개' : '일시정지', () => this.battle.togglePause(), 'bt-btn'), 'toggle-pause'),
-        tagged(button('준비로 돌아가기', () => this.battle.reset(), 'bt-btn'), 'back-to-prep'),
+        tagged(session.phase === 'paused'
+          ? iconButton('play', '재개', () => this.battle.togglePause(), 'bt-btn')
+          : iconButton('pause', '일시정지', () => this.battle.togglePause(), 'bt-btn'), 'toggle-pause'),
+        tagged(iconButton('undo', '준비로 돌아가기', () => this.battle.reset(), 'bt-btn'), 'back-to-prep'),
       );
     }
     const speeds = el('span', 'bt-speed');

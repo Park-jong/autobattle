@@ -250,7 +250,7 @@ button.bt-chip:hover, .bt-chip.open { border-color: var(--bt-gold); }
 .bt-bench-side { flex: 1 1 0; display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 12px; color: var(--bt-muted); }
 .bt-bench-side.left { justify-content: flex-end; }
 .bt-bench-side b { color: var(--bt-text); }
-.bt-bench-slots { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; flex: 0 0 auto; }
+.bt-bench-slots { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 6px; flex: 0 0 auto; }
 .bt-slot {
   position: relative; height: 64px; min-width: 0; box-sizing: border-box;
   border: 1px dashed #3a4460; border-radius: 8px; background: #0f131c88;
@@ -259,27 +259,44 @@ button.bt-chip:hover, .bt-chip.open { border-color: var(--bt-gold); }
 }
 body.roster-dragging .bt-slot { border-color: var(--bt-gold-dim); background: #2a271a55; }
 .bt-slot-unit {
-  position: absolute; inset: 2px; display: flex; align-items: center; gap: 6px; padding: 4px 6px;
+  position: absolute; inset: 2px; display: flex; align-items: center; justify-content: center; padding: 2px; overflow: hidden;
   border: 1px solid var(--bt-border-strong); border-radius: 6px;
   background: linear-gradient(180deg, #222a3c 0%, #191e2c 100%);
   color: var(--bt-text); font: 12px var(--bt-font); text-align: left; cursor: grab; touch-action: none; user-select: none;
 }
 .bt-slot-unit:disabled { cursor: default; opacity: 0.6; }
 .bt-slot-unit.selected { border-color: var(--bt-gold); box-shadow: 0 0 0 1px var(--bt-gold), 0 0 12px #e8c46a55; }
-.bt-slot-unit .bt-face { width: 44px; height: 44px; font-size: 13px; }
-.bt-slot-name { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
-.bt-slot-name b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.bt-slot-name span { color: var(--bt-gold); font-size: 11px; }
+/* 9칸이라 칸이 좁다: 얼굴만 가운데 두고 별은 얼굴 아래쪽에 겹쳐 띄운다 (이름은 title 툴팁) */
+.bt-slot-unit .bt-face { width: 46px; height: 46px; max-width: 100%; max-height: 100%; font-size: 13px; }
+.bt-slot-name { position: absolute; left: 0; right: 0; bottom: 1px; display: flex; justify-content: center; pointer-events: none; line-height: 1; }
+.bt-slot-name b { display: none; }
+.bt-slot-name span { color: var(--bt-gold); font-size: 11px; letter-spacing: -1px; text-shadow: 0 0 2px #000, 0 1px 2px #000; }
 .bt-start { padding: 10px 26px !important; font-size: 16px !important; }
 
-/* 드래그 표시 */
+/* 드래그 표시: 보드 위 유닛 모양(진영색 받침 + 원화 또는 원 + 약자)이 포인터 중심을 따라다닌다 */
 .bt-drag-ghost {
-  position: fixed; z-index: 1000; pointer-events: none; transform: translate(-50%, -60%);
-  display: flex; align-items: center; gap: 6px; padding: 4px 10px 4px 4px;
-  background: #1d2333; border: 1px solid var(--bt-gold); border-radius: 8px; box-shadow: 0 6px 18px #000c;
-  color: #fff; font: 13px var(--bt-font);
+  position: fixed; z-index: 1000; pointer-events: none; transform: translate(-50%, -55%);
+  display: flex; flex-direction: column; align-items: center;
+  filter: drop-shadow(0 8px 10px #000b); opacity: 0.92;
+  font: 13px var(--bt-font);
+  --token-ring: var(--bt-tier-1);
 }
-.bt-drag-ghost .bt-face { width: 40px; height: 40px; font-size: 12px; }
+.bt-drag-ghost.tier-2 { --token-ring: var(--bt-tier-2); }
+.bt-drag-ghost.tier-3 { --token-ring: var(--bt-tier-3); }
+.bt-drag-ghost.tier-4 { --token-ring: var(--bt-tier-4); }
+.bt-drag-ghost.tier-5 { --token-ring: var(--bt-tier-5); }
+.bt-token {
+  position: relative; width: 76px; height: 76px; display: flex; align-items: flex-end; justify-content: center;
+}
+/* 원화 밑의 반투명 진영색 받침 (보드의 원화 스킨과 같은 표현) */
+.bt-token::before {
+  content: ''; position: absolute; left: 50%; bottom: 4px; width: 56px; height: 56px; transform: translateX(-50%);
+  border-radius: 50%; background: #4aa3ff73; border: 2px solid var(--token-ring); box-sizing: border-box;
+}
+.bt-token img { position: relative; width: 76px; height: 76px; object-fit: contain; }
+.bt-token.plain { width: 56px; height: 56px; align-items: center; border-radius: 50%; background: #4aa3ff; border: 3px solid var(--token-ring); box-sizing: border-box; color: #fff; font-weight: 800; font-size: 14px; text-shadow: 0 1px 2px #000a; }
+.bt-token.plain::before { display: none; }
+.bt-token-stars { margin-top: -2px; color: #ffd54a; font-size: 13px; letter-spacing: 1px; text-shadow: 0 1px 2px #000; }
 
 /* ---- 하단 트레이: 상점 / 카드 겹침 ---- */
 #tray { position: relative; flex: 0 0 auto; z-index: 28; }

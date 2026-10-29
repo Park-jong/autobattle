@@ -333,3 +333,18 @@
 }
 .cl-empty { grid-column: 1 / -1; margin: 24px 0; color: #9aa3b5; }
 .rw-panel.cl-panel .rw-hint { align-self: center; }
+
+/* 맵 노드 아이콘: 원 안의 SVG 그림 */
+.run-node-icon svg { display: block; pointer-events: none; filter: drop-shadow(0 1px 1px #0008); }
+
+/* 맵 보기 창 (전투 중): 카드 목록 창과 같은 막·패널, 맵 판 + 옆 미리보기 */
+.mp-panel { width: min(1180px, 100%); max-width: min(1180px, 100%); height: min(86vh, 860px); overflow: hidden; }
+.mp-layout { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 12px; }
+.mp-scroll { min-height: 0; overflow-y: auto; border-radius: 8px; background: #10131b; }
+.mp-side { border-left: 0; border-radius: 8px; min-height: 0; }
+@media (max-width: 800px) {
+  .mp-layout { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) 34vh; }
+}
+
+/* 화면 머리글 오른쪽 아이콘 버튼 묶음 (덱 보기 + 시작 화면) */
+.run-header-actions { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }

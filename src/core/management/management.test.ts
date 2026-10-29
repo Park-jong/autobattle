@@ -145,8 +145,10 @@ describe('구매·자동 합성·장비 승계', () => {
   });
 
   it('벤치가 가득 차도 구매 즉시 합성할 수 있으면 허용한다', () => {
-    const starts = [{ unitId: 'unit_0', count: 2 }, ...Array.from({ length: 7 }, (_, i) => ({ unitId: `unit_${i + 1}`, count: 1 }))];
-    const manager = new Management(catalog(), new Economy(1000), new Rng(1), starts);
+    // 보드 3기(레벨 3) + 벤치 가득: unit_0 2기 + 서로 다른 유닛 BENCH_SIZE + 1기
+    const others = MANAGEMENT.BENCH_SIZE + 1;
+    const starts = [{ unitId: 'unit_0', count: 2 }, ...Array.from({ length: others }, (_, i) => ({ unitId: `unit_${i + 1}`, count: 1 }))];
+    const manager = new Management(catalog(Array<number>(others + 1).fill(1)), new Economy(1000), new Rng(1), starts);
     expect(manager.snapshot().bench.every((u) => u !== null)).toBe(true);
     const slot = slotOf(manager, 'unit_0');
     expect(manager.buy(slot).ok).toBe(true);
@@ -154,8 +156,10 @@ describe('구매·자동 합성·장비 승계', () => {
   });
 
   it('빈 벤치가 없고 합성되지 않으면 돈·진열·유닛을 바꾸지 않는다', () => {
-    const starts = [{ unitId: 'unit_0', count: 2 }, ...Array.from({ length: 7 }, (_, i) => ({ unitId: `unit_${i + 1}`, count: 1 }))];
-    const manager = new Management(catalog(), new Economy(1000), new Rng(1), starts);
+    // 보드 3기(레벨 3) + 벤치 가득: unit_0 2기 + 서로 다른 유닛 BENCH_SIZE + 1기
+    const others = MANAGEMENT.BENCH_SIZE + 1;
+    const starts = [{ unitId: 'unit_0', count: 2 }, ...Array.from({ length: others }, (_, i) => ({ unitId: `unit_${i + 1}`, count: 1 }))];
+    const manager = new Management(catalog(Array<number>(others + 1).fill(1)), new Economy(1000), new Rng(1), starts);
     const slot = slotOf(manager, 'unit_1');
     const before = manager.snapshot();
     expect(manager.buy(slot)).toEqual({ ok: false, reason: '벤치가 가득 찼습니다' });
@@ -232,7 +236,7 @@ describe('레벨·인구·벤치 이동', () => {
     const before = manager.snapshot();
     expect(manager.moveToBoard(id, { col: 4, row: 0 }).ok).toBe(false);
     expect(manager.moveToBoard(id, { col: 0.5, row: 0 }).ok).toBe(false);
-    expect(manager.moveToBench(id, 6).ok).toBe(false);
+    expect(manager.moveToBench(id, MANAGEMENT.BENCH_SIZE).ok).toBe(false);
     expect(manager.moveToBench(999).ok).toBe(false);
     expect(manager.sell(999).ok).toBe(false);
     expect(manager.setEquipment(id, ['']).ok).toBe(false);

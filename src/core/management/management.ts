@@ -8,7 +8,7 @@ import { Rng } from '../rng';
 
 export const MANAGEMENT = {
   SHOP_SIZE: 5,
-  BENCH_SIZE: 6,
+  BENCH_SIZE: 9,
   START_LEVEL: 3,
   MAX_LEVEL: 9,
   REROLL_COST: 1,
