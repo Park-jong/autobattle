@@ -9,7 +9,7 @@ import type { CombatSimulator } from './sim';
 describe('M5-4 유닛 30종: 문서 수치 대조', () => {
   const markdown = readFileSync(new URL('../../../CHARACTERS.md', import.meta.url), 'utf8');
   const rows = markdown
-    .split('\n')
+    .split(/\r?\n/)
     .map((line) => line.match(/^\| (U\d\d) \| (.+?) \| (\w+) \| (\d) \| (.+?) \| (.+?) \| (\d+) \| (\d+) \| ([\d.]+) \| (\d) \| (\d+) \| (\d+) \| (\d+) \|$/))
     .filter((m): m is RegExpMatchArray => m !== null);
   const traitIdByName = new Map(traits.traits.map((t) => [t.name, t.id]));
