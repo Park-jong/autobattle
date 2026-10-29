@@ -107,9 +107,9 @@ export class CardPlayer {
     return this.surcharges.get(instanceId) ?? 0;
   }
 
-  /** 이 카드를 지금 쓰면 잃는 지휘관 HP (공명으로 면제되면 0) */
-  hpCostOf(card: Card): number {
-    const cost = card.commanderHpCost;
+  /** 이 카드(강화 여부 반영)를 지금 쓰면 잃는 지휘관 HP (공명으로 면제되면 0) */
+  hpCostOf(card: Card, upgraded = false): number {
+    const cost = effectiveCard(card, upgraded && card.upgrade !== undefined).commanderHpCost;
     if (!cost) return 0;
     if (cost.waivedByTrait && this.isTraitActive(cost.waivedByTrait)) return 0;
     return Math.max(0, cost.amount - this.modifiers.hpCostReduction);
@@ -146,7 +146,7 @@ export class CardPlayer {
       const label = pool === 'prep' ? '준비 단계 작전 CP가' : '지휘력이';
       return fail(`${label} 부족합니다 (필요 ${cost}, 보유 ${this.cp.amount(pool)})`);
     }
-    const hpCost = this.hpCostOf(card);
+    const hpCost = this.hpCostOf(card, instance.upgraded);
     if (hpCost > 0 && !this.hpLedger.canSpend(hpCost)) {
       return fail(`지휘관 HP가 부족합니다 (필요 ${hpCost}, 사용 후 1 이상 남아야 함, 사용 가능 ${this.hpLedger.remaining})`);
     }

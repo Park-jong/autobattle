@@ -2,6 +2,7 @@ import type { CardCatalog } from '../data/cardLoader';
 import type { Rng } from '../rng';
 import type { CardInstance, DeckCardSpec } from './cardInstance';
 import { CARDS } from './constants';
+import { effectiveCard } from './effectiveCard';
 
 /** 직렬화된 덱 상태 (런 저장·전투 입력용). 모든 더미의 순서가 보존된다. */
 export interface DeckSnapshot {
@@ -182,7 +183,9 @@ export class Deck {
   // ---- 내부 ----
 
   private hasKeyword(card: CardInstance, keyword: 'exhaust' | 'retain'): boolean {
-    return this.catalog.get(card.cardId)?.keywords.includes(keyword) === true;
+    const def = this.catalog.get(card.cardId);
+    if (!def) return false;
+    return effectiveCard(def, card.upgraded && def.upgrade !== undefined).keywords.includes(keyword);
   }
 
   private assertKnown(card: CardInstance): void {

@@ -455,7 +455,7 @@ describe('키워드: 공명과 연쇄 (픽스처 카드)', () => {
 });
 
 describe('실제 카드 데이터', () => {
-  it('cards.json 18종이 모두 로드된다', () => {
-    expect(cardCatalog.size).toBe(18);
+  it('cards.json 108종이 모두 로드된다', () => {
+    expect(cardCatalog.size).toBe(108);
   });
 });

@@ -46,6 +46,10 @@ export interface CardUpgrade {
   resonance?: CardResonance;
   /** 있으면 연쇄 대체 (없으면 기본 카드의 것을 그대로 씀) */
   chain?: CardChain;
+  /** 있으면 키워드 목록 대체 (예: 강화하면 소모가 사라짐). chain 키워드 유무는 기본 카드와 같아야 한다 */
+  keywords?: Keyword[];
+  /** 있으면 지휘관 HP 비용 대체 (예: 강화하면 HP 비용이 줄어듦). 기본 카드에 비용이 있을 때만 */
+  commanderHpCost?: CardHpCost;
 }
 
 /** 지휘관 HP 비용. waivedByTrait 특성이 아군 진영에서 활성(단계 1 이상)이면 면제된다 */

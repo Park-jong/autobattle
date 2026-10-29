@@ -330,8 +330,8 @@ export function buildCardView(cards: CardCatalog, cardId: string, upgraded = fal
     typeLabel: CARD_TYPE_LABELS[card.type],
     targetLabel: targetLabel(card.target),
     text: effective.text,
-    tags: cardTags(card),
-    hpCostLabel: card.commanderHpCost ? `지휘관 HP ${card.commanderHpCost.amount}` : null,
+    tags: cardTags(card, upgraded),
+    hpCostLabel: effective.commanderHpCost ? `지휘관 HP ${effective.commanderHpCost.amount}` : null,
   };
 }
 

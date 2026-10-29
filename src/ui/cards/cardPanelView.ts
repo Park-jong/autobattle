@@ -206,7 +206,7 @@ export class CardPanelViewBuilder {
       text: view.text,
       targetKind: card.target.kind,
       targetLabel: targetLabel(card.target),
-      tags: cardTags(card),
+      tags: cardTags(card, instance.upgraded),
       playable: reason === null,
       reason,
       selected: input.selectedInstanceId === instance.instanceId,
