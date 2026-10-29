@@ -147,6 +147,8 @@ export const CARD_UI = {
 export const MOTION = {
   DAMAGE_RISE_PX: 44,
   SKILL_RISE_PX: 10,
+  /** "카드 비용 -1" 글자 기준 높이: 스킬명(-78)·피해 숫자(-62에서 44 상승) 위로 띄운다 */
+  CARD_COST_BASE_Y: -126,
 } as const;
 
 /** 상태 아이콘(글자 배지). 정의되지 않은 상태는 표시하지 않는다 */
