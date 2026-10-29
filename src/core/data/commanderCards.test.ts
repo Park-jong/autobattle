@@ -27,8 +27,8 @@ const OWNERS = [
 const own = (owner: string): Card[] => catalog.cards.filter((c) => c.owner === owner && c.rarity !== 'starter');
 
 describe('지휘관 전용 카드 데이터', () => {
-  it('카드 풀은 기존 18종 + 전용 90종 = 108종, 지휘관마다 30장', () => {
-    expect(catalog.size).toBe(108);
+  it('카드 풀은 기존 18종 + 전용 90종 + 공통 35종 = 143종, 지휘관마다 30장', () => {
+    expect(catalog.size).toBe(143);
     for (const { owner } of OWNERS) expect(own(owner)).toHaveLength(30);
   });
 

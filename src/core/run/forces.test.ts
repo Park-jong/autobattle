@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { deckCards } from '../cards';
+import { deckCards, removableCards, upgradableCards } from '../cards';
 import { cardCatalog, harten, units } from '../combat/testSupport';
 import { PlayerForces } from './forces';
 
@@ -58,5 +58,69 @@ describe('PlayerForces (로스터·덱·장비·골드 이어받기)', () => {
       f.addCard('firestorm');
     }
     expect(JSON.stringify(restored.serialize())).toBe(JSON.stringify(forces.serialize()));
+  });
+});
+
+describe('유닛 제공 카드: 공허 대사제·화산 예언자 (M5-4 2부-C)', () => {
+  const pairs = [
+    { unitId: 'void_hierophant', cardId: 'rift_opening' },
+    { unitId: 'volcano_oracle', cardId: 'prophesied_calamity' },
+  ] as const;
+  /** 준비 덱의 모든 더미에서 해당 카드의 인스턴스 */
+  const copies = (forces: PlayerForces, cardId: string) => {
+    const deck = forces.deckForBattle();
+    return [...deck.draw, ...deck.hand, ...deck.discard, ...deck.exhaust].filter((c) => c.cardId === cardId);
+  };
+
+  for (const { unitId, cardId } of pairs) {
+    it(`${unitId}: 보드에 올리면 ${cardId}가 덱에 추가되고 벤치·판매 시 제거된다`, () => {
+      const forces = make();
+      expect(forces.management.addOwnedUnit(unitId, 1, 'bench').ok).toBe(true);
+      const id = forces.management.snapshot().bench.find((u) => u?.unitId === unitId)!.id;
+      expect(copies(forces, cardId)).toHaveLength(0); // 벤치에서는 제공하지 않는다
+      expect(forces.management.moveToBoard(id, { col: 2, row: 2 }).ok).toBe(true);
+      const onBoard = copies(forces, cardId);
+      expect(onBoard).toHaveLength(1);
+      expect(onBoard[0]).toMatchObject({ grantedBy: String(id), upgraded: false });
+      expect(copies(forces, cardId)).toHaveLength(1); // 다시 동기화해도 한 장
+      forces.management.moveToBench(id);
+      expect(copies(forces, cardId)).toHaveLength(0);
+      forces.management.moveToBoard(id, { col: 2, row: 2 });
+      expect(copies(forces, cardId)).toHaveLength(1);
+      forces.management.sell(id);
+      expect(copies(forces, cardId)).toHaveLength(0);
+    });
+
+    it(`${unitId}: 3성이면 강화 버전이 제공되고, 손패·버린·소모 더미에서도 제거된다`, () => {
+      const forces = make();
+      expect(forces.management.addOwnedUnit(unitId, 3, 'board').ok).toBe(true);
+      const id = forces.management.snapshot().board.find((u) => u.unitId === unitId)!.id;
+      expect(copies(forces, cardId)).toMatchObject([{ upgraded: true }]);
+      // 준비 덱에서 제공 카드를 손패→버린→소모 더미로 옮겨 가며 확인 (원본 덱이 아니라 준비 덱도 동기화된다)
+      for (const pile of ['hand', 'discard', 'exhaust'] as const) {
+        const deck = forces.deckForBattle();
+        const all = [...deck.draw, ...deck.hand, ...deck.discard, ...deck.exhaust];
+        const granted = all.find((c) => c.cardId === cardId)!;
+        for (const list of [deck.draw, deck.hand, deck.discard, deck.exhaust]) {
+          const at = list.indexOf(granted);
+          if (at >= 0) list.splice(at, 1);
+        }
+        deck[pile].push(granted);
+        expect(copies(forces, cardId)).toHaveLength(1);
+        forces.management.moveToBench(id);
+        expect(copies(forces, cardId)).toHaveLength(0);
+        forces.management.moveToBoard(id, { col: 2, row: 2 });
+        expect(copies(forces, cardId)).toHaveLength(1); // 새 인스턴스가 다시 들어온다
+      }
+    });
+  }
+
+  it('제공 카드는 제거·강화 대상이 아니다 (유닛과 함께 관리)', () => {
+    const forces = make();
+    forces.management.addOwnedUnit('void_hierophant', 1, 'board');
+    const prepared = forces.deckForBattle();
+    expect([...prepared.draw, ...prepared.hand].some((c) => c.cardId === 'rift_opening')).toBe(true);
+    expect(removableCards(prepared).some((c) => c.cardId === 'rift_opening')).toBe(false);
+    expect(upgradableCards(prepared, cardCatalog).some((c) => c.cardId === 'rift_opening')).toBe(false);
   });
 });

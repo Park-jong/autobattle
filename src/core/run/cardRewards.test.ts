@@ -67,8 +67,8 @@ describe('카드 보상 제시', () => {
       const picks = generator.pickDistinct('rare', 3, new Rng(seed));
       expect(new Set(picks).size).toBe(3);
     }
-    expect(() => generator.pickDistinct('epic', 1, new Rng(1))).toThrow(/epic/);
-    expect(() => generator.pickRandom('epic', new Rng(1))).toThrow(/epic/);
+    expect(() => generator.pickDistinct('epic', 4, new Rng(1))).toThrow(/epic/); // 공용 에픽은 3장 (M5-4 2부-C)
+    expect(rarityOf(generator.pickRandom('epic', new Rng(1)))).toBe('epic');
   });
 });
 

@@ -4258,6 +4258,1344 @@
           "amount": 3
         }
       }
+    },
+    {
+      "id": "shield_wall",
+      "name": "방패 벽",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "text": "아군 1명에게 최대 HP 25% 보호막 (4초).",
+      "effects": [
+        {
+          "kind": "shield",
+          "selector": "target",
+          "pctMaxHp": 25,
+          "duration": 4
+        }
+      ],
+      "upgrade": {
+        "text": "아군 1명에게 최대 HP 35% 보호막 (4초).",
+        "effects": [
+          {
+            "kind": "shield",
+            "selector": "target",
+            "pctMaxHp": 35,
+            "duration": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "first_aid",
+      "name": "응급 처치",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "text": "아군 1명의 HP를 150 회복한다.",
+      "effects": [
+        {
+          "kind": "heal",
+          "selector": "target",
+          "amount": 150
+        }
+      ],
+      "upgrade": {
+        "text": "아군 1명의 HP를 250 회복한다.",
+        "effects": [
+          {
+            "kind": "heal",
+            "selector": "target",
+            "amount": 250
+          }
+        ]
+      }
+    },
+    {
+      "id": "regroup",
+      "name": "재집결",
+      "owner": "neutral",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "아군 전체의 HP를 80 회복하고 해로운 상태를 제거한다.",
+      "effects": [
+        {
+          "kind": "heal",
+          "selector": "allAllies",
+          "amount": 80
+        },
+        {
+          "kind": "cleanse",
+          "selector": "allAllies"
+        }
+      ],
+      "upgrade": {
+        "text": "아군 전체의 HP를 120 회복하고 해로운 상태를 제거한다.",
+        "effects": [
+          {
+            "kind": "heal",
+            "selector": "allAllies",
+            "amount": 120
+          },
+          {
+            "kind": "cleanse",
+            "selector": "allAllies"
+          }
+        ]
+      }
+    },
+    {
+      "id": "blockade_line",
+      "name": "저지선",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "전열 아군 3초간 받는 피해 -30%.",
+      "effects": [
+        {
+          "kind": "damageTakenMult",
+          "selector": "alliesFrontRow",
+          "mult": 0.7,
+          "duration": 3
+        }
+      ],
+      "upgrade": {
+        "text": "전열 아군 3초간 받는 피해 -45%.",
+        "effects": [
+          {
+            "kind": "damageTakenMult",
+            "selector": "alliesFrontRow",
+            "mult": 0.55,
+            "duration": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "mark_weakness",
+      "name": "약점 지목",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "enemyUnit"
+      },
+      "keywords": [],
+      "text": "적 1명 5초간 받는 피해 +25%.",
+      "effects": [
+        {
+          "kind": "damageTakenMult",
+          "selector": "target",
+          "mult": 1.25,
+          "duration": 5
+        }
+      ],
+      "upgrade": {
+        "text": "적 1명 5초간 받는 피해 +35%.",
+        "effects": [
+          {
+            "kind": "damageTakenMult",
+            "selector": "target",
+            "mult": 1.35,
+            "duration": 5
+          }
+        ]
+      }
+    },
+    {
+      "id": "armor_shatter",
+      "name": "갑옷 파쇄",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "spell",
+      "cost": 1,
+      "target": {
+        "kind": "enemyUnit"
+      },
+      "keywords": [],
+      "text": "적 1명 6초간 ARM -40.",
+      "effects": [
+        {
+          "kind": "statAdd",
+          "selector": "target",
+          "stat": "arm",
+          "amount": -40,
+          "duration": 6
+        }
+      ],
+      "upgrade": {
+        "text": "적 1명 6초간 ARM -60.",
+        "effects": [
+          {
+            "kind": "statAdd",
+            "selector": "target",
+            "stat": "arm",
+            "amount": -60,
+            "duration": 6
+          }
+        ]
+      }
+    },
+    {
+      "id": "flashbang",
+      "name": "섬광탄",
+      "owner": "neutral",
+      "rarity": "rare",
+      "type": "spell",
+      "cost": 2,
+      "target": {
+        "kind": "area3x3"
+      },
+      "keywords": [],
+      "text": "3×3 범위 적을 1.5초간 기절시킨다.",
+      "effects": [
+        {
+          "kind": "stun",
+          "selector": "enemiesInTargetArea",
+          "duration": 1.5
+        }
+      ],
+      "upgrade": {
+        "text": "3×3 범위 적을 2초간 기절시킨다.",
+        "effects": [
+          {
+            "kind": "stun",
+            "selector": "enemiesInTargetArea",
+            "duration": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "silence_bell",
+      "name": "침묵의 종",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "spell",
+      "cost": 1,
+      "target": {
+        "kind": "enemyUnit"
+      },
+      "keywords": [],
+      "text": "적 1명을 4초간 침묵시킨다 (스킬 사용 불가).",
+      "effects": [
+        {
+          "kind": "silence",
+          "selector": "target",
+          "duration": 4
+        }
+      ],
+      "upgrade": {
+        "text": "적 1명을 6초간 침묵시킨다 (스킬 사용 불가).",
+        "effects": [
+          {
+            "kind": "silence",
+            "selector": "target",
+            "duration": 6
+          }
+        ]
+      }
+    },
+    {
+      "id": "fireball",
+      "name": "화염구",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "spell",
+      "cost": 2,
+      "target": {
+        "kind": "enemyUnit"
+      },
+      "keywords": [],
+      "text": "적 1명에게 마법 피해 160.",
+      "effects": [
+        {
+          "kind": "flatDamage",
+          "selector": "target",
+          "amount": 160,
+          "dmgType": "magic"
+        }
+      ],
+      "upgrade": {
+        "text": "적 1명에게 마법 피해 230.",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "target",
+            "amount": 230,
+            "dmgType": "magic"
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain_lightning",
+      "name": "번개 사슬",
+      "owner": "neutral",
+      "rarity": "rare",
+      "type": "spell",
+      "cost": 2,
+      "target": {
+        "kind": "enemyUnit"
+      },
+      "keywords": [],
+      "text": "대상과 인접한 적에게 마법 피해 120 (대상 포함).",
+      "effects": [
+        {
+          "kind": "flatDamage",
+          "selector": "targetAndAdjacent",
+          "amount": 120,
+          "dmgType": "magic"
+        }
+      ],
+      "upgrade": {
+        "text": "대상과 인접한 적에게 마법 피해 170 (대상 포함).",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "targetAndAdjacent",
+            "amount": 170,
+            "dmgType": "magic"
+          }
+        ]
+      }
+    },
+    {
+      "id": "earth_collapse",
+      "name": "대지 붕괴",
+      "owner": "neutral",
+      "rarity": "epic",
+      "type": "spell",
+      "cost": 4,
+      "target": {
+        "kind": "area3x3"
+      },
+      "keywords": [],
+      "text": "3×3 범위 적에게 물리 피해 260 (방어 50% 무시)와 1초 기절.",
+      "effects": [
+        {
+          "kind": "flatDamage",
+          "selector": "enemiesInTargetArea",
+          "amount": 260,
+          "dmgType": "physical",
+          "ignoreArmorPct": 50
+        },
+        {
+          "kind": "stun",
+          "selector": "enemiesInTargetArea",
+          "duration": 1
+        }
+      ],
+      "upgrade": {
+        "text": "3×3 범위 적에게 물리 피해 340 (방어 50% 무시)와 1초 기절.",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "enemiesInTargetArea",
+            "amount": 340,
+            "dmgType": "physical",
+            "ignoreArmorPct": 50
+          },
+          {
+            "kind": "stun",
+            "selector": "enemiesInTargetArea",
+            "duration": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "battle_cry",
+      "name": "전장의 함성",
+      "owner": "neutral",
+      "rarity": "epic",
+      "type": "command",
+      "cost": 3,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "아군 전체 5초간 ATK +25%, AS +25%.",
+      "effects": [
+        {
+          "kind": "statMod",
+          "selector": "allAllies",
+          "stat": "atk",
+          "pct": 25,
+          "duration": 5
+        },
+        {
+          "kind": "statMod",
+          "selector": "allAllies",
+          "stat": "as",
+          "pct": 25,
+          "duration": 5
+        }
+      ],
+      "upgrade": {
+        "text": "아군 전체 7초간 ATK +25%, AS +25%.",
+        "effects": [
+          {
+            "kind": "statMod",
+            "selector": "allAllies",
+            "stat": "atk",
+            "pct": 25,
+            "duration": 7
+          },
+          {
+            "kind": "statMod",
+            "selector": "allAllies",
+            "stat": "as",
+            "pct": 25,
+            "duration": 7
+          }
+        ]
+      }
+    },
+    {
+      "id": "weakening_curse",
+      "name": "약화 저주",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "spell",
+      "cost": 1,
+      "target": {
+        "kind": "area3x3"
+      },
+      "keywords": [],
+      "text": "3×3 범위 적 4초간 ATK -20%.",
+      "effects": [
+        {
+          "kind": "statMod",
+          "selector": "enemiesInTargetArea",
+          "stat": "atk",
+          "pct": -20,
+          "duration": 4
+        }
+      ],
+      "upgrade": {
+        "text": "3×3 범위 적 4초간 ATK -30%.",
+        "effects": [
+          {
+            "kind": "statMod",
+            "selector": "enemiesInTargetArea",
+            "stat": "atk",
+            "pct": -30,
+            "duration": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "supplies",
+      "name": "보급",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "command",
+      "cost": 0,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "exhaust"
+      ],
+      "text": "카드 2장을 뽑는다. 소모.",
+      "effects": [
+        {
+          "kind": "drawCards",
+          "selector": "allAllies",
+          "count": 2
+        }
+      ],
+      "upgrade": {
+        "text": "카드 3장을 뽑는다. 소모.",
+        "effects": [
+          {
+            "kind": "drawCards",
+            "selector": "allAllies",
+            "count": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "messenger",
+      "name": "전령",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "chain"
+      ],
+      "chain": {
+        "cost": 0,
+        "effects": []
+      },
+      "text": "CP +1, 카드 1장을 뽑는다. 연쇄: 비용 0.",
+      "effects": [
+        {
+          "kind": "cpGain",
+          "selector": "allAllies",
+          "amount": 1
+        },
+        {
+          "kind": "drawCards",
+          "selector": "allAllies",
+          "count": 1
+        }
+      ],
+      "upgrade": {
+        "text": "CP +1, 카드 2장을 뽑는다. 연쇄: 비용 0.",
+        "effects": [
+          {
+            "kind": "cpGain",
+            "selector": "allAllies",
+            "amount": 1
+          },
+          {
+            "kind": "drawCards",
+            "selector": "allAllies",
+            "count": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "full_mobilization",
+      "name": "총동원",
+      "owner": "neutral",
+      "rarity": "epic",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "exhaust"
+      ],
+      "text": "CP +3, 카드 2장을 뽑는다. 소모.",
+      "effects": [
+        {
+          "kind": "cpGain",
+          "selector": "allAllies",
+          "amount": 3
+        },
+        {
+          "kind": "drawCards",
+          "selector": "allAllies",
+          "count": 2
+        }
+      ],
+      "upgrade": {
+        "text": "CP +3, 카드 2장을 뽑는다. 소모. 비용 1.",
+        "cost": 1,
+        "effects": [
+          {
+            "kind": "cpGain",
+            "selector": "allAllies",
+            "amount": 3
+          },
+          {
+            "kind": "drawCards",
+            "selector": "allAllies",
+            "count": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "chain_stratagem",
+      "name": "연환계",
+      "owner": "neutral",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "chain"
+      ],
+      "chain": {
+        "effects": [
+          {
+            "kind": "cpGain",
+            "selector": "allAllies",
+            "amount": 2
+          }
+        ]
+      },
+      "text": "카드 1장을 뽑는다. 연쇄: CP +2.",
+      "effects": [
+        {
+          "kind": "drawCards",
+          "selector": "allAllies",
+          "count": 1
+        }
+      ],
+      "upgrade": {
+        "text": "카드 2장을 뽑는다. 연쇄: CP +2.",
+        "effects": [
+          {
+            "kind": "drawCards",
+            "selector": "allAllies",
+            "count": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "field_prep",
+      "name": "전장 정비",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "operation",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "이번 전투 아군 전체에 최대 HP 10% 보호막.",
+      "effects": [
+        {
+          "kind": "shield",
+          "selector": "allAllies",
+          "pctMaxHp": 10,
+          "duration": "combat"
+        }
+      ],
+      "upgrade": {
+        "text": "이번 전투 아군 전체에 최대 HP 15% 보호막.",
+        "effects": [
+          {
+            "kind": "shield",
+            "selector": "allAllies",
+            "pctMaxHp": 15,
+            "duration": "combat"
+          }
+        ]
+      }
+    },
+    {
+      "id": "morale_boost",
+      "name": "사기 진작",
+      "owner": "neutral",
+      "rarity": "rare",
+      "type": "operation",
+      "cost": 2,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "이번 전투 아군 전체 AS +10%, ATK +5%.",
+      "effects": [
+        {
+          "kind": "statMod",
+          "selector": "allAllies",
+          "stat": "as",
+          "pct": 10,
+          "duration": "combat"
+        },
+        {
+          "kind": "statMod",
+          "selector": "allAllies",
+          "stat": "atk",
+          "pct": 5,
+          "duration": "combat"
+        }
+      ],
+      "upgrade": {
+        "text": "이번 전투 아군 전체 AS +15%, ATK +5%.",
+        "effects": [
+          {
+            "kind": "statMod",
+            "selector": "allAllies",
+            "stat": "as",
+            "pct": 15,
+            "duration": "combat"
+          },
+          {
+            "kind": "statMod",
+            "selector": "allAllies",
+            "stat": "atk",
+            "pct": 5,
+            "duration": "combat"
+          }
+        ]
+      }
+    },
+    {
+      "id": "steel_cuirass",
+      "name": "강철 흉갑",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "equipment",
+      "cost": 1,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "text": "준비 CP 1. 아군 1명에게 장착: ARM +30. 장비와 효과는 전투 사이에 유지된다.",
+      "effects": [
+        {
+          "kind": "statAdd",
+          "selector": "target",
+          "stat": "arm",
+          "amount": 30,
+          "duration": "combat"
+        }
+      ],
+      "upgrade": {
+        "text": "준비 CP 1. 아군 1명에게 장착: ARM +45. 장비와 효과는 전투 사이에 유지된다.",
+        "effects": [
+          {
+            "kind": "statAdd",
+            "selector": "target",
+            "stat": "arm",
+            "amount": 45,
+            "duration": "combat"
+          }
+        ]
+      }
+    },
+    {
+      "id": "vampiric_dagger",
+      "name": "흡혈 단검",
+      "owner": "neutral",
+      "rarity": "rare",
+      "type": "equipment",
+      "cost": 2,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "text": "준비 CP 2. 아군 1명에게 장착: 생명력 흡수 15%. 장비와 효과는 전투 사이에 유지된다.",
+      "effects": [
+        {
+          "kind": "lifesteal",
+          "selector": "target",
+          "pct": 15,
+          "duration": "combat"
+        }
+      ],
+      "upgrade": {
+        "text": "준비 CP 2. 아군 1명에게 장착: 생명력 흡수 20%. 장비와 효과는 전투 사이에 유지된다.",
+        "effects": [
+          {
+            "kind": "lifesteal",
+            "selector": "target",
+            "pct": 20,
+            "duration": "combat"
+          }
+        ]
+      }
+    },
+    {
+      "id": "iron_ranks",
+      "name": "강철 대열",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "resonance": {
+        "trait": "iron_legion",
+        "effects": [
+          {
+            "kind": "statAdd",
+            "selector": "allAllies",
+            "stat": "arm",
+            "amount": 20,
+            "duration": 5
+          },
+          {
+            "kind": "shield",
+            "selector": "alliesFrontRow",
+            "pctMaxHp": 10,
+            "duration": 5
+          }
+        ]
+      },
+      "text": "아군 전체 5초간 ARM +15. 공명 [강철군단]: ARM +20 추가, 전열 아군에게 최대 HP 10% 보호막 (5초).",
+      "effects": [
+        {
+          "kind": "statAdd",
+          "selector": "allAllies",
+          "stat": "arm",
+          "amount": 15,
+          "duration": 5
+        }
+      ],
+      "upgrade": {
+        "text": "아군 전체 5초간 ARM +25. 공명 [강철군단]: ARM +20 추가, 전열 아군에게 최대 HP 10% 보호막 (5초).",
+        "effects": [
+          {
+            "kind": "statAdd",
+            "selector": "allAllies",
+            "stat": "arm",
+            "amount": 25,
+            "duration": 5
+          }
+        ]
+      }
+    },
+    {
+      "id": "ember_spread",
+      "name": "불씨 퍼뜨리기",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "spell",
+      "cost": 1,
+      "target": {
+        "kind": "area3x3"
+      },
+      "keywords": [],
+      "resonance": {
+        "trait": "ember",
+        "effects": [
+          {
+            "kind": "burn",
+            "selector": "enemiesInTargetArea",
+            "dps": 40,
+            "duration": 4
+          }
+        ]
+      },
+      "text": "3×3 범위 적에게 초당 마법 피해 25의 화상 (4초). 공명 [잿불]: 초당 40.",
+      "effects": [
+        {
+          "kind": "burn",
+          "selector": "enemiesInTargetArea",
+          "dps": 25,
+          "duration": 4
+        }
+      ],
+      "upgrade": {
+        "text": "3×3 범위 적에게 초당 마법 피해 35의 화상 (4초). 공명 [잿불]: 초당 55.",
+        "effects": [
+          {
+            "kind": "burn",
+            "selector": "enemiesInTargetArea",
+            "dps": 35,
+            "duration": 4
+          }
+        ],
+        "resonance": {
+          "trait": "ember",
+          "effects": [
+            {
+              "kind": "burn",
+              "selector": "enemiesInTargetArea",
+              "dps": 55,
+              "duration": 4
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "void_veil",
+      "name": "공허 장막",
+      "owner": "neutral",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "resonance": {
+        "trait": "abyss",
+        "effects": [
+          {
+            "kind": "lifesteal",
+            "selector": "target",
+            "pct": 30,
+            "duration": 4
+          }
+        ]
+      },
+      "text": "아군 1명 3초간 받는 피해 -60%. 공명 [심연]: 4초간 생명력 흡수 30%.",
+      "effects": [
+        {
+          "kind": "damageTakenMult",
+          "selector": "target",
+          "mult": 0.4,
+          "duration": 3
+        }
+      ],
+      "upgrade": {
+        "text": "아군 1명 4초간 받는 피해 -60%. 공명 [심연]: 4초간 생명력 흡수 30%.",
+        "effects": [
+          {
+            "kind": "damageTakenMult",
+            "selector": "target",
+            "mult": 0.4,
+            "duration": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "root_prison",
+      "name": "뿌리 감옥",
+      "owner": "neutral",
+      "rarity": "rare",
+      "type": "spell",
+      "cost": 2,
+      "target": {
+        "kind": "area3x3"
+      },
+      "keywords": [],
+      "resonance": {
+        "trait": "forest_pact",
+        "effects": [
+          {
+            "kind": "statMod",
+            "selector": "allAllies",
+            "stat": "as",
+            "pct": 15,
+            "duration": 4
+          }
+        ]
+      },
+      "text": "3×3 범위 적을 3초간 속박한다. 공명 [숲의 맹약]: 아군 전체 4초간 AS +15%.",
+      "effects": [
+        {
+          "kind": "root",
+          "selector": "enemiesInTargetArea",
+          "duration": 3
+        }
+      ],
+      "upgrade": {
+        "text": "3×3 범위 적을 4초간 속박한다. 공명 [숲의 맹약]: 아군 전체 4초간 AS +15%.",
+        "effects": [
+          {
+            "kind": "root",
+            "selector": "enemiesInTargetArea",
+            "duration": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "shield_oath",
+      "name": "방패 맹세",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "resonance": {
+        "trait": "guardian",
+        "effects": [
+          {
+            "kind": "shield",
+            "selector": "target",
+            "pctMaxHp": 20,
+            "duration": 3
+          }
+        ]
+      },
+      "text": "아군 1명이 주변 2칸의 적을 3초간 도발하고 3초간 받는 피해 -30%. 공명 [수호자]: 최대 HP 20% 보호막 (3초).",
+      "effects": [
+        {
+          "kind": "taunt",
+          "selector": "target",
+          "radius": 2,
+          "duration": 3
+        },
+        {
+          "kind": "damageTakenMult",
+          "selector": "target",
+          "mult": 0.7,
+          "duration": 3
+        }
+      ],
+      "upgrade": {
+        "text": "아군 1명이 주변 2칸의 적을 4초간 도발하고 3초간 받는 피해 -30%. 공명 [수호자]: 최대 HP 20% 보호막 (3초).",
+        "effects": [
+          {
+            "kind": "taunt",
+            "selector": "target",
+            "radius": 2,
+            "duration": 4
+          },
+          {
+            "kind": "damageTakenMult",
+            "selector": "target",
+            "mult": 0.7,
+            "duration": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "arena_roar",
+      "name": "투기장의 함성",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "resonance": {
+        "trait": "gladiator",
+        "effects": [
+          {
+            "kind": "lifesteal",
+            "selector": "target",
+            "pct": 20,
+            "duration": 5
+          }
+        ]
+      },
+      "text": "아군 1명 5초간 ATK +30% (적을 처치하면 지속 시간 초기화). 공명 [검투사]: 5초간 생명력 흡수 20%.",
+      "effects": [
+        {
+          "kind": "statMod",
+          "selector": "target",
+          "stat": "atk",
+          "pct": 30,
+          "duration": 5,
+          "refreshOnKill": true
+        }
+      ],
+      "upgrade": {
+        "text": "아군 1명 5초간 ATK +45% (적을 처치하면 지속 시간 초기화). 공명 [검투사]: 5초간 생명력 흡수 20%.",
+        "effects": [
+          {
+            "kind": "statMod",
+            "selector": "target",
+            "stat": "atk",
+            "pct": 45,
+            "duration": 5,
+            "refreshOnKill": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "volley",
+      "name": "일제 사격",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "resonance": {
+        "trait": "marksman",
+        "effects": [
+          {
+            "kind": "extraShots",
+            "selector": "target",
+            "count": 2
+          }
+        ]
+      },
+      "text": "아군 1명의 다음 4회 공격이 2발씩 나간다. 공명 [사수]: 6회.",
+      "effects": [
+        {
+          "kind": "extraShots",
+          "selector": "target",
+          "count": 4
+        }
+      ],
+      "upgrade": {
+        "text": "아군 1명의 다음 6회 공격이 2발씩 나간다. 공명 [사수]: 8회.",
+        "effects": [
+          {
+            "kind": "extraShots",
+            "selector": "target",
+            "count": 6
+          }
+        ]
+      }
+    },
+    {
+      "id": "spell_amplify",
+      "name": "주문 증폭",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "resonance": {
+        "trait": "mystic",
+        "effects": [
+          {
+            "kind": "handCostCut",
+            "selector": "allAllies",
+            "amount": 1
+          }
+        ]
+      },
+      "text": "카드 1장을 뽑는다. 공명 [주술사]: 손패 무작위 1장의 비용 -1.",
+      "effects": [
+        {
+          "kind": "drawCards",
+          "selector": "allAllies",
+          "count": 1
+        }
+      ],
+      "upgrade": {
+        "text": "카드 2장을 뽑는다. 공명 [주술사]: 손패 무작위 1장의 비용 -1.",
+        "effects": [
+          {
+            "kind": "drawCards",
+            "selector": "allAllies",
+            "count": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "shadow_step",
+      "name": "그림자 걸음",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "resonance": {
+        "trait": "assassin",
+        "effects": [
+          {
+            "kind": "statMod",
+            "selector": "target",
+            "stat": "atk",
+            "pct": 30,
+            "duration": 3
+          }
+        ]
+      },
+      "text": "아군 1명이 적 후열의 빈 칸으로 순간이동한다. 공명 [암살자]: 3초간 ATK +30%.",
+      "effects": [
+        {
+          "kind": "teleport",
+          "selector": "target",
+          "destination": "enemyBackRow"
+        }
+      ],
+      "upgrade": {
+        "text": "아군 1명이 적 후열의 빈 칸으로 순간이동한다. 공명 [암살자]: 3초간 ATK +45%.",
+        "effects": [
+          {
+            "kind": "teleport",
+            "selector": "target",
+            "destination": "enemyBackRow"
+          }
+        ],
+        "resonance": {
+          "trait": "assassin",
+          "effects": [
+            {
+              "kind": "statMod",
+              "selector": "target",
+              "stat": "atk",
+              "pct": 45,
+              "duration": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "rift_opening",
+      "name": "균열 개방",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "spell",
+      "cost": 2,
+      "target": {
+        "kind": "area3x3"
+      },
+      "keywords": [],
+      "resonance": {
+        "trait": "abyss",
+        "effects": [
+          {
+            "kind": "cpGain",
+            "selector": "allAllies",
+            "amount": 1
+          }
+        ]
+      },
+      "grantOnly": true,
+      "text": "3×3 범위 적 4초간 RES -30. 공명 [심연]: CP 1을 돌려받는다.",
+      "effects": [
+        {
+          "kind": "statAdd",
+          "selector": "enemiesInTargetArea",
+          "stat": "res",
+          "amount": -30,
+          "duration": 4
+        }
+      ],
+      "upgrade": {
+        "text": "3×3 범위 적 4초간 RES -45. 공명 [심연]: CP 1을 돌려받는다.",
+        "effects": [
+          {
+            "kind": "statAdd",
+            "selector": "enemiesInTargetArea",
+            "stat": "res",
+            "amount": -45,
+            "duration": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "prophesied_calamity",
+      "name": "예언된 재앙",
+      "owner": "neutral",
+      "rarity": "rare",
+      "type": "spell",
+      "cost": 3,
+      "target": {
+        "kind": "area3x3"
+      },
+      "keywords": [
+        "retain"
+      ],
+      "grantOnly": true,
+      "text": "3초 뒤 지정한 3×3 범위에 마법 피해 400. 보존.",
+      "effects": [
+        {
+          "kind": "delayedStrike",
+          "selector": "allAllies",
+          "delay": 3,
+          "area": "targetArea",
+          "effects": [
+            {
+              "kind": "flatDamage",
+              "selector": "enemiesInTargetArea",
+              "amount": 400,
+              "dmgType": "magic"
+            }
+          ]
+        }
+      ],
+      "upgrade": {
+        "text": "3초 뒤 지정한 3×3 범위에 마법 피해 550. 보존.",
+        "effects": [
+          {
+            "kind": "delayedStrike",
+            "selector": "allAllies",
+            "delay": 3,
+            "area": "targetArea",
+            "effects": [
+              {
+                "kind": "flatDamage",
+                "selector": "enemiesInTargetArea",
+                "amount": 550,
+                "dmgType": "magic"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "dread",
+      "name": "공포",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "curse",
+      "cost": 0,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "사용할 수 없다. 손패 한 칸을 차지한다. 상점에서 제거할 수 있다.",
+      "effects": []
+    },
+    {
+      "id": "wound",
+      "name": "부상",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "curse",
+      "cost": 0,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "curse": {
+        "onDraw": [
+          {
+            "kind": "statMod",
+            "selector": "randomAlly",
+            "stat": "atk",
+            "pct": -10,
+            "duration": "combat"
+          }
+        ]
+      },
+      "text": "뽑으면 아군 무작위 1명의 ATK가 이번 전투 동안 10% 줄어든다. 사용할 수 없다. 상점에서 제거할 수 있다.",
+      "effects": []
+    },
+    {
+      "id": "rotten_supplies",
+      "name": "부패한 보급",
+      "owner": "neutral",
+      "rarity": "common",
+      "type": "curse",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "exhaust"
+      ],
+      "curse": {
+        "playable": true,
+        "goldLossAtEnd": 3
+      },
+      "text": "전투가 끝날 때 손패에 있으면 골드 3을 잃는다. 전투 중 1 CP를 내고 쓰면 사라진다 (소모).",
+      "effects": []
     }
   ]
 }

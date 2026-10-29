@@ -26,6 +26,14 @@
           "text": "손대지 않고 지나간다",
           "result": "함정일지도 모른다. 발걸음을 돌려 관문 안쪽으로 향했다.",
           "effects": []
+        },
+        {
+          "text": "봉인된 지하 금고를 억지로 연다 (+25G, 저주 [공포] 1장)",
+          "result": "금고 안에는 금화가 가득했지만, 문이 열리는 순간 어둠 속에서 속삭임이 들러붙었다.",
+          "effects": [
+            { "kind": "gold", "amount": 25 },
+            { "kind": "gainCard", "mode": "fixed", "cardId": "dread" }
+          ]
         }
       ]
     },
@@ -55,6 +63,14 @@
           "effects": [
             { "kind": "gold", "amount": 8 },
             { "kind": "commanderHp", "amount": -4 }
+          ]
+        },
+        {
+          "text": "정찰병이 품은 금지된 전술서를 받는다 (희귀 카드 1장, 저주 [부상] 1장)",
+          "result": "정찰병은 피 묻은 전술서를 건네고 숨을 거두었다. 책에는 값진 작전이 적혀 있었지만 그의 상처가 당신의 대열에도 옮겨붙었다.",
+          "effects": [
+            { "kind": "gainCard", "mode": "random", "rarity": "rare" },
+            { "kind": "gainCard", "mode": "fixed", "cardId": "wound" }
           ]
         }
       ]
@@ -157,6 +173,14 @@
           "result": "따뜻한 수프 한 그릇에 피로가 조금 풀렸다.",
           "effects": [
             { "kind": "commanderHp", "amount": 4 }
+          ]
+        },
+        {
+          "text": "탈영병의 장부를 인수한다 (3등급 유닛 1기, 저주 [부패한 보급] 1장)",
+          "result": "탈영병 중 노련한 용사가 장부와 함께 합류했다. 그러나 장부에 적힌 빚과 썩은 군량이 따라붙었다.",
+          "effects": [
+            { "kind": "gainUnit", "tier": 3 },
+            { "kind": "gainCard", "mode": "fixed", "cardId": "rotten_supplies" }
           ]
         }
       ]

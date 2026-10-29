@@ -1,3 +1,4 @@
+import type { CardCatalog } from '../data/cardLoader';
 import type { EventCatalog } from '../data/eventLoader';
 import type { EventChoice, EventDef, EventEffect } from '../data/event';
 import { Rng } from '../rng';
@@ -70,6 +71,8 @@ export class EventDirector {
     private readonly events: EventCatalog,
     private readonly rewards: CardRewardGenerator,
     private readonly runSeed: number,
+    /** 주면 지정 카드가 저주일 때 결과 문장 뒤에 "저주 획득: 이름"을 덧붙인다 */
+    private readonly cards: CardCatalog | null = null,
   ) {}
 
   /** 노드에 나올 이벤트: 이미 본 이벤트를 피해 결정적으로 고른다 (모두 봤으면 전체에서) */
@@ -152,8 +155,11 @@ export class EventDirector {
         host.changeHp(effect.amount);
         return OK;
       case 'gainCard':
-        if (effect.mode === 'fixed') host.addCard(effect.cardId);
-        else if (effect.mode === 'random') host.addCard(this.rewards.pickRandom(effect.rarity, rng));
+        if (effect.mode === 'fixed') {
+          host.addCard(effect.cardId);
+          const def = this.cards?.get(effect.cardId);
+          if (def?.type === 'curse') state.messages.push(`저주 획득: ${def.name}`);
+        } else if (effect.mode === 'random') host.addCard(this.rewards.pickRandom(effect.rarity, rng));
         else state.pending = { kind: 'gainCard', options: this.rewards.pickDistinct(effect.rarity, effect.count, rng) };
         return OK;
       case 'removeCard':
