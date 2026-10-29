@@ -147,8 +147,7 @@ describe('events.json', () => {
 
   it('선택지 개수·효과 형식 오류를 위치와 함께 거부한다', () => {
     const data = clone(eventsJson) as { events: { choices: { effects: Record<string, unknown>[] }[] }[] };
-    data.events[0]!.choices.pop();
-    data.events[0]!.choices.pop();
+    while (data.events[0]!.choices.length > 1) data.events[0]!.choices.pop();
     expect(() => loadEvents(data, cards, units)).toThrow(/events\[0\] \(abandoned_depot\)\.choices.*2~4개/);
 
     const zero = clone(eventsJson) as typeof data;
@@ -168,8 +167,8 @@ describe('events.json', () => {
     const data = clone(eventsJson) as { events: { choices: { effects: Record<string, unknown>[] }[] }[] };
     data.events[0]!.choices[0]!.effects = [{ kind: 'gainCard', mode: 'fixed', cardId: 'ghost_card' }];
     expect(() => loadEvents(data, cards, units)).toThrow(/cards\.json에 없는 카드 id "ghost_card"/);
-    data.events[0]!.choices[0]!.effects = [{ kind: 'gainCard', mode: 'choose', rarity: 'epic', count: 3 }];
-    expect(() => loadEvents(data, cards, units)).toThrow(/epic 보상 카드가 3장 이상 필요함/);
+    data.events[0]!.choices[0]!.effects = [{ kind: 'gainCard', mode: 'choose', rarity: 'epic', count: 4 }];
+    expect(() => loadEvents(data, cards, units)).toThrow(/epic 보상 카드가 4장 이상 필요함/); // 공용 에픽은 3장 (M5-4 2부-C)
     data.events[0]!.choices[0]!.effects = [{ kind: 'gainUnit', tier: 6 }];
     expect(() => loadEvents(data, cards, units)).toThrow(/6등급 유닛이 없음/);
     // 5등급은 상점 유닛 3종(M5-4)이 있어 통과한다. 보스 전용 유닛만 있는 등급이라면 후보가 아니다

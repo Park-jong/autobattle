@@ -1084,7 +1084,8 @@
             "maxPerCombat": 2
           }
         ]
-      }
+      },
+      "grantedCard": "rift_opening"
     },
     {
       "id": "volcano_oracle",
@@ -1131,7 +1132,8 @@
             ]
           }
         ]
-      }
+      },
+      "grantedCard": "prophesied_calamity"
     },
     {
       "id": "muhon",

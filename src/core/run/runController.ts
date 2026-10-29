@@ -134,7 +134,7 @@ export class RunController {
     this.planner = new EncounterPlanner(deps.units, deps.encounters, state.seed);
     this.rewards = new CardRewardGenerator(deps.cards, state.commanderId);
     this.relicRewards = new RelicRewardGenerator(deps.relics);
-    this.director = new EventDirector(deps.events, this.rewards, state.seed);
+    this.director = new EventDirector(deps.events, this.rewards, state.seed, deps.cards);
     this.serializer = new RunSerializer(deps);
     this.roster = new RunRoster(state.forces.management, {
       canEdit: () => this.state.phase !== 'battle' && this.state.phase !== 'ended',

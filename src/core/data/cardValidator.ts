@@ -23,7 +23,7 @@ import { FieldReader } from './fieldReader';
 
 const CARD_KEYS = [
   'id', 'name', 'owner', 'rarity', 'type', 'cost', 'target', 'keywords',
-  'limits', 'commanderHpCost', 'resonance', 'chain', 'curse', 'text', 'effects', 'upgrade',
+  'limits', 'commanderHpCost', 'resonance', 'chain', 'curse', 'grantOnly', 'text', 'effects', 'upgrade',
 ] as const;
 const UPGRADE_KEYS = ['text', 'effects', 'cost', 'resonance', 'chain', 'keywords', 'commanderHpCost'] as const;
 
@@ -81,6 +81,10 @@ export class CardValidator {
     if (r.has('curse')) {
       if (type !== 'curse') r.fail('curse', 'type이 curse인 카드만 curse 동작을 가질 수 있음');
       card.curse = this.validateCurse(r.object('curse'), card);
+    }
+    if (r.has('grantOnly')) {
+      card.grantOnly = r.boolean('grantOnly');
+      if (card.grantOnly && type === 'curse') r.fail('grantOnly', '저주 카드는 이미 보상 풀에서 제외됨 (grantOnly 불필요)');
     }
     if (card.type === 'equipment' && target.kind !== 'allyUnit') r.fail('target.kind', '장비는 아군 유닛 1명을 지정해야 함');
     if (r.has('limits')) card.limits = this.validateLimits(r.object('limits'));

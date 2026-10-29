@@ -118,7 +118,7 @@ describe('효과 검증기와 카드 호환', () => {
       const lists = [card.effects, ...(card.upgrade ? [card.upgrade.effects] : [])];
       for (const effects of lists) {
         const parent = FieldReader.of({ effects }, card.id);
-        expect(validator.validateList(parent, 'effects')).toHaveLength(effects.length);
+        expect(validator.validateList(parent, 'effects', card.type === 'curse')).toHaveLength(effects.length);
       }
     }
   });
