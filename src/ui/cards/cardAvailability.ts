@@ -25,7 +25,10 @@ export function explainUnplayable(card: Card, upgraded: boolean, ctx: Availabili
   if (card.type === 'curse' && !card.curse?.playable) return '저주 카드는 사용할 수 없습니다 (손패 한 칸을 차지합니다)';
   const prepCard = card.type === 'operation' || card.type === 'equipment';
   if (prepCard && ctx.phase !== 'prep') return '작전·장비 카드는 준비 단계에서만 사용할 수 있습니다';
-  if (!prepCard && ctx.phase !== 'combat') return '명령·주문 카드는 전투 중에만 사용할 수 있습니다';
+  if (!prepCard && ctx.phase !== 'combat') {
+    if (card.type === 'curse') return '이 저주는 전투 중에만 비용을 내고 써서 없앨 수 있습니다';
+    return '명령·주문 카드는 전투 중에만 사용할 수 있습니다';
+  }
 
   const perCombat = card.limits?.perCombat;
   if (perCombat !== undefined && ctx.usesOf(card.id) >= perCombat) return `전투당 ${perCombat}회만 사용할 수 있습니다`;

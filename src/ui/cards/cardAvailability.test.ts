@@ -38,6 +38,11 @@ describe('explainUnplayable', () => {
     expect(explainUnplayable(card('war_drums'), false, ctx({ phase: 'prep', prepCp: 0 }))).toContain('준비 CP 부족');
   });
 
+  it('써서 없애는 저주는 준비 단계에서 저주 전용 사유를 보여준다', () => {
+    expect(explainUnplayable(card('rotten_supplies'), false, ctx({ phase: 'prep', prepCp: 2 }))).toBe('이 저주는 전투 중에만 비용을 내고 써서 없앨 수 있습니다');
+    expect(explainUnplayable(card('rotten_supplies'), false, ctx())).toBeNull();
+  });
+
   it('전투당 사용 제한을 소진하면 이유를 돌려준다', () => {
     expect(explainUnplayable(card('formation_swap'), false, ctx({ usesOf: () => 1 }))).toContain('전투당 1회');
   });
