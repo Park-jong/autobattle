@@ -4,9 +4,12 @@ import type { UnitCatalog } from '../../../core/data/unitLoader';
 import type { OwnedUnit } from '../../../core/management';
 import type { DebugController } from '../../debug/contracts';
 import type { UnitView } from '../../replay/ReplayState';
+import type { ActiveTrait } from '../../../core/combat/traits';
 import { appSkin } from '../../skin/SkinStore';
 import { unitArtUrl, unitSkinName } from '../../skin/skins';
 import { button, el, tagged } from '../dom';
+import type { HoverPop } from './hoverPop';
+import { bindTraitChip } from './TraitPanel';
 import { unitFace } from './unitFace';
 import { buildUnitInfo, sellRefund, statusLabel, type StarLevel, type StatOverride, type UnitInfoView } from './unitInfoView';
 
@@ -29,6 +32,9 @@ export class UnitInfoPanel {
     private readonly cards: CardCatalog,
     private readonly controller: DebugController,
     private readonly onClose: () => void,
+    private readonly traitPop: HoverPop,
+    /** 진영(0 아군 / 1 적)의 지금 특성 — 특성 칩 팝업의 종류 수·단계 */
+    private readonly sideTraits: (side: 0 | 1) => readonly ActiveTrait[],
   ) {
     this.root.hidden = true;
   }
@@ -44,6 +50,7 @@ export class UnitInfoPanel {
     if (!subject || !def) {
       this.root.hidden = true;
       this.root.replaceChildren();
+      this.traitPop.reattach(this.root);
       return;
     }
     const star = (subject.kind === 'owned' ? subject.unit.star : subject.view.star) as StarLevel;
@@ -52,7 +59,11 @@ export class UnitInfoPanel {
 
     const close = tagged(button('×', () => this.onClose(), 'bt-info-close'), 'unit-info-close');
     close.title = '닫기 (Esc)';
-    const nodes: HTMLElement[] = [close, infoHead(info, enemy)];
+    const side = enemy ? 1 : 0;
+    const nodes: HTMLElement[] = [close, infoHead(info, enemy, {
+      large: true,
+      onTraitChip: (chip, traitId) => bindTraitChip(chip, traitId, this.traits, this.traitPop, () => this.sideTraits(side)),
+    })];
     const artUrl = unitArtUrl(appSkin.current, def.id, 'illustration');
     if (artUrl) {
       const art = el('img', 'academy-unit-illustration');
@@ -91,17 +102,29 @@ export class UnitInfoPanel {
     }
     this.root.replaceChildren(...nodes);
     this.root.hidden = false;
+    this.traitPop.reattach(this.root);
   }
 }
 
-export function infoHead(info: UnitInfoView, enemy: boolean, options: { large?: boolean } = { large: true }): HTMLElement {
+export interface InfoHeadOptions {
+  large?: boolean;
+  /** 특성 칩마다 불린다 (마우스를 올리면 특성 설명을 띄우는 등) */
+  onTraitChip?: (chip: HTMLElement, traitId: string) => void;
+}
+
+export function infoHead(info: UnitInfoView, enemy: boolean, options: InfoHeadOptions = { large: true }): HTMLElement {
   const head = el('div', 'bt-info-head');
   const text = el('div');
   const name = el('div', 'bt-info-name', unitSkinName(appSkin.current, info.unitId, info.name));
   name.append(' ', el('span', 'bt-info-stars', '★'.repeat(info.star)));
   if (info.boss) name.append(el('span', 'bt-tooltip-tag', '보스'));
   const chips = el('div', 'bt-traitchips');
-  for (const trait of info.traits) chips.append(el('span', 'bt-traitchip', trait));
+  info.traits.forEach((trait, i) => {
+    const chip = el('span', 'bt-traitchip', trait);
+    const id = info.traitIds[i];
+    if (id !== undefined) options.onTraitChip?.(chip, id);
+    chips.append(chip);
+  });
   text.append(name, el('div', 'bt-info-sub', `${appSkin.current === 'academy' ? `${info.name} · ` : ''}${info.tier}등급${enemy ? ' · 적' : ''}`), chips);
   head.append(unitFace(info.unitId, info.name, info.tier, { large: options.large ?? true, enemy }), text);
   return head;

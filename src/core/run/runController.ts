@@ -421,7 +421,9 @@ export class RunController {
     let passiveGold = 0;
     let healed = 0;
     let cardHealed = 0;
+    let xpGained = 0;
     if (outcome === 'win') {
+      xpGained = forces.management.gainXp(RUN.WIN_XP[kind]);
       passiveGold = (sim.commandPoints?.combat ?? 0) * (this.commander.passive.goldPerLeftoverCp ?? 0);
       if (passiveGold > 0) forces.economy.gain(passiveGold);
       // 카드(빚 청산)로 예약한 회복은 승리했을 때만 확정한다 (최대 HP 초과분은 버림)
@@ -471,7 +473,7 @@ export class RunController {
     } else {
       this.toMap();
     }
-    return { ok: true, settlement: { nodeId: node.id, kind, outcome, reward, cardHpLost, defeatDamage: defeat, passiveGold, healed, cardHealed, curseGoldLost, hpBefore, hpAfter: health.hp, runEnded, actCleared, bossRelicOffer: bossOffer, cardOffer, relicOffer } };
+    return { ok: true, settlement: { nodeId: node.id, kind, outcome, reward, cardHpLost, defeatDamage: defeat, passiveGold, healed, cardHealed, curseGoldLost, xpGained, hpBefore, hpAfter: health.hp, runEnded, actCleared, bossRelicOffer: bossOffer, cardOffer, relicOffer } };
   }
 
   /** 준비 단계에서 장비·카드 사용으로 바뀐 장비를 로스터에 확정한다 (준비 화면 재구성 시 카드가 복구되지 않도록) */

@@ -90,6 +90,8 @@ export interface BattleSettlement {
   cardHealed: number;
   /** 전투가 끝날 때 손패에 남은 저주 카드 때문에 잃은 골드 (잔고 한도까지. 없으면 0) */
   curseGoldLost: number;
+  /** 승리 경험치 (RUN.WIN_XP, 최고 레벨이면 0. 패배·무승부는 0) */
+  xpGained: number;
   hpBefore: number;
   hpAfter: number;
   /** 런이 끝났으면 결과 */

@@ -5,11 +5,17 @@ import type { DebugController, SessionSnapshot } from '../../debug/contracts';
 import { unitArtUrl, unitSkinName } from '../../skin/skins';
 import { appSkin } from '../../skin/SkinStore';
 import { unitAbbreviation } from '../../gameData';
+import type { ActiveTrait } from '../../../core/combat/traits';
 import { button, el, tagged } from '../dom';
+import type { HoverPop } from './hoverPop';
+import { bindTraitChip } from './TraitPanel';
+import { infoHead, skillBlock, statsGrid } from './UnitInfoPanel';
+import { buildUnitInfo } from './unitInfoView';
 
 /**
  * 하단 트레이의 유닛 상점 층: 레벨·XP·골드, 리롤·경험치·잠금, 진열 5칸(원화·등급 색·기원/직업·가격).
  * 층 전체가 판매 구역이라 유닛을 끌어 놓으면 판다. 전투 중에는 잠김 안내를 덮는다.
+ * 진열 카드에 마우스를 올리면 카드 위에 유닛 정보(능력치·1/2/3성 스킬)를, 특성 이름 위면 특성 설명을 띄운다.
  */
 export class ShopLayer {
   readonly root = tagged(el('div', 'bt-shop'), 'unit-shop');
@@ -23,6 +29,10 @@ export class ShopLayer {
     private readonly controller: DebugController,
     private readonly units: UnitCatalog,
     private readonly traits: TraitCatalog,
+    private readonly traitPop: HoverPop,
+    private readonly unitPop: HoverPop,
+    /** 아군의 지금 특성 (특성 팝업의 종류 수·단계) */
+    private readonly allyTraits: () => readonly ActiveTrait[],
   ) {
     this.root.dataset.sellZone = 'true';
     this.root.append(this.side, this.offers, this.lockMsg, this.sellOverlay);
@@ -61,6 +71,8 @@ export class ShopLayer {
     this.side.replaceChildren(level, xp, el('div', 'bt-shop-gold', `${gold}G`), actions);
 
     this.offers.replaceChildren(...state.offers.map((offer, slot) => this.offer(offer, slot, canManage, gold)));
+    this.unitPop.reattach(this.offers);
+    this.traitPop.reattach(this.offers);
     this.lockMsg.hidden = stage === 'prep';
     this.lockMsg.textContent = stage === 'playing' ? '전투 중에는 상점을 이용할 수 없습니다' : '전투가 끝났습니다';
   }
@@ -92,9 +104,23 @@ export class ShopLayer {
     }
     if (def) {
       const traits = el('div', 'bt-offer-traits');
-      for (const id of [def.origin, def.job]) traits.append(el('span', '', this.traits.get(id)?.name ?? id));
+      for (const id of [def.origin, def.job]) {
+        const chip = el('span', '', this.traits.get(id)?.name ?? id);
+        bindTraitChip(chip, id, this.traits, this.traitPop, this.allyTraits);
+        traits.append(chip);
+      }
       art.append(traits);
-      node.title = `${name} · ${offer.tier}등급\n${def.skill.name}: ${def.skill.text}`;
+      node.dataset.popKey = `offer:${slot}:${offer.unitId}`;
+      const content = () => {
+        const info = buildUnitInfo(def, 1, { traitName: (id) => this.traits.get(id)?.name ?? id });
+        return [infoHead(info, false, { large: false }), el('div', 'bt-unit-pop-cost', `${offer.tier}등급 · ${offer.cost}G`), statsGrid(info), skillBlock(info)];
+      };
+      // 특성 이름 위에서는 특성 팝업만, 나머지 부분에서는 유닛 팝업을 띄운다
+      node.addEventListener('mouseover', (event) => {
+        if ((event.target as Element).closest('[data-trait-id]')) this.unitPop.hide();
+        else this.unitPop.show(node, content, 'above');
+      });
+      node.addEventListener('mouseleave', () => this.unitPop.hide());
     }
     const foot = el('div', 'bt-offer-foot');
     const label = el('div', 'academy-offer-label');

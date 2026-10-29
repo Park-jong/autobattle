@@ -59,6 +59,9 @@ export const RUN = {
     BOSS_MULT: 2,
   },
 
+  /** 전투 승리 경험치 (종류별). 패배·무승부는 0 */
+  WIN_XP: { normal: 2, elite: 4, boss: 10 },
+
   /** 카드 보상: 제시 장수와 종류별 희귀도 가중치. 보스는 첫 장을 희귀 이상에서 보장 */
   REWARD: {
     CHOICES: 3,

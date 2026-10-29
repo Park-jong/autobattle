@@ -529,6 +529,8 @@ export interface SettlementView {
   outcome: 'win' | 'loss' | 'draw';
   /** 골드 지급 요약 (예: '+8G (기본 5G + 이자 3G)'; 유물 보너스가 있으면 '+ 유물 2G') */
   goldLine: string;
+  /** 승리 경험치 (예: '경험치 +2'. 얻지 않았으면 null) */
+  xpLine: string | null;
   /** 지휘관 HP 변화 줄들 (변화 없으면 빈 배열) */
   hpLines: string[];
   hpBefore: number;
@@ -554,6 +556,7 @@ export function buildSettlementView(s: BattleSettlement): SettlementView {
     headline: `${BATTLE_KIND_LABELS[s.kind]} ${OUTCOME_LABELS[s.outcome]}`,
     outcome: s.outcome,
     goldLine: `+${s.reward.total + s.passiveGold - s.curseGoldLost}G (기본 ${s.reward.base}G + 이자 ${s.reward.interest}G${s.reward.bonus ? ` + 유물 ${s.reward.bonus}G` : ''}${extras.length > 0 ? ` + ${extras.join(' + ')}` : ''})`,
+    xpLine: s.xpGained > 0 ? `경험치 +${s.xpGained}` : null,
     hpLines,
     hpBefore: s.hpBefore,
     hpAfter: s.hpAfter,

@@ -10,6 +10,7 @@ import type { BattleStage, RunCommands, RunSnapshot, RunViewSource } from '../co
 import { button, el, tagged } from '../dom';
 import { BattleTopBar } from './BattleTopBar';
 import { BenchRow } from './BenchRow';
+import { HoverPop } from './hoverPop';
 import { ShopLayer } from './ShopLayer';
 import { TraitPanel } from './TraitPanel';
 import { TrayStack, isTyping } from './TrayStack';
@@ -62,6 +63,9 @@ export class BattleScreen {
   private readonly info: UnitInfoPanel;
   private readonly tooltip: UnitTooltip;
   private readonly drag: RosterDrag;
+  /** 특성 설명 팝업(특성 패널·상점·정보 창 공용) / 상점 진열 유닛 정보 팝업 */
+  private readonly traitPop = new HoverPop('bt-trait-pop', 'trait-pop');
+  private readonly unitPop = new HoverPop('bt-unit-pop', 'unit-pop');
   private active = false;
   private stage: BattleStage | null = null;
   /** 전투 중 클릭해 정보를 띄운 유닛 uid (준비 단계는 세션의 선택 유닛을 쓴다) */
@@ -79,17 +83,18 @@ export class BattleScreen {
   ) {
     this.resultBackdrop.hidden = true;
     this.errorBox.hidden = true;
-    this.traitPanel = new TraitPanel(catalogs.traits);
+    const sideTraits = (side: 0 | 1) => this.battle.snapshot().traits[side];
+    this.traitPanel = new TraitPanel(catalogs.traits, this.traitPop);
     this.traitPanel.root.id = 'battle-trait-panel';
     this.traitToggle.setAttribute('aria-controls', 'battle-trait-panel');
     this.traitToggle.setAttribute('aria-expanded', 'false');
-    this.info = new UnitInfoPanel(catalogs.units, catalogs.traits, catalogs.cards, battle, () => this.closeInfo());
+    this.info = new UnitInfoPanel(catalogs.units, catalogs.traits, catalogs.cards, battle, () => this.closeInfo(), this.traitPop, sideTraits);
     this.tooltip = new UnitTooltip(hosts.arena, hosts.canvasHost, hover, catalogs.units, catalogs.traits, () => this.cards.cardView().holding || this.drag.dragging);
     this.overlay.append(this.traitToggle, this.traitPanel.root, this.info.root, this.errorBox, this.resultBackdrop);
     hosts.arena.append(this.overlay, this.tooltip.root);
     this.overlay.hidden = true;
 
-    this.shop = new ShopLayer(battle, catalogs.units, catalogs.traits);
+    this.shop = new ShopLayer(battle, catalogs.units, catalogs.traits, this.traitPop, this.unitPop, () => sideTraits(0));
     this.tray = new TrayStack(hosts.tray, { shop: this.shop.root, cards: hosts.hand });
     this.drag = new RosterDrag({
       controller: battle,
@@ -100,7 +105,11 @@ export class BattleScreen {
         const def = unit ? catalogs.units.get(unit.unitId) : undefined;
         return unitDragGhost(unit?.unitId ?? '', def?.name ?? '유닛', def?.tier ?? 1, unit?.star ?? 1);
       },
-      onDragStart: () => this.tray.bringFront('shop'),
+      onDragStart: () => {
+        this.traitPop.hide();
+        this.unitPop.hide();
+        this.tray.bringFront('shop');
+      },
     });
     this.bench = new BenchRow(hosts.bench, catalogs.units, this.drag, hosts.canvasHost, () => this.commands.startBattle());
     this.topBar = new BattleTopBar(hosts.top, battle, () => this.cards.cardView());
@@ -148,6 +157,8 @@ export class BattleScreen {
     this.tray.setStacked(active);
     if (!active) {
       this.tooltip.setEnabled(false, null);
+      this.traitPop.hide();
+      this.unitPop.hide();
       this.stage = null;
       this.inspectUid = null;
     }
@@ -230,6 +241,7 @@ export class BattleScreen {
     }
     const box = tagged(el('div', `bt-panel bt-result ${settlement.outcome}`), 'battle-result');
     box.append(tagged(el('h2', '', settlement.headline), 'settlement-headline'), el('p', '', `골드 ${settlement.goldLine}`));
+    if (settlement.xpLine) box.append(tagged(el('p', '', settlement.xpLine), 'settlement-xp'));
     for (const line of settlement.hpLines) box.append(el('p', 'hp', line));
     box.append(el('p', '', `지휘관 HP ${settlement.hpBefore} → ${settlement.hpAfter}`));
     if (settlement.runEnded === 'dead') box.append(el('p', 'hp', '지휘관이 쓰러졌습니다.'));
