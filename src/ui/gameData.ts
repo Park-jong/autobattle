@@ -41,6 +41,16 @@ export interface GameData {
 /** 디버그 화면을 처음 열 때 선택되어 있는 지휘관 (데이터에 없으면 지휘관 없음으로 떨어진다) */
 export const DEFAULT_COMMANDER_ID = 'cmd_harten';
 
+/**
+ * 보드의 유닛 약자(2글자). 띄어쓰기가 있는 이름은 앞 두 단어의 첫 글자("잿불 점화사" → "잿점"),
+ * 한 단어면 앞 두 글자("방패병" → "방패"). 30종 중 "잿불"·"심연"·"군단"으로 시작하는 이름이 많아 구분하려는 규칙이다.
+ */
+export function unitAbbreviation(name: string): string {
+  const words = name.trim().split(/\s+/);
+  if (words.length >= 2) return words.slice(0, 2).map((w) => [...w][0] ?? '').join('');
+  return [...name.replace(/\s+/g, '')].slice(0, 2).join('');
+}
+
 const SERIES_FILES: readonly unknown[] = [series1, series2, series3, series4, series5];
 
 /** data/*.json을 검증해 읽는다. 검증 실패 시 DataValidationError 등 한국어 메시지 Error를 던진다. */

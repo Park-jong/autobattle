@@ -20,6 +20,10 @@ export interface DamageRequest {
   type: DamageType;
   /** 방어력 무시 비율(%) */
   ignoreArmorPct?: number;
+  /** true면 source의 치명타 판정을 받는다 (ATK 비례 피해: 기본 공격·damage 효과) */
+  canCrit?: boolean;
+  /** true면 반사 피해를 되돌리지 않는다 (반사 피해끼리 무한히 오가지 않도록) */
+  noReflect?: boolean;
 }
 
 /**
@@ -104,9 +108,17 @@ export class CombatWorld {
     const { source, target } = req;
     if (!target.alive) return 0;
 
+    // 치명타: 확률이 있는 유닛만 Rng를 쓴다 (치명 특성이 없으면 로그가 그대로다). 대상이 이미 죽었으면 굴리지 않는다
+    let raw = req.raw;
+    let crit = false;
+    if (req.canCrit && source && source.critChance > 0 && this.rng.next() < source.critChance) {
+      raw = raw * source.critDamagePct / 100;
+      crit = true;
+    }
+
     const defense = target.stat(req.type === 'physical' ? 'arm' : 'res');
-    const takenMult = target.statuses.takenMultiplier() * overheatMultiplier(this.now);
-    const amount = computeDamage(req.raw, takenMult, defense, req.ignoreArmorPct ?? 0);
+    const takenMult = target.statuses.takenMultiplier(req.type) * overheatMultiplier(this.now);
+    const amount = computeDamage(raw, takenMult, defense, req.ignoreArmorPct ?? 0);
 
     const hadShield = target.statuses.shieldTotal() > 0;
     const absorbed = target.statuses.absorb(amount);
@@ -123,6 +135,7 @@ export class CombatWorld {
       absorbed,
       dmgType: req.type,
       hp: target.hp,
+      ...(crit ? { crit: true as const } : {}),
     });
     if (hadShield && target.statuses.shieldTotal() === 0) {
       this.emit({ type: 'statusRemoved', unit: target.uid, status: 'shield' });
@@ -130,6 +143,11 @@ export class CombatWorld {
     this.bus.emit('onDamageTaken', { unit: target, source, amount, dmgType: req.type });
     if (target.hp <= 0) this.kill(target, source);
     if (source?.alive && source !== target) this.heal(source, source, (hpBefore - target.hp) * source.statuses.lifestealPct() / 100);
+    // 반사: 받은 피해의 일부를 공격자에게 방어 무시로 되돌린다 (반사 피해는 다시 반사되지 않음)
+    const reflectPct = target.statuses.reflectPct();
+    if (reflectPct > 0 && !req.noReflect && target.alive && source?.alive && source !== target) {
+      this.dealDamage({ source: target, target: source, raw: (amount * reflectPct) / 100, type: req.type, ignoreArmorPct: 100, noReflect: true });
+    }
     return amount;
   }
 

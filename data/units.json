@@ -557,6 +557,667 @@
       "grantedCard": "vine_snare"
     },
     {
+      "id": "bear_warrior",
+      "name": "곰 전사",
+      "tier": 2,
+      "origin": "forest_pact",
+      "job": "gladiator",
+      "stats": {
+        "hp": 800,
+        "atk": 55,
+        "as": 0.65,
+        "rng": 1,
+        "arm": 30,
+        "res": 20,
+        "mana": 80
+      },
+      "skill": {
+        "name": "곰의 포효",
+        "text": "주변 1칸 적을 2초간 도발하고 자신에게 보호막 200 / 300 / 500 (전투 끝까지).",
+        "targeting": "self",
+        "effects": [
+          {
+            "kind": "taunt",
+            "selector": "self",
+            "radius": 1,
+            "duration": 2
+          },
+          {
+            "kind": "flatShield",
+            "selector": "self",
+            "amount": [
+              200,
+              300,
+              500
+            ],
+            "duration": "combat"
+          }
+        ]
+      }
+    },
+    {
+      "id": "shadow_panther",
+      "name": "그림자표범",
+      "tier": 2,
+      "origin": "forest_pact",
+      "job": "assassin",
+      "stats": {
+        "hp": 620,
+        "atk": 64,
+        "as": 0.85,
+        "rng": 1,
+        "arm": 20,
+        "res": 15,
+        "mana": 55
+      },
+      "skill": {
+        "name": "덮치기",
+        "text": "가장 먼 적에게 도약해 ATK 180 / 220 / 280% 물리 피해 + 기절 1초.",
+        "targeting": "farthestEnemy",
+        "effects": [
+          {
+            "kind": "teleport",
+            "selector": "self",
+            "destination": "besideTarget"
+          },
+          {
+            "kind": "damage",
+            "selector": "target",
+            "pctAtk": [
+              180,
+              220,
+              280
+            ],
+            "dmgType": "physical"
+          },
+          {
+            "kind": "stun",
+            "selector": "target",
+            "duration": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "battle_chaplain",
+      "name": "전투 사제",
+      "tier": 3,
+      "origin": "iron_legion",
+      "job": "mystic",
+      "stats": {
+        "hp": 750,
+        "atk": 45,
+        "as": 0.6,
+        "rng": 3,
+        "arm": 25,
+        "res": 35,
+        "mana": 90
+      },
+      "skill": {
+        "name": "축복의 기도",
+        "text": "HP 비율이 가장 낮은 아군 2 / 2 / 3명의 HP를 200 / 300 / 500 회복하고 해로운 효과를 제거.",
+        "targeting": "lowestHpRatioAllies",
+        "effects": [
+          {
+            "kind": "heal",
+            "selector": "target",
+            "amount": [
+              200,
+              300,
+              500
+            ]
+          },
+          {
+            "kind": "cleanse",
+            "selector": "target"
+          }
+        ],
+        "targetCount": [
+          2,
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "id": "ember_smith",
+      "name": "잿불 대장장이",
+      "tier": 3,
+      "origin": "ember",
+      "job": "guardian",
+      "stats": {
+        "hp": 950,
+        "atk": 55,
+        "as": 0.6,
+        "rng": 1,
+        "arm": 45,
+        "res": 30,
+        "mana": 100
+      },
+      "skill": {
+        "name": "담금질",
+        "text": "자신과 인접 아군 ATK +15 / 20 / 30% (전투 끝까지, 최대 2중첩), 자신에게 보호막 250 / 400 / 700 (전투 끝까지).",
+        "targeting": "self",
+        "effects": [
+          {
+            "kind": "statMod",
+            "selector": "alliesAroundSelf",
+            "stat": "atk",
+            "pct": [
+              15,
+              20,
+              30
+            ],
+            "duration": "combat",
+            "maxStacks": 2
+          },
+          {
+            "kind": "flatShield",
+            "selector": "self",
+            "amount": [
+              250,
+              400,
+              700
+            ],
+            "duration": "combat"
+          }
+        ]
+      }
+    },
+    {
+      "id": "ember_bladedancer",
+      "name": "잿불 칼날무희",
+      "tier": 3,
+      "origin": "ember",
+      "job": "assassin",
+      "stats": {
+        "hp": 720,
+        "atk": 72,
+        "as": 0.9,
+        "rng": 1,
+        "arm": 20,
+        "res": 20,
+        "mana": 60
+      },
+      "skill": {
+        "name": "불꽃 칼춤",
+        "text": "2초간 0.4초마다 주변 1칸 적에게 마법 피해 50 / 75 / 120 (총 5회). 지속 중 받는 물리 피해 -50%.",
+        "targeting": "self",
+        "effects": [
+          {
+            "kind": "damageAura",
+            "selector": "self",
+            "amount": [
+              50,
+              75,
+              120
+            ],
+            "dmgType": "magic",
+            "radius": 1,
+            "intervalSeconds": 0.4,
+            "count": 5
+          },
+          {
+            "kind": "damageTakenMult",
+            "selector": "self",
+            "mult": 0.5,
+            "dmgType": "physical",
+            "duration": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "rift_stalker",
+      "name": "균열 추적자",
+      "tier": 3,
+      "origin": "abyss",
+      "job": "assassin",
+      "stats": {
+        "hp": 730,
+        "atk": 75,
+        "as": 0.85,
+        "rng": 1,
+        "arm": 20,
+        "res": 20,
+        "mana": 65
+      },
+      "skill": {
+        "name": "균열 도약",
+        "text": "적 후열로 순간이동. 다음 공격이 ATK 300 / 350 / 450% 물리 피해이고, 그 공격으로 대상을 처치하면 마나 50% 회복.",
+        "targeting": "self",
+        "effects": [
+          {
+            "kind": "teleport",
+            "selector": "self",
+            "destination": "enemyBackRow"
+          },
+          {
+            "kind": "empoweredAttack",
+            "selector": "self",
+            "pctAtk": [
+              300,
+              350,
+              450
+            ],
+            "dmgType": "physical",
+            "manaPctOnKill": 50
+          }
+        ]
+      }
+    },
+    {
+      "id": "void_sniper",
+      "name": "공허 저격수",
+      "tier": 3,
+      "origin": "abyss",
+      "job": "marksman",
+      "stats": {
+        "hp": 600,
+        "atk": 85,
+        "as": 0.5,
+        "rng": 5,
+        "arm": 15,
+        "res": 15,
+        "mana": 90
+      },
+      "skill": {
+        "name": "공허탄",
+        "text": "HP가 가장 많은 적에게 ARM 무시 ATK 350 / 400 / 500% 물리 피해.",
+        "targeting": "highestHpEnemy",
+        "effects": [
+          {
+            "kind": "damage",
+            "selector": "target",
+            "pctAtk": [
+              350,
+              400,
+              500
+            ],
+            "dmgType": "physical",
+            "ignoreArmorPct": 100
+          }
+        ]
+      }
+    },
+    {
+      "id": "wind_hunter",
+      "name": "바람 사냥꾼",
+      "tier": 3,
+      "origin": "forest_pact",
+      "job": "marksman",
+      "stats": {
+        "hp": 620,
+        "atk": 64,
+        "as": 0.8,
+        "rng": 4,
+        "arm": 15,
+        "res": 20,
+        "mana": 75
+      },
+      "skill": {
+        "name": "폭풍 화살",
+        "text": "부채꼴로 화살 5발, 각 ATK 70 / 90 / 120% 물리 피해. 맞은 적은 3초간 AS -20%.",
+        "targeting": "currentTarget",
+        "effects": [
+          {
+            "kind": "damage",
+            "selector": "fanArrows",
+            "pctAtk": [
+              70,
+              90,
+              120
+            ],
+            "dmgType": "physical"
+          },
+          {
+            "kind": "statMod",
+            "selector": "fanTargets",
+            "stat": "as",
+            "pct": -20,
+            "duration": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "legion_centurion",
+      "name": "군단 백인대장",
+      "tier": 4,
+      "origin": "iron_legion",
+      "job": "gladiator",
+      "stats": {
+        "hp": 1050,
+        "atk": 78,
+        "as": 0.75,
+        "rng": 1,
+        "arm": 40,
+        "res": 25,
+        "mana": 90
+      },
+      "skill": {
+        "name": "백인대 명령",
+        "text": "주변 2칸 아군(자신 포함) 5초간 ATK +20 / 25 / 35%, 자신은 주변 2칸 적을 2초간 도발.",
+        "targeting": "self",
+        "effects": [
+          {
+            "kind": "statMod",
+            "selector": "alliesAroundSelf",
+            "selectorRadius": 2,
+            "stat": "atk",
+            "pct": [
+              20,
+              25,
+              35
+            ],
+            "duration": 5
+          },
+          {
+            "kind": "taunt",
+            "selector": "self",
+            "radius": 2,
+            "duration": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "siege_bombardier",
+      "name": "공성 포병",
+      "tier": 4,
+      "origin": "iron_legion",
+      "job": "marksman",
+      "stats": {
+        "hp": 750,
+        "atk": 95,
+        "as": 0.45,
+        "rng": 5,
+        "arm": 20,
+        "res": 15,
+        "mana": 100
+      },
+      "skill": {
+        "name": "포격",
+        "text": "2초 예고 후 적이 가장 밀집한 3×3 범위에 ATK 250 / 300 / 400% 물리 피해.",
+        "targeting": "self",
+        "effects": [
+          {
+            "kind": "delayedStrike",
+            "selector": "self",
+            "delay": 2,
+            "area": "densestEnemies3x3",
+            "effects": [
+              {
+                "kind": "damage",
+                "selector": "enemiesInTargetArea",
+                "pctAtk": [
+                  250,
+                  300,
+                  400
+                ],
+                "dmgType": "physical"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "magma_champion",
+      "name": "용암 챔피언",
+      "tier": 4,
+      "origin": "ember",
+      "job": "gladiator",
+      "stats": {
+        "hp": 1100,
+        "atk": 80,
+        "as": 0.7,
+        "rng": 1,
+        "arm": 35,
+        "res": 30,
+        "mana": 100
+      },
+      "skill": {
+        "name": "용암 강타",
+        "text": "바닥을 내려찍어 주변 1칸 적에게 마법 피해 200 / 300 / 550 + 기절 1초 + 화상 3초 (초당 시전자 ATK의 100%).",
+        "targeting": "currentTarget",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "enemiesAroundSelf",
+            "amount": [
+              200,
+              300,
+              550
+            ],
+            "dmgType": "magic"
+          },
+          {
+            "kind": "stun",
+            "selector": "enemiesAroundSelf",
+            "duration": 1
+          },
+          {
+            "kind": "burn",
+            "selector": "enemiesAroundSelf",
+            "dpsPctAtk": 100,
+            "duration": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "abyss_sentinel",
+      "name": "심연 감시자",
+      "tier": 4,
+      "origin": "abyss",
+      "job": "guardian",
+      "stats": {
+        "hp": 1200,
+        "atk": 60,
+        "as": 0.55,
+        "rng": 1,
+        "arm": 55,
+        "res": 45,
+        "mana": 120
+      },
+      "skill": {
+        "name": "심연의 시선",
+        "text": "주변 2칸 적을 3초간 도발하고, 그동안 받는 피해 -40%, 받은 피해의 20%를 공격자에게 반사.",
+        "targeting": "self",
+        "effects": [
+          {
+            "kind": "taunt",
+            "selector": "self",
+            "radius": 2,
+            "duration": 3
+          },
+          {
+            "kind": "damageTakenMult",
+            "selector": "self",
+            "mult": 0.6,
+            "duration": 3
+          },
+          {
+            "kind": "reflect",
+            "selector": "self",
+            "pct": 20,
+            "duration": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "void_hierophant",
+      "name": "공허 대사제",
+      "tier": 4,
+      "origin": "abyss",
+      "job": "mystic",
+      "stats": {
+        "hp": 800,
+        "atk": 55,
+        "as": 0.6,
+        "rng": 3,
+        "arm": 20,
+        "res": 45,
+        "mana": 100
+      },
+      "skill": {
+        "name": "공허 개방",
+        "text": "대상 중심 3×3 범위 적에게 마법 피해 150 / 230 / 400, CP +1 (시전 유닛당 전투 2회).",
+        "targeting": "currentTarget",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "targetAndAdjacent",
+            "amount": [
+              150,
+              230,
+              400
+            ],
+            "dmgType": "magic"
+          },
+          {
+            "kind": "skillCpGain",
+            "selector": "self",
+            "amount": 1,
+            "maxPerCombat": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "volcano_oracle",
+      "name": "화산 예언자",
+      "tier": 5,
+      "origin": "ember",
+      "job": "mystic",
+      "stats": {
+        "hp": 950,
+        "atk": 65,
+        "as": 0.6,
+        "rng": 3,
+        "arm": 25,
+        "res": 50,
+        "mana": 120
+      },
+      "skill": {
+        "name": "대분화의 예언",
+        "text": "4초 예고 후 적 전체에 마법 피해 300 / 450 / 1200 + 화상 3초 (초당 시전자 ATK의 100%).",
+        "targeting": "self",
+        "effects": [
+          {
+            "kind": "delayedStrike",
+            "selector": "self",
+            "delay": 4,
+            "area": "allEnemies",
+            "effects": [
+              {
+                "kind": "flatDamage",
+                "selector": "allEnemies",
+                "amount": [
+                  300,
+                  450,
+                  1200
+                ],
+                "dmgType": "magic"
+              },
+              {
+                "kind": "burn",
+                "selector": "allEnemies",
+                "dpsPctAtk": 100,
+                "duration": 3
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "muhon",
+      "name": "무혼",
+      "tier": 5,
+      "origin": "abyss",
+      "job": "assassin",
+      "stats": {
+        "hp": 950,
+        "atk": 105,
+        "as": 0.95,
+        "rng": 1,
+        "arm": 30,
+        "res": 30,
+        "mana": 80
+      },
+      "skill": {
+        "name": "무명의 일섬",
+        "text": "직선상의 적을 모두 관통하며 질주, ATK 300 / 350 / 600% 물리 피해. 처치 1명당 마나 30 회복.",
+        "targeting": "currentTarget",
+        "effects": [
+          {
+            "kind": "damage",
+            "selector": "lineThroughTarget",
+            "pctAtk": [
+              300,
+              350,
+              600
+            ],
+            "dmgType": "physical",
+            "manaOnKill": 30
+          },
+          {
+            "kind": "teleport",
+            "selector": "self",
+            "destination": "lineEnd"
+          }
+        ]
+      }
+    },
+    {
+      "id": "elder_treeking",
+      "name": "태고의 수목왕",
+      "tier": 5,
+      "origin": "forest_pact",
+      "job": "guardian",
+      "stats": {
+        "hp": 1500,
+        "atk": 70,
+        "as": 0.5,
+        "rng": 1,
+        "arm": 60,
+        "res": 50,
+        "mana": 140
+      },
+      "skill": {
+        "name": "태고의 숨결",
+        "text": "아군 전체에 최대 HP 20 / 30 / 60% 보호막 (전투 끝까지), 5초간 초당 최대 HP 2% 회복, 자신은 주변 2칸 적을 3초간 도발.",
+        "targeting": "self",
+        "effects": [
+          {
+            "kind": "shield",
+            "selector": "allAllies",
+            "pctMaxHp": [
+              20,
+              30,
+              60
+            ],
+            "duration": "combat"
+          },
+          {
+            "kind": "regen",
+            "selector": "allAllies",
+            "pctMaxHp": 2,
+            "duration": 5
+          },
+          {
+            "kind": "taunt",
+            "selector": "self",
+            "radius": 2,
+            "duration": 3
+          }
+        ]
+      }
+    },
+    {
       "id": "gate_breaker",
       "name": "성문 파괴자",
       "tier": 5,

@@ -63,6 +63,51 @@ const lowestHpEnemyResolver: SkillTargetResolver = {
   },
 };
 
+/** 스킬의 대상 수 (targetCount가 성급 배열이면 시전자 성급에 맞는 값, 없으면 1) */
+function skillTargetCount(caster: CombatUnit): number {
+  const count = caster.def.skill.targetCount ?? 1;
+  return Array.isArray(count) ? (count as readonly number[])[caster.star - 1] ?? 1 : (count as number);
+}
+
+/** 현재 HP가 가장 많은 적. 동률이면 uid 작은 쪽 */
+const highestHpEnemyResolver: SkillTargetResolver = {
+  requiresRange: false,
+  resolve: (caster, _attackTarget, world) => {
+    let best: CombatUnit | null = null;
+    for (const enemy of world.enemiesOf(caster.side)) {
+      if (best === null || enemy.hp > best.hp) best = enemy;
+    }
+    return best ? [best] : [];
+  },
+};
+
+/** 시전자에서 가장 먼 적(체비쇼프). 동률이면 uid 작은 쪽 */
+const farthestEnemyResolver: SkillTargetResolver = {
+  requiresRange: false,
+  resolve: (caster, _attackTarget, world) => {
+    let best: CombatUnit | null = null;
+    let bestDistance = -1;
+    for (const enemy of world.enemiesOf(caster.side)) {
+      const distance = chebyshev(caster.cell, enemy.cell);
+      if (distance > bestDistance) {
+        best = enemy;
+        bestDistance = distance;
+      }
+    }
+    return best ? [best] : [];
+  },
+};
+
+/** HP 비율(현재/최대)이 가장 낮은 아군 targetCount명 (시전자 포함). 동률이면 uid 작은 쪽 */
+const lowestHpRatioAlliesResolver: SkillTargetResolver = {
+  requiresRange: false,
+  resolve: (caster, _attackTarget, world) =>
+    world
+      .alliesOf(caster.side)
+      .sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp || a.uid - b.uid)
+      .slice(0, skillTargetCount(caster)),
+};
+
 /** 새 targeting 종류는 여기에 전략을 추가한다 */
 export const SKILL_TARGET_RESOLVERS: Record<SkillTargeting, SkillTargetResolver> = {
   self: selfResolver,
@@ -70,9 +115,9 @@ export const SKILL_TARGET_RESOLVERS: Record<SkillTargeting, SkillTargetResolver>
   lowestHpEnemy: lowestHpEnemyResolver,
   randomEnemies: {
     requiresRange: false,
-    resolve: (caster, _target, world) => {
-      const count = caster.def.skill.targetCount ?? 1;
-      return world.rng.shuffle(world.enemiesOf(caster.side)).slice(0, Array.isArray(count) ? count[caster.star - 1] : count as number);
-    },
+    resolve: (caster, _target, world) => world.rng.shuffle(world.enemiesOf(caster.side)).slice(0, skillTargetCount(caster)),
   },
+  highestHpEnemy: highestHpEnemyResolver,
+  farthestEnemy: farthestEnemyResolver,
+  lowestHpRatioAllies: lowestHpRatioAlliesResolver,
 };

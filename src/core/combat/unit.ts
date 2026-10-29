@@ -32,6 +32,9 @@ export class CombatUnit {
   temporary = false;
   rangeBonus = 0;
   volleyChance = 0;
+  /** 치명타 확률(0~1)과 치명 피해(%). 암살자 특성이 설정한다 */
+  critChance = 0;
+  critDamagePct = 100;
   readonly statuses: StatusSet;
   /** 성급이 확정된 스킬 효과 */
   readonly skillEffects: readonly ResolvedEffect[];

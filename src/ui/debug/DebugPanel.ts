@@ -95,7 +95,7 @@ export class DebugPanel {
     this.nextBattleButton = button('다음 전투', () => controller.nextBattle(), 'dbg-btn dbg-primary');
     this.resetEconomyButton = button('골드 초기화', () => controller.resetEconomy(), 'dbg-btn');
     this.build();
-    new ManagementPanel(this.managementHost, controller, units, cards, canvasHost);
+    new ManagementPanel(this.managementHost, controller, units, cards, canvasHost, { traits });
     controller.subscribe(() => this.render());
     this.render();
   }

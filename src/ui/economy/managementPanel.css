@@ -1,7 +1,7 @@
 .management-panel { margin-top: 14px; padding-top: 10px; border-top: 1px solid #2a2f3d; }
 .management-stats { display: block; color: #9be29b; font-size: 13px; }
 .management-offers { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; margin-top: 8px; }
-.management-offer { padding: 6px 3px; min-height: 80px; white-space: pre-line; overflow-wrap: anywhere; font-size: 11px; }
+.management-offer { padding: 6px 3px; min-height: 96px; white-space: pre-line; overflow-wrap: anywhere; font-size: 11px; }
 .management-subtitle { margin-top: 12px !important; }
 .management-bench { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
 .management-bench-cell { min-height: 52px; border: 1px dashed #414b65; border-radius: 4px; }

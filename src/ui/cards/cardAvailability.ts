@@ -11,6 +11,8 @@ export interface AvailabilityContext {
   /** 이번 전투에서 이 카드(id)를 쓴 횟수 */
   usesOf(cardId: string): number;
   cardsPlayed?: number;
+  /** 이 카드의 비용 조정(방해 변이 +, 주술사 특성 −). 실제 비용은 기본 비용 + 조정, 최소 0 */
+  costAdjust?: number;
 }
 
 /**
@@ -27,7 +29,7 @@ export function explainUnplayable(card: Card, upgraded: boolean, ctx: Availabili
   const perCombat = card.limits?.perCombat;
   if (perCombat !== undefined && ctx.usesOf(card.id) >= perCombat) return `전투당 ${perCombat}회만 사용할 수 있습니다`;
 
-  const cost = effectiveCard(card, upgraded, ctx.cardsPlayed).cost;
+  const cost = Math.max(0, effectiveCard(card, upgraded, ctx.cardsPlayed).cost + (ctx.costAdjust ?? 0));
   const pool = prepCard ? ctx.prepCp : ctx.combatCp;
   if (pool < cost) {
     const label = prepCard ? '준비 CP' : 'CP';

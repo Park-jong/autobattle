@@ -13,7 +13,10 @@ export interface HandCardView {
   name: string;
   type: CardType;
   typeLabel: string;
+  /** 지금 내야 하는 CP (연쇄·강화·방해 변이·주술사 특성을 모두 반영, 최소 0) */
   cost: number;
+  /** 변이·특성 조정 전 비용. cost와 다르면 UI가 올랐는지(빨강)/내렸는지(초록) 표시한다 */
+  baseCost: number;
   upgraded: boolean;
   text: string;
   targetKind: TargetKind;
@@ -99,6 +102,8 @@ export interface PanelInput {
   time: number;
   usesOf(cardId: string): number;
   cardsPlayed?: number;
+  /** 손패 카드 한 장의 비용 조정 (방해 변이 +, 주술사 특성 −). 생략하면 0 */
+  costAdjustOf?(instanceId: number): number;
   selectedInstanceId: number | null;
   holding: boolean;
   hint: string;
@@ -176,6 +181,7 @@ export class CardPanelViewBuilder {
     const card = this.catalog.get(instance.cardId);
     if (!card) throw new Error(`알 수 없는 카드 "${instance.cardId}"`);
     const view = effectiveCard(card, instance.upgraded, input.cardsPlayed);
+    const costAdjust = input.costAdjustOf?.(instance.instanceId) ?? 0;
     const reason =
       input.blockedReason ??
       (input.phase === null
@@ -186,6 +192,7 @@ export class CardPanelViewBuilder {
             combatCp: input.combatCp,
             usesOf: input.usesOf,
             cardsPlayed: input.cardsPlayed,
+            costAdjust,
           }));
     return {
       instanceId: instance.instanceId,
@@ -193,7 +200,8 @@ export class CardPanelViewBuilder {
       name: instance.upgraded ? `${card.name}+` : card.name,
       type: card.type,
       typeLabel: CARD_TYPE_LABELS[card.type],
-      cost: view.cost,
+      cost: Math.max(0, view.cost + costAdjust),
+      baseCost: view.cost,
       upgraded: instance.upgraded,
       text: view.text,
       targetKind: card.target.kind,

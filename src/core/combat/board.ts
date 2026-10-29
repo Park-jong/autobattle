@@ -73,6 +73,31 @@ export function rayCells(from: Cell, through: Cell): Cell[] {
   return cells;
 }
 
+/**
+ * from에서 through 방향을 가운데로 arrows개의 직선(부채꼴, 인접 직선 사이 stepDegrees도)이 지나는 칸들.
+ * 직선마다 from 제외, 가까운 순, 중복 없이 보드 끝까지. 첫 번째 직선이 가장 시계 반대(행이 작은) 쪽이다.
+ */
+export function fanRays(from: Cell, through: Cell, arrows = 5, stepDegrees = 15): Cell[][] {
+  const base = Math.atan2(through.row - from.row, through.col - from.col);
+  const rays: Cell[][] = [];
+  for (let k = 0; k < arrows; k++) {
+    const angle = base + (((k - (arrows - 1) / 2) * stepDegrees) * Math.PI) / 180;
+    const dx = Math.cos(angle);
+    const dy = Math.sin(angle);
+    const cells: Cell[] = [];
+    for (let s = 0.5; s <= BOARD_COLS + 1; s += 0.5) {
+      // 정확히 .5인 좌표는 반올림 오차로 흔들리지 않게 아주 작은 편향을 준다. +0은 -0을 0으로 만든다
+      const cell = { col: Math.round(from.col + dx * s + 1e-9) + 0, row: Math.round(from.row + dy * s + 1e-9) + 0 };
+      if (!isInsideBoard(cell)) break;
+      const last = cells[cells.length - 1];
+      if (sameCell(cell, from) || (last && sameCell(last, cell))) continue;
+      cells.push(cell);
+    }
+    rays.push(cells);
+  }
+  return rays;
+}
+
 function keyOf(c: Cell): number {
   return c.row * BOARD_COLS + c.col;
 }

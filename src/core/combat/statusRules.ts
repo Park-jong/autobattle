@@ -47,5 +47,17 @@ export class StatusRules {
         }
       }
     }
+
+    // 주기 피해 오라(불꽃 칼춤): 반경 안의 적에게 고정 피해
+    for (const pulse of unit.statuses.takeDuePulses()) {
+      for (const enemy of world.enemiesOf(unit.side)) {
+        if (chebyshev(enemy.cell, unit.cell) <= pulse.radius) world.dealDamage({ source: unit, target: enemy, raw: pulse.amount, type: pulse.dmgType });
+      }
+      if (!unit.alive) return;
+    }
+
+    // 재생(태고의 숨결): 최대 HP 비율 회복
+    const regenPct = unit.statuses.takeDueRegenPct();
+    if (regenPct > 0) world.heal(unit, unit, (unit.maxHp * regenPct) / 100);
   }
 }

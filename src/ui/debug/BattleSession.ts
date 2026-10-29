@@ -603,6 +603,7 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
       time: live?.time ?? 0,
       usesOf: (cardId) => live?.usesOf(cardId) ?? 0,
       cardsPlayed: live?.cardsPlayed ?? 0,
+      costAdjustOf: (instanceId) => live?.sim.cardSurcharge(instanceId) ?? 0,
       selectedInstanceId: this.interaction.selectedInstanceId,
       holding: this.interaction.active,
       hint: this.interaction.hint(),

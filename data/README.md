@@ -70,6 +70,8 @@ M3 추가 카드: `call_reserves`(예비대 호출, 3CP·강화 2CP, 후열 빈 
 ### selector
 `target`(대상: 스킬은 targeting 결과, 카드는 지정 대상) / `self`(시전자) / `allAllies` / `alliesFrontRow` / `alliesMelee` / `lineThroughTarget`(시전자에서 대상 방향으로 보드 끝까지 뻗는 직선 위의 적 전부) / `targetAndAdjacent`(첫 대상 + 그 대상과 같은 진영에서 8방향 인접한 유닛) / `enemiesInTargetArea` / `alliesInTargetArea`(카드가 지정한 칸 또는 3×3 범위 안의 적 / 아군)
 
+- M5-4 추가 선택자: `alliesAroundSelf`(시전자 반경 `selectorRadius`칸 안의 아군, 시전자 포함) / `enemiesAroundSelf`(같은 반경 안의 적) / `allEnemies`(상대 진영 전체) / `fanArrows`·`fanTargets`(부채꼴 5발, 아래). `selectorRadius`(정수 ≥ 1, 기본 1)는 모든 효과에 붙일 수 있는 공통 필드지만 `alliesAroundSelf`·`enemiesAroundSelf`에서만 허용된다(체비쇼프 거리). 시전자가 필요한 선택자라 카드·패시브에서는 `allEnemies` 외에는 거부한다.
+- **부채꼴(`fanArrows`/`fanTargets`)**: 시전자 칸에서 대상 칸 방향을 가운데로 15도 간격의 직선 5개(`fanRays`)를 보드 끝까지 긋고, 직선마다 처음 만나는 적을 맞힌다. `fanArrows`는 화살 순서대로(같은 적이 여러 번 나올 수 있음 — 화살마다 피해), `fanTargets`는 맞은 적을 한 번씩만(약화 같은 상태 효과용). 직선이 지나는 칸은 0.5칸 간격 표본을 반올림해 정한다.
 - 전열 = 중앙에 가장 가까운 열 (아군 열 3, 적 열 4). **효과를 적용하는 시점의 현재 열**로 판정한다 (특성은 전투 시작 시 1회 적용).
 - 근접 = 사거리 1.
 - `targetAndAdjacent`는 첫 대상이 앞선 효과로 이미 죽었어도 그 칸 기준으로 인접 유닛을 고른다.
@@ -78,13 +80,13 @@ M3 추가 카드: `call_reserves`(예비대 호출, 3CP·강화 2CP, 후열 빈 
 | kind | 파라미터 | 의미 |
 |---|---|---|
 | `shield` | `pctMaxHp`, `duration` | 최대 HP 비례 보호막 (먼저 얻은 것부터 흡수) |
-| `damageTakenMult` | `mult`, `duration` | 받는 피해 배율 (0.5 = −50%, 1.15 = +15%). 곱연산 |
-| `statMod` | `stat`, `pct`, `duration`, `refreshOnKill?` | 스탯 % 증감 (`stat`: `atk`/`as`/`arm`/`res`). `refreshOnKill`이 true면 지속 중 시전자가 적을 처치할 때 지속 시간 초기화 (투지) |
+| `damageTakenMult` | `mult`, `duration`, `dmgType?` | 받는 피해 배율 (0.5 = −50%, 1.15 = +15%). 곱연산. `dmgType`(`physical`/`magic`)을 주면 그 종류의 피해에만 적용(칼날무희의 물리 피해 감소). `statusApplied` 이름은 같은 `damageTakenMult`, value = mult |
+| `statMod` | `stat`, `pct`, `duration`, `refreshOnKill?`, `maxStacks?` | 스탯 % 증감 (`stat`: `atk`/`as`/`arm`/`res`). `refreshOnKill`이 true면 지속 중 시전자가 적을 처치할 때 지속 시간 초기화 (투지). `maxStacks`가 있으면 같은 시전자 종류(`def.id`, 특성은 `trait`)가 건 같은 스탯 효과를 대상마다 그 수까지만 쌓는다(넘치면 새로 걸리지 않음, 담금질) |
 | `statAdd` | `stat`, `amount`, `duration` | 스탯 고정값 증감. 최종값 = (기본 + 고정값) × (1 + 합계 %) |
 | `forceTarget` | `duration` | selector 유닛들이 `target`을 우선 공격 |
 | `undying` | `duration` | HP가 1 밑으로 내려가지 않음 |
 | `swapPositions` | – | selector 유닛 두 명의 위치 교환. 정확히 2명이어야 하고 이동 중인 유닛이 있으면 실패 |
-| `damage` | `pctAtk`, `dmgType`(`physical`/`magic`), `ignoreArmorPct?` | 시전자 ATK의 `pctAtk`% 피해. `ignoreArmorPct`는 방어력 무시 % |
+| `damage` | `pctAtk`, `dmgType`(`physical`/`magic`), `ignoreArmorPct?`, `maxHpOnKill?`, `manaOnKill?` | 시전자 ATK의 `pctAtk`% 피해. `ignoreArmorPct`는 방어력 무시 %. `maxHpOnKill`은 처치 시 시전자 최대 HP(포식), `manaOnKill`은 처치 1명당 시전자 마나 회복(무명의 일섬). 치명 판정을 받는다(아래 암살자) |
 | `flatDamage` | `amount`, `dmgType`, `ignoreArmorPct?` | 시전자와 무관한 고정 피해 (카드·패시브에서 쓸 수 있음) |
 | `stun` | `duration` | 기절: 이동 시작·공격·스킬 불가 (이미 시작한 1칸 이동은 끝낸다). 중첩 없이 더 늦게 끝나는 쪽으로 갱신 |
 | `silence` | `duration` | 침묵: 스킬 시전 불가 (이동·기본 공격은 가능, 마나는 계속 참). 중첩 없이 더 늦게 끝나는 쪽으로 갱신 |
@@ -101,27 +103,46 @@ M3 추가 카드: `call_reserves`(예비대 호출, 3CP·강화 2CP, 후열 빈 
 | `heal` | `amount` | 즉시 회복 (최대 HP 초과 불가) |
 | `healAura` | `perSecond`, `radius`, `duration` | 지속 중 1초마다 반경 `radius`칸 안의 **다른** 아군을 `perSecond`만큼 회복 |
 | `burn` | `dpsPctAtk` 또는 `dps` (정확히 하나), `duration` | 화상: 1초마다 마법 피해. `dpsPctAtk`는 시전자 ATK 비례, `dps`는 고정값(시전자 없는 카드용). 재부여 시 지속 시간 갱신 + 초당 피해는 큰 값 (중첩 없음) |
-| `teleport` | `destination`(`behindTarget`) | selector 유닛을 `target` 유닛의 뒤로 순간이동. 뒤 = 대상에 인접한 빈 칸 중 이동자에서 가장 먼 칸. 빈 칸이 없으면 스킬을 시전하지 않음 (마나 유지, 다음 틱 재판정) |
+| `teleport` | `destination` | selector 유닛을 순간이동(`teleport` 이벤트). `behindTarget`: `target` 유닛에 인접한 빈 칸 중 이동자에서 **가장 먼** 칸. `besideTarget`: 같은 후보 중 **가장 가까운** 칸(도약, 동률은 대상과 같은 행 → (열, 행) 오름차순). `enemyBackRow`: 상대 진영 후열의 빈 칸(아래 "도약 칸 규칙"). `lineEnd`: 대상 방향 직선(`rayCells`) 위의 가장 먼 빈 칸, 빈 칸이 없으면 제자리(질주 — 시전을 막지 않음). 갈 칸이 없으면(`lineEnd` 제외) 스킬을 시전하지 않음 (마나 유지, 다음 틱 재판정) |
 | `extraShots` | `count` | 다음 `count`회 기본 공격이 2발씩 (마나는 공격 1회로 계산) |
 | `cpOnKill` | `amount`, `maxPerCombat` (selector는 `allAllies`만) | **특성 전용.** 전투 시작 시 트리거(`onKill`)를 등록: 이 진영 유닛이 적을 처치하면 CP를 `amount`만큼 얻음. 실제로 얻은 합계가 `maxPerCombat`에 닿으면 멈춤 (CP 상한 6에 막혀 못 얻은 양은 한도를 소모하지 않음). 플레이어(side 0) 진영이고 카드 시스템이 켜진 전투에서만 동작 |
+| `flatShield` | `amount`, `duration` | (M5-4) 고정 수치 보호막. `shield`(최대 HP 비례)와 달리 수치가 그대로 보호막이 된다 |
+| `cleanse` | – | (M5-4) 해로운 상태 제거: 기절·침묵·속박·화상·도발당함(강제 타겟)·받는 피해 증가(mult > 1)·스탯 감소. 제거한 상태마다 `statusRemoved`(도발당함은 `taunted`) |
+| `damageAura` | `amount`, `dmgType`, `radius`, `intervalSeconds`, `count` | (M5-4, 스킬 전용) 시전자 주변 `radius`칸 적에게 `intervalSeconds`마다 고정 피해, 총 `count`회(첫 피해는 한 간격 뒤). `statusApplied` 이름 `damageAura`(지속 = 간격×횟수, value = 1회 피해). 시전자가 죽으면 멈춘다 |
+| `empoweredAttack` | `pctAtk`, `dmgType`, `manaPctOnKill?` | (M5-4, 스킬 전용) 다음 기본 공격의 **첫 발**이 ATK의 `pctAtk`% 피해(연발의 둘째 발은 평소). 그 발로 대상을 처치하면 최대 마나의 `manaPctOnKill`% 회복. `statusApplied`/`statusRemoved` 이름 `empoweredAttack` |
+| `reflect` | `pct`, `duration` | (M5-4) 지속 중 받은 피해(방어·배율 적용 후, 보호막 흡수 전)의 `pct`%를 공격자에게 방어 무시로 되돌린다. 반사 피해는 다시 반사되지 않는다. 이름 `reflect`, value = pct |
+| `regen` | `pctMaxHp`, `duration` | (M5-4) 지속 중 1초마다 최대 HP의 `pctMaxHp`% 회복. 이름 `regen`, value = pctMaxHp |
+| `delayedStrike` | `delay`, `area`(`densestEnemies3x3`/`allEnemies`), `effects`(중첩 효과, 지연 타격 중첩 금지) | (M5-4, 스킬 전용, selector `self`) 시전 시점에 범위를 정해 `telegraph`(`pattern: "skill"`, 예고 id는 1000부터)로 알리고 `delay`초 뒤 `strike` 이벤트 다음에 중첩 효과를 **시전자 기준**으로 실행한다. 범위는 시전 때 고정 — 그동안 적이 움직이면 빗나간다. `densestEnemies3x3`: 보드의 모든 칸을 중심 후보로 3×3 안 적 수를 세어 가장 많은 쪽(동률은 시전자에 가까운 쪽 → (열, 행) 오름차순), 중첩 효과는 `enemiesInTargetArea`를 쓴다. `allEnemies`: 적 진영 전체 20칸, 중첩 효과는 `allEnemies` 선택자를 쓴다. 시전자가 그 전에 죽으면 `strike`(`cancelled: true`)만 남고 피해는 없다 |
+| `skillCpGain` | `amount`, `maxPerCombat` | (M5-4, 스킬 전용) 스킬로 전투 CP를 얻는다(`cp` 이벤트 reason `effect`). 아군(side 0) 시전자이고 카드 시스템이 있을 때만, **시전 유닛마다** 전투당 `maxPerCombat`번(CP 상한에 막혀 못 얻은 시전은 세지 않음) |
+| `stackingStatMod` | `stat`, `pct`, `intervalSeconds`, `maxStacks` | **특성 전용(M5-4).** `intervalSeconds`마다(전투 시각 틱 기준, 0초 제외) selector에 해당하는 **그 시점의 살아 있는** 유닛에게 전투 끝까지 가는 스탯 증가를 한 겹씩 쌓는다. 겹 수 상한 `maxStacks`. 쌓일 때마다 `statusApplied`(`statMod:<stat>`, value = pct, duration `combat`) |
+| `startMana` | `amount` | **특성 전용(M5-4).** 전투 시작 시 selector 유닛의 마나 + amount (`mana` 이벤트). 0이면 아무 일 없음 |
+| `handCostReduction` | `amount`, `maxPerCombat` | **특성 전용(M5-4).** selector 유닛이 스킬을 쓸 때마다 손패 카드의 비용을 줄인다(아래 "주술사"). `maxPerCombat` 0 = 무제한. 아군 진영·카드 시스템이 있을 때만 등록 |
+| `backRowLeap` | – | **특성 전용(M5-4).** 전투 시작(`startCombat`) 때 selector 유닛이 상대 후열로 도약(아래 "도약 칸 규칙") |
+| `critical` | `chance`(0~1), `damagePct` | **특성 전용(M5-4).** selector 유닛에게 치명타 확률과 치명 피해(%)를 준다(아래 "치명 판정") |
 
 스킬은 시전 전에 대상·사거리·순간이동 목적지를 검사하고, 하나라도 실패하면 시전하지 않는다. 카드는 사용 전에 같은 검사(`EffectExecutor.checkExecutable`)로 순간이동 목적지·위치 교환 가능 여부를 확인하고, 실패하면 카드·CP를 소모하지 않는다.
 
 `statusApplied` 이벤트의 `value`(선택): `statMod`=pct, `statAdd`=고정값, `damageTakenMult`=mult, `burn`=초당 피해, `healAura`=초당 회복량. 수치가 없는 상태(stun, silence, undying, forceTarget, extraShots)는 `value` 키 자체가 없다.
 
+### 이벤트·트리거 추가분 (M5-4)
+- `damage.crit`(치명타일 때만 `true`), `strike.cancelled`(시전자가 죽어 취소된 지연 타격), `cardCost.delta`/`source`(주술사 특성), `telegraph.pattern: "skill"`(스킬 예고, id ≥ 1000). 새 상태 이름: `damageAura`·`empoweredAttack`·`reflect`·`regen`·`taunted`(기존). 암살자 도약은 기존 `teleport` 이벤트를 쓴다. 새 트리거 `onCombatStart`(`startCombat()`에서 한 번, 핸들러가 없으면 로그에 영향 없음).
+- UI(`ReplayState`): `crit` 연출 필드, `cardCost` 연출(발동 유닛 위 "카드 비용 -1"), 같은 상태가 여러 겹이면 `ActiveStatus.stacks`(숲의 맹약 AS 중첩 → 배지에 겹 수), 취소된 `strike`는 예고만 지운다.
+
 ### 피해 적용 순서
-1. `damageTakenMult` 상태들의 곱 × 과열 배율을 raw 피해에 곱한다
+0. (치명 판정) `canCrit` 피해(기본 공격·`damage` 효과)이고 공격자의 치명 확률이 0보다 크면 sim Rng로 한 번 굴려 성공하면 raw에 치명 피해(%)를 곱하고 `damage` 이벤트에 `crit: true`를 남긴다. 확률이 0인 유닛은 Rng를 쓰지 않아 치명 특성이 없는 전투의 로그는 그대로다. 대상이 이미 죽었으면 굴리지 않는다
+1. `damageTakenMult` 상태들의 곱(`dmgType`이 있는 배율은 같은 종류 피해에만) × 과열 배율을 raw 피해에 곱한다
 2. 방어: × 100/(100 + ARM 또는 RES) (`ignoreArmorPct`만큼 방어력 감소)
 3. 반올림, 최소 1
 4. 보호막 흡수 → 남은 만큼 HP 감소
 - 과열 배율 = 1 + 0.1 × (경과초 − 30), 30초 이후. 90초가 되면 무승부로 강제 종료.
 - 마나: 공격 1회 +10, 피격 시 (2번까지 계산한 피해량, 보호막 흡수 전)의 1% (1회 최대 +15).
+- 반사(`reflect`) 피해는 4번 이후 공격자에게 방어 무시(100%)로 한 번 더 `dealDamage`를 호출한다(`noReflect`).
 
 ---
 
 ## units.json
 
-유닛 18기: 1등급 8종 + 2등급 6종 (CHARACTERS.md 4·5장) + 보스 전용 4기 `gate_breaker`(성문 파괴자, 5등급)·`twin_ser`/`twin_mir`(쌍둥이 주술사 세르·미르, 4등급)·`legion_lord`(군단의 군주 바르칸, 5등급), 모두 `boss: true`. 코드는 `loadUnits(json, traitCatalog)`로 읽으며, 특성 카탈로그를 주면 `origin`/`job` 참조(존재, 종류)도 검증한다. `grantedCard`는 보드 제공 카드 ID이며 `assertUnitCardReferences`가 카드 참조를 검증한다.
+유닛 34기: **상점 유닛 30종**(1등급 8·2등급 8·3등급 6·4등급 5·5등급 3, CHARACTERS.md 4·5장 — M5-4에서 16종이 늘었다) + 보스 전용 4기 `gate_breaker`(성문 파괴자, 5등급)·`twin_ser`/`twin_mir`(쌍둥이 주술사 세르·미르, 4등급)·`legion_lord`(군단의 군주 바르칸, 5등급), 모두 `boss: true`. 코드는 `loadUnits(json, traitCatalog)`로 읽으며, 특성 카탈로그를 주면 `origin`/`job` 참조(존재, 종류)도 검증한다. `grantedCard`는 보드 제공 카드 ID이며 `assertUnitCardReferences`가 카드 참조를 검증한다.
 
 | 필드 | 값 |
 |---|---|
@@ -130,10 +151,34 @@ M3 추가 카드: `call_reserves`(예비대 호출, 3CP·강화 2CP, 후열 빈 
 | `origin` / `job` | 기원 / 직업 특성 id (`traits.json`) |
 | `stats` | 1성 능력치 `hp`, `atk`, `as`(초당 공격), `rng`(칸), `arm`, `res`, `mana`(최대 마나). 2성 HP·ATK ×1.8, 3성 ×3.2 |
 | `skill.name`, `skill.text` | 표시용 |
-| `skill.targeting` | `self` / `currentTarget`(현재 공격 대상, 사거리 안이어야 시전) / `lowestHpEnemy`(현재 HP가 가장 낮은 적, 사거리 무관) |
+| `skill.targeting` | `self` / `currentTarget`(현재 공격 대상, 사거리 안이어야 시전) / `lowestHpEnemy`(현재 HP가 가장 낮은 적, 사거리 무관) / `randomEnemies`(`targetCount`명, sim Rng) / M5-4: `highestHpEnemy`(현재 HP가 가장 많은 적) / `farthestEnemy`(시전자에서 가장 먼 적, 동률은 uid 작은 쪽) / `lowestHpRatioAllies`(HP 비율이 가장 낮은 아군 `targetCount`명, 시전자 포함, 동률은 uid 작은 쪽). 사거리를 보지 않는 종류는 대상이 있으면 마나가 차자마자 시전한다 |
 | `skill.effects` | 효과 목록 (순서대로 실행, 최소 1개). 수치는 `[1성, 2성, 3성]` 배열 가능 |
 | `boss` | 선택. `true`면 보스 전용 — 상점 유닛 풀·징집 후보·이벤트 유닛 지급에서 제외 |
 | `pattern` | 선택(보스). 종류(`kind`)마다 필드가 다르다 — `columnStrike`: `{ intervalSeconds, telegraphSeconds(< 간격), damage, dmgType }` 주기 열 강타 / `twinRevive`: `{ partner(짝 유닛 id), windowSeconds, reviveHpPct(1~100) }` 쌍둥이 부활(짝끼리 서로를 가리켜야 함) / `phaseSummon`: `{ phases: [{ hpPct(내림차순, 1~99), summon: [{ unitId, star, col(4~7), row }] }] }` HP 임계치마다 증원 + 버프 해제(증원은 비보스 유닛만). 참조(짝·증원 유닛)는 `loadUnits`가 확인한다. 동작은 아래 "런 코어"의 보스 절 |
+
+**M5-4에서 추가된 유닛 16종** (능력치는 CHARACTERS.md 4장 표 그대로, 스킬 수치는 5장 `1성 / 2성 / 3성` 그대로. `units.test`가 4장 표를 읽어 30행을 대조한다). 문서에 정해져 있지 않아 구현에서 정한 값은 *기울임*으로 표시한다.
+| id | 스킬 | 구현 |
+|---|---|---|
+| `bear_warrior` 곰 전사 | 곰의 포효 | `taunt` self 반경 1·2초 + `flatShield` self 200/300/500 *(전투 끝까지)* |
+| `shadow_panther` 그림자표범 | 덮치기 | targeting `farthestEnemy`: `teleport besideTarget` → `damage` 180/220/280% → `stun` 1초 |
+| `battle_chaplain` 전투 사제 | 축복의 기도 | `lowestHpRatioAllies`(`targetCount` 2/2/3): `heal` 200/300/500 + `cleanse` |
+| `ember_smith` 잿불 대장장이 | 담금질 | `statMod atk` `alliesAroundSelf`(반경 1) +15/20/30% 전투 끝까지 `maxStacks 2` + `flatShield` self 250/400/700 *(전투 끝까지)* |
+| `ember_bladedancer` 잿불 칼날무희 | 불꽃 칼춤 | `damageAura` 마법 50/75/120 반경 1, 0.4초 간격 5회 *(첫 피해는 시전 0.4초 뒤)* + `damageTakenMult` 0.5 `dmgType physical` 2초 |
+| `rift_stalker` 균열 추적자 | 균열 도약 | `teleport enemyBackRow` + `empoweredAttack` 300/350/450% 물리, 처치 시 마나 50% |
+| `void_sniper` 공허 저격수 | 공허탄 | `highestHpEnemy`: `damage` 350/400/500% `ignoreArmorPct 100` *(사거리 무관)* |
+| `wind_hunter` 바람 사냥꾼 | 폭풍 화살 | `damage fanArrows` 70/90/120% + `statMod as` −20% 3초 `fanTargets` |
+| `legion_centurion` 군단 백인대장 | 백인대 명령 | `statMod atk` `alliesAroundSelf` `selectorRadius 2` +20/25/35% 5초 *(자신 포함)* + `taunt` self *반경 2*·2초 |
+| `siege_bombardier` 공성 포병 | 포격 | `delayedStrike` 2초 `densestEnemies3x3`: `damage enemiesInTargetArea` 250/300/400% 물리 |
+| `magma_champion` 용암 챔피언 | 용암 강타 | `currentTarget`: `enemiesAroundSelf`에 `flatDamage` 마법 200/300/550 + `stun` 1초 + `burn` *(초당 ATK 100%, 3초 — 점화사와 같은 초안)* |
+| `abyss_sentinel` 심연 감시자 | 심연의 시선 | `taunt` self 반경 2·3초 + `damageTakenMult` 0.6 3초 + `reflect` 20% 3초 |
+| `void_hierophant` 공허 대사제 | 공허 개방 | `flatDamage targetAndAdjacent`(대상 중심 3×3) 마법 150/230/400 + `skillCpGain` +1 *(시전 유닛당 전투 2회)* |
+| `volcano_oracle` 화산 예언자 | 대분화의 예언 | `delayedStrike` 4초 `allEnemies`: `flatDamage allEnemies` 마법 300/450/1200 + `burn` *(초당 ATK 100%, 3초)* |
+| `muhon` 무혼 | 무명의 일섬 | `damage lineThroughTarget` 300/350/600% + `manaOnKill 30` → `teleport lineEnd`(직선 끝 빈 칸으로 질주) |
+| `elder_treeking` 태고의 수목왕 | 태고의 숨결 | `shield allAllies` 최대 HP 20/30/60% *(전투 끝까지)* + `regen` 2%/초 5초 + `taunt` self *반경 2*·3초 |
+
+- 문서에 없는 값: ① 스킬 보호막의 지속 시간(곰·대장장이·수목왕은 *전투 끝까지*, 피해로만 소진), ② "자신 도발"의 범위(*반경 2칸*, 곰은 문서의 "주변 1칸"), ③ 화상 초당 피해(*시전자 ATK의 100%*), ④ 부채꼴의 각도(*15도 간격 5발*)와 지연 타격의 범위가 시전 때 고정된다는 점, ⑤ `empoweredAttack`이 첫 발만 강화한다는 점. 모두 `data/units.json`의 숫자 하나로 조정할 수 있다.
+- **덱 추가 카드**(공허 대사제 → 균열 개방, 화산 예언자 → 예언된 재앙)는 카드 확장(M5-4 2부)에서 `grantedCard`로 연결한다. 지금은 `grantedCard` 없이 스킬만 동작한다.
+- 상점 풀: 등급별 유닛 수는 8/8/6/5/3, 원본 재고는 18/16/14/10/8(`MANAGEMENT.POOL_COPIES`), 레벨별 등급 확률은 DESIGN 3-3 표(`LEVEL_ODDS`) 그대로다. 보스 전용 유닛은 풀에서 빠진다. 데이터에 없는 등급·품절 등급은 재정규화하는 규칙도 그대로다.
 
 M2에서 추가된 유닛
 - `ember_kindler` (U06 잿불 점화사, 잿불/주술사): 점화 = 대상과 인접 적에게 `flatDamage` 마법 120/180/300 + `burn` 3초. CHARACTERS에 화상 수치가 없어 초당 피해는 시전자 ATK의 100%(`dpsPctAtk: 100`)로 정했다.
@@ -149,7 +194,33 @@ M2에서 추가된 유닛
 | `effects` | 선택. 전투 시작 시 단계에 도달한 진영에 적용. 수치 배열은 `[1단계, 2단계, 3단계]`. 없으면 효과 미구현 |
 
 단계 = `thresholds` 중 종류 수 이상으로 도달한 개수 (0~3). 같은 유닛 여러 기는 1종으로 센다. 양측 진영 모두 각자 계산한다.
-현재 실제 효과가 있는 특성은 `iron_legion`(ARM), `ember`(기본 공격 화상), `abyss`(처치 CP), `guardian`(전열 피해 감소), `gladiator`(처치 회복·ATK 누적), `marksman`(사거리·확률 연사) 여섯이다. `forest_pact`·`mystic`·`assassin`의 고유 특성 효과는 후속 범위로 표시되어 있다. 같은 종류 유닛을 여러 기 놓아도 활성화 종류 수는 1이며, 임시 소환은 시작 시 계산된 단계에 추가되지 않는다.
+9개 특성 모두 실제 효과가 있다(M5-4에서 `forest_pact`·`mystic`·`assassin` 추가): `iron_legion`(ARM), `ember`(기본 공격 화상), `abyss`(처치 CP), `forest_pact`(보호막·AS 중첩), `guardian`(전열 피해 감소), `gladiator`(처치 회복·ATK 누적), `marksman`(사거리·확률 연사), `mystic`(손패 비용 감소·시작 마나), `assassin`(후열 도약·치명타). 같은 종류 유닛을 여러 기 놓아도 활성화 종류 수는 1이며, 임시 소환은 시작 시 계산된 단계에 추가되지 않는다. 적(side 1) 진영도 같은 규칙으로 각자 단계를 계산해 적용한다(단, 카드·CP가 필요한 효과는 아군만).
+
+### 숲의 맹약 · 주술사 · 암살자 (M5-4)
+| 특성 | 효과 | 구현 |
+|---|---|---|
+| 숲의 맹약 (기원 2/4/6) | 전투 시작 시 **아군 전체** 최대 HP 10/20/35% 보호막(전투 끝까지), 3초마다 **아군 전체** AS +5/8/12% (최대 10중첩) | 효과 `shield allAllies` + `stackingStatMod`. 첫 중첩은 3.0초, 10번째는 30초. 그 시점에 살아 있는 아군에게만 쌓고(전투 중 소환·부활한 아군도 이후 중첩부터 받음) 상한에 닿으면 멈춘다. 상태 이름 `statMod:as`(value = 중첩당 pct) — UI 배지에 겹 수가 숫자로 붙는다 |
+| 주술사 (직업 2/4/6) | 주술사가 **스킬을 쓸 때마다** 손패 무작위 1장의 비용 −1 (전투당 2/5/무제한회), **4기(2단계)부터** 주술사 시작 마나 +20 | 효과 `handCostReduction`(`maxPerCombat` [2, 5, 0], 0 = 무제한) + `startMana`(amount [0, 20, 20]) |
+| 암살자 (직업 2/4/6) | 전투 시작 시 적 후열로 도약, 치명타 확률 15/35/50% (치명 피해 150%) | 효과 `backRowLeap` + `critical`(chance [0.15, 0.35, 0.5], damagePct 150) |
+
+**"4단계부터 주술사 시작 마나 +20"**: 특성 단계는 최대 3이라 "4단계"를 *주술사 4종 이상(= 2단계, 임계값 4)*으로 읽었다. 1단계(2종)는 시작 마나 증가가 없다.
+
+**주술사 비용 감소**
+- 발동: 아군(side 0) 진영의 주술사 특성 유닛(특성 계산 대상 유닛)이 스킬을 쓸 때(`onSkillCast` 트리거). 카드 시스템이 없는 전투(`setup.cards` 없음)와 적 진영 주술사는 아무것도 하지 않고 Rng도 쓰지 않는다. 지휘관이 없어도 `setup.cards`가 있으면 동작한다.
+- 대상: 손패 카드 중 **현재 비용(연쇄·강화·방해 변이 반영, 최소 0)이 1 이상인 카드**만 후보로 두고 sim Rng(`world.rng`)로 한 장을 고른다. 후보가 없으면 횟수를 쓰지 않는다. 즉 이미 0CP인 카드를 골라 낭비하지 않는다.
+- 비용 규칙: 카드 인스턴스마다 비용 조정값(방해 변이 +1, 주술사 −1, 합산)을 두고 **실제 비용 = max(0, 기본 비용(`effectiveCard`: 연쇄·강화) + 조정값)**. `CardPlayer.currentCost`·`play()`·`sim.cardSurcharge(instanceId)`(음수 가능)가 같은 값을 쓰고, UI(`CardPanelViewBuilder`·`explainUnplayable`)도 같은 식으로 표시·사용 가능 여부를 정한다. 비용이 0이 된 카드는 CP 없이 쓸 수 있고 `cp` 이벤트가 나오지 않는다.
+- 이벤트: `cardCost { instanceId, cardId, surcharge(누적 조정값), delta(−1), source(발동 유닛 uid) }`. 방해 변이의 `cardCost`에는 `delta`·`source`가 없다.
+
+**도약 칸 규칙 (암살자 특성·균열 도약 `enemyBackRow`)**
+- 시점: 암살자 특성은 **`startCombat()`**(전투 시작, 준비 단계가 끝나는 순간 — 첫 `step()` 또는 UI의 전투 시작)에 `onCombatStart` 트리거로 발동한다. 준비 단계에는 제자리에 있고, 첫 카드 명령·첫 틱 처리보다 먼저 일어난다. 이벤트는 `teleport`(t = 0).
+- 순서: 특성을 켠 진영의 암살자 유닛을 uid 오름차순으로, 아군 진영(side 0) 특성이 적 진영보다 먼저 처리한다. 앞선 도약이 칸을 차지하므로 뒤의 유닛은 남은 빈 칸에서 고른다.
+- 칸 선택: 상대 진영의 **가장 먼 열**(후열: 적 열 7 / 아군 열 0)에서 빈 칸 중 **자기 행과 가장 가까운 행**, 같으면 **위쪽(작은) 행**. 그 열이 가득 차면 **한 열씩 앞으로**(열 6, 5, 4 / 1, 2, 3) 같은 규칙으로 찾는다. 상대 진영 20칸이 모두 차 있으면 **제자리**에 머문다(균열 도약 스킬은 이 경우에도 갈 칸이 없으면 시전하지 않는다). 점유·이동 예약 중인 칸은 빈 칸이 아니다.
+- Rng를 쓰지 않는다.
+
+**치명 판정**
+- 대상: 치명 확률이 있는 유닛(암살자 특성 단계 1 이상)의 **기본 공격(발마다)과 스킬의 ATK 비례 피해(`damage` 효과, 화살마다)**. `flatDamage`·화상·오라·반사 같은 고정 피해는 치명이 없다. 마법/물리 구분 없이 `damage` 효과면 판정한다.
+- 시점: `CombatWorld.dealDamage` 안에서 **대상이 살아 있을 때** 피해 계산 직전에 sim Rng로 한 번 굴리고, 성공하면 raw 피해에 치명 피해(150%)를 곱한 뒤 방어·배율을 적용한다. 확률이 0인 유닛은 Rng를 쓰지 않는다. 치명 피해 `damage` 이벤트에는 `crit: true`가 붙는다(치명이 아니면 키 없음).
+- 확률은 단계값을 유닛에 더해 1로 제한한다. 암살자가 아닌 유닛은 0이다.
 
 전열 대상 특성(guardian)은 전투 시작 시점에 전열(아군 열 3, 적 열 4)에 있던 유닛에게 전투 내내 부여된다. 이후 위치 변화와 무관하며, 시작 시 전열 유닛이 없으면 효과 없음. (소환·부활·전투 중 위치 교환(진형 교대)이 있으므로 피해 계산 시 현재 열을 검사하는 방식으로 바꾸는 것을 검토)
 
@@ -218,7 +289,7 @@ M2에서 추가된 유닛
 
 ### 시뮬 연동 (`CombatSimulator`)
 - 카드 시스템은 `CombatSetup.cards = { commander, deck, commands? }`로 켠다 (4번째 생성자 인자로 `CardCatalog`). 없으면 M1과 완전히 같은 전투다 (`cp`·`cardPlayed` 이벤트 없음).
-- 시작 순서: 스폰 → 특성 효과 → **지휘관 패시브** → 준비 CP 지급 → 준비 단계 작전 카드 → (첫 `step()`/`startCombat()`) 전투 CP 지급 → 그 틱의 예약 명령 → 틱 처리.
+- 시작 순서: 스폰 → 특성 효과 → **지휘관 패시브** → 준비 CP 지급 → 준비 단계 작전 카드 → (첫 `step()`/`startCombat()`) 전투 CP 지급 → **`onCombatStart` 트리거(암살자 후열 도약)** → 그 틱의 예약 명령 → 틱 처리.
 - 진행 API: `step()`(1틱) / `runUntil(tick)` / `run()`(끝까지, 기존과 동일) / `events`(진행 중 로그) / `phase`(`prep`/`combat`/`ended`) / `startCombat()`.
 - **카드 명령** `CardCommand = { tick, cardInstanceId, target: PlayTarget }`. 그 틱의 모든 유닛 행동보다 먼저 실행된다. `tick: 0`의 작전 카드는 준비 단계에 쓴 것으로 취급한다. 두 가지 방법으로 낸다.
   - 예약: `setup.cards.commands`에 목록으로. 실패한 명령은 `sim.rejectedCommands`에 모인다.
@@ -318,7 +389,7 @@ M2에서 추가된 유닛
 | `text` | 미리보기 한 줄 설명 |
 | `units` | `[{ unitId, star(1~3), col(4~7), row(0~4) }]` 적 진영 배치. 칸 중복 불가, 최소 1기 |
 
-현재 수록 (M5-1): 액트 1 = 일반 10개(전체 1~11층을 겹쳐서 덮음)·정예 4개(4~11층)·보스 `boss_gate_breaker`(13층: 성문 파괴자 + 호위 2기). **액트 2 잿불 고원**(전체 14~26층) = 일반 8개(잿불·주술사 계열 중심, 2성 위주)·정예 3개(`elite_ember_pyre`·`elite_ash_wardens`·`elite_cinder_blades`, 17~24층)·보스 `boss_twin_sorcerers`(26층: 세르·미르 + 잿불 광전사 2기 + 방패병). **액트 3 몰락한 수도**(전체 27~39층) = 일반 8개(강철군단·심연 계열, 2~3성)·정예 3개(`elite_legion_wall`·`elite_abyss_court`·`elite_oathbreakers`, 30~37층)·보스 `boss_legion_lord`(39층: 바르칸 + 방패병 2기 + 석궁병 2기). 유닛은 기존 14종이고 성급·인원·배치로 난이도를 올렸다 (유닛 확장은 M5-4). `loadRunDeps`는 **액트마다** 일반 1~11층, 정예 4~11층, 보스 13층(전체 층으로는 위 범위)에 후보가 있는지 검사한다 (없으면 "전체 26층(액트 2 13층)에 쓸 boss 편성이 없음"처럼 전체 층과 액트 안 층을 함께 알리는 오류, `EncounterCoverage.floorsPerAct`). 같은 노드는 (런 시드, 노드 id)로 편성을 고르므로 미리보기와 실제 전투가 항상 같다.
+현재 수록 (M5-1): 액트 1 = 일반 10개(전체 1~11층을 겹쳐서 덮음)·정예 4개(4~11층)·보스 `boss_gate_breaker`(13층: 성문 파괴자 + 호위 2기). **액트 2 잿불 고원**(전체 14~26층) = 일반 8개(잿불·주술사 계열 중심, 2성 위주)·정예 3개(`elite_ember_pyre`·`elite_ash_wardens`·`elite_cinder_blades`, 17~24층)·보스 `boss_twin_sorcerers`(26층: 세르·미르 + 잿불 광전사 2기 + 방패병). **액트 3 몰락한 수도**(전체 27~39층) = 일반 8개(강철군단·심연 계열, 2~3성)·정예 3개(`elite_legion_wall`·`elite_abyss_court`·`elite_oathbreakers`, 30~37층)·보스 `boss_legion_lord`(39층: 바르칸 + 방패병 2기 + 석궁병 2기). **M5-4 재구성**: 액트 2·3의 일반 8·정예 3 편성(id·이름·층 범위는 그대로)에 신규 유닛을 넣었다. 액트 2는 잿불·주술사 중심(잿불 대장장이·칼날무희·용암 챔피언·전투 사제·공허 대사제·화산 예언자, 숲 편성 `highland_hunters` 하나는 변화를 주려고 숲 계열), 액트 3은 강철군단·심연 중심(백인대장·공성 포병·감시자·공허 대사제·균열 추적자·공허 저격수·무혼). 각 편성의 전력 지표(성급 배율 × √(ATK·AS·HP·(1+(ARM+RES)/200)) 합)는 이전 편성의 ±15% 안이다(정밀 밸런스가 아님; `encountersM54.test.ts`가 극단값을 막는다). 액트 1 편성과 보스 편성(보스 유닛·호위)은 바뀌지 않았다. 새 특성이 적에게도 켜지므로 같은 편성이 이전보다 강하거나 약하게 느껴질 수 있다(예: `rift_stalkers`의 암살자 3종은 시작 때 아군 후열로 도약한다). `loadRunDeps`는 **액트마다** 일반 1~11층, 정예 4~11층, 보스 13층(전체 층으로는 위 범위)에 후보가 있는지 검사한다 (없으면 "전체 26층(액트 2 13층)에 쓸 boss 편성이 없음"처럼 전체 층과 액트 안 층을 함께 알리는 오류, `EncounterCoverage.floorsPerAct`). 같은 노드는 (런 시드, 노드 id)로 편성을 고르므로 미리보기와 실제 전투가 항상 같다.
 
 **층 보정**: 모든 적 유닛의 HP·ATK × `1 + 0.04 × (전체 층 − 1)` (`RUN.FLOOR_SCALE_PER_FLOOR`). 액트 1은 전체 층 = 층이라 기존과 같고, 액트 2 1층은 ×1.52, 액트 2 보스(26층) ×2.00, 액트 3 1층 ×2.04, 액트 3 보스(39층) ×2.52. 시뮬에는 `CombatSetup.enemy = { hpMult, atkMult, mutations }`로 넣는다 (편성 유닛에만 적용, 소환 유닛 제외, 생략하면 보정 없음).
 
@@ -388,7 +459,7 @@ M2에서 추가된 유닛
 | 분노 `rage` | 적이 HP 50% 이하가 되면 AS ×2 (유닛마다 1회) | `onDamageTaken` 트리거 + `statMod` |
 | 전파 `contagion` | 적이 죽으면 반경 1칸(체비쇼프)의 살아 있는 적이 대상 최대 HP의 20% 회복 | `onDeath` 트리거 + `heal` 이벤트 |
 | 방해 `disrupt` | 3초마다 플레이어 손패 무작위 1장의 비용 +1 (이번 전투, 누적) | `onTick` 트리거, `cardCost` 이벤트 (선택은 시드에서 파생한 별도 Rng) |
-설치는 `mutation` 이벤트로 남는다. 방해로 오른 비용은 `sim.cardSurcharge(instanceId)`로 조회하고 카드 사용 검사에 반영된다.
+설치는 `mutation` 이벤트로 남는다. 방해로 오른 비용(그리고 주술사 특성으로 내린 비용)은 `sim.cardSurcharge(instanceId)`(비용 조정값, 음수 가능)로 조회하고 카드 사용 검사·손패 표시에 반영된다. 실제 비용 = `max(0, 기본 비용 + 조정값)`.
 
 ### 보스: 성문 파괴자 (`units.json gate_breaker`, `boss: true`)
 - HP 2600 / ATK 70 / AS 0.5 / ARM 40 / RES 20 (층 13 보정 ×1.48 적용 시 HP 3848). 호위: 투기장 신병, 잿불 점화사. 상점 풀·징집 후보에서 제외.
@@ -415,6 +486,7 @@ M2에서 추가된 유닛
 ### 저장 (`RunSave`)
 - `{ format: "autochess-run", version: 3, seed, commanderId, deckPreset, totalActs, maps, position, health, forces{economy, management, managementRng, carryDeck}, relics{owned, mirrorUsed, freeRerollsUsed}, removals, seenEvents, phase, session, outcome, history, test? }` (`test`는 플레이 테스트 런에만 있는 선택 필드, 아래 "플레이 테스트 런"). **v3(M5-1)**: 단일 `map` 대신 액트 1부터 지금 액트까지의 맵 배열 `maps`와 전체 액트 수 `totalActs`를 저장한다 (지난 액트의 맵도 기록 검증용으로 남는다). `position.visited`·`history`는 모든 액트를 이어서 담고(노드 id가 액트마다 달라 겹치지 않음), 단계 `bossRelic`(세션 `{ kind: 'bossRelic', offer }`)·`actIntro`(세션 `{ kind: 'actIntro', hpBefore, healed }`)가 늘었다. **v2(M5-A)**: 지휘관 id(`commanderId`, 이미 v1에도 있었음)와 유물 상태 `relics`가 저장 형식의 일부가 되었다. 세션은 보상 `relic`(정예 보상 유물 id 또는 null)·상점 `relics`(유물 진열 `{ relicId, price, sold }`)가 늘었고, 경제 영수증에는 선택 필드 `bonus`가 생겼다.
 - **v1·v2 마이그레이션**: 버전 1~3을 읽는다. v1·v2(1액트 시절) 저장본은 단일 `map`을 액트 1의 맵으로 읽고 `totalActs`는 3으로 둔다(이어 하면 액트 1 보스 처치 뒤 액트 2로 넘어간다). 이미 승리로 끝난 v1·v2 저장본만 `totalActs` 1로 읽어 승리가 유효하다. v1·v2에 v3 필드가 섞여 있거나 v3에 `map`이 있으면 거부한다. 다시 저장하면 v3가 된다.
+- **M5-4 유닛 풀 호환**: 유닛 14종 → 30종 전에 만든 v3 저장본(`forces.management.pool`)에는 신규 16종 재고가 없다. 복원할 때 `MANAGEMENT.POOL_ADDED_IN_M54`에 있는 유닛의 재고가 빠져 있으면 등급별 기본 재고(18/16/14/10/8)로 채운다(그 저장본은 신규 유닛을 소유·진열한 적이 없다). 이 목록 밖 유닛의 재고가 빠졌거나 모르는 유닛이 있으면 여전히 손상된 저장으로 거부한다. 저장 `version`은 3 그대로다(읽기 호환만 추가, `runSaveV3M53.fixture.json`이 4b33a11에서 만든 일반·테스트 런 저장본으로 검증한다). 저장된 전투 준비·노드는 같은 편성 id의 새 구성 유닛으로 치러진다.
 - **v1 마이그레이션(유물)**: v1 저장본은 `relics`가 없으면(있으면 오류) 유물 없음·무료 리롤·거울 사용량 0으로, 보상 `relic`·상점 `relics`가 없으면 null·빈 목록으로 읽고 지휘관은 저장된 `commanderId`(v1 시절엔 항상 하르텐)를 그대로 쓴다. 다시 저장하면 v3가 된다(`runSaveV1.fixture.json`이 M4 시절 실제 저장본으로 이를 검증한다). v4 이상은 거부한다.
 - 노드 단위 체크포인트: 맵 선택 단계, 노드 입장 직후, 상점/이벤트(카드 선택 대기 포함)/야영지/보상 화면 모두 저장할 수 있다. 전투 중간 저장은 없다 — `battle` 단계는 `battlePrep`으로 저장되어 복원하면 같은 준비 손패·같은 전투 시드로 전투 준비 단계에 돌아온다. 복원 후 같은 선택은 같은 결과를 낸다(골드 영수증·상점 Rng·덱 Rng 상태까지 저장).
 - 복원은 모든 필드를 검증하고 `run.forces.carryDeck.draw[0].cardId` 같은 경로가 담긴 한국어 오류를 던진다 (모르는 필드·버전 불일치·단계/세션 불일치 포함). 필드 간 일관성도 검사한다: `currentNodeId`=입장 기록 마지막, 액트 1의 1층 시작·같은 액트 안에서는 간선 연속·액트가 바뀔 때는 이전 액트 보스 다음 액트 1층(13 × 액트 개 이하), 맵 수 ≤ `totalActs`·액트마다 맞는 노드 id 접두사, 다음 액트 맵이 있으면 지난 액트 보스를 방문했고 마지막 기록이 승리, 승리는 마지막 액트의 보스 노드에서만, `bossRelic`(후보 1~3개·모두 보스 유물·중복/보유 없음·마지막 액트 아님)·`actIntro`(회복 전 HP + 회복량 = 현재 HP, 회복량 ≤ 50% 올림) 단계의 노드·세션 형태, 단계↔현재 노드 종류(보상 종류 포함), 종료 전 HP 0 금지, 전투 `tries`=그 노드의 history 수, 상점 3칸·희귀도 가격, 상점 유물 칸(2칸 이하·중복 없음·가격·구매 여부=보유 여부), 유물 보상은 정예 보상에만, 지휘관 최대 HP=지휘관 기본값+보유 유물의 최대 HP 증가 합, 이벤트 id=`seenEvents` 마지막(이벤트 노드 수만큼 기록), history 노드는 입장 기록에 포함.

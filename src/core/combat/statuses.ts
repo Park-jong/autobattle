@@ -1,4 +1,4 @@
-import type { CombatStat } from '../data/effect';
+import type { CombatStat, DamageType } from '../data/effect';
 import { COMBAT } from './constants';
 
 interface TimedEntry {
@@ -11,6 +11,8 @@ interface StatModEntry extends TimedEntry {
   /** 지속 시간(초). 처치 시 초기화에 쓰임 */
   duration: number;
   refreshOnKill: boolean;
+  /** 중첩 상한이 있는 효과의 묶음 키 (같은 키끼리 센다) */
+  stackKey?: string;
 }
 interface BurnState extends TimedEntry {
   dps: number;
@@ -22,6 +24,25 @@ interface HealAuraState extends TimedEntry {
   radius: number;
   nextTickAt: number;
 }
+/** 주기 피해 오라: intervalSeconds마다 반경 안의 적에게 고정 피해, remaining회 */
+interface PulseState {
+  amount: number;
+  dmgType: DamageType;
+  radius: number;
+  intervalSeconds: number;
+  remaining: number;
+  nextTickAt: number;
+}
+/** 다음 기본 공격 강화 */
+export interface EmpoweredAttack {
+  pctAtk: number;
+  dmgType: DamageType;
+  manaPctOnKill: number;
+}
+interface RegenState extends TimedEntry {
+  pctMaxHp: number;
+  nextTickAt: number;
+}
 
 export interface DueBurn {
   dps: number;
@@ -29,6 +50,11 @@ export interface DueBurn {
 }
 export interface DueAura {
   perSecond: number;
+  radius: number;
+}
+export interface DuePulse {
+  amount: number;
+  dmgType: DamageType;
   radius: number;
 }
 
@@ -48,12 +74,16 @@ export class StatusSet {
   private readonly leeches: (TimedEntry & { pct: number })[] = [];
   private burn: BurnState | null = null;
   private shields: (TimedEntry & { amount: number })[] = [];
-  private takenMults: (TimedEntry & { mult: number })[] = [];
+  private takenMults: (TimedEntry & { mult: number; dmgType?: DamageType })[] = [];
   private statMods: StatModEntry[] = [];
   private forced: (TimedEntry & { targetUid: number }) | null = null;
   private undyingUntil = 0;
   private auras: HealAuraState[] = [];
   private extraShotCharges = 0;
+  private pulses: PulseState[] = [];
+  private empowered: EmpoweredAttack | null = null;
+  private regens: RegenState[] = [];
+  private reflects: (TimedEntry & { pct: number })[] = [];
 
   constructor(private readonly clock: () => number) {}
 
@@ -90,11 +120,12 @@ export class StatusSet {
     this.shields.push({ amount, expiresAt: until });
   }
 
-  addTakenMult(mult: number, until: number): void {
-    this.takenMults.push({ mult, expiresAt: until });
+  /** dmgType을 주면 그 종류의 피해에만 적용되는 배율이다 */
+  addTakenMult(mult: number, until: number, dmgType?: DamageType): void {
+    this.takenMults.push({ mult, expiresAt: until, ...(dmgType ? { dmgType } : {}) });
   }
 
-  addStatMod(entry: { stat: CombatStat; pct: number; flat: number; until: number; duration: number; refreshOnKill: boolean }): void {
+  addStatMod(entry: { stat: CombatStat; pct: number; flat: number; until: number; duration: number; refreshOnKill: boolean; stackKey?: string }): void {
     this.statMods.push({
       stat: entry.stat,
       pct: entry.pct,
@@ -102,7 +133,70 @@ export class StatusSet {
       expiresAt: entry.until,
       duration: entry.duration,
       refreshOnKill: entry.refreshOnKill,
+      ...(entry.stackKey === undefined ? {} : { stackKey: entry.stackKey }),
     });
+  }
+
+  /** 같은 묶음 키로 걸려 있는(만료 전) 스탯 증감 수 */
+  stackCount(stackKey: string): number {
+    return this.statMods.filter((m) => m.stackKey === stackKey && this.isActive(m.expiresAt)).length;
+  }
+
+  addPulse(pulse: { amount: number; dmgType: DamageType; radius: number; intervalSeconds: number; count: number }): void {
+    this.pulses.push({ ...pulse, remaining: pulse.count, nextTickAt: this.clock() + pulse.intervalSeconds });
+  }
+
+  setEmpoweredAttack(empowered: EmpoweredAttack): void {
+    this.empowered = empowered;
+  }
+
+  /** 강화된 다음 기본 공격이 남아 있으면 소비해서 반환 */
+  consumeEmpoweredAttack(): EmpoweredAttack | null {
+    const taken = this.empowered;
+    this.empowered = null;
+    return taken;
+  }
+
+  hasEmpoweredAttack(): boolean {
+    return this.empowered !== null;
+  }
+
+  addRegen(pctMaxHp: number, until: number): void {
+    this.regens.push({ pctMaxHp, expiresAt: until, nextTickAt: this.clock() + COMBAT.HEAL_AURA_INTERVAL_SECONDS });
+  }
+
+  addReflect(pct: number, until: number): void {
+    this.reflects.push({ pct, expiresAt: until });
+  }
+
+  /** 반사 비율 합계 (%) */
+  reflectPct(): number {
+    return this.reflects.reduce((sum, r) => sum + (this.isActive(r.expiresAt) ? r.pct : 0), 0);
+  }
+
+  /**
+   * 해로운 상태를 모두 지운다: 기절·침묵·속박·화상·도발당함(강제 타겟), 받는 피해 증가(mult > 1), 스탯 감소(pct/flat < 0).
+   * 지운 상태 이름(중복 없음)을 반환한다.
+   */
+  cleanse(): string[] {
+    const removed: string[] = [];
+    const active = (until: number): boolean => this.isActive(until);
+    if (active(this.stunUntil)) removed.push('stun');
+    this.stunUntil = 0;
+    if (active(this.silenceUntil)) removed.push('silence');
+    this.silenceUntil = 0;
+    if (active(this.rootUntil)) removed.push('root');
+    this.rootUntil = 0;
+    if (this.burn && active(this.burn.expiresAt)) removed.push('burn');
+    this.burn = null;
+    if (this.forced && active(this.forced.expiresAt)) removed.push('taunted');
+    this.forced = null;
+    if (this.takenMults.some((m) => m.mult > 1 && active(m.expiresAt))) removed.push('damageTakenMult');
+    this.takenMults = this.takenMults.filter((m) => m.mult <= 1);
+    const harmfulStats = this.statMods.filter((m) => (m.pct < 0 || m.flat < 0) && active(m.expiresAt));
+    for (const stat of new Set(harmfulStats.map((m) => m.stat))) removed.push(`statMod:${stat}`);
+    this.statMods = this.statMods.filter((m) => !(m.pct < 0 || m.flat < 0));
+    return removed;
   }
 
   setForcedTarget(targetUid: number, until: number): void {
@@ -149,10 +243,10 @@ export class StatusSet {
     return this.forced && this.isActive(this.forced.expiresAt) ? this.forced.targetUid : null;
   }
 
-  /** 받는 피해 배율의 곱 */
-  takenMultiplier(): number {
+  /** 받는 피해 배율의 곱. type을 주면 그 종류에만 걸린 배율도 포함하고, 생략하면 종류와 무관하게 모든 배율을 곱한다 */
+  takenMultiplier(type?: DamageType): number {
     let result = 1;
-    for (const m of this.takenMults) if (this.isActive(m.expiresAt)) result *= m.mult;
+    for (const m of this.takenMults) if (this.isActive(m.expiresAt) && (!m.dmgType || !type || m.dmgType === type)) result *= m.mult;
     return result;
   }
 
@@ -224,6 +318,32 @@ export class StatusSet {
     return due;
   }
 
+  /** 이번 틱에 도래한 주기 피해 오라 (횟수를 다 쓰면 목록에서 제거) */
+  takeDuePulses(): DuePulse[] {
+    const due: DuePulse[] = [];
+    const now = this.clock();
+    for (const p of this.pulses) {
+      if (p.remaining <= 0 || now < p.nextTickAt - COMBAT.EPS) continue;
+      p.nextTickAt += p.intervalSeconds;
+      p.remaining -= 1;
+      due.push({ amount: p.amount, dmgType: p.dmgType, radius: p.radius });
+    }
+    this.pulses = this.pulses.filter((p) => p.remaining > 0);
+    return due;
+  }
+
+  /** 이번 틱에 도래한 재생: 회복할 최대 HP 비율(%)의 합계 (없으면 0) */
+  takeDueRegenPct(): number {
+    let total = 0;
+    const now = this.clock();
+    for (const r of this.regens) {
+      if (now < r.nextTickAt - COMBAT.EPS || r.nextTickAt > r.expiresAt + COMBAT.EPS) continue;
+      r.nextTickAt += COMBAT.HEAL_AURA_INTERVAL_SECONDS;
+      total += r.pctMaxHp;
+    }
+    return total;
+  }
+
   /** refreshOnKill 스탯 증감의 지속 시간을 초기화. 갱신된 상태 이름과 지속 시간을 반환 */
   refreshOnKill(): { status: string; duration: number; value: number }[] {
     const now = this.clock();
@@ -275,6 +395,20 @@ export class StatusSet {
       removed.add('extraShots');
       this.extraShotCharges = 0;
     }
+    if (this.empowered) {
+      removed.add('empoweredAttack');
+      this.empowered = null;
+    }
+    this.regens = this.regens.filter((r) => {
+      if (!timed(r.expiresAt)) return true;
+      if (this.isActive(r.expiresAt)) removed.add('regen');
+      return false;
+    });
+    this.reflects = this.reflects.filter((r) => {
+      if (!timed(r.expiresAt)) return true;
+      if (this.isActive(r.expiresAt)) removed.add('reflect');
+      return false;
+    });
     return [...removed];
   }
 
@@ -292,6 +426,10 @@ export class StatusSet {
     this.forced = null;
     this.auras = [];
     this.extraShotCharges = 0;
+    this.pulses = [];
+    this.empowered = null;
+    this.regens = [];
+    this.reflects = [];
   }
 
   /** 만료된 상태를 제거하고 제거된 상태 이름 목록을 반환 */
@@ -335,6 +473,13 @@ export class StatusSet {
       removed.push('healAura');
       return false;
     });
+    // 재생도 만료 시각의 마지막 틱 회복을 처리한 뒤 제거한다
+    this.regens = this.regens.filter((r) => {
+      if (now <= r.expiresAt + COMBAT.EPS) return true;
+      removed.push('regen');
+      return false;
+    });
+    this.drop(this.reflects, dead, 'reflect', removed);
     return removed;
   }
 

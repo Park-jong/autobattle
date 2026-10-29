@@ -33,9 +33,9 @@ function traitError(mutate: (d: any) => void): string {
 }
 
 describe('loadUnits', () => {
-  it('실제 data/units.json 18기(보스 4종 포함)가 통과하고 특성 참조도 유효', () => {
+  it('실제 data/units.json 34기(상점 30종 + 보스 4종)가 통과하고 특성 참조도 유효', () => {
     const catalog = loadUnits(unitsJson, traits);
-    expect(catalog.size).toBe(18);
+    expect(catalog.size).toBe(34);
     const shield = catalog.get('iron_shieldbearer');
     expect(shield?.stats).toEqual({ hp: 650, atk: 40, as: 0.6, rng: 1, arm: 40, res: 20, mana: 80 });
     expect(shield?.skill.effects).toHaveLength(2);
@@ -84,10 +84,10 @@ describe('loadUnits', () => {
 });
 
 describe('loadTraits', () => {
-  it('9개 특성 정의 중 6개에 실제 효과가 있다', () => {
+  it('9개 특성 정의 모두에 실제 효과가 있다 (M5-4)', () => {
     expect(traits.size).toBe(9);
     const withEffects = traits.traits.filter((t) => t.effects && t.effects.length > 0).map((t) => t.id);
-    expect(withEffects).toEqual(['iron_legion', 'ember', 'abyss', 'guardian', 'gladiator', 'marksman']);
+    expect(withEffects).toEqual(['iron_legion', 'ember', 'abyss', 'forest_pact', 'guardian', 'gladiator', 'marksman', 'mystic', 'assassin']);
     for (const id of ['iron_legion', 'ember', 'abyss', 'forest_pact', 'guardian', 'gladiator', 'marksman', 'mystic', 'assassin']) {
       expect(traits.get(id)).toBeDefined();
     }

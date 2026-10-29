@@ -2,7 +2,9 @@ import {
   COMBAT_EFFECT_KINDS,
   COMBAT_STATS,
   DAMAGE_TYPES,
+  DELAYED_AREAS,
   EFFECT_SELECTORS,
+  RADIUS_SELECTORS,
   TELEPORT_DESTINATIONS,
   type CombatEffectKind,
   type EffectDef,
@@ -14,13 +16,13 @@ import { FieldReader } from './fieldReader';
 /** 효과 종류별 허용 파라미터 (공통: kind, selector) */
 const PARAM_KEYS: Record<CombatEffectKind, readonly string[]> = {
   shield: ['pctMaxHp', 'duration'],
-  damageTakenMult: ['mult', 'duration'],
-  statMod: ['stat', 'pct', 'duration', 'refreshOnKill'],
+  damageTakenMult: ['mult', 'duration', 'dmgType'],
+  statMod: ['stat', 'pct', 'duration', 'refreshOnKill', 'maxStacks'],
   statAdd: ['stat', 'amount', 'duration'],
   forceTarget: ['duration'],
   undying: ['duration'],
   swapPositions: [],
-  damage: ['pctAtk', 'dmgType', 'ignoreArmorPct', 'maxHpOnKill'],
+  damage: ['pctAtk', 'dmgType', 'ignoreArmorPct', 'maxHpOnKill', 'manaOnKill'],
   stun: ['duration'],
   heal: ['amount'],
   healAura: ['perSecond', 'radius', 'duration'],
@@ -38,6 +40,19 @@ const PARAM_KEYS: Record<CombatEffectKind, readonly string[]> = {
   onAttackBurn: ['pctAtk', 'duration'], killFeast: ['healPct', 'atkPct'], marksman: ['rangeBonus', 'chance'],
   attackMana: ['amount'], summon: ['count', 'tier'], scout: ['count', 'pctMaxHp'],
   taunt: ['radius', 'duration'],
+  flatShield: ['amount', 'duration'],
+  cleanse: [],
+  damageAura: ['amount', 'dmgType', 'radius', 'intervalSeconds', 'count'],
+  empoweredAttack: ['pctAtk', 'dmgType', 'manaPctOnKill'],
+  reflect: ['pct', 'duration'],
+  regen: ['pctMaxHp', 'duration'],
+  delayedStrike: ['delay', 'area', 'effects'],
+  skillCpGain: ['amount', 'maxPerCombat'],
+  stackingStatMod: ['stat', 'pct', 'intervalSeconds', 'maxStacks'],
+  startMana: ['amount'],
+  handCostReduction: ['amount', 'maxPerCombat'],
+  backRowLeap: [],
+  critical: ['chance', 'damagePct'],
 };
 
 export interface EffectValidatorOptions {
@@ -62,11 +77,66 @@ export class EffectValidator {
     return list.map((raw, i) => this.validateEffect(FieldReader.of(raw, `${parent.path}.${key}[${i}]`)));
   }
 
-  validateEffect(r: FieldReader): EffectDef {
+  /** nested: 지연 타격 안에 중첩된 효과인지 (중첩된 지연 타격은 거부) */
+  validateEffect(r: FieldReader, nested = false): EffectDef {
     const kind = r.enum('kind', COMBAT_EFFECT_KINDS);
-    r.onlyKeys(['kind', 'selector', ...PARAM_KEYS[kind]]);
+    r.onlyKeys(['kind', 'selector', 'selectorRadius', ...PARAM_KEYS[kind]]);
     const selector = r.enum('selector', EFFECT_SELECTORS);
+    const effect = this.validateBody(r, kind, selector, nested);
+    if (r.has('selectorRadius')) {
+      if (!(RADIUS_SELECTORS as readonly string[]).includes(selector)) {
+        r.fail('selectorRadius', `selector ${selector}에서는 쓸 수 없음 (허용: ${RADIUS_SELECTORS.join(', ')})`);
+      }
+      effect.selectorRadius = r.int('selectorRadius', 1);
+    }
+    return effect;
+  }
 
+  private validateBody(r: FieldReader, kind: CombatEffectKind, selector: EffectDef['selector'], nested: boolean): EffectDef {
+    switch (kind) {
+      case 'flatShield': return { kind, selector, amount: this.star(r, 'amount', 1), duration: this.duration(r) };
+      case 'cleanse': return { kind, selector };
+      case 'damageAura':
+        return {
+          kind, selector, amount: this.star(r, 'amount', 0), dmgType: r.enum('dmgType', DAMAGE_TYPES),
+          radius: this.star(r, 'radius', 1), intervalSeconds: this.star(r, 'intervalSeconds', 0.1), count: this.star(r, 'count', 1),
+        };
+      case 'empoweredAttack': {
+        const effect: EffectDef = { kind, selector, pctAtk: this.star(r, 'pctAtk', 0), dmgType: r.enum('dmgType', DAMAGE_TYPES) };
+        if (r.has('manaPctOnKill')) effect.manaPctOnKill = this.star(r, 'manaPctOnKill', 0);
+        return effect;
+      }
+      case 'reflect': return { kind, selector, pct: this.star(r, 'pct', 0), duration: this.star(r, 'duration', 0) };
+      case 'regen': return { kind, selector, pctMaxHp: this.star(r, 'pctMaxHp', 0), duration: this.star(r, 'duration', 0) };
+      case 'delayedStrike': {
+        if (nested) r.fail('kind', '지연 타격 안에 지연 타격을 중첩할 수 없음');
+        if (selector !== 'self') r.fail('selector', 'delayedStrike는 selector가 self여야 함');
+        const list = r.array('effects');
+        if (list.length === 0) r.fail('effects', '효과가 최소 1개 필요함');
+        const effects = list.map((raw, i) => this.validateEffect(FieldReader.of(raw, `${r.path}.effects[${i}]`), true));
+        return { kind, selector, delay: this.star(r, 'delay', 0.1), area: r.enum('area', DELAYED_AREAS), effects };
+      }
+      case 'skillCpGain':
+        return { kind, selector, amount: this.star(r, 'amount', 1), maxPerCombat: this.star(r, 'maxPerCombat', 1) };
+      case 'stackingStatMod':
+        return {
+          kind, selector, stat: r.enum('stat', COMBAT_STATS), pct: this.star(r, 'pct'),
+          intervalSeconds: this.star(r, 'intervalSeconds', 0.1), maxStacks: this.star(r, 'maxStacks', 1),
+        };
+      case 'startMana': return { kind, selector, amount: this.star(r, 'amount', 0) };
+      case 'handCostReduction':
+        return { kind, selector, amount: this.star(r, 'amount', 1), maxPerCombat: this.star(r, 'maxPerCombat', 0) };
+      case 'backRowLeap': return { kind, selector };
+      case 'critical': {
+        const chance = this.star(r, 'chance', 0);
+        for (const value of Array.isArray(chance) ? chance : [chance]) if (value > 1) r.fail('chance', `0~1 확률이어야 함 (실제: ${value})`);
+        return { kind, selector, chance, damagePct: this.star(r, 'damagePct', 100) };
+      }
+    }
+    return this.validateLegacy(r, kind, selector);
+  }
+
+  private validateLegacy(r: FieldReader, kind: CombatEffectKind, selector: EffectDef['selector']): EffectDef {
     switch (kind) {
       case 'root': return { kind, selector, duration: this.star(r, 'duration', 0) };
       case 'hpCost': return { kind, selector, pctMaxHp: this.star(r, 'pctMaxHp', 0) };
@@ -95,8 +165,11 @@ export class EffectValidator {
         return { kind, selector, count: r.int('count', 1) };
       case 'shield':
         return { kind, selector, pctMaxHp: this.star(r, 'pctMaxHp', 0), duration: this.duration(r) };
-      case 'damageTakenMult':
-        return { kind, selector, mult: this.star(r, 'mult', 0), duration: this.duration(r) };
+      case 'damageTakenMult': {
+        const effect: EffectDef = { kind, selector, mult: this.star(r, 'mult', 0), duration: this.duration(r) };
+        if (r.has('dmgType')) effect.dmgType = r.enum('dmgType', DAMAGE_TYPES);
+        return effect;
+      }
       case 'statMod': {
         const effect: EffectDef = {
           kind,
@@ -106,6 +179,7 @@ export class EffectValidator {
           duration: this.duration(r),
         };
         if (r.has('refreshOnKill')) effect.refreshOnKill = r.boolean('refreshOnKill');
+        if (r.has('maxStacks')) effect.maxStacks = this.star(r, 'maxStacks', 1);
         return effect;
       }
       case 'statAdd':
@@ -131,6 +205,7 @@ export class EffectValidator {
         };
         if (r.has('ignoreArmorPct')) effect.ignoreArmorPct = this.star(r, 'ignoreArmorPct', 0);
         if (r.has('maxHpOnKill')) effect.maxHpOnKill = this.star(r, 'maxHpOnKill', 0);
+        if (r.has('manaOnKill')) effect.manaOnKill = this.star(r, 'manaOnKill', 0);
         return effect;
       }
       case 'stun':
@@ -173,6 +248,8 @@ export class EffectValidator {
       case 'cpOnKill':
         if (selector !== 'allAllies') r.fail('selector', 'cpOnKill은 selector가 allAllies여야 함');
         return { kind, selector, amount: this.star(r, 'amount', 1), maxPerCombat: this.star(r, 'maxPerCombat', 1) };
+      default:
+        throw new Error(`검증기에 없는 효과 종류: ${kind}`);
     }
   }
 

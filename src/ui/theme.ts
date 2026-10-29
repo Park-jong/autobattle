@@ -95,6 +95,8 @@ export const TEXT_COLORS = {
   REVIVE: '#d9a6ff',
   PHASE: '#ff8a8a',
   CP: '#7fd6ff',
+  CRIT: '#ffe066',
+  COST_DOWN: '#9be29b',
 } as const;
 
 export const FONT_FAMILY = '"Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';
@@ -118,6 +120,7 @@ export const TIMING = {
   /** 쌍둥이 부활 번쩍임 / 처치 확정 글자 / 군주 페이즈 배너 / 버프 해제 링 (EFFECT_WINDOW 이하) */
   REVIVE_FLASH: 0.8,
   REVIVE_CANCEL_TEXT: 1.4,
+  CARD_COST_TEXT: 1.2,
   PHASE_BANNER: 2.4,
   DISPEL_FLASH: 0.7,
   CP_TEXT: 1.2,
@@ -165,4 +168,8 @@ export const STATUS_BADGES: readonly StatusBadge[] = [
   { label: '도', color: 0xff6a8a, match: (n) => n === 'forceTarget' || n === 'taunted' },
   { label: '치', color: 0x6be37a, match: (n) => n === 'healAura' },
   { label: '강', color: 0x9be29b, match: (n) => n.startsWith('statMod:') || n === 'extraShots' },
+  { label: '반', color: 0xe8a0ff, match: (n) => n === 'reflect' },
+  { label: '재', color: 0x8fe3b0, match: (n) => n === 'regen' },
+  { label: '칼', color: 0xff9d6b, match: (n) => n === 'damageAura' },
+  { label: '일', color: 0xffe08a, match: (n) => n === 'empoweredAttack' },
 ];
