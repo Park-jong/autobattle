@@ -55,6 +55,11 @@ export const COLORS = {
   REVIVE: 0xc27bff,
   REVIVE_FLASH: 0xf0d9ff,
   DISPEL: 0x9ad1ff,
+  /** 지속 피해 장판 / 피해 순간 번쩍임 (화염 지대) */
+  ZONE: 0xff6a2a,
+  ZONE_FLASH: 0xffd7a8,
+  /** 장비 부활(불사조의 깃털) */
+  PHOENIX: 0xffb347,
   /** 궁극기: 운석 예고 / 착탄 / 지휘관별 지속 효과 표시 */
   METEOR: 0xff8a3d,
   METEOR_IMPACT: 0xfff0c0,
@@ -96,6 +101,10 @@ export const TEXT_COLORS = {
   PHASE: '#ff8a8a',
   CP: '#7fd6ff',
   CRIT: '#ffe066',
+  /** 조건부 추가 피해(연소 폭발·처형) */
+  BONUS: '#ff8a4d',
+  /** 저주 카드 발동 */
+  CURSE: '#b57bff',
   COST_DOWN: '#9be29b',
 } as const;
 
@@ -123,6 +132,11 @@ export const TIMING = {
   CARD_COST_TEXT: 1.2,
   PHASE_BANNER: 2.4,
   DISPEL_FLASH: 0.7,
+  /** 장판 피해 번쩍임 / 장비 부활 링 / 저주 발동 배너 / 지휘관 HP 회복 예약 글자 */
+  ZONE_FLASH: 0.4,
+  PHOENIX_FLASH: 0.9,
+  CURSE_BANNER: 2.0,
+  COMMANDER_HEAL_TEXT: 2.0,
   CP_TEXT: 1.2,
   /** 진형 교대 등 순간이동을 미끄러지듯 보여주는 시간 */
   SLIDE: 0.25,

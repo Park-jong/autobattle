@@ -21,7 +21,8 @@ export interface AvailabilityContext {
  */
 export function explainUnplayable(card: Card, upgraded: boolean, ctx: AvailabilityContext): string | null {
   if (ctx.phase === 'ended') return '전투가 끝났습니다';
-  if (card.type === 'curse') return '저주 카드는 사용할 수 없습니다';
+  // 저주: 기본은 사용 불가. 써서 없앨 수 있는 저주(curse.playable)는 전투 중에 비용을 내고 쓴다
+  if (card.type === 'curse' && !card.curse?.playable) return '저주 카드는 사용할 수 없습니다 (손패 한 칸을 차지합니다)';
   const prepCard = card.type === 'operation' || card.type === 'equipment';
   if (prepCard && ctx.phase !== 'prep') return '작전·장비 카드는 준비 단계에서만 사용할 수 있습니다';
   if (!prepCard && ctx.phase !== 'combat') return '명령·주문 카드는 전투 중에만 사용할 수 있습니다';

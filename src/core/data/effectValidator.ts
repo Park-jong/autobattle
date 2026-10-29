@@ -5,6 +5,7 @@ import {
   DELAYED_AREAS,
   EFFECT_SELECTORS,
   RADIUS_SELECTORS,
+  SUMMON_PLACEMENTS,
   TELEPORT_DESTINATIONS,
   type CombatEffectKind,
   type EffectDef,
@@ -29,7 +30,7 @@ const PARAM_KEYS: Record<CombatEffectKind, readonly string[]> = {
   burn: ['dpsPctAtk', 'dps', 'duration'],
   teleport: ['destination'],
   extraShots: ['count'],
-  flatDamage: ['amount', 'dmgType', 'ignoreArmorPct'],
+  flatDamage: ['amount', 'dmgType', 'ignoreArmorPct', 'bonusIfBurning', 'hpBelowPct', 'belowMult', 'killCp'],
   silence: ['duration'],
   manaDrain: ['amount'],
   cpOnKill: ['amount', 'maxPerCombat'],
@@ -38,7 +39,7 @@ const PARAM_KEYS: Record<CombatEffectKind, readonly string[]> = {
   cpGain: ['amount'],
   root: ['duration'], hpCost: ['pctMaxHp'], lifesteal: ['pct', 'duration'],
   onAttackBurn: ['pctAtk', 'duration'], killFeast: ['healPct', 'atkPct'], marksman: ['rangeBonus', 'chance'],
-  attackMana: ['amount'], summon: ['count', 'tier'], scout: ['count', 'pctMaxHp'],
+  attackMana: ['amount'], summon: ['count', 'tier', 'unitId', 'star', 'placement', 'manaFull'], scout: ['count', 'pctMaxHp'],
   taunt: ['radius', 'duration'],
   flatShield: ['amount', 'duration'],
   cleanse: [],
@@ -53,7 +54,18 @@ const PARAM_KEYS: Record<CombatEffectKind, readonly string[]> = {
   handCostReduction: ['amount', 'maxPerCombat'],
   backRowLeap: [],
   critical: ['chance', 'damagePct'],
+  manaGain: ['amount'],
+  handCostCut: ['amount'],
+  spellDamageBoost: ['pct'],
+  ultimateGain: ['amount'],
+  damageZone: ['amount', 'dmgType', 'duration', 'intervalSeconds'],
+  reviveOnce: ['hpPct'],
+  startCp: ['amount'],
+  commanderHeal: ['amount'],
 };
+
+/** 카드에서만 쓸 수 있고 selector가 allAllies여야 하는 효과 (유닛 수와 무관하게 한 번만 실행) */
+const CARD_GLOBAL_KINDS: readonly CombatEffectKind[] = ['handCostCut', 'spellDamageBoost', 'ultimateGain', 'startCp', 'commanderHeal'];
 
 export interface EffectValidatorOptions {
   /** false면 [1성, 2성, 3성] 성급 배열을 거부한다 (카드·지휘관 패시브처럼 성급이 없는 곳) */
@@ -110,11 +122,17 @@ export class EffectValidator {
       case 'regen': return { kind, selector, pctMaxHp: this.star(r, 'pctMaxHp', 0), duration: this.star(r, 'duration', 0) };
       case 'delayedStrike': {
         if (nested) r.fail('kind', '지연 타격 안에 지연 타격을 중첩할 수 없음');
-        if (selector !== 'self') r.fail('selector', 'delayedStrike는 selector가 self여야 함');
+        const area = r.enum('area', DELAYED_AREAS);
+        if (area === 'targetArea') {
+          if (!this.options.allowCardEffects) r.fail('area', 'targetArea는 카드 전용 범위임 (스킬은 densestEnemies3x3 또는 allEnemies)');
+          if (selector !== 'allAllies') r.fail('selector', 'targetArea 지연 타격은 selector가 allAllies여야 함');
+        } else if (selector !== 'self') {
+          r.fail('selector', 'delayedStrike는 selector가 self여야 함');
+        }
         const list = r.array('effects');
         if (list.length === 0) r.fail('effects', '효과가 최소 1개 필요함');
         const effects = list.map((raw, i) => this.validateEffect(FieldReader.of(raw, `${r.path}.effects[${i}]`), true));
-        return { kind, selector, delay: this.star(r, 'delay', 0.1), area: r.enum('area', DELAYED_AREAS), effects };
+        return { kind, selector, delay: this.star(r, 'delay', 0.1), area, effects };
       }
       case 'skillCpGain':
         return { kind, selector, amount: this.star(r, 'amount', 1), maxPerCombat: this.star(r, 'maxPerCombat', 1) };
@@ -127,6 +145,36 @@ export class EffectValidator {
       case 'handCostReduction':
         return { kind, selector, amount: this.star(r, 'amount', 1), maxPerCombat: this.star(r, 'maxPerCombat', 0) };
       case 'backRowLeap': return { kind, selector };
+      case 'manaGain': return { kind, selector, amount: this.star(r, 'amount', 1) };
+      case 'handCostCut':
+        this.requireCardGlobal(r, kind, selector);
+        return { kind, selector, amount: r.int('amount', 1) };
+      case 'spellDamageBoost':
+        this.requireCardGlobal(r, kind, selector);
+        return { kind, selector, pct: r.number('pct', 1) };
+      case 'ultimateGain':
+        this.requireCardGlobal(r, kind, selector);
+        return { kind, selector, amount: r.int('amount', 1) };
+      case 'startCp':
+        this.requireCardGlobal(r, kind, selector);
+        return { kind, selector, amount: r.int('amount', 1) };
+      case 'commanderHeal':
+        this.requireCardGlobal(r, kind, selector);
+        return { kind, selector, amount: r.int('amount', 1) };
+      case 'damageZone': {
+        if (!this.options.allowCardEffects) r.fail('kind', 'damageZone은 카드 전용 효과임');
+        if (selector !== 'enemiesInTargetArea') r.fail('selector', 'damageZone은 selector가 enemiesInTargetArea여야 함');
+        return {
+          kind, selector, amount: this.star(r, 'amount', 0), dmgType: r.enum('dmgType', DAMAGE_TYPES),
+          duration: this.star(r, 'duration', 0.1), intervalSeconds: this.star(r, 'intervalSeconds', 0.1),
+        };
+      }
+      case 'reviveOnce': {
+        if (!this.options.allowCardEffects) r.fail('kind', 'reviveOnce는 카드(장비) 전용 효과임');
+        const hpPct = this.star(r, 'hpPct', 1);
+        for (const value of Array.isArray(hpPct) ? hpPct : [hpPct]) if (value > 100) r.fail('hpPct', `1~100이어야 함 (실제: ${value})`);
+        return { kind, selector, hpPct };
+      }
       case 'critical': {
         const chance = this.star(r, 'chance', 0);
         for (const value of Array.isArray(chance) ? chance : [chance]) if (value > 1) r.fail('chance', `0~1 확률이어야 함 (실제: ${value})`);
@@ -140,7 +188,7 @@ export class EffectValidator {
     switch (kind) {
       case 'root': return { kind, selector, duration: this.star(r, 'duration', 0) };
       case 'hpCost': return { kind, selector, pctMaxHp: this.star(r, 'pctMaxHp', 0) };
-      case 'lifesteal': return { kind, selector, pct: this.star(r, 'pct', 0), duration: this.star(r, 'duration', 0) };
+      case 'lifesteal': return { kind, selector, pct: this.star(r, 'pct', 0), duration: this.duration(r) };
       case 'onAttackBurn': return { kind, selector, pctAtk: this.star(r, 'pctAtk', 0), duration: this.star(r, 'duration', 0) };
       case 'killFeast': return { kind, selector, healPct: this.star(r, 'healPct', 0), atkPct: this.star(r, 'atkPct', 0) };
       case 'marksman': return { kind, selector, rangeBonus: this.star(r, 'rangeBonus', 0), chance: this.star(r, 'chance', 0) };
@@ -150,9 +198,7 @@ export class EffectValidator {
       case 'scout':
         if (!this.options.allowCardEffects) r.fail('kind', `${kind}는 카드 전용 효과임`);
         if (selector !== 'allAllies') r.fail('selector', `${kind}는 selector가 allAllies여야 함`);
-        return kind === 'summon'
-          ? { kind, selector, count: r.int('count', 1), tier: r.int('tier', 1) }
-          : { kind, selector, count: r.int('count', 1), pctMaxHp: this.star(r, 'pctMaxHp', 0) };
+        return kind === 'summon' ? this.validateSummon(r, selector) : { kind, selector, count: r.int('count', 1), pctMaxHp: this.star(r, 'pctMaxHp', 0) };
       case 'manaFill':
         return { kind, selector };
       case 'cpGain':
@@ -239,6 +285,15 @@ export class EffectValidator {
           dmgType: r.enum('dmgType', DAMAGE_TYPES),
         };
         if (r.has('ignoreArmorPct')) effect.ignoreArmorPct = this.star(r, 'ignoreArmorPct', 0);
+        if (r.has('bonusIfBurning')) effect.bonusIfBurning = this.cardStar(r, 'bonusIfBurning', 1);
+        if (r.has('hpBelowPct') !== r.has('belowMult')) r.fail(r.has('hpBelowPct') ? 'belowMult' : 'hpBelowPct', 'hpBelowPct와 belowMult는 함께 있어야 함');
+        if (r.has('hpBelowPct')) {
+          const pct = this.cardStar(r, 'hpBelowPct', 1);
+          if (typeof pct === 'number' && pct > 100) r.fail('hpBelowPct', `1~100이어야 함 (실제: ${pct})`);
+          effect.hpBelowPct = pct;
+          effect.belowMult = this.cardStar(r, 'belowMult', 1);
+        }
+        if (r.has('killCp')) effect.killCp = this.cardStar(r, 'killCp', 1);
         return effect;
       }
       case 'silence':
@@ -251,6 +306,40 @@ export class EffectValidator {
       default:
         throw new Error(`검증기에 없는 효과 종류: ${kind}`);
     }
+  }
+
+  /** 카드 전용 필드: 카드 문맥이 아니면 거부하고, 값은 star와 같이 읽는다 */
+  private cardStar(r: FieldReader, key: string, min: number): StarValue {
+    if (!this.options.allowCardEffects) r.fail(key, '카드 전용 필드임');
+    return this.star(r, key, min);
+  }
+
+  /** 카드 전용이고 selector가 allAllies여야 하는 효과의 공통 검사 */
+  private requireCardGlobal(r: FieldReader, kind: CombatEffectKind, selector: EffectDef['selector']): void {
+    if (!CARD_GLOBAL_KINDS.includes(kind)) return;
+    if (!this.options.allowCardEffects) r.fail('kind', `${kind}는 카드 전용 효과임`);
+    if (selector !== 'allAllies') r.fail('selector', `${kind}는 selector가 allAllies여야 함`);
+  }
+
+  /** summon: tier 또는 unitId 중 정확히 하나. star·placement·manaFull은 unitId와 함께만 */
+  private validateSummon(r: FieldReader, selector: EffectDef['selector']): EffectDef {
+    const hasTier = r.has('tier');
+    const hasUnit = r.has('unitId');
+    if (hasTier === hasUnit) r.fail('unitId', 'tier와 unitId 중 정확히 하나만 있어야 함');
+    const count = r.int('count', 1);
+    if (hasTier) {
+      for (const key of ['star', 'placement', 'manaFull']) if (r.has(key)) r.fail(key, 'unitId가 있을 때만 쓸 수 있음');
+      return { kind: 'summon', selector, count, tier: r.int('tier', 1) };
+    }
+    const effect: EffectDef = { kind: 'summon', selector, count, unitId: r.string('unitId') };
+    if (r.has('star')) {
+      const star = r.int('star', 1);
+      if (star > 3) r.fail('star', `1~3이어야 함 (실제: ${star})`);
+      effect.star = star;
+    }
+    if (r.has('placement')) effect.placement = r.enum('placement', SUMMON_PLACEMENTS);
+    if (r.has('manaFull')) effect.manaFull = r.boolean('manaFull');
+    return effect;
   }
 
   /** 숫자 하나 또는 [1성, 2성, 3성] 배열 */

@@ -1,4 +1,5 @@
 import type { EffectDef, EffectSelector } from './effect';
+import type { CardType } from './card';
 import type { FieldReader } from './fieldReader';
 
 /**
@@ -8,6 +9,8 @@ import type { FieldReader } from './fieldReader';
 export interface EffectUsageContext {
   /** 카드의 target.kind. 대상 지정이 없는 문맥(지휘관 패시브)은 'none' */
   targetKind: 'none' | 'allyUnit' | 'enemyUnit' | 'allyUnits' | 'cell' | 'area3x3';
+  /** 카드 타입 (카드 문맥일 때만). 작전·장비 전용 효과를 검사한다 */
+  cardType?: CardType;
 }
 
 const UNIT_TARGET_KINDS: readonly string[] = ['allyUnit', 'enemyUnit', 'allyUnits'];
@@ -18,9 +21,9 @@ const CASTER_SELECTORS: readonly EffectSelector[] = [
   'self', 'lineThroughTarget', 'selfAndAdjacent', 'traitUnits', 'targetArea2x2', 'alliesAroundSelf', 'enemiesAroundSelf', 'fanArrows', 'fanTargets',
 ];
 /** 스킬(시전 유닛이 있는 문맥)에서만 쓸 수 있는 효과 */
-const SKILL_ONLY_KINDS: readonly string[] = ['damageAura', 'empoweredAttack', 'delayedStrike', 'skillCpGain'];
+const SKILL_ONLY_KINDS: readonly string[] = ['damageAura', 'delayedStrike', 'skillCpGain'];
 /** 특성에서만 쓸 수 있는 효과 */
-const TRAIT_ONLY_KINDS: readonly string[] = ['onAttackBurn', 'killFeast', 'marksman', 'stackingStatMod', 'startMana', 'handCostReduction', 'backRowLeap', 'critical'];
+const TRAIT_ONLY_KINDS: readonly string[] = ['killFeast', 'marksman', 'stackingStatMod', 'startMana', 'handCostReduction', 'backRowLeap', 'critical'];
 /** 지정 유닛 대상이 있어야 하는 선택자 */
 const UNIT_SELECTORS: readonly EffectSelector[] = ['target', 'targetAndAdjacent'];
 const AREA_SELECTORS: readonly EffectSelector[] = ['enemiesInTargetArea', 'alliesInTargetArea'];
@@ -55,10 +58,24 @@ export function assertEffectsUsable(
     if ((effect.kind === 'forceTarget' || effect.kind === 'teleport') && !UNIT_TARGET_KINDS.includes(ctx.targetKind)) {
       container.fail(`${at}.kind`, `${effect.kind}는 지정 유닛 대상이 필요함 (target.kind: ${ctx.targetKind})`);
     }
-    if (effect.kind === 'cpOnKill') {
-      container.fail(`${at}.kind`, 'cpOnKill은 특성 전용 효과임');
-    }
     if (TRAIT_ONLY_KINDS.includes(effect.kind)) container.fail(`${at}.kind`, `${effect.kind}는 특성 전용 효과임`);
-    if (SKILL_ONLY_KINDS.includes(effect.kind)) container.fail(`${at}.kind`, `${effect.kind}는 시전 유닛이 있는 스킬 전용 효과임`);
+    // 지정 범위 지연 타격(targetArea)만 시전자 없이 카드에서 쓸 수 있다. 중첩 효과도 같은 규칙으로 검사한다
+    if (effect.kind === 'delayedStrike' && effect.area === 'targetArea') {
+      if (!AREA_TARGET_KINDS.includes(ctx.targetKind)) {
+        container.fail(`${at}.area`, `targetArea 지연 타격은 칸/범위를 지정하는 카드에서만 쓸 수 있음 (target.kind: ${ctx.targetKind})`);
+      }
+      assertEffectsUsable(container, `${at}.effects`, effect.effects, ctx);
+    } else if (SKILL_ONLY_KINDS.includes(effect.kind)) {
+      container.fail(`${at}.kind`, `${effect.kind}는 시전 유닛이 있는 스킬 전용 효과임`);
+    }
+    if (effect.selector === 'randomAlly' && ctx.cardType !== 'curse') {
+      container.fail(`${at}.selector`, 'randomAlly는 저주 카드의 뽑을 때 효과(curse.onDraw)에서만 쓸 수 있음');
+    }
+    if (effect.kind === 'startCp' && ctx.cardType !== 'operation') {
+      container.fail(`${at}.kind`, 'startCp는 준비 단계에 쓰는 작전 카드에서만 쓸 수 있음');
+    }
+    if (effect.kind === 'reviveOnce' && ctx.cardType !== 'equipment') {
+      container.fail(`${at}.kind`, 'reviveOnce는 장비 카드에서만 쓸 수 있음');
+    }
   });
 }

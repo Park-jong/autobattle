@@ -362,8 +362,8 @@
     {
       "id": "ember_arrow",
       "name": "불씨 화살",
-      "owner": "neutral",
-      "rarity": "common",
+      "owner": "cmd_isera",
+      "rarity": "starter",
       "type": "spell",
       "cost": 1,
       "target": {

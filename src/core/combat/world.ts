@@ -24,6 +24,8 @@ export interface DamageRequest {
   canCrit?: boolean;
   /** true면 반사 피해를 되돌리지 않는다 (반사 피해끼리 무한히 오가지 않도록) */
   noReflect?: boolean;
+  /** true면 조건부 추가 피해가 붙은 피해다 (damage 이벤트에 bonus 표시) */
+  bonus?: boolean;
 }
 
 /**
@@ -75,6 +77,14 @@ export class CombatWorld {
     unit.statuses.clear();
     this.board.place(unit.uid, cell);
     this.emit({ type: 'revive', unit: unit.uid, hp: unit.hp, maxHp: unit.maxHp, cell });
+  }
+
+  /** 부활 장비: 쓰러지지 않고 그 자리에서 최대 HP의 reviveHpPct%로 되살아난다 (전투당 1회, 상태·위치는 그대로) */
+  private reviveInPlace(unit: CombatUnit): void {
+    unit.reviveUsed = true;
+    unit.hp = Math.min(unit.maxHp, Math.max(1, Math.round((unit.maxHp * unit.reviveHpPct) / 100)));
+    this.emit({ type: 'revive', unit: unit.uid, hp: unit.hp, maxHp: unit.maxHp, cell: unit.cell, inPlace: true });
+    this.emit({ type: 'statusRemoved', unit: unit.uid, status: 'reviveOnce' });
   }
 
   emit(event: NewEvent): void {
@@ -136,7 +146,9 @@ export class CombatWorld {
       dmgType: req.type,
       hp: target.hp,
       ...(crit ? { crit: true as const } : {}),
+      ...(req.bonus ? { bonus: true as const } : {}),
     });
+    if (target.hp <= 0 && target.reviveHpPct > 0 && !target.reviveUsed) this.reviveInPlace(target);
     if (hadShield && target.statuses.shieldTotal() === 0) {
       this.emit({ type: 'statusRemoved', unit: target.uid, status: 'shield' });
     }

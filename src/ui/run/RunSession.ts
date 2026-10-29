@@ -178,6 +178,9 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
     if (!loaded.ok) return this.fail(loaded.message);
     this.adopt(loaded.controller);
     this.afterChange();
+    // 콘텐츠 데이터가 바뀌어 저장본이 고쳐졌다면 무엇이 바뀌었는지 한 번 알려 준다
+    const changes = loaded.controller.contentNotices;
+    if (changes.length > 0) this.setNotice('info', `게임 데이터가 업데이트되어 저장본을 맞췄습니다. ${changes.join(' / ')}`);
   }
 
   deleteSave(): void {

@@ -101,7 +101,7 @@ describe('카드 검증기: 공통 효과 검증기 통합', () => {
     );
     expect(errorOf([card({ effects: [{ kind: 'burn', selector: 'allAllies', dpsPctAtk: 10, duration: 3 }] })])).toContain('dps');
     expect(errorOf([card({ effects: [{ kind: 'heal', selector: 'self', amount: 1 }] })])).toContain('시전 유닛이 있는 스킬 전용');
-    expect(errorOf([card({ effects: [{ kind: 'cpOnKill', selector: 'allAllies', amount: 1, maxPerCombat: 2 }] })])).toContain('특성 전용');
+    expect(errorOf([card({ effects: [{ kind: 'startMana', selector: 'allAllies', amount: 1 }] })])).toContain('특성 전용');
   });
 
   it('selector와 target.kind가 맞지 않으면 거부', () => {

@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { createText, type HiDpiMetrics } from '../hidpi';
-import type { MeteorView, ReplayEffect, ReviveWatchView, TelegraphView, UltimateAuraView, UnitView } from '../replay/ReplayState';
+import type { MeteorView, ReplayEffect, ReviveWatchView, TelegraphView, UltimateAuraView, UnitView, ZoneView } from '../replay/ReplayState';
 import { BOARD_COLS, BOARD_ROWS } from '../../core/combat/board';
 import { COLORS, LAYOUT, MOTION, STAGE, TEXT_COLORS, TIMING } from '../theme';
 import type { BoardLayout } from './BoardLayout';
@@ -20,9 +20,10 @@ export interface UltimateVisuals {
 
 const NO_ULTIMATE: UltimateVisuals = { meteors: [], aura: null };
 
-/** 보스 연출 입력: 부활 대기 중인 쌍둥이 (남은 시간 표시) */
+/** 보스 연출 입력: 부활 대기 중인 쌍둥이 (남은 시간 표시) + 카드로 깔린 지속 피해 장판 */
 export interface BossVisuals {
   revives: readonly ReviveWatchView[];
+  zones?: readonly ZoneView[];
 }
 
 const NO_BOSS: BossVisuals = { revives: [] };
@@ -126,6 +127,7 @@ export class EffectsLayer {
     const live = new Set<number>();
     let bannerAlpha = 0;
     let cardBannerText: { text: string; alpha: number } | null = null;
+    let curseText: { text: string; alpha: number } | null = null;
 
     for (const e of effects) {
       const age = time - e.t;
@@ -137,11 +139,13 @@ export class EffectsLayer {
           if (age > TIMING.DAMAGE_TEXT) break;
           const physical = e.dmgType === 'physical';
           // 치명타는 노란색 큰 글씨에 느낌표
-          this.showFloating(e.seq, live, e.unit, views, e.crit ? `-${e.amount}!` : `-${e.amount}`, e.crit ? TEXT_COLORS.CRIT : physical ? TEXT_COLORS.PHYSICAL : TEXT_COLORS.MAGIC, age / TIMING.DAMAGE_TEXT, {
+          // 카드의 조건부 추가 피해(연소 폭발·처형)는 주황색 큰 글씨에 별표
+          const color = e.crit ? TEXT_COLORS.CRIT : e.bonus ? TEXT_COLORS.BONUS : physical ? TEXT_COLORS.PHYSICAL : TEXT_COLORS.MAGIC;
+          this.showFloating(e.seq, live, e.unit, views, e.crit ? `-${e.amount}!` : e.bonus ? `-${e.amount}★` : `-${e.amount}`, color, age / TIMING.DAMAGE_TEXT, {
             lift: MOTION.DAMAGE_RISE_PX,
             baseY: -62,
             jitter: ((e.seq % 5) - 2) * 9,
-            size: e.crit ? '30px' : '22px',
+            size: e.crit ? '30px' : e.bonus ? '26px' : '22px',
           });
           break;
         }
@@ -217,6 +221,28 @@ export class EffectsLayer {
         case 'dispel':
           if (age <= TIMING.DISPEL_FLASH) this.drawDispel(e.unit, views, age / TIMING.DISPEL_FLASH);
           break;
+        case 'phoenix':
+          if (age <= TIMING.PHOENIX_FLASH) this.drawPhoenix(e.unit, views, age / TIMING.PHOENIX_FLASH);
+          if (age <= TIMING.REVIVE_CANCEL_TEXT) {
+            this.showFloating(e.seq, live, e.unit, views, '부활!', TEXT_COLORS.HEAL, age / TIMING.REVIVE_CANCEL_TEXT, {
+              lift: MOTION.DAMAGE_RISE_PX, baseY: -30, jitter: 0, size: '22px',
+            });
+          }
+          break;
+        case 'zonePulse':
+          if (age <= TIMING.ZONE_FLASH) this.drawZoneFlash(e.cells, age / TIMING.ZONE_FLASH);
+          break;
+        case 'curse':
+          if (age <= TIMING.CURSE_BANNER) {
+            curseText = { text: `☠ ${this.cardName(e.cardId, false)} 발동`, alpha: 1 - Math.max(0, age / TIMING.CURSE_BANNER - 0.6) / 0.4 };
+          }
+          break;
+        case 'commanderHeal':
+          // 지휘관 HP 회복은 전투에서 이겨야 확정된다: 화면 위쪽에 "예약" 글자
+          if (age <= TIMING.COMMANDER_HEAL_TEXT) {
+            curseText ??= { text: `지휘관 HP +${e.amount} (승리 시 확정)`, alpha: 1 - Math.max(0, age / TIMING.COMMANDER_HEAL_TEXT - 0.6) / 0.4 };
+          }
+          break;
         case 'telegraph':
         case 'death':
           break;
@@ -226,6 +252,9 @@ export class EffectsLayer {
     this.drawMeteors(time, ultimate.meteors);
     this.drawAura(time, ultimate.aura, views);
     this.drawRevives(time, boss.revives, views);
+    this.drawZones(time, boss.zones ?? []);
+    if (phaseText && curseText) phaseText = { text: `${phaseText.text}  ${curseText.text}`, alpha: Math.max(phaseText.alpha, curseText.alpha) };
+    else if (curseText) phaseText = curseText;
     if (phaseText) this.phaseBanner.setText(phaseText.text).setAlpha(phaseText.alpha).setVisible(true);
     else this.phaseBanner.setVisible(false);
     if (ultimateText) this.ultimateBanner.setText(ultimateText.text).setAlpha(ultimateText.alpha).setVisible(true);
@@ -314,6 +343,42 @@ export class EffectsLayer {
     this.lines.fillCircle(p.x, p.y, LAYOUT.UNIT_RADIUS + 6);
     this.lines.lineStyle(6, COLORS.REVIVE, 1 - progress);
     this.lines.strokeCircle(p.x, p.y, LAYOUT.UNIT_RADIUS + 10 + 46 * progress);
+  }
+
+  /** 지속 피해 장판: 칸을 주황으로 칠하고, 다음 피해까지 차오르는 테두리를 그린다 */
+  private drawZones(time: number, zones: readonly ZoneView[]): void {
+    const size = this.layout.cellSize;
+    const pulse = 0.5 + 0.5 * Math.sin(time * 6);
+    for (const z of zones) {
+      for (const cell of z.cells) {
+        const p = this.layout.topLeft(cell.col, cell.row);
+        this.lines.fillStyle(COLORS.ZONE, 0.14 + 0.1 * z.pulseProgress + 0.04 * pulse);
+        this.lines.fillRect(p.x + 3, p.y + 3, size - 6, size - 6);
+        this.lines.lineStyle(2, COLORS.ZONE, 0.45 + 0.4 * z.pulseProgress);
+        this.lines.strokeRect(p.x + 3, p.y + 3, size - 6, size - 6);
+      }
+    }
+  }
+
+  /** 장판이 피해를 주는 순간: 장판 칸이 밝게 번쩍인다 */
+  private drawZoneFlash(cells: readonly { col: number; row: number }[], progress: number): void {
+    const size = this.layout.cellSize;
+    for (const cell of cells) {
+      const p = this.layout.topLeft(cell.col, cell.row);
+      this.lines.fillStyle(COLORS.ZONE_FLASH, 0.6 * (1 - progress));
+      this.lines.fillRect(p.x + 2, p.y + 2, size - 4, size - 4);
+    }
+  }
+
+  /** 장비 부활: 유닛 위에서 퍼지는 주황 링 */
+  private drawPhoenix(uid: number, views: ReadonlyMap<number, UnitView>, progress: number): void {
+    const v = views.get(uid);
+    if (!v) return;
+    const p = this.layout.center(v.pos.col, v.pos.row);
+    this.lines.fillStyle(COLORS.PHOENIX, 0.45 * (1 - progress));
+    this.lines.fillCircle(p.x, p.y, LAYOUT.UNIT_RADIUS + 6);
+    this.lines.lineStyle(6, COLORS.PHOENIX, 1 - progress);
+    this.lines.strokeCircle(p.x, p.y, LAYOUT.UNIT_RADIUS + 8 + 40 * progress);
   }
 
   /** 버프 해제: 아군 위에서 바깥으로 흩어지는 하늘색 링 */

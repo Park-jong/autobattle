@@ -43,6 +43,8 @@ export class Deck {
   private exhausted: CardInstance[];
   private readonly nextId: number;
   private readonly handLimit: number;
+  /** 카드를 뽑을 때마다 부르는 관찰자 (저주 카드의 뽑을 때 효과). 손패에 들어왔든 상한 때문에 바로 버려졌든 호출한다 */
+  private drawListener: ((card: CardInstance) => void) | null = null;
 
   private constructor(
     private readonly catalog: CardCatalog,
@@ -123,6 +125,11 @@ export class Deck {
     return this.draw(CARDS.HAND_SIZE);
   }
 
+  /** 뽑기 관찰자를 등록한다 (하나만 유지; null이면 해제). 관찰자 안에서 다시 뽑지 않는다 */
+  onDraw(listener: ((card: CardInstance) => void) | null): void {
+    this.drawListener = listener;
+  }
+
   draw(count: number): DrawResult {
     const result: DrawResult = { drawn: [], overflowed: [] };
     for (let i = 0; i < count; i++) {
@@ -136,6 +143,7 @@ export class Deck {
         this.handCards.push(card);
         result.drawn.push(card);
       }
+      this.drawListener?.(card);
     }
     return result;
   }

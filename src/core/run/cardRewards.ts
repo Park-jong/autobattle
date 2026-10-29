@@ -1,4 +1,4 @@
-import { isRewardCard, type Card } from '../data/card';
+import { isRewardCard, isRewardCardFor, type Card } from '../data/card';
 import type { CardCatalog } from '../data/cardLoader';
 import type { BattleKind } from '../economy';
 import type { Rng } from '../rng';
@@ -9,16 +9,22 @@ const RARITIES: readonly RewardRarity[] = ['common', 'rare', 'epic'];
 const RARE_OR_BETTER: readonly RewardRarity[] = ['rare', 'epic'];
 
 /**
- * 카드 보상·상점 진열·이벤트 획득의 카드 뽑기. 후보 풀은 isRewardCard(공용·비저주·시작 전용 아님).
+ * 카드 보상·상점 진열·이벤트 획득의 카드 뽑기. 후보 풀은 "공용 보상 카드 + 그 지휘관의 고유 카드"(isRewardCardFor: 저주·시작 전용 제외).
+ * commanderId를 주지 않으면 공용 카드만 쓴다 (지휘관과 무관한 도구용).
  * 희귀도는 종류별 가중치(RUN.REWARD.WEIGHTS)로 뽑고, 같은 제시 안에서 카드는 겹치지 않는다.
  * 정예·보스는 희귀 이상 가중치가 높고, 보스는 첫 장을 희귀 이상에서 보장한다.
  */
 export class CardRewardGenerator {
-  constructor(private readonly cards: CardCatalog) {}
+  constructor(
+    private readonly cards: CardCatalog,
+    private readonly commanderId: string | null = null,
+  ) {}
 
   /** 해당 희귀도의 후보 카드 (파일 순서) */
   pool(rarity: RewardRarity): Card[] {
-    return this.cards.cards.filter((card) => isRewardCard(card) && card.rarity === rarity);
+    return this.cards.cards.filter(
+      (card) => (this.commanderId === null ? isRewardCard(card) : isRewardCardFor(card, this.commanderId)) && card.rarity === rarity,
+    );
   }
 
   /** 전투 보상 제시: count장의 서로 다른 카드 id */

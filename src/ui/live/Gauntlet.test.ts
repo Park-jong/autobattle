@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { CombatSimulator, type CardCommand } from '../../core/combat';
-import { CARD_A, cardCatalog, formation, harten, traits, units } from '../../core/combat/testSupport';
+import { CARD_A, cardCatalog, formation, harten, isera, traits, units } from '../../core/combat/testSupport';
 import { Gauntlet, deriveBattleSeed, type GauntletConfig } from './Gauntlet';
 
 const STAGES = [
@@ -53,13 +53,14 @@ describe('Gauntlet', () => {
     expect(g.economyView.gold).toBe(gold);
   });
 
-  it('확장 덱에서 보존·소모·드로우 결과를 다음 판에도 이어받는다', () => {
-    const g = new Gauntlet(config({ deckPreset: 'test', baseSeed: 1 }), cardCatalog);
+  // 불씨 화살이 이세라 고유 카드가 되어(2부-A) 소모 카드를 쓰는 이 흐름은 이세라의 시작 덱으로 확인한다
+  it('이세라 시작 덱에서 보존·소모·드로우 결과를 다음 판에도 이어받는다', () => {
+    const g = new Gauntlet(config({ commander: isera, baseSeed: 1 }), cardCatalog);
     const deck = g.deckForBattle();
     const stage = g.stage;
     if (!deck || !stage) throw new Error('준비 데이터 없음');
     const sim = new CombatSimulator(
-      { seed: g.seed, formations: [g.ally, stage.enemy], cards: { commander: harten, deck } },
+      { seed: g.seed, formations: [g.ally, stage.enemy], cards: { commander: isera, deck } },
       units, traits, cardCatalog,
     );
     sim.startCombat();

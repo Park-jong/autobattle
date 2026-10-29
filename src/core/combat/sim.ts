@@ -118,6 +118,7 @@ export class CombatSimulator {
   private readonly controller: UnitController;
   private readonly player: CardPlayer | null = null;
   private readonly ultimateSystem: UltimateSystem | null = null;
+  private readonly hpLedger: CommanderHpLedger;
   private readonly cardCatalog: CardCatalog | null;
   /** 아직 실행하지 않은 예약 명령 (tick 오름차순, 같은 틱은 입력 순서) */
   private readonly pending: CardCommand[] = [];
@@ -139,7 +140,15 @@ export class CombatSimulator {
     }
     // 주술사 특성의 손패 비용 감소 창구: CardPlayer는 특성 계산 뒤에 만들어지므로 호출 시점에 this.player를 읽는다
     const handCost = { reduceRandomCost: (amount: number) => this.player?.reduceRandomCost(amount) ?? null };
-    const executor = new EffectExecutor(world, this.commandPoints, this.deck, units, handCost);
+    // 카드 확장 효과의 창구: 궁극기·주문 피해·지휘관 HP 회복은 CardPlayer/UltimateSystem이 만들어진 뒤에야 있으므로 호출 시점에 읽는다
+    const ledger = new CommanderHpLedger(cardSetup?.commanderHp);
+    this.hpLedger = ledger;
+    const sinks = {
+      ultimate: { gainUltimate: (amount: number) => this.ultimateSystem?.gainUltimate(amount) ?? 0 },
+      spellBoost: { addSpellDamagePct: (pct: number) => this.player?.addSpellDamagePct(pct) },
+      commanderHeal: ledger,
+    };
+    const executor = new EffectExecutor(world, this.commandPoints, this.deck, units, handCost, sinks);
     const enemyScale = { hp: setup.enemy?.hpMult ?? 1, atk: setup.enemy?.atkMult ?? 1 };
     new ManaSystem(world);
     this.rules = new StatusRules(world);
@@ -186,7 +195,6 @@ export class CombatSimulator {
     this.activeTraits = [engine.apply(0, defsBySide[0], executor, relics.traitBonusMinUnits), engine.apply(1, defsBySide[1], executor)];
 
     if (cardSetup && cardCatalog && this.commandPoints && this.deck) {
-      const ledger = new CommanderHpLedger(cardSetup.commanderHp);
       const passiveSpell = cardSetup.commander?.passive.spellDamagePct ?? 0;
       const modifiers = { spellDamagePct: passiveSpell + relics.spellDamagePct, hpCostReduction: relics.hpCostReduction };
       this.player = new CardPlayer(world, executor, this.commandPoints, this.deck, cardCatalog, this.activeTraits[0], ledger, modifiers);
@@ -201,6 +209,10 @@ export class CombatSimulator {
         }
       }
       relics.install(world, executor, this.commandPoints);
+      // 저주 카드: 전투 중 뽑으면 자동 발동 (준비 단계에 뽑은 카드는 전투 시작 때 손패에 있으면 발동)
+      this.deck.onDraw((instance) => {
+        if (this.phaseValue === 'combat') this.player?.triggerCurse(instance);
+      });
       this.commandPoints.startPrep();
       this.scheduleCommands(cardSetup.commands ?? []);
     }
@@ -242,6 +254,11 @@ export class CombatSimulator {
     return this.player?.hpSpent ?? 0;
   }
 
+  /** 이 전투에서 카드로 예약한 지휘관 HP 회복 합계 (전투에서 이겨야 런이 확정; commanderHeal 이벤트 합과 같다) */
+  get commanderHealPending(): number {
+    return this.hpLedger.pendingHeal;
+  }
+
   get finished(): boolean {
     return this.outcome !== null;
   }
@@ -275,6 +292,7 @@ export class CombatSimulator {
     this.phaseValue = 'combat';
     this.commandPoints?.startCombat();
     this.world.bus.emit('onCombatStart', {});
+    this.player?.triggerHandCurses();
   }
 
   /**
@@ -362,6 +380,7 @@ export class CombatSimulator {
     if (!outcome) return;
     this.outcome = outcome;
     this.phaseValue = 'ended';
+    this.player?.emitCursePenalties();
     this.deck?.endCombat();
     world.emit({ type: 'end', winner: outcome.winner, reason: outcome.reason });
   }

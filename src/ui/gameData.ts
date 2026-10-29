@@ -2,6 +2,7 @@ import cardsJson from '../../data/cards.json';
 import commandersJson from '../../data/commanders.json';
 import encountersJson from '../../data/encounters.json';
 import eventsJson from '../../data/events.json';
+import migrationsJson from '../../data/migrations.json';
 import relicsJson from '../../data/relics.json';
 import traitsJson from '../../data/traits.json';
 import unitsJson from '../../data/units.json';
@@ -57,7 +58,7 @@ const SERIES_FILES: readonly unknown[] = [series1, series2, series3, series4, se
 export function loadGameData(): GameData {
   // 런 코어와 같은 검증을 한 번만 거쳐 카탈로그를 공유한다 (유닛·카드 참조, 적 편성 층 커버리지 포함)
   const run = loadRunDeps({
-    traits: traitsJson, units: unitsJson, cards: cardsJson, commanders: commandersJson, encounters: encountersJson, events: eventsJson, relics: relicsJson,
+    traits: traitsJson, units: unitsJson, cards: cardsJson, commanders: commandersJson, encounters: encountersJson, events: eventsJson, relics: relicsJson, migrations: migrationsJson,
   });
   const { traits, units, cards, commanders } = run;
   const seriesStages = SERIES_FILES.map((raw, i) => {

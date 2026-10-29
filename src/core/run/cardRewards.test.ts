@@ -11,7 +11,7 @@ const rarityOf = (id: string) => runDeps.cards.get(id)?.rarity;
 describe('카드 보상 풀', () => {
   it('공용·비저주·시작 전용이 아닌 카드만 후보다 (지휘관 고유·시작 카드 제외)', () => {
     const pool = ['common', 'rare', 'epic'].flatMap((r) => generator.pool(r as 'common'));
-    expect(pool.length).toBeGreaterThanOrEqual(10);
+    expect(pool.length).toBeGreaterThanOrEqual(9); // 불씨 화살은 이세라 고유 시작 카드가 되어 공용 풀에서 빠졌다
     for (const card of pool) {
       expect(isRewardCard(card)).toBe(true);
       expect(card.owner).toBe('neutral');

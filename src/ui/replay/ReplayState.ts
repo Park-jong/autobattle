@@ -64,6 +64,8 @@ export type ReplayEffect =
       dmgType: DamageType;
       /** 치명타였으면 true */
       crit?: boolean;
+      /** 카드의 조건부 추가 피해(화상 중·HP 비율 이하)가 붙었으면 true */
+      bonus?: boolean;
     }
   | { kind: 'heal'; seq: number; t: number; unit: number; amount: number }
   | { kind: 'skill'; seq: number; t: number; unit: number; skill: string }
@@ -89,7 +91,26 @@ export type ReplayEffect =
   /** 보스 페이즈 전환 (배너): 증원 수와 버프가 해제된 아군 수 */
   | { kind: 'phase'; seq: number; t: number; unit: number; phase: number; hpPct: number; summoned: number; dispelled: number }
   /** 페이즈 전환으로 유닛의 버프가 해제됨 (유닛 위 링) */
-  | { kind: 'dispel'; seq: number; t: number; unit: number };
+  | { kind: 'dispel'; seq: number; t: number; unit: number }
+  /** 부활 장비: 쓰러지지 않고 그 자리에서 되살아남 (유닛 위 링). 쌍둥이 부활(revive)과 달리 상태·위치는 그대로 */
+  | { kind: 'phoenix'; seq: number; t: number; unit: number }
+  /** 지속 피해 장판이 피해를 주는 순간 (장판 칸이 번쩍임) */
+  | { kind: 'zonePulse'; seq: number; t: number; id: number; cells: Cell[] }
+  /** 저주 카드의 뽑을 때 효과가 자동 발동함 (배너) */
+  | { kind: 'curse'; seq: number; t: number; cardId: string }
+  /** 전투에서 이기면 확정될 지휘관 HP 회복이 예약됨 */
+  | { kind: 'commanderHeal'; seq: number; t: number; amount: number; cardId: string };
+
+/** 지금 깔려 있는 지속 피해 장판 (칸 기준) */
+export interface ZoneView {
+  id: number;
+  cells: readonly Cell[];
+  startedAt: number;
+  endAt: number;
+  intervalSeconds: number;
+  /** 다음 피해까지 진행률 0~1 */
+  pulseProgress: number;
+}
 
 /** 지금 하늘에서 떨어지는 중인 궁극기 운석 한 발 */
 export interface MeteorView {
@@ -208,6 +229,8 @@ export class ReplayState {
   /** 부활 대기 중인 쌍둥이 (죽은 쪽 uid 기준) */
   private openRevives = new Map<number, { unit: number; partner: number; startedAt: number; fireAt: number }>();
   private aura: UltimateAuraView | null = null;
+  /** 설치된 지속 피해 장판 (id 기준) */
+  private openZones = new Map<number, { id: number; cells: Cell[]; startedAt: number; endAt: number; intervalSeconds: number }>();
 
   constructor(private readonly events: readonly CombatEvent[]) {
     this.reset();
@@ -226,6 +249,7 @@ export class ReplayState {
     this.openTelegraphs = new Map();
     this.openMeteors = new Map();
     this.openRevives = new Map();
+    this.openZones = new Map();
     this.aura = null;
     this.advanceTo(0);
   }
@@ -313,6 +337,18 @@ export class ReplayState {
     return out;
   }
 
+  /** 현재 시각에 깔려 있는 지속 피해 장판 (끝나는 시각이 지나면 빠진다) */
+  zones(): ZoneView[] {
+    const t = this.currentTime;
+    const out: ZoneView[] = [];
+    for (const z of this.openZones.values()) {
+      if (t >= z.endAt - EPS) continue;
+      const elapsed = Math.max(0, t - z.startedAt);
+      out.push({ ...z, pulseProgress: (elapsed % z.intervalSeconds) / z.intervalSeconds });
+    }
+    return out;
+  }
+
   /** 지속 효과가 있는 궁극기가 아직 유지 중이면 그 정보 (없으면 null) */
   ultimateAura(): UltimateAuraView | null {
     return this.aura && this.currentTime < this.aura.until - EPS ? this.aura : null;
@@ -389,6 +425,7 @@ export class ReplayState {
           absorbed: e.absorbed,
           dmgType: e.dmgType,
           ...(e.crit ? { crit: true } : {}),
+          ...(e.bonus ? { bonus: true } : {}),
         });
         break;
       }
@@ -496,6 +533,12 @@ export class ReplayState {
       case 'revive': {
         this.openRevives.delete(e.unit);
         const u = this.units.get(e.unit);
+        if (e.inPlace) {
+          // 장비 부활: 쓰러지지 않았으므로 HP만 바뀐다 (상태·위치·이동은 그대로)
+          if (u) u.hp = e.hp;
+          this.effects.push({ kind: 'phoenix', seq, t: e.t, unit: e.unit });
+          break;
+        }
         if (u) {
           u.alive = true;
           u.deadAt = null;
@@ -512,6 +555,20 @@ export class ReplayState {
         this.effects.push({ kind: 'revive', seq, t: e.t, unit: e.unit });
         break;
       }
+      case 'zoneStart':
+        this.openZones.set(e.id, { id: e.id, cells: e.cells, startedAt: e.t, endAt: e.endAt, intervalSeconds: e.intervalSeconds });
+        break;
+      case 'zonePulse': {
+        const zone = this.openZones.get(e.id);
+        this.effects.push({ kind: 'zonePulse', seq, t: e.t, id: e.id, cells: zone?.cells ?? [] });
+        break;
+      }
+      case 'curseTriggered':
+        this.effects.push({ kind: 'curse', seq, t: e.t, cardId: e.cardId });
+        break;
+      case 'commanderHeal':
+        this.effects.push({ kind: 'commanderHeal', seq, t: e.t, amount: e.amount, cardId: e.cardId });
+        break;
       case 'bossPhase':
         this.effects.push({ kind: 'phase', seq, t: e.t, unit: e.unit, phase: e.phase, hpPct: e.hpPct, summoned: e.summoned.length, dispelled: e.dispelled });
         break;
@@ -576,8 +633,8 @@ export class ReplayState {
     if (!list) return;
     const kept = list.filter((s) => s.until > t + EPS);
     // 같은 시각의 만료 알림이 여러 번 와도 아직 유효한 중첩은 유지한다.
-    // 연발은 시간이 아닌 충전 소모로 해제되므로 예외다.
-    if (status === 'extraShots' || kept.length === 0) u.statuses.delete(status);
+    // 연발·장비 부활은 시간이 아닌 소모로 해제되므로 예외다.
+    if (status === 'extraShots' || status === 'reviveOnce' || kept.length === 0) u.statuses.delete(status);
     else u.statuses.set(status, kept);
   }
 

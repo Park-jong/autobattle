@@ -71,6 +71,18 @@ export class UltimateSystem {
     this.chargeValue = Math.min(ULTIMATE.GAUGE_MAX, this.chargeValue + Math.round(base * this.chargeMult));
   }
 
+  /**
+   * 카드로 게이지를 올린다 (카드 사용·사망 충전과 달리 유물 배율 없이 적힌 수치 그대로). 최대 100이고,
+   * 이미 쓴 궁극기는 다시 쓸 수 없으므로 올리지 않는다. 실제로 늘어난 양을 반환한다.
+   */
+  gainUltimate(amount: number): number {
+    if (this.usedValue) return 0;
+    const next = Math.min(ULTIMATE.GAUGE_MAX, this.chargeValue + amount);
+    const gained = next - this.chargeValue;
+    this.chargeValue = next;
+    return gained;
+  }
+
   /** 지금 쓰면 잃는 지휘관 HP: 장부의 남은 HP(런 현재 HP)의 hpCostPct%를 올림. HP를 추적하지 않는 전투는 0 */
   hpCost(): number {
     if (!this.def.hpCostPct || !this.ledger.tracked) return 0;

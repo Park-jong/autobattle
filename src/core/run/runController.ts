@@ -17,6 +17,7 @@ import { Rng } from '../rng';
 import { discounted, generateCardStock, removalPrice, type ShopCardSlot } from './cardMarket';
 import { CardRewardGenerator } from './cardRewards';
 import { CommanderHealth, defeatDamage } from './commanderHealth';
+import type { ContentMigrations } from './contentMigration';
 import { RUN } from './constants';
 import { EncounterPlanner, type EncounterPlan } from './encounterPlanner';
 import { EventDirector, type ChoiceView, type EventHost, type EventSessionState, type PendingPick } from './eventDirector';
@@ -39,6 +40,7 @@ export interface RunDeps {
   encounters: EncounterCatalog;
   events: EventCatalog;
   relics: RelicCatalog;
+  migrations: ContentMigrations;
 }
 
 export interface RunOptions {
@@ -119,6 +121,7 @@ export class RunController {
   private readonly serializer: RunSerializer;
   /** 이 컨트롤러가 발급한 전투 시뮬 → 발급 당시 노드·시도·정산 여부. completeBattle이 현재 전투의 결과만 받게 묶는다 */
   private readonly issued = new WeakMap<CombatSimulator, { nodeId: string; tries: number; settled: boolean }>();
+  private notices: string[] = [];
   /** 단계에 따라 명령을 허용하는 유닛 관리 창구 */
   readonly roster: RunRoster;
   /** 플레이 테스트 도구 (테스트 런에서만 명령을 받는다. 일반 런에서는 모든 명령이 거부됨) */
@@ -129,7 +132,7 @@ export class RunController {
     private readonly state: RunState,
   ) {
     this.planner = new EncounterPlanner(deps.units, deps.encounters, state.seed);
-    this.rewards = new CardRewardGenerator(deps.cards);
+    this.rewards = new CardRewardGenerator(deps.cards, state.commanderId);
     this.relicRewards = new RelicRewardGenerator(deps.relics);
     this.director = new EventDirector(deps.events, this.rewards, state.seed);
     this.serializer = new RunSerializer(deps);
@@ -185,7 +188,16 @@ export class RunController {
 
   /** 저장된 체크포인트에서 이어간다. 잘못된 데이터는 위치가 담긴 한국어 오류 */
   static restore(deps: RunDeps, data: unknown): RunController {
-    return new RunController(deps, new RunSerializer(deps).parse(data));
+    // 저장본의 콘텐츠 버전이 낮으면 먼저 등록된 마이그레이션으로 현재 데이터에 맞게 고친다 (바뀐 내용은 알림으로 남는다)
+    const { data: migrated, notices } = deps.migrations.migrate(data);
+    const controller = new RunController(deps, new RunSerializer(deps).parse(migrated));
+    controller.notices = notices;
+    return controller;
+  }
+
+  /** 복원할 때 콘텐츠 마이그레이션이 저장본을 바꾼 내용 (한국어 문장들; 바뀐 게 없으면 빈 목록). 이어하기 화면이 한 번 알려 준다 */
+  get contentNotices(): readonly string[] {
+    return this.notices;
   }
 
   /** JSON으로 저장 가능한 체크포인트. 전투 중이면 전투 준비 단계로 저장한다 (전투 중간 저장 없음) */
@@ -364,11 +376,19 @@ export class RunController {
     // 지휘관 패시브(녹스): 승리하면 남은 CP 1당 골드. 유물(강철 심장): 승리하면 HP 회복
     let passiveGold = 0;
     let healed = 0;
+    let cardHealed = 0;
     if (outcome === 'win') {
       passiveGold = (sim.commandPoints?.combat ?? 0) * (this.commander.passive.goldPerLeftoverCp ?? 0);
       if (passiveGold > 0) forces.economy.gain(passiveGold);
+      // 카드(빚 청산)로 예약한 회복은 승리했을 때만 확정한다 (최대 HP 초과분은 버림)
+      const reserved = result.events.reduce((sum, e) => (e.type === 'commanderHeal' ? sum + e.amount : sum), 0);
+      if (!health.dead && reserved > 0) cardHealed = health.heal(reserved);
       if (!health.dead) healed = health.heal(forces.relics.sum('winHeal', (e) => e.amount));
     }
+    // 저주 카드: 전투가 끝날 때 손패에 남아 있던 저주의 골드 손실 (결과와 무관, 잔고 한도까지)
+    const curseGold = result.events.reduce((sum, e) => (e.type === 'cursePenalty' ? sum + e.gold : sum), 0);
+    const curseGoldLost = Math.min(forces.economy.gold, curseGold);
+    if (curseGoldLost > 0) forces.economy.spend(curseGoldLost);
     forces.finishBattle(sim.deck.serialize(), sim.equippedItems);
     ticket.settled = true;
 
@@ -405,7 +425,7 @@ export class RunController {
     } else {
       this.toMap();
     }
-    return { ok: true, settlement: { nodeId: node.id, kind, outcome, reward, cardHpLost, defeatDamage: defeat, passiveGold, healed, hpBefore, hpAfter: health.hp, runEnded, actCleared, bossRelicOffer: bossOffer, cardOffer, relicOffer } };
+    return { ok: true, settlement: { nodeId: node.id, kind, outcome, reward, cardHpLost, defeatDamage: defeat, passiveGold, healed, cardHealed, curseGoldLost, hpBefore, hpAfter: health.hp, runEnded, actCleared, bossRelicOffer: bossOffer, cardOffer, relicOffer } };
   }
 
   /** 준비 단계에서 장비·카드 사용으로 바뀐 장비를 로스터에 확정한다 (준비 화면 재구성 시 카드가 복구되지 않도록) */

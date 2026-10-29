@@ -3,6 +3,7 @@ import cardsJson from '../../../data/cards.json';
 import commandersJson from '../../../data/commanders.json';
 import encountersJson from '../../../data/encounters.json';
 import eventsJson from '../../../data/events.json';
+import migrationsJson from '../../../data/migrations.json';
 import relicsJson from '../../../data/relics.json';
 import traitsJson from '../../../data/traits.json';
 import unitsJson from '../../../data/units.json';
@@ -14,7 +15,7 @@ import { loadRunDeps } from './runData';
 
 export const rawRunData = {
   traits: traitsJson, units: unitsJson, cards: cardsJson,
-  commanders: commandersJson, encounters: encountersJson, events: eventsJson, relics: relicsJson,
+  commanders: commandersJson, encounters: encountersJson, events: eventsJson, relics: relicsJson, migrations: migrationsJson,
 };
 
 export const runDeps = loadRunDeps(rawRunData);
