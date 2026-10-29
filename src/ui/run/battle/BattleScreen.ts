@@ -10,6 +10,7 @@ import type { BattleStage, RunCommands, RunSnapshot, RunViewSource } from '../co
 import { button, el, tagged } from '../dom';
 import { BattleTopBar } from './BattleTopBar';
 import { BenchRow } from './BenchRow';
+import { MapModal } from '../MapModal';
 import { HoverPop } from './hoverPop';
 import { ShopLayer } from './ShopLayer';
 import { TraitPanel } from './TraitPanel';
@@ -63,6 +64,8 @@ export class BattleScreen {
   private readonly info: UnitInfoPanel;
   private readonly tooltip: UnitTooltip;
   private readonly drag: RosterDrag;
+  /** 전투 중 맵 보기 창 */
+  private readonly mapModal: MapModal;
   /** 특성 설명 팝업(특성 패널·상점·정보 창 공용) / 상점 진열 유닛 정보 팝업 */
   private readonly traitPop = new HoverPop('bt-trait-pop', 'trait-pop');
   private readonly unitPop = new HoverPop('bt-unit-pop', 'unit-pop');
@@ -112,7 +115,8 @@ export class BattleScreen {
       },
     });
     this.bench = new BenchRow(hosts.bench, catalogs.units, this.drag, hosts.canvasHost, () => this.commands.startBattle());
-    this.topBar = new BattleTopBar(hosts.top, battle, () => this.cards.cardView());
+    this.mapModal = new MapModal(view);
+    this.topBar = new BattleTopBar(hosts.top, battle, () => this.cards.cardView(), undefined, () => this.mapModal.open());
 
     hosts.canvasHost.addEventListener('pointerdown', this.onCanvasDown);
     window.addEventListener('keydown', this.onKey);
@@ -159,6 +163,7 @@ export class BattleScreen {
       this.tooltip.setEnabled(false, null);
       this.traitPop.hide();
       this.unitPop.hide();
+      this.mapModal.close();
       this.stage = null;
       this.inspectUid = null;
     }

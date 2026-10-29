@@ -77,6 +77,8 @@ export interface RunViewSource {
   subscribe(listener: () => void): () => void;
   /** 맵에서 노드에 마우스를 올렸을 때 적 편성 미리보기 (전투·정예·보스가 아니면 null) */
   previewNode(nodeId: string): EncounterPreviewView | null;
+  /** 지금 액트의 맵 (런 중이면 어느 화면에서나 — 전투 중 맵 보기 창용. 런이 아니면 null) */
+  mapView(): MapView | null;
 }
 
 /** 화면이 내리는 명령. 실패하면 상태는 그대로이고 사유가 알림으로 나온다 */

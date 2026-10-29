@@ -41,7 +41,7 @@ describe('grantUnit (이벤트 보상)', () => {
 
   it('벤치가 가득 차거나 풀이 비면 실패하고 상태를 바꾸지 않는다', () => {
     const { management } = make();
-    for (let i = 0; i < MANAGEMENT.BENCH_SIZE; i++) expect(management.grantUnit(['arena_recruit', 'shade_dagger', 'moss_warden', 'grove_archer', 'ember_kindler', 'ember_slinger'][i] as string).ok).toBe(true);
+    for (let i = 0; i < MANAGEMENT.BENCH_SIZE; i++) expect(management.grantUnit(['arena_recruit', 'shade_dagger', 'moss_warden', 'grove_archer', 'ember_kindler', 'ember_slinger', 'abyss_whisperer', 'war_drummer', 'legion_spy'][i] as string).ok).toBe(true);
     expect(management.hasBenchSpace()).toBe(false);
     const state = JSON.stringify(management.serializeState());
     expect(management.grantUnit('legion_crossbow')).toEqual({ ok: false, reason: '벤치가 가득 찼습니다' });

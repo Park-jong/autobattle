@@ -1,6 +1,7 @@
 import { cardFaceElement } from '../cards/cardFace';
 import type { RunCommands, RunSnapshot } from './contracts';
 import { button, el, tagged } from './dom';
+import { iconButton } from './iconButton';
 import { hudElement } from './hudElement';
 import { relicCard } from './relicElements';
 import type { CardView } from './runViews';
@@ -52,7 +53,7 @@ export class RewardModal {
     // 전투 화면이 뒤에 없으면(상단 바가 없다) 상태 줄을 모달에 직접 붙인다
     if (snap.battle === null && snap.hud) {
       const header = el('div', 'rw-header');
-      header.append(hudElement(snap.hud), tagged(button('시작 화면', () => this.commands.toStart(), 'rw-btn'), 'to-start'));
+      header.append(hudElement(snap.hud), tagged(iconButton('home', '시작 화면으로', () => this.commands.toStart(), 'rw-btn'), 'to-start'));
       panel.append(header);
     }
     panel.append(

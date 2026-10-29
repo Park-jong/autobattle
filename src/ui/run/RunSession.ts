@@ -15,7 +15,7 @@ import type {
 } from './contracts';
 import {
   buildActIntroView, buildBossRelicView, buildCampView, buildCommanderChoices, buildDeckList, buildEncounterPreview, buildEndView, buildEventView, buildHud, buildMapView, buildRewardView, buildSettlementView,
-  buildShopView, type EncounterPreviewView,
+  buildShopView, type EncounterPreviewView, type MapView,
 } from './runViews';
 import { buildTestCatalog, buildTestToolsView, type TestCatalogView } from './testViews';
 
@@ -163,6 +163,10 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
       defaultCommanderId: this.o.commanderId,
       testCatalog: this.testCatalog(),
     };
+  }
+
+  mapView(): MapView | null {
+    return this.mode === 'run' && this.controller ? buildMapView(this.controller) : null;
   }
 
   previewNode(nodeId: string): EncounterPreviewView | null {

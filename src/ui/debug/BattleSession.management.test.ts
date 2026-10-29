@@ -64,7 +64,7 @@ describe('경제 플레이 통합', () => {
     const s = session();
     expect(state(s)).toMatchObject({ gold: 10, level: 3, population: 2 });
     expect(state(s).offers).toHaveLength(5);
-    expect(state(s).bench).toHaveLength(6);
+    expect(state(s).bench).toHaveLength(9);
     s.buyUnit(1); // 시드1: 잿불 투석병
     const recruit = state(s).bench.find((unit) => unit !== null);
     if (!recruit) throw new Error('구매 유닛 없음');

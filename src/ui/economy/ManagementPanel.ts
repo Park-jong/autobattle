@@ -4,6 +4,7 @@ import type { UnitCatalog } from '../../core/data/unitLoader';
 import type { UnitDef } from '../../core/data/unit';
 import type { OwnedUnit } from '../../core/management';
 import type { DebugController } from '../debug/contracts';
+import { unitDragGhost } from '../run/battle/unitFace';
 import { RosterDrag } from './RosterDrag';
 import { unitArtUrl } from '../skin/skins';
 import { appSkin, type SkinStore } from '../skin/SkinStore';
@@ -47,7 +48,18 @@ export class ManagementPanel {
     private readonly options: ManagementPanelOptions = {},
   ) {
     this.root.className = 'management-panel';
-    this.drag = new RosterDrag({ controller, canvasHost, isActive: () => this.isActive() });
+    this.drag = new RosterDrag({
+      controller,
+      canvasHost,
+      isActive: () => this.isActive(),
+      // 끄는 동안 보드 위 유닛 모양을 보여 준다 (전투 화면과 같은 표시)
+      ghost: (id) => {
+        const state = controller.snapshot().management?.state;
+        const unit = state ? [...state.board, ...state.bench].find((u): u is OwnedUnit => u?.id === id) : undefined;
+        const def = unit ? units.get(unit.unitId) : undefined;
+        return unitDragGhost(unit?.unitId ?? '', def?.name ?? '유닛', def?.tier ?? 1, unit?.star ?? 1, options.skin ?? appSkin);
+      },
+    });
     controller.subscribe(() => this.render());
     (options.skin ?? appSkin).subscribe(() => this.render());
     this.render();

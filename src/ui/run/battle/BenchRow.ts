@@ -10,7 +10,7 @@ import { button, el, tagged } from '../dom';
 import { unitFace } from './unitFace';
 
 /**
- * 보드 아래의 벤치 줄(6칸 가로 일렬). 칸 폭은 화면에 그려진 보드 폭에 맞춘다.
+ * 보드 아래의 벤치 줄(9칸 가로 일렬). 칸 폭은 화면에 그려진 보드 폭에 맞춘다.
  * 왼쪽: 배치 인원·레벨, 오른쪽: 전투 시작 버튼(준비 단계) 또는 진행 상태.
  */
 export class BenchRow {
