@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { COMBAT } from '../../core/combat';
+import { BOARD_COLS, BOARD_ROWS } from '../../core/combat/board';
 import type { Cell } from '../../core/combat';
 import type { BattleViewSource } from '../debug/contracts';
 import { applyHiDpiCamera, createText, type HiDpiMetrics } from '../hidpi';
@@ -36,6 +37,8 @@ export class BattleScene extends Phaser.Scene {
   private targetingOverlay!: TargetingOverlay;
   private timeText!: Phaser.GameObjects.Text;
   private hintText!: Phaser.GameObjects.Text;
+  /** 배치 인원이 상한보다 적을 때 보드 위에 띄우는 안내 */
+  private openSlotText!: Phaser.GameObjects.Text;
   private sprites = new Map<number, UnitSprite>();
   private signature = '';
   private hoverCell: Cell | null = null;
@@ -68,6 +71,11 @@ export class BattleScene extends Phaser.Scene {
       color: TEXT_COLORS.TITLE,
     }).setOrigin(0.5);
     this.hintText = createText(this, this.metrics, 20, 20, '', { fontSize: '16px', color: TEXT_COLORS.MUTED });
+    this.openSlotText = createText(this, this.metrics, LAYOUT.BOARD_X + LAYOUT.CELL_SIZE * 2, LAYOUT.TIME_Y + 34, '', {
+      fontSize: '17px',
+      fontStyle: 'bold',
+      color: TEXT_COLORS.OPEN_SLOT,
+    }).setOrigin(0.5).setDepth(20);
 
     this.input.mouse?.disableContextMenu();
     this.input.on('pointermove', (p: Phaser.Input.Pointer) => {
@@ -119,8 +127,26 @@ export class BattleScene extends Phaser.Scene {
       editing && !targeting.active && this.hoverCell
         ? { cell: this.hoverCell, valid: this.source.canPlaceAt(this.hoverCell) }
         : null;
-    this.board.drawDynamic(this.source.overheating, hover);
+    const open = this.openSlotCells(views);
+    const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 380);
+    this.board.drawDynamic(this.source.overheating, hover, open.cells, pulse);
+    this.openSlotText.setText(open.count > 0 ? `배치 가능 +${open.count} — 아군 진영에 유닛을 더 놓을 수 있습니다` : '');
+    this.openSlotText.setAlpha(0.65 + 0.35 * pulse);
     this.updateTexts(editing, time, targeting.hint);
+  }
+
+  /** 준비 단계에서 인구 상한까지 남은 자리가 있으면 아군 진영(왼쪽 4열)의 빈 칸들. 카드를 집고 있으면 표시하지 않는다 */
+  private openSlotCells(views: readonly UnitView[]): { count: number; cells: Cell[] } {
+    const count = this.source.phase === 'edit' && !this.source.targeting().active ? this.source.openSlots : 0;
+    if (count <= 0) return { count: 0, cells: [] };
+    const occupied = new Set(views.filter((v) => v.side === 0 && v.alive).map((v) => `${v.cell.col},${v.cell.row}`));
+    const cells: Cell[] = [];
+    for (let col = 0; col < BOARD_COLS / 2; col++) {
+      for (let row = 0; row < BOARD_ROWS; row++) {
+        if (!occupied.has(`${col},${row}`)) cells.push({ col, row });
+      }
+    }
+    return { count, cells };
   }
 
   private updateTexts(editing: boolean, time: number, targetHint: string): void {

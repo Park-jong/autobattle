@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Economy, goldInterest, type BattleKind } from './economy';
 
 describe('골드와 전투 보상', () => {
-  it.each([[0, 0], [9, 0], [10, 1], [19, 1], [20, 2], [29, 2], [30, 3], [99, 3]])('잔고 %sG의 이자는 %sG', (gold, interest) => {
+  it.each([[0, 0], [9, 0], [10, 1], [19, 1], [20, 2], [29, 2], [30, 3], [49, 4], [50, 5], [99, 5]])('잔고 %sG의 이자는 %sG', (gold, interest) => {
     expect(goldInterest(gold)).toBe(interest);
   });
 

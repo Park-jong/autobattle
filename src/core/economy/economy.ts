@@ -4,7 +4,7 @@ import { FieldReader } from '../data/fieldReader';
 export const ECONOMY = {
   START_GOLD: 10,
   INTEREST_STEP: 10,
-  INTEREST_MAX: 3,
+  INTEREST_MAX: 5,
   LOSS_REWARD: 3,
   WIN_REWARDS: { normal: 5, elite: 8, boss: 15 },
 } as const;

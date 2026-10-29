@@ -256,12 +256,12 @@ describe('런 경제·덱·맵 유물', () => {
       const settle = finishBattle(run, 'win');
       return settle.ok ? settle.settlement.reward.interest : -1;
     };
-    expect(interest(false)).toBe(3);
-    expect(interest(true)).toBe(5);
+    expect(interest(false)).toBe(5);
+    expect(interest(true)).toBe(7);
     const run = newRun(4);
     grantRelic(run, 'fat_purse');
     grantGold(run, 70);
-    expect(run.economyView.nextInterest).toBe(5);
+    expect(run.economyView.nextInterest).toBe(7);
   });
 
   it('도매 증서: 상점 카드·카드 제거 가격 -25% (올림)', () => {

@@ -46,7 +46,18 @@ export function cardChoice(card: CardView | DeckCardView, options: ChoiceOptions
   }
   if ('upgradePreview' in card && card.upgradePreview) {
     const up = card.upgradePreview;
-    root.append(el('p', 'run-card-upgrade', `강화 후: ${up.name} (비용 ${up.cost}) ${up.text}`));
+    if (options.face) {
+      // 강화 후 모습도 카드 모양으로 (종류·희귀도는 그대로, 이름·비용·설명만 강화판)
+      const after = el('div', 'run-card-upgrade-face');
+      const face = cardFaceElement({ ...card, name: up.name, cost: up.cost, text: up.text, upgraded: true, tags: card.tags });
+      face.classList.add('run-face-card');
+      const holder = el('div', 'run-card-face small');
+      holder.append(face);
+      after.append(el('span', 'run-card-upgrade-label', '강화 후 ▼'), holder);
+      root.append(after);
+    } else {
+      root.append(el('p', 'run-card-upgrade', `강화 후: ${up.name} (비용 ${up.cost}) ${up.text}`));
+    }
   }
   const action = button(options.label, options.onChoose, 'dbg-btn run-choice-button');
   action.disabled = options.disabled === true;

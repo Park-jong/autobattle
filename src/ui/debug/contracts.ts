@@ -87,6 +87,8 @@ export interface BattleViewSource {
   readonly overheating: boolean;
   /** 지휘관이 있는 편성 단계 = 준비 단계 */
   readonly prepping: boolean;
+  /** 준비 단계에서 더 배치할 수 있는 유닛 수 (인구 상한 − 배치 수). 유닛 관리가 없거나 전투 중이면 0 */
+  readonly openSlots: number;
   /** 지금 적용 중인 시간 배율 (슬로모션 표시용) */
   readonly timeScale: number;
   /** 현재 화면에 그릴 유닛들 (편성 중이면 편성 미리보기) */
