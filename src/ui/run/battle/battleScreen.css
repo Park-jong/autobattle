@@ -391,3 +391,7 @@ body.roster-dragging .bt-slot { border-color: var(--bt-gold-dim); background: #2
   border: 2px dashed var(--bt-gold); background: #3a2f1acc; color: var(--bt-gold); font: 700 16px var(--bt-font);
 }
 body.roster-dragging .tray-layer.shop.front .bt-sell-overlay { display: flex; }
+
+/* 배치 인원이 상한보다 적을 때: 벤치 줄의 배치 수 강조 */
+.bt-bench-side b.bt-under { color: #7dffb0; text-shadow: 0 0 8px #7dffb099; animation: bt-under-pulse 1.4s ease-in-out infinite; }
+@keyframes bt-under-pulse { 50% { opacity: 0.55; } }

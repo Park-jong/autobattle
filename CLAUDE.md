@@ -102,8 +102,9 @@
   - 보드 오른쪽(`UnitInfoPanel`): 준비 단계에서 유닛을 클릭(세션 선택)하거나 전투 중 아군을 클릭하면 능력치·1/2/3성 스킬(지금 성급 강조)·제공 카드·장비, 준비 단계면 벤치로·판매(+환급 G). Esc·×로 닫는다.
   - 적 툴팁(`UnitTooltip`): 캔버스의 적에게 마우스를 올리면 포인터 옆에 현재 HP·상태·실제 수치(미리보기 계획의 층 보정·변이 값)·지금 성급 스킬·변이·보스 패턴. 포인터 아래 유닛은 `BattleSession.unitAtStage`(`UnitHoverSource`).
   - 결과는 보드 위 모달, 세션 오류는 보드 위 배너.
-  - 카드 목록 창(`ui/run/CardListModal`, 순수 정렬은 `cards/cardListView`): 맵 헤더·전투 상단 바의 "덱 보기"(`open-deck`, 런 덱 기준, `RunSnapshot.deck`)와 뽑을/버린/소모 더미 칩이 같은 창(`card-list-modal`)을 카드 모양(`cardFaceElement`, 같은 카드는 ×N)으로 연다. ×·Esc·배경으로 닫고, 열려 있는 동안 키 입력을 캡처 단계에서 막으며 더미 목록은 전투 중 갱신된다. 상점·이벤트·야영지는 제외.
+  - 카드 목록 창(`ui/run/CardListModal`, 순수 정렬은 `cards/cardListView`): 맵 헤더·전투 상단 바의 "덱 보기"(`open-deck`, 런 덱 기준, `RunSnapshot.deck`)와 뽑을/버린/소모 더미 칩이 같은 창(`card-list-modal`)을 카드 모양(`cardFaceElement`, 같은 카드는 ×N)으로 연다. ×·Esc·배경으로 닫고, 열려 있는 동안 키 입력을 캡처 단계에서 막으며 더미 목록은 전투 중 갱신된다. 상점·이벤트·야영지는 제외. 상점 진열·카드 제거, 이벤트 카드 받기·제거·강화, 야영지 강화 목록은 `cardChoice`/`deckPicker`의 `face` 옵션으로 같은 카드 모양(강화 후 모습은 아래 작은 카드)이다.
   - **카드 보상 창**(`ui/run/RewardModal`, 화면 전환 없음): 결과 모달에서 "계속"을 누르면 `RunSession`이 `rewardOverBattle`을 켜 screen을 `battle`로 유지(stage `result`·settlement null)하고, 전투 화면 뒤에 두고 화면 전체를 덮는 막(`rw-backdrop`) 위에 보상 창을 띄운다(정예면 유물 + "유물 받기"). 카드 3장은 손패와 같은 카드 모양(`ui/cards/cardFace.ts`의 `cardFaceElement`를 HandPanel과 공용, `CardView.type` 추가)을 키워 보여주며 카드 클릭 또는 아래 버튼으로 받는다. `snapshot().reward`는 결과 확인 뒤 reward 단계에서만 있고, 저장본으로 이어하면 screen `reward`(뒤에 전투 화면 없음)로 같은 창이 불투명 배경 위에 뜬다.
+  - 배치 인원이 인구 상한보다 적으면(준비 단계, `BattleViewSource.openSlots`) 씬이 아군 진영 빈 칸을 초록으로 맥동시키고 보드 위에 "배치 가능 +N"을 띄우며, 벤치 줄의 배치 수도 초록으로 강조한다. 카드를 집고 있으면 숨긴다.
   - 보드 아래 벤치 줄(`BenchRow`): 9칸(`MANAGEMENT.BENCH_SIZE`) 가로 일렬(폭을 화면의 보드 폭에 맞춤), 배치 인원, 전투 시작 버튼(Enter).
   - 하단 트레이(`TrayStack`): 유닛 상점 층(`ShopLayer`: 레벨·XP·골드, 리롤 R·경험치 F·잠금, 진열 5칸)과 카드 층(`HandPanel`)을 겹쳐 두고 탭·단축키(S 상점 / C 카드, `KeyboardEvent.code`)로 고른 층이 앞으로 나오고 다른 층은 뒤로 물러나 탭만 보인다. 준비 단계에 들어오면 상점이, 전투가 시작되면 카드가 앞으로 나온다. 상점 층은 판매 구역(유닛을 끌어 놓으면 판매, 드래그를 시작하면 상점이 앞으로). 진열 카드에 마우스를 올리면 카드 위에 유닛 정보(1성 능력치·1/2/3성 스킬·등급·가격) 팝업, 특성 이름 위면 특성 팝업.
   - 특성 설명 팝업은 특성 패널·상점 진열·유닛 정보 창의 특성 칩이 함께 쓰는 `HoverPop`(`hoverPop.ts`, body에 붙는 fixed 팝업 — 패널 overflow에 잘리지 않음)이고, 내용은 그 진영의 지금 종류 수·단계(`traitRowFor`). 정보 창이 전투 중 HP 변화로 다시 그려져도 `reattach`(data-pop-key)로 팝업을 유지한다.
@@ -137,7 +138,7 @@
 - **콘텐츠 마이그레이션**(`data/migrations.json`, `core/run/contentMigration.ts`): 저장본에 `contentVersion`을 적고 복원할 때 낮은 버전 저장본에 등록된 단계(카드 교체·제거·환불·유물 교체 등, 데이터로 선언·검증)를 순서대로 적용한다. 바뀐 내용은 `controller.contentNotices`로 `RunSession.continueRun`의 정보 알림이 된다. 높은 버전은 거부. 첫 사례가 불씨 화살 전환. 콘텐츠를 바꿀 때의 절차는 data/README.md "콘텐츠 마이그레이션".
 
 ## 골드 경제 (M3-1)
-- `src/core/economy`: 시작 10G, 일반/정예/보스 승리 5/8/15G, 패배·무승부 3G. 이자는 **정산 전 잔고** 10G당 1G, 최대 3G. 모든 금액은 0 이상의 안전한 정수다.
+- `src/core/economy`: 시작 10G, 일반/정예/보스 승리 5/8/15G, 패배·무승부 3G. 이자는 **정산 전 잔고** 10G당 1G, 최대 5G(50G 이상 보유, 유물 두둑한 전대면 +2G → 7G). 모든 금액은 0 이상의 안전한 정수다.
 - `Economy.settleBattle(id, kind, outcome)`는 동일 ID에 한 번만 지급하고 최초 영수증을 다시 반환한다. `spend`는 잔고 부족 시 false이며 상태를 바꾸지 않는다.
 - `BattleSession`의 단일 전투는 결과 후 `nextBattle()`로 새 전투 ID를 발급해 골드를 이어간다. `reset()`은 같은 전투를 재시도하므로 보상을 재지급하지 않는다. `resetEconomy()`는 편집 가능한 준비 단계에서만 10G로 초기화한다.
 - `Gauntlet`은 독립 골드 계정으로 시작하며 마지막 판까지 정산한다. 종료/중단 시 단일 계정은 그대로 복원된다. `GauntletStage.kind` 생략 시 일반 전투. 같은 전투 로그를 중복 정산하면 판과 골드가 증가하지 않는다.

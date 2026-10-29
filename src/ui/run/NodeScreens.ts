@@ -12,6 +12,13 @@ abstract class NodeScreen {
 
   constructor(protected readonly commands: RunCommands) {}
 
+  /** 화면 아래에 고정되는 행동 줄: 내용이 길어 화면을 넘어가도 진행 버튼이 항상 보인다 */
+  protected actionBar(...buttons: HTMLElement[]): HTMLElement {
+    const bar = el('div', 'run-sticky-actions');
+    bar.append(...buttons);
+    return bar;
+  }
+
   protected frame(snap: RunSnapshot, title: string, subtitle: string, body: readonly HTMLElement[]): void {
     if (!snap.hud) return;
     const header = el('div', 'run-screen-header');
@@ -37,8 +44,8 @@ export class BossRelicScreen extends NodeScreen {
     owned.append(el('h3', '', `보유 유물 ${view.owned.length}개`), relicRow(view.owned, '없음'));
     const body = [
       grid,
-      tagged(button('받지 않고 다음 액트로', () => this.commands.skipBossRelic(), 'dbg-btn'), 'skip-boss-relic'),
       owned,
+      this.actionBar(tagged(button('받지 않고 다음 액트로', () => this.commands.skipBossRelic(), 'dbg-btn'), 'skip-boss-relic')),
     ];
     this.frame(snap, `액트 ${view.act} 클리어 — ${view.actName}`, '보스를 쓰러뜨렸습니다. 보스 유물을 하나 고르세요. 이 선택은 되돌릴 수 없습니다.', body);
   }
@@ -59,7 +66,7 @@ export class ActIntroScreen extends NodeScreen {
     );
     if (view.boss) card.append(el('h4', '', '이 액트의 보스'), encounterPreviewElement(view.boss));
     const go = tagged(button(`액트 ${view.act} 시작`, () => this.commands.continueAct(), 'dbg-btn dbg-primary run-big-button'), 'continue-act');
-    this.frame(snap, `액트 ${view.act} — ${view.name}`, '골드·유닛·덱·장비·유물은 그대로 이어집니다.', [card, go]);
+    this.frame(snap, `액트 ${view.act} — ${view.name}`, '골드·유닛·덱·장비·유물은 그대로 이어집니다.', [card, this.actionBar(go)]);
   }
 }
 
@@ -111,7 +118,7 @@ export class ShopScreen extends NodeScreen {
         face: true,
       }));
     } else this.removing = false;
-    body.push(tagged(button('상점 나가기', () => this.commands.leaveShop(), 'dbg-btn dbg-primary'), 'leave-shop'));
+    body.push(this.actionBar(tagged(button('상점 나가기', () => this.commands.leaveShop(), 'dbg-btn dbg-primary'), 'leave-shop')));
     this.currentSnap = snap;
     this.frame(snap, '상점', `보유 골드 ${shop.gold}G · 유닛은 전투 준비 화면의 상점에서 살 수 있습니다.`, body);
   }
@@ -142,9 +149,9 @@ export class EventScreen extends NodeScreen {
     }
     const pending = event.pending;
     if (pending?.kind === 'gainCard') {
-      const grid = tagged(el('div', 'run-card-grid'), 'event-pending');
+      const grid = tagged(el('div', 'run-card-grid face-grid'), 'event-pending');
       for (const option of pending.options) {
-        grid.append(cardChoice(option.card, { label: '이 카드 받기', onChoose: () => this.commands.pickEventOption(option.optionIndex), testId: `event-pick-${option.optionIndex}` }));
+        grid.append(cardChoice(option.card, { label: '이 카드 받기', onChoose: () => this.commands.pickEventOption(option.optionIndex), testId: `event-pick-${option.optionIndex}`, face: true }));
       }
       body.push(el('h3', '', pending.title), grid);
     } else if (pending) {
@@ -154,9 +161,10 @@ export class EventScreen extends NodeScreen {
         actionLabel: pending.kind === 'removeCard' ? '제거' : '강화',
         onPick: (index) => this.commands.pickEventOption(index),
         testId: 'event-pending',
+        face: true,
       }));
     }
-    if (event.finished) body.push(tagged(button('계속', () => this.commands.finishEvent(), 'dbg-btn dbg-primary'), 'finish-event'));
+    if (event.finished) body.push(this.actionBar(tagged(button('계속', () => this.commands.finishEvent(), 'dbg-btn dbg-primary'), 'finish-event')));
     this.frame(snap, event.title, '이벤트', body);
   }
 }
@@ -190,6 +198,7 @@ export class CampScreen extends NodeScreen {
         onPick: (id) => { this.mode = null; this.commands.campUpgrade(id); },
         onCancel: () => choose('upgrade'),
         testId: 'upgrade-picker',
+        face: true,
       }));
     } else if (this.mode === 'promote' && camp.promotions.length > 0) {
       const list = tagged(el('div', 'run-promotions'), 'promotion-list');
@@ -207,7 +216,7 @@ export class CampScreen extends NodeScreen {
       }
       body.push(list);
     } else this.mode = null;
-    body.push(tagged(button('아무것도 하지 않고 떠나기', () => { this.mode = null; this.commands.leaveCamp(); }), 'leave-camp'));
+    body.push(this.actionBar(tagged(button('아무것도 하지 않고 떠나기', () => { this.mode = null; this.commands.leaveCamp(); }), 'leave-camp')));
     this.frame(snap, '야영지', `HP ${camp.hp}/${camp.maxHp} · ${camp.gold}G · 휴식 / 카드 강화 / 유닛 승급 중 하나를 고르세요.`, body);
   }
 }

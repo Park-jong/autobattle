@@ -28,10 +28,18 @@ export class BoardRenderer {
   }
 
   /** 매 프레임 호출: 과열 테두리와 커서 칸 강조를 그린다. */
-  drawDynamic(overheating: boolean, hover: { cell: Cell; valid: boolean } | null): void {
+  drawDynamic(overheating: boolean, hover: { cell: Cell; valid: boolean } | null, openCells: readonly Cell[] = [], pulse = 0): void {
     const g = this.dynamic;
     g.clear();
     const { originX, originY, width, height, cellSize } = this.layout;
+    // 배치 인원이 상한보다 적으면 아군 진영의 빈 칸이 맥동하며 "여기에 더 놓을 수 있다"를 알린다
+    for (const cell of openCells) {
+      const p = this.layout.topLeft(cell.col, cell.row);
+      g.fillStyle(COLORS.OPEN_SLOT, 0.05 + 0.09 * pulse);
+      g.fillRect(p.x + 3, p.y + 3, cellSize - 6, cellSize - 6);
+      g.lineStyle(2, COLORS.OPEN_SLOT, 0.25 + 0.4 * pulse);
+      g.strokeRect(p.x + 6, p.y + 6, cellSize - 12, cellSize - 12);
+    }
     if (overheating) {
       g.lineStyle(6, COLORS.OVERHEAT_BORDER, 0.9);
       g.strokeRect(originX - 3, originY - 3, width + 6, height + 6);

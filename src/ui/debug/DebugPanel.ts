@@ -213,7 +213,7 @@ export class DebugPanel {
     actions.append(this.nextBattleButton, this.resetEconomyButton);
     s.append(
       this.goldLabel, this.interestLabel, kindRow, this.rewardBox, actions,
-      el('p', 'dbg-hint', '승리: 일반 5G · 정예 8G · 보스 15G / 패배·무승부 3G. 정산 전 잔고 10G당 이자 1G (최대 3G).'),
+      el('p', 'dbg-hint', '승리: 일반 5G · 정예 8G · 보스 15G / 패배·무승부 3G. 정산 전 잔고 10G당 이자 1G (최대 5G).'),
       el('p', 'dbg-hint', '리셋은 같은 전투를 재시도하며 보상을 다시 주지 않습니다. 결과 후 다음 전투를 누르면 골드를 이어갑니다. 5연전은 별도 10G로 시작합니다.'),
     );
     return s;

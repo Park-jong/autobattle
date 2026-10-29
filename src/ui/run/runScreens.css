@@ -360,3 +360,16 @@
 .run-card-face .hcard.run-face-card:hover { transform: translateY(-3px); box-shadow: 0 10px 20px #000d, 0 0 0 2px var(--frame-light); }
 .run-card-face .hcard.run-face-card.disabled { filter: grayscale(0.5) brightness(0.75); }
 .run-choice.face .run-choice-badge { top: -6px; right: 4px; }
+/* 야영지 강화: 강화 후 모습을 작은 카드로 */
+.run-card-upgrade-face { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.run-card-upgrade-label { font-size: 11px; color: #9be29b; }
+.run-card-face.small { zoom: 1.1; }
+
+/* 노드 화면 하단 고정 행동 줄 (액트 시작·다음 액트로·상점 나가기·이벤트 계속·야영지 떠나기):
+   내용이 길어 화면 밖으로 넘어가도 진행 버튼이 항상 화면 아래에 보인다 */
+.run-sticky-actions {
+  position: sticky; bottom: 0; z-index: 4;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+  margin: 4px -20px -48px; padding: 14px 20px 18px;
+  background: linear-gradient(180deg, transparent, #0e1119f2 30%);
+}

@@ -162,6 +162,12 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
     return this.live !== null && this.currentPhase !== 'edit' && this.live.replay.overheating;
   }
 
+  get openSlots(): number {
+    if (!this.roster || !this.canManage()) return 0;
+    const snapshot = this.roster.snapshot();
+    return Math.max(0, snapshot.level - snapshot.population);
+  }
+
   get prepping(): boolean {
     return this.currentPhase === 'edit' && this.commander !== null;
   }

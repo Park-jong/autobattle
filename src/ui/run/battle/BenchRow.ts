@@ -49,9 +49,13 @@ export class BenchRow {
     }
     const state = management.state;
     const canManage = management.canManage;
+    // 준비 단계에서 인구 상한보다 적게 배치했으면 배치 수를 강조한다 (보드의 빈 칸 맥동과 같은 신호)
+    const open = stage === 'prep' && canManage ? Math.max(0, state.level - state.population) : 0;
+    const count = el('b', open > 0 ? 'bt-under' : '', `${state.population} / ${state.level}`);
+    if (open > 0) count.title = `${open}기 더 배치할 수 있습니다`;
     this.left.replaceChildren(
       el('span', '', '배치 '),
-      el('b', '', `${state.population} / ${state.level}`),
+      count,
       el('span', '', ` · 벤치 ${state.bench.filter((u) => u !== null).length} / ${state.bench.length}`),
     );
     this.slots.replaceChildren(...state.bench.map((unit, index) => this.slot(unit, index, canManage, management.selectedUnitId)));

@@ -140,3 +140,27 @@ describe('runViews: 액트 표시 정보', () => {
     expect(h.session.previewNode(run.map.floor(1)[0]!.id)!.bossPatterns).toEqual([]);
   });
 });
+
+describe('RunSession: 보스 유물 후보가 없는 일반 런 (메타 미해금)', () => {
+  it('액트 보스를 이기면 결과 창이 뜨고(예외 없음) "다음 액트로" → 액트 소개 → 액트 2 맵으로 이어진다', () => {
+    // 보스 유물 3개는 "액트 1 보스 처치" 해금이라 첫 런에는 후보가 0개 → 선택 단계 없이 곧바로 다음 액트(현재 노드 없음)
+    const run = RunController.create(gameData.run, {
+      seed: 61, commanderId: 'cmd_harten', acts: 3, unlocks: { commanders: ['cmd_harten'], relics: [], maxThreat: 0 },
+    });
+    driveTo(run, 'boss');
+    const h = openSaved(run);
+    expect(h.session.snapshot().battle?.stage).toBe('prep');
+    const plan = h.session.snapshot().battle!.plan;
+
+    h.battle.forceRunResult('win');
+    const snap = h.session.snapshot();
+    expect(snap.screen).toBe('battle');
+    expect(snap.battle).toMatchObject({ stage: 'result', plan });
+    expect(snap.battle!.settlement).toMatchObject({ actCleared: 1, continueLabel: '다음 액트로' });
+
+    h.session.continueAfterBattle();
+    expect(h.session.snapshot().screen).toBe('actIntro');
+    h.session.continueAct();
+    expect(h.session.snapshot().map).toMatchObject({ act: 2 });
+  });
+});

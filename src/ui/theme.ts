@@ -78,6 +78,8 @@ export const COLORS = {
   ULTIMATE_AURA_DEFAULT: 0xffd54a,
   BOARD_BORDER: 0x3a4152,
   HOVER_OK: 0x9be29b,
+  /** 배치 인원이 상한보다 적을 때 아군 빈 칸 강조 */
+  OPEN_SLOT: 0x7dffb0,
   HOVER_BAD: 0xff7b7b,
 
   ALLY_UNIT: 0x4aa3ff,
@@ -124,6 +126,8 @@ export const TEXT_COLORS = {
   /** 저주 카드 발동 */
   CURSE: '#b57bff',
   COST_DOWN: '#9be29b',
+  /** 배치 가능 안내 (보드 위) */
+  OPEN_SLOT: '#7dffb0',
 } as const;
 
 export const FONT_FAMILY = '"Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif';

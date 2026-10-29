@@ -69,6 +69,11 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
   private attachedKey: string | null = null;
   /** 연결한 전투의 시도 번호(1부터). 정산 후에는 tries가 늘어 있으므로 결과 화면은 이 값을 쓴다 */
   private attachedAttempt = 1;
+  /**
+   * 지금 연결된 전투의 적 편성. 결과 창을 보여 주는 동안 런은 이미 다음 단계로 넘어가 있을 수 있어서
+   * (보스 유물 후보가 0개면 곧바로 다음 액트 — 현재 노드가 없다) 전투 단계일 때 계산한 것을 기억해 둔다
+   */
+  private attachedPlan: EncounterPreviewView | null = null;
   private notice: RunNotice | null = null;
   private noticeSeq = 0;
   private readonly listeners = new Set<() => void>();
@@ -397,6 +402,7 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
     this.endSettlement = null;
     this.attachedKey = null;
     this.attachedAttempt = 1;
+    this.attachedPlan = null;
     this.o.battle.detachRun();
   }
 
@@ -486,10 +492,16 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
     const session = run.session;
     return {
       stage,
-      plan: buildEncounterPreview(run.battlePlan()),
+      plan: this.battlePlan(run),
       attempt: finished ? this.attachedAttempt : (session?.kind === 'battle' ? session.tries : 0) + 1,
       settlement: settlement ? buildSettlementView(settlement) : null,
     };
+  }
+
+  /** 전투 준비·전투 중이면 지금 노드의 편성을 새로 만들어 기억하고, 결과 단계(런이 다음 단계로 넘어갔을 수 있음)면 기억한 것을 쓴다 */
+  private battlePlan(run: RunController): EncounterPreviewView {
+    if (run.phase === 'battlePrep' || run.phase === 'battle' || !this.attachedPlan) this.attachedPlan = buildEncounterPreview(run.battlePlan());
+    return this.attachedPlan;
   }
 
   private fail(message: string): void {
