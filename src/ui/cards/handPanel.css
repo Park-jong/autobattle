@@ -156,23 +156,18 @@
 }
 .hcard-use:hover { background: linear-gradient(180deg, #38a868, #257046); }
 
-.hcard-ghost {
-  position: fixed;
+/* 드래그 중인 카드: 손패와 같은 카드 모양이 포인터 위쪽에 떠서 따라온다 (대상을 가리지 않게) */
+.hcard.hcard-ghost {
+  position: fixed; bottom: auto; margin: 0;
   z-index: 1000;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px 4px 4px;
-  background: #3a3720;
-  border: 2px solid #ffd54a;
-  border-radius: 16px;
-  color: #fff;
-  font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
-  font-size: 14px;
-  pointer-events: none;
-  transform: translate(-50%, -120%);
+  pointer-events: none; cursor: grabbing;
+  opacity: 0.88;
+  transition: none;
+  transform-origin: 50% 100%;
+  transform: translate(-50%, calc(-100% - var(--ghost-lift, 96px))) rotate(var(--ghost-tilt, -6deg)) scale(var(--ghost-scale, 0.9));
+  border-color: #ffd54a;
+  box-shadow: 0 0 0 2px #ffd54a, 0 0 20px #ffd54a88, 0 18px 30px #000c;
 }
-.hcard-ghost .hcard-cost { width: 22px; height: 22px; line-height: 22px; text-align: center; border-radius: 50%; background: #2b7fa8; font-weight: 700; }
 
 .hand-pile-list {
   position: absolute;

@@ -50,6 +50,11 @@ export const COLORS = {
   TARGET_AREA: 0xffe27a,
   TARGET_DROP_ZONE: 0xbfe3ff,
   AIM_MARK: 0xff4d4d,
+  /** 가리키는 대상 조준 표식 / 범위 중심 칸 / 범위 안 유닛 / 대상이 될 수 없는 유닛 */
+  TARGET_AIM: 0xffd54a,
+  TARGET_AREA_CENTER: 0xfff7c2,
+  TARGET_AREA_UNIT: 0xff9f43,
+  TARGET_INVALID: 0xff5a5a,
   UNDYING: 0xd9a6ff,
   CARD_PULSE: 0xfff2a8,
   /** 보스 열 강타 예고 / 발동 */
@@ -169,6 +174,10 @@ export const CARD_UI = {
   TOAST_SECONDS: 3.2,
   /** 손패 영역 높이(px, CSS) */
   HAND_HEIGHT: 206,
+  /** 드래그 중인 카드 고스트: 크기 배율·기울기(도)·포인터에서 위로 띄우는 거리(px) */
+  GHOST_SCALE: 0.9,
+  GHOST_TILT_DEG: -6,
+  GHOST_LIFT_PX: 96,
 } as const;
 
 export const MOTION = {

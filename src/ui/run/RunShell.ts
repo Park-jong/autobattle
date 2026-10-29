@@ -2,7 +2,8 @@ import type { RunCommands, RunScreenId, RunSnapshot, RunViewSource, TestCommands
 import { button, el, tagged } from './dom';
 import { EndScreen } from './EndScreen';
 import { MapScreen } from './MapScreen';
-import { ActIntroScreen, BossRelicScreen, CampScreen, EventScreen, RewardScreen, ShopScreen } from './NodeScreens';
+import { ActIntroScreen, BossRelicScreen, CampScreen, EventScreen, ShopScreen } from './NodeScreens';
+import { RewardModal } from './RewardModal';
 import { StartScreen } from './StartScreen';
 import { TestToolsPanel } from './TestToolsPanel';
 import './runScreens.css';
@@ -33,6 +34,8 @@ export class RunShell {
   private readonly backButton: HTMLButtonElement;
   /** 테스트 런 중에만 보이는 테스트 도구 (모든 런 화면 위에 떠 있다) */
   private readonly testTools: TestToolsPanel;
+  /** 카드 보상 창: 전투 화면 위(또는 빈 배경 위)에 뜨는 모달이라 전체 화면 오버레이 목록에 없다 */
+  private readonly rewardModal: RewardModal;
   private readonly screens: Partial<Record<RunScreenId, OverlayScreen>>;
   private mounted: RunScreenId | null = null;
   private shownNotice = 0;
@@ -46,7 +49,6 @@ export class RunShell {
     this.screens = {
       start: new StartScreen(commands, commands),
       map: new MapScreen(view, commands),
-      reward: new RewardScreen(commands),
       bossRelic: new BossRelicScreen(commands),
       actIntro: new ActIntroScreen(commands),
       shop: new ShopScreen(commands),
@@ -57,7 +59,8 @@ export class RunShell {
     this.backButton = tagged(button('← 시작 화면', () => commands.toStart(), 'dbg-btn run-back-button'), 'back-to-start');
     this.toast.hidden = true;
     this.testTools = new TestToolsPanel(view, commands);
-    document.body.append(this.overlay, this.toast, this.backButton, this.testTools.root);
+    this.rewardModal = new RewardModal(commands);
+    document.body.append(this.overlay, this.rewardModal.root, this.toast, this.backButton, this.testTools.root);
     view.subscribe(() => this.render());
     appSkin.subscribe(() => this.render());
     this.render();
@@ -85,6 +88,7 @@ export class RunShell {
     } else {
       this.mounted = null;
     }
+    this.rewardModal.render(snap);
     this.renderToast(snap);
   }
 

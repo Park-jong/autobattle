@@ -110,6 +110,30 @@ export class CardInteraction {
     return cells;
   }
 
+  /** 범위 카드(cell/area3x3)가 가리키는 중심 칸. 범위 카드가 아니거나 보드 밖이면 null */
+  previewCenter(): Cell | null {
+    const kind = this.spec?.kind;
+    const cell = this.hoverPick?.cell;
+    if (!cell || (kind !== 'cell' && kind !== 'area3x3')) return null;
+    return cell;
+  }
+
+  /** 범위 미리보기 안에 들어오는 살아 있는 유닛 uid (양 진영) */
+  previewUnits(): number[] {
+    const cells = this.previewCells();
+    if (cells.length === 0) return [];
+    return this.units()
+      .filter((u) => u.alive && cells.some((c) => c.col === u.pos.col && c.row === u.pos.row))
+      .map((u) => u.uid);
+  }
+
+  /** 유닛 대상 카드인데 유효하지 않은 유닛(반대 진영 등)을 가리키는 중이면 그 uid */
+  invalidHoverUnit(): number | null {
+    if (this.requiredSide() === null) return null;
+    const uid = this.hoverPick?.unitUid ?? null;
+    return uid !== null && !this.validUnits().includes(uid) ? uid : null;
+  }
+
   /** 현재 가리키는 유닛 중 유효한 대상 (없으면 null) */
   hoverUnit(): number | null {
     const uid = this.hoverPick?.unitUid ?? null;

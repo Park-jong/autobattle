@@ -1,4 +1,5 @@
 import type { RunCommands, RunSnapshot, RunViewSource } from './contracts';
+import { CardListModal, type CardListSpec } from './CardListModal';
 import { button, el, tagged } from './dom';
 import { encounterPreviewElement } from './encounterPreview';
 import { hudElement } from './hudElement';
@@ -20,7 +21,12 @@ export class MapScreen {
   constructor(
     private readonly view: RunViewSource,
     private readonly commands: RunCommands,
+    private readonly deckModal = new CardListModal(),
   ) {}
+
+  private deckSpec(snap: RunSnapshot): CardListSpec {
+    return { title: '덱', entries: snap.deck ?? [] };
+  }
 
   render(snap: RunSnapshot): void {
     const map = snap.map;
@@ -30,7 +36,9 @@ export class MapScreen {
     // 선택한 노드가 더 이상 맵에 없거나 이미 지난 단계라면 선택을 지운다
     if (this.selectedId && !map.floors.flat().some((n) => n.id === this.selectedId)) this.selectedId = null;
     const header = el('div', 'run-screen-header');
-    header.append(hudElement(hud), tagged(button('시작 화면', () => this.commands.toStart()), 'to-start'));
+    const openDeck = tagged(button('덱 보기', () => this.deckModal.open(this.deckSpec(this.view.snapshot())), 'dbg-btn'), 'open-deck');
+    header.append(hudElement(hud), openDeck, tagged(button('시작 화면', () => this.commands.toStart()), 'to-start'));
+    this.deckModal.update(this.deckSpec(snap));
     const actBar = tagged(el('div', 'run-act-bar'), 'act-title');
     actBar.append(el('h2', 'run-act-name', `액트 ${map.act} — ${map.actName}`), el('p', 'dbg-hint', `${map.region} · ${map.actText} (액트 ${map.act} / ${map.actCount})`));
 

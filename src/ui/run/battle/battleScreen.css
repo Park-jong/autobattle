@@ -107,8 +107,6 @@ button.bt-chip:hover, .bt-chip.open { border-color: var(--bt-gold); }
 .bt-hp-bar { width: 90px; height: 8px; border-radius: 4px; background: #2a1515; border: 1px solid #5a2a2a; overflow: hidden; }
 .bt-hp-fill { height: 100%; background: linear-gradient(90deg, #c0392b, #ff6b5a); }
 .bt-relics { display: inline-flex; gap: 4px; }
-.bt-pile-list { min-width: 180px; max-height: 260px; overflow-y: auto; }
-.bt-pile-row { display: flex; justify-content: space-between; gap: 12px; }
 .bt-top-controls { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
 .bt-top-controls .skin-picker { font-size: 12px; }
 .bt-top-controls .skin-select { padding: 3px 6px; background: #0f131c; color: var(--bt-text); border: 1px solid var(--bt-border); border-radius: 4px; font: 12px var(--bt-font); }

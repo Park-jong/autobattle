@@ -72,6 +72,18 @@ describe('CardPanelViewBuilder', () => {
     expect(all.reduce((s, e) => s + e.count, 0)).toBe(view.draw.count + view.discard.count);
   });
 
+  it('더미 목록 줄은 카드 모양에 필요한 정보를 갖고 종류·비용순으로 정렬된다', () => {
+    const view = builder.build(input());
+    for (const e of [...view.draw.entries, ...view.discard.entries, ...view.exhaust.entries]) {
+      expect(e.typeLabel).not.toBe('');
+      expect(e.text).not.toBe('');
+      expect(e.rarity).toBeTruthy();
+    }
+    const costs = view.draw.entries.map((e) => e.cost);
+    const types = view.draw.entries.map((e) => e.type);
+    if (types.every((t) => t === types[0])) expect(costs).toEqual([...costs].sort((a, b) => a - b));
+  });
+
   it('CP 진행률: 전투 중에는 4초 주기, 상한이면 가득', () => {
     expect(builder.build(input({ time: 0 })).cp.regenProgress).toBe(0);
     expect(builder.build(input({ time: 1 })).cp.regenProgress).toBeCloseTo(0.25);

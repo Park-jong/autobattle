@@ -4,7 +4,7 @@
  */
 import { deckCards, effectiveCard, type CardInstance } from '../../core/cards';
 import { MUTATION_INFO, type MutationId } from '../../core/combat';
-import type { Card, Rarity } from '../../core/data/card';
+import type { Card, CardType, Rarity } from '../../core/data/card';
 import type { CommanderDef } from '../../core/data/commander';
 import type { RelicDef, RelicRarity } from '../../core/data/relic';
 import type { RelicCatalog } from '../../core/data/relicLoader';
@@ -17,6 +17,7 @@ import {
   type RunOutcome, type RunPhase, type ShopView, type TestRunInfo,
 } from '../../core/run';
 import { CARD_TYPE_LABELS, cardTags, targetLabel } from '../cards/cardLabels';
+import { sortCardEntries, type CardListEntry } from '../cards/cardListView';
 
 // ---- 공통 표기 ----
 
@@ -310,6 +311,8 @@ export interface CardView {
   cost: number;
   rarity: Rarity;
   rarityLabel: string;
+  /** 카드 종류 (카드 모양의 테두리 색·문양) */
+  type: CardType;
   typeLabel: string;
   targetLabel: string;
   text: string;
@@ -341,6 +344,7 @@ export function buildCardView(cards: CardCatalog, cardId: string, upgraded = fal
     cost: effective.cost,
     rarity: card.rarity,
     rarityLabel: RARITY_LABELS[card.rarity],
+    type: card.type,
     typeLabel: CARD_TYPE_LABELS[card.type],
     targetLabel: targetLabel(card.target),
     text: effective.text,
@@ -357,6 +361,22 @@ export function buildDeckCardView(cards: CardCatalog, instance: CardInstance): D
     instanceId: instance.instanceId,
     upgradePreview: up ? { name: `${card.name}+`, cost: up.cost, text: up.text } : null,
   };
+}
+
+/** 덱 보기 창용 목록: 같은 카드(강화 여부 포함)는 묶어 장수를 세고 종류·비용·이름순으로 정렬한다 */
+export function buildDeckList(cards: CardCatalog, instances: readonly CardInstance[]): CardListEntry[] {
+  const grouped = new Map<string, CardListEntry>();
+  for (const instance of instances) {
+    const key = `${instance.cardId}:${instance.upgraded}`;
+    const entry = grouped.get(key);
+    if (entry) {
+      entry.count += 1;
+      continue;
+    }
+    const view = buildCardView(cards, instance.cardId, instance.upgraded);
+    grouped.set(key, { ...view, tags: [...view.tags, ...(view.hpCostLabel ? [view.hpCostLabel] : [])], count: 1 });
+  }
+  return sortCardEntries([...grouped.values()]);
 }
 
 function deckViews(cards: CardCatalog, instances: readonly CardInstance[]): DeckCardView[] {

@@ -68,6 +68,12 @@ export interface TargetingView {
   hoverUnit: number | null;
   /** cell/area3x3 범위 미리보기 칸 */
   areaCells: readonly Cell[];
+  /** 범위 미리보기의 중심 칸 (범위 카드가 보드 위를 가리킬 때) */
+  areaCenter: Cell | null;
+  /** 범위 안에 들어오는 살아 있는 유닛 uid */
+  areaUnits: readonly number[];
+  /** 유닛 대상 카드인데 대상이 될 수 없는 유닛을 가리키는 중이면 그 uid */
+  invalidHoverUnit: number | null;
   /** 대상 없는 카드: 보드 전체가 "놓는 곳" */
   dropZone: boolean;
   hint: string;

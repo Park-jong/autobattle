@@ -1,3 +1,4 @@
+import type { CardListEntry } from '../../cards/cardListView';
 import type { CardPanelView, PileView } from '../../cards/cardPanelView';
 import { PLAYBACK_SPEEDS, type DebugController, type SessionSnapshot } from '../../debug/contracts';
 import { SkinPicker } from '../../skin/SkinPicker';
@@ -5,11 +6,14 @@ import { commanderArt } from '../../skin/commanderArt';
 import { motionPreferences } from '../../skin/presentation';
 import type { RunSnapshot } from '../contracts';
 import { button, el, tagged } from '../dom';
+import { CardListModal, type CardListSpec } from '../CardListModal';
 import { relicRow } from '../relicElements';
 
 type PileKey = 'draw' | 'discard' | 'exhaust';
+/** 열려 있는 카드 목록 창이 보여주는 것: 덱 전체 또는 더미 하나 */
+type ListKey = PileKey | 'deck';
 const PILES: readonly { key: PileKey; label: string; note?: string }[] = [
-  { key: 'draw', label: '뽑을 더미', note: '뽑는 순서는 알 수 없어 이름순으로 표시합니다.' },
+  { key: 'draw', label: '뽑을 더미', note: '뽑는 순서는 알 수 없어 종류·비용순으로 표시합니다.' },
   { key: 'discard', label: '버린 더미' },
   { key: 'exhaust', label: '소모 더미', note: '이번 런에서 제거된 카드입니다.' },
 ];
@@ -24,23 +28,18 @@ export class BattleTopBar {
   private readonly controls = el('div', 'bt-top-controls');
   private readonly piles = el('span', 'bt-top-piles');
   private readonly skin = new SkinPicker(undefined, 'battle-skin-select');
-  private openPile: PileKey | null = null;
+  private openList: ListKey | null = null;
+  private deck: CardListEntry[] = [];
   private pileSignature = '';
+  private deckSignature = '';
 
   constructor(
     readonly root: HTMLElement,
     private readonly battle: DebugController,
     private readonly cardView: () => CardPanelView,
+    private readonly listModal = new CardListModal(),
   ) {
     root.replaceChildren(this.node, this.chips, this.controls);
-    // 더미 펼침은 바깥을 누르면 닫는다
-    document.addEventListener('pointerdown', (e) => {
-      if (this.openPile !== null && !(e.target instanceof Node && this.piles.contains(e.target))) {
-        this.openPile = null;
-        this.pileSignature = '';
-        this.renderPiles();
-      }
-    });
   }
 
   render(snap: RunSnapshot, session: SessionSnapshot): void {
@@ -48,6 +47,15 @@ export class BattleTopBar {
     const hud = snap.hud;
     if (!info || !hud) return;
     const plan = info.plan;
+    this.deck = snap.deck ?? [];
+    if (this.openList === 'deck') {
+      // 덱이 그대로면 카드 DOM을 다시 만들지 않는다 (배속 변경 등으로 render가 자주 불린다)
+      const signature = this.deckSignatureOf();
+      if (signature !== this.deckSignature) {
+        this.deckSignature = signature;
+        this.listModal.update(this.listSpec('deck'));
+      }
+    }
 
     const title = el('strong');
     title.append(el('span', `bt-kind ${plan.kind}`, plan.kindLabel), `액트 ${plan.act} · ${plan.floor}층`);
@@ -90,37 +98,48 @@ export class BattleTopBar {
 
   private renderPiles(): void {
     const view = this.cardView();
-    const signature = JSON.stringify([view.draw.count, view.discard.count, view.exhaust.count, this.openPile, this.openPile ? view[this.openPile].entries : null]);
+    const open = this.openList !== null && this.openList !== 'deck' ? this.openList : null;
+    const signature = JSON.stringify([view.draw.count, view.discard.count, view.exhaust.count, open, open ? view[open].entries : null]);
     if (signature === this.pileSignature) return;
     this.pileSignature = signature;
+    if (open) this.listModal.update(this.listSpec(open));
     const nodes = PILES.map(({ key, label, note }) => {
       const pile: PileView = view[key];
-      const chip = tagged(el('button', `bt-chip bt-tip${this.openPile === key ? ' open' : ''}`), `pile-${key}`);
+      const chip = tagged(el('button', `bt-chip bt-tip${open === key ? ' open' : ''}`), `pile-${key}`);
       chip.type = 'button';
       chip.append(el('span', 'bt-chip-label', label), el('b', '', String(pile.count)));
-      chip.addEventListener('click', () => {
-        this.openPile = this.openPile === key ? null : key;
-        this.pileSignature = '';
-        this.renderPiles();
-      });
-      if (this.openPile === key) {
-        const pop = el('div', 'bt-pop bt-pile-list');
-        pop.append(el('strong', '', `${label} (${pile.count}장)`));
-        if (pile.entries.length === 0) pop.append(el('div', 'bt-pile-row', '비어 있음'));
-        for (const entry of pile.entries) {
-          const row = el('div', 'bt-pile-row');
-          row.append(el('span', '', entry.name), el('span', '', `×${entry.count}`));
-          pop.append(row);
-        }
-        if (note) pop.append(el('div', 'bt-pile-row', note));
-        chip.append(pop);
-      }
+      chip.addEventListener('click', () => this.openCardList(key));
       return chip;
     });
+    const deckButton = tagged(button('덱 보기', () => this.openCardList('deck'), 'bt-btn'), 'open-deck');
     const deck = el('span', 'bt-chip-label', '덱');
     this.piles.className = 'bt-top-chips';
     this.piles.style.flex = '0 0 auto';
-    this.piles.replaceChildren(deck, ...nodes);
+    this.piles.replaceChildren(deck, ...nodes, deckButton);
+  }
+
+  /** 덱 전체 또는 더미 하나를 카드 목록 창으로 연다 (닫히면 갱신 대상에서 빠진다) */
+  private openCardList(key: ListKey): void {
+    // 먼저 열어야 앞서 열려 있던 목록의 닫힘 콜백이 새 상태를 지우지 않는다
+    this.listModal.open(this.listSpec(key), () => {
+      this.openList = null;
+      this.pileSignature = '';
+      this.deckSignature = '';
+    });
+    this.openList = key;
+    this.deckSignature = key === 'deck' ? this.deckSignatureOf() : '';
+    this.pileSignature = '';
+    this.renderPiles();
+  }
+
+  private deckSignatureOf(): string {
+    return JSON.stringify(this.deck.map((e) => [e.cardId, e.upgraded, e.count]));
+  }
+
+  private listSpec(key: ListKey): CardListSpec {
+    if (key === 'deck') return { title: '덱', entries: this.deck };
+    const { label, note } = PILES.find((p) => p.key === key)!;
+    return { title: label, entries: this.cardView()[key].entries, note };
   }
 
   private renderControls(stage: 'prep' | 'playing' | 'result', session: SessionSnapshot): void {

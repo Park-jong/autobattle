@@ -57,7 +57,7 @@ describe('RunSession: 유물', () => {
     (h.session as unknown as { afterChange(): void }).afterChange();
 
     let snap = h.session.snapshot();
-    expect(snap.screen).toBe('reward');
+    expect(snap.reward).not.toBeNull();
     expect(snap.reward!.relic).not.toBeNull();
     expect(snap.reward!.relicClaimed).toBe(false);
     const relicName = snap.reward!.relic!.name;

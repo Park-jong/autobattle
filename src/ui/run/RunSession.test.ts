@@ -51,7 +51,9 @@ describe('RunSession 흐름', () => {
     h.session.continueAfterBattle();
     snap = h.session.snapshot();
     if (win) {
-      expect(snap.screen).toBe('reward');
+      // 보상 창은 전투 화면 위에 뜬다 (화면 전환 없음)
+      expect(snap.screen).toBe('battle');
+      expect(snap.battle!.settlement).toBeNull();
       expect(snap.reward!.cards).toHaveLength(3);
       const before = snap.hud!.deckCount;
       h.session.claimReward(0);
@@ -98,7 +100,7 @@ describe('RunSession 흐름', () => {
     first.session.chooseNode(first.session.snapshot().map!.availableIds[0]!);
     playBattle(first);
     first.session.continueAfterBattle();
-    if (first.session.snapshot().screen === 'reward') first.session.claimReward(1);
+    if (first.session.snapshot().reward) first.session.claimReward(1);
     const before = first.session.snapshot();
 
     const second = createHarness(storage);
@@ -110,6 +112,40 @@ describe('RunSession 흐름', () => {
     expect(after.hud).toEqual(before.hud);
     expect(after.map!.currentId).toBe(before.map!.currentId);
     expect(after.map!.availableIds).toEqual(before.map!.availableIds);
+  });
+
+  it('카드 보상은 전투 화면 위 창으로 뜨고, 저장본으로 이어하면 전투 화면 없이 같은 창이 뜬다', () => {
+    const storage: RunStorage = new MemoryRunStorage();
+    const h = createHarness(storage);
+    h.session.startTestRun(7, { commanderId: 'cmd_harten' });
+    chooseFirst(h);
+    h.session.startBattle();
+    h.session.testCommand({ kind: 'forceResult', result: 'win' });
+    expect(h.session.snapshot().battle!.settlement).not.toBeNull();
+    expect(h.session.snapshot().reward).toBeNull(); // 결과를 확인하기 전에는 보상 창이 없다
+
+    h.session.continueAfterBattle();
+    let snap = h.session.snapshot();
+    expect(snap.screen).toBe('battle'); // 화면 전환 없음: 전투 화면이 뒤에 남는다
+    expect(snap.battle!.stage).toBe('result');
+    expect(snap.battle!.settlement).toBeNull();
+    expect(snap.reward!.cards).toHaveLength(3);
+    expect(snap.reward!.cards[0]!.type).toBeTruthy();
+
+    // 보상 단계 저장본으로 이어하기: 뒤에 전투 화면이 없는 보상 창
+    h.session.toStart();
+    h.session.continueRun();
+    snap = h.session.snapshot();
+    expect(snap.screen).toBe('reward');
+    expect(snap.battle).toBeNull();
+    expect(snap.reward!.cards).toHaveLength(3);
+
+    const before = snap.hud!.deckCount;
+    h.session.claimReward(0);
+    snap = h.session.snapshot();
+    expect(snap.screen).toBe('map');
+    expect(snap.reward).toBeNull();
+    expect(snap.hud!.deckCount).toBe(before + 1);
   });
 
   it('상점·야영지·이벤트 노드까지 진행해도 각 화면 정보가 나오고 저장본이 복원된다', () => {
@@ -128,10 +164,10 @@ describe('RunSession 흐름', () => {
           break;
         }
         case 'battle':
-          if (snap.battle!.stage === 'result') h.session.continueAfterBattle();
+          if (snap.reward) h.session.skipReward();
+          else if (snap.battle!.stage === 'result') h.session.continueAfterBattle();
           else playBattle(h);
           break;
-        case 'reward': h.session.skipReward(); break;
         case 'shop':
           expect(snap.shop!.cards).toHaveLength(3);
           expect(snap.shop!.removal.price).toBe(75);

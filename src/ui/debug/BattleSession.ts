@@ -56,6 +56,9 @@ const EMPTY_TARGETING: TargetingView = {
   selectedUnits: [],
   hoverUnit: null,
   areaCells: [],
+  areaCenter: null,
+  areaUnits: [],
+  invalidHoverUnit: null,
   dropZone: false,
   hint: '',
 };
@@ -222,6 +225,9 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
       selectedUnits: [...this.interaction.pickedUnits],
       hoverUnit: this.interaction.hoverUnit(),
       areaCells: this.interaction.previewCells(),
+      areaCenter: this.interaction.previewCenter(),
+      areaUnits: this.interaction.previewUnits(),
+      invalidHoverUnit: this.interaction.invalidHoverUnit(),
       dropZone: this.interaction.dropZone,
       hint: this.interaction.hint(),
     };

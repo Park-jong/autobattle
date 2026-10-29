@@ -21,34 +21,6 @@ abstract class NodeScreen {
   }
 }
 
-/** 카드 보상: 3장 중 1장 선택 또는 건너뛰기 */
-export class RewardScreen extends NodeScreen {
-  render(snap: RunSnapshot): void {
-    const reward = snap.reward;
-    if (!reward) return;
-    const grid = tagged(el('div', 'run-card-grid'), 'reward-cards');
-    reward.cards.forEach((card, index) => {
-      grid.append(cardChoice(card, { label: '이 카드 받기', onChoose: () => this.commands.claimReward(index), testId: `reward-${index}` }));
-    });
-    const skip = tagged(button('건너뛰기', () => this.commands.skipReward()), 'skip-reward');
-    const body: HTMLElement[] = [];
-    if (reward.relic) {
-      const box = tagged(el('section', 'run-reward-relic'), 'reward-relic');
-      box.append(el('h3', '', '정예 보상: 유물'), relicCard(reward.relic));
-      if (reward.relicClaimed) box.append(el('p', 'run-relic-claimed', '유물을 획득했습니다.'));
-      else {
-        box.append(
-          tagged(button('유물 받기', () => this.commands.claimRelic(), 'dbg-btn dbg-primary'), 'claim-relic'),
-          el('p', 'dbg-hint', '카드를 고르거나 건너뛰면 유물도 함께 받습니다.'),
-        );
-      }
-      body.push(box);
-    }
-    body.push(grid, skip);
-    this.frame(snap, '보상', reward.source === 'elite' ? '정예를 쓰러뜨렸습니다. 유물과 카드 1장을 얻으세요.' : '승리! 카드 1장을 덱에 추가하세요.', body);
-  }
-}
-
 /** 보스 유물 선택: 후보 중 하나를 받고 다음 액트로 (건너뛸 수도 있다) */
 export class BossRelicScreen extends NodeScreen {
   render(snap: RunSnapshot): void {

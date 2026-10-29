@@ -1,4 +1,5 @@
 import type { ForcedResult, TestRunSetup } from '../../core/run';
+import type { CardListEntry } from '../cards/cardListView';
 import type { EndMetaView, MetaStartView } from './metaViews';
 import type { SaveStatus } from './RunSaveStore';
 import type {
@@ -54,6 +55,8 @@ export interface RunSnapshot {
   start: StartInfo | null;
   hud: RunHud | null;
   map: MapView | null;
+  /** 덱 보기 창에 쓰는 지금 덱 목록 (맵·전투 화면만. 전투 중에도 전투 시작 전 덱 기준) */
+  deck: CardListEntry[] | null;
   battle: BattleScreenInfo | null;
   reward: RewardView | null;
   bossRelic: BossRelicView | null;
