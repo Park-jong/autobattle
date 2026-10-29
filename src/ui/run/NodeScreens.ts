@@ -70,7 +70,7 @@ export class ShopScreen extends NodeScreen {
   render(snap: RunSnapshot): void {
     const shop = snap.shop;
     if (!shop) return;
-    const grid = tagged(el('div', 'run-card-grid'), 'shop-cards');
+    const grid = tagged(el('div', 'run-card-grid face-grid'), 'shop-cards');
     for (const entry of shop.cards) {
       grid.append(cardChoice(entry, {
         label: entry.sold ? '판매 완료' : `구매 ${entry.price}G`,
@@ -79,6 +79,7 @@ export class ShopScreen extends NodeScreen {
         reason: entry.sold ? null : entry.reason,
         onChoose: () => this.commands.buyShopCard(entry.slot),
         testId: `buy-card-${entry.slot}`,
+        face: true,
       }));
     }
     const relicGrid = tagged(el('div', 'run-relic-shelf'), 'shop-relics');
@@ -107,6 +108,7 @@ export class ShopScreen extends NodeScreen {
         onPick: (id) => { this.removing = false; this.commands.removeCard(id); },
         onCancel: () => { this.removing = false; this.render(this.currentSnap); },
         testId: 'removal-picker',
+        face: true,
       }));
     } else this.removing = false;
     body.push(tagged(button('상점 나가기', () => this.commands.leaveShop(), 'dbg-btn dbg-primary'), 'leave-shop'));

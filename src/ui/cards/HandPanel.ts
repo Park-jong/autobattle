@@ -55,6 +55,9 @@ export class HandPanel {
   private readonly ultimateFill = el('div', 'hand-ult-fill');
   private readonly ultimateGaugeLabel = el('div', 'hand-ult-label');
 
+  /** 손패 카드 노드 (인스턴스 id → 모양 키·노드·최신 상태) */
+  private readonly cardNodes = new Map<number, { face: string; node: HTMLElement; card: HandCardView }>();
+  private notice: HTMLElement | null = null;
   private press: Press | null = null;
   private ghost: HTMLElement | null = null;
   private signature = '';
@@ -180,13 +183,46 @@ export class HandPanel {
     this.renderPileList(view);
 
     if (view.hand.length === 0) {
+      this.cardNodes.clear();
       this.cards.replaceChildren(el('p', 'hand-empty', view.notice ?? '손패가 없습니다.'));
     } else {
-      const nodes = view.hand.map((c) => this.cardNode(c));
-      if (view.notice) nodes.unshift(el('p', 'hand-notice', view.notice));
+      this.renderHand(view);
+    }
+  }
+
+  /**
+   * 손패 카드는 인스턴스별로 노드를 재사용한다. CP가 차거나 사용 가능 여부·선택만 바뀌면 그 자리에서 상태만 고치고,
+   * 카드 모양(이름·비용·설명 등)이 바뀐 장만 새로 만든다 — 매번 새로 만들면 원화를 다시 읽고 호버 들림·부채꼴이
+   * 처음부터 다시 그려져 손패가 "다시 펼쳐지는" 것처럼 보인다.
+   */
+  private renderHand(view: CardPanelView): void {
+    const alive = new Set<number>();
+    const nodes: HTMLElement[] = [];
+    for (const card of view.hand) {
+      alive.add(card.instanceId);
+      const face = JSON.stringify([appSkin.current, card.cardId, card.name, card.type, card.typeLabel, card.targetLabel, card.rarity, card.cost, card.baseCost, card.upgraded, card.text, card.tags]);
+      let entry = this.cardNodes.get(card.instanceId);
+      if (!entry || entry.face !== face) {
+        entry = { face, node: this.cardNode(card.instanceId, card), card };
+        this.cardNodes.set(card.instanceId, entry);
+      }
+      entry.card = card;
+      this.applyCardState(entry.node, card);
+      nodes.push(entry.node);
+    }
+    for (const id of [...this.cardNodes.keys()]) if (!alive.has(id)) this.cardNodes.delete(id);
+    if (view.notice) nodes.unshift(this.noticeNode(view.notice));
+    // 순서·구성이 같으면 DOM을 건드리지 않는다
+    const current = [...this.cards.children];
+    if (current.length !== nodes.length || current.some((n, i) => n !== nodes[i])) {
       this.cards.replaceChildren(...nodes);
       this.layoutFan();
     }
+  }
+
+  private noticeNode(text: string): HTMLElement {
+    if (this.notice?.textContent !== text) this.notice = el('p', 'hand-notice', text);
+    return this.notice!;
   }
 
   /** 손패를 호(부채꼴)로 편다: 장수가 많으면 겹치고 양 끝은 기울어져 내려간다 */
@@ -204,36 +240,58 @@ export class HandPanel {
     });
   }
 
-  private cardNode(card: HandCardView): HTMLElement {
+  /** 카드 노드(모양 + 이벤트). 이벤트는 늘 최신 상태(cardNodes)를 읽는다 */
+  private cardNode(instanceId: number, card: HandCardView): HTMLElement {
     const node = cardFaceElement(card);
-    node.dataset.testid = `hand-card-${card.instanceId}`;
+    const current = (): HandCardView => this.cardNodes.get(instanceId)?.card ?? card;
+    node.dataset.testid = `hand-card-${instanceId}`;
     node.tabIndex = 0;
     node.setAttribute('role', 'group');
-    node.setAttribute('aria-label', `${card.name}, ${card.cost}CP. ${card.reason ?? card.text}`);
-    node.setAttribute('aria-disabled', String(!card.playable));
     node.addEventListener('keydown', (e) => {
       if (e.target !== node || (e.key !== 'Enter' && e.key !== ' ')) return;
       e.preventDefault();
       e.stopPropagation();
-      if (card.playable && card.targetKind === 'none') this.controller.useCardNow(card.instanceId);
-      else this.controller.beginCard(card.instanceId, 'click');
+      const now = current();
+      if (now.playable && now.targetKind === 'none') this.controller.useCardNow(instanceId);
+      else this.controller.beginCard(instanceId, 'click');
     });
+    node.addEventListener('pointerdown', (e) => this.onCardDown(e, current()));
+    return node;
+  }
+
+  /** 사용 가능 여부·선택·사유·바로 사용 버튼처럼 전투 중 자주 바뀌는 상태만 고친다 */
+  private applyCardState(node: HTMLElement, card: HandCardView): void {
+    node.setAttribute('aria-label', `${card.name}, ${card.cost}CP. ${card.reason ?? card.text}`);
+    node.setAttribute('aria-disabled', String(!card.playable));
     node.classList.toggle('selected', card.selected);
     node.classList.toggle('disabled', !card.playable);
     node.title = card.reason ? `사용 불가: ${card.reason}` : `${card.name}: ${card.text}`;
-    if (card.reason) node.append(el('div', 'hcard-reason', card.reason));
-    if (card.playable && card.targetKind === 'none') {
-      const use = el('button', 'hcard-use', '바로 사용');
-      use.type = 'button';
-      use.addEventListener('pointerdown', (e) => e.stopPropagation());
-      use.addEventListener('click', (e) => {
+
+    let reason = node.querySelector<HTMLElement>(':scope > .hcard-reason');
+    if (card.reason) {
+      if (!reason) {
+        reason = el('div', 'hcard-reason');
+        node.append(reason);
+      }
+      reason.textContent = card.reason;
+    } else {
+      reason?.remove();
+    }
+
+    const wantsUse = card.playable && card.targetKind === 'none';
+    const use = node.querySelector<HTMLElement>(':scope > .hcard-use');
+    if (wantsUse && !use) {
+      const button = el('button', 'hcard-use', '바로 사용');
+      button.type = 'button';
+      button.addEventListener('pointerdown', (e) => e.stopPropagation());
+      button.addEventListener('click', (e) => {
         e.stopPropagation();
         this.controller.useCardNow(card.instanceId);
       });
-      node.append(use);
+      node.append(button);
+    } else if (!wantsUse && use) {
+      use.remove();
     }
-    node.addEventListener('pointerdown', (e) => this.onCardDown(e, card));
-    return node;
   }
 
   /** 궁극기 영역: 이름·설명(툴팁), 게이지, 사용 버튼(사유는 툴팁과 아래 줄) */
