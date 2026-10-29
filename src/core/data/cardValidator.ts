@@ -25,7 +25,7 @@ const CARD_KEYS = [
   'id', 'name', 'owner', 'rarity', 'type', 'cost', 'target', 'keywords',
   'limits', 'commanderHpCost', 'resonance', 'chain', 'curse', 'text', 'effects', 'upgrade',
 ] as const;
-const UPGRADE_KEYS = ['text', 'effects', 'cost', 'resonance', 'chain'] as const;
+const UPGRADE_KEYS = ['text', 'effects', 'cost', 'resonance', 'chain', 'keywords', 'commanderHpCost'] as const;
 
 /** cards.json 구조를 검증해 타입 있는 Card로 변환한다. 파일 I/O는 하지 않는다. */
 export class CardValidator {
@@ -93,7 +93,7 @@ export class CardValidator {
     } else if (hasChainKeyword) {
       r.fail('chain', 'keywords에 chain이 있으면 chain 효과가 필요함');
     }
-    if (r.has('upgrade')) card.upgrade = this.validateUpgrade(r.object('upgrade'), target, hasChainKeyword, type);
+    if (r.has('upgrade')) card.upgrade = this.validateUpgrade(r.object('upgrade'), card);
     return card;
   }
 
@@ -153,7 +153,9 @@ export class CardValidator {
     return chain;
   }
 
-  private validateUpgrade(r: FieldReader, target: CardTarget, hasChainKeyword: boolean, type: CardType): CardUpgrade {
+  private validateUpgrade(r: FieldReader, card: Card): CardUpgrade {
+    const { target, type } = card;
+    const hasChainKeyword = card.keywords.includes('chain');
     r.onlyKeys(UPGRADE_KEYS);
     const upgrade: CardUpgrade = {
       text: r.string('text'),
@@ -164,6 +166,16 @@ export class CardValidator {
     if (r.has('chain')) {
       if (!hasChainKeyword) r.fail('chain', 'keywords에 chain이 없는 카드는 chain 효과를 가질 수 없음');
       upgrade.chain = this.validateChain(r.object('chain'), target, type);
+    }
+    if (r.has('keywords')) {
+      const keywords = this.validateKeywords(r);
+      if (keywords.includes('chain') !== hasChainKeyword) r.fail('keywords', '강화로 chain 키워드를 더하거나 뺄 수 없음 (기본 카드와 같아야 함)');
+      if (card.curse?.playable && !keywords.includes('exhaust')) r.fail('keywords', '사용할 수 있는 저주는 강화해도 exhaust 키워드가 있어야 함');
+      upgrade.keywords = keywords;
+    }
+    if (r.has('commanderHpCost')) {
+      if (!card.commanderHpCost) r.fail('commanderHpCost', '기본 카드에 지휘관 HP 비용이 없으면 강화로 더할 수 없음');
+      upgrade.commanderHpCost = this.validateHpCost(r.object('commanderHpCost'));
     }
     return upgrade;
   }

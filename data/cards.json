@@ -654,6 +654,3610 @@
           }
         ]
       }
+    },
+    {
+      "id": "harten_sturdy_shield",
+      "name": "굳건한 방패",
+      "owner": "cmd_harten",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "text": "아군 1명에게 최대 HP 30% 보호막 (4초).",
+      "effects": [
+        {
+          "kind": "shield",
+          "selector": "target",
+          "pctMaxHp": 30,
+          "duration": 4
+        }
+      ],
+      "upgrade": {
+        "text": "아군 1명에게 최대 HP 40% 보호막 (4초).",
+        "effects": [
+          {
+            "kind": "shield",
+            "selector": "target",
+            "pctMaxHp": 40,
+            "duration": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_phalanx_advance",
+      "name": "방진 전진",
+      "owner": "cmd_harten",
+      "rarity": "common",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "전열 아군 4초간 ATK +20%, 받는 피해 -20%.",
+      "effects": [
+        {
+          "kind": "statMod",
+          "selector": "alliesFrontRow",
+          "stat": "atk",
+          "pct": 20,
+          "duration": 4
+        },
+        {
+          "kind": "damageTakenMult",
+          "selector": "alliesFrontRow",
+          "mult": 0.8,
+          "duration": 4
+        }
+      ],
+      "upgrade": {
+        "text": "전열 아군 4초간 ATK +30%, 받는 피해 -20%.",
+        "effects": [
+          {
+            "kind": "statMod",
+            "selector": "alliesFrontRow",
+            "stat": "atk",
+            "pct": 30,
+            "duration": 4
+          },
+          {
+            "kind": "damageTakenMult",
+            "selector": "alliesFrontRow",
+            "mult": 0.8,
+            "duration": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_iron_discipline",
+      "name": "철의 규율",
+      "owner": "cmd_harten",
+      "rarity": "common",
+      "type": "operation",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "이번 전투 동안 아군 전체 ARM +20.",
+      "effects": [
+        {
+          "kind": "statAdd",
+          "selector": "allAllies",
+          "stat": "arm",
+          "amount": 20,
+          "duration": "combat"
+        }
+      ],
+      "upgrade": {
+        "text": "이번 전투 동안 아군 전체 ARM +30.",
+        "effects": [
+          {
+            "kind": "statAdd",
+            "selector": "allAllies",
+            "stat": "arm",
+            "amount": 30,
+            "duration": "combat"
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_hold_firm",
+      "name": "버텨라",
+      "owner": "cmd_harten",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [
+        "chain"
+      ],
+      "text": "아군 1명 3초간 받는 피해 -40%. 연쇄: 비용 0.",
+      "effects": [
+        {
+          "kind": "damageTakenMult",
+          "selector": "target",
+          "mult": 0.6,
+          "duration": 3
+        }
+      ],
+      "chain": {
+        "cost": 0,
+        "effects": []
+      },
+      "upgrade": {
+        "text": "아군 1명 3초간 받는 피해 -55%. 연쇄: 비용 0.",
+        "effects": [
+          {
+            "kind": "damageTakenMult",
+            "selector": "target",
+            "mult": 0.45,
+            "duration": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_counter_stance",
+      "name": "반격 태세",
+      "owner": "cmd_harten",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "text": "아군 1명 5초간 받은 피해의 30%를 반사한다.",
+      "effects": [
+        {
+          "kind": "reflect",
+          "selector": "target",
+          "pct": 30,
+          "duration": 5
+        }
+      ],
+      "upgrade": {
+        "text": "아군 1명 5초간 받은 피해의 45%를 반사한다.",
+        "effects": [
+          {
+            "kind": "reflect",
+            "selector": "target",
+            "pct": 45,
+            "duration": 5
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_front_rotation",
+      "name": "전열 교대",
+      "owner": "cmd_harten",
+      "rarity": "common",
+      "type": "command",
+      "cost": 0,
+      "target": {
+        "kind": "allyUnits",
+        "count": 2
+      },
+      "keywords": [],
+      "limits": {
+        "perCombat": 2
+      },
+      "text": "아군 2명의 위치를 바꾸고, 둘에게 최대 HP 15% 보호막 (3초). 전투당 2회.",
+      "effects": [
+        {
+          "kind": "swapPositions",
+          "selector": "target"
+        },
+        {
+          "kind": "shield",
+          "selector": "target",
+          "pctMaxHp": 15,
+          "duration": 3
+        }
+      ],
+      "upgrade": {
+        "text": "아군 2명의 위치를 바꾸고, 둘에게 최대 HP 25% 보호막 (3초). 전투당 2회.",
+        "effects": [
+          {
+            "kind": "swapPositions",
+            "selector": "target"
+          },
+          {
+            "kind": "shield",
+            "selector": "target",
+            "pctMaxHp": 25,
+            "duration": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_shield_bash",
+      "name": "방패 가격",
+      "owner": "cmd_harten",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "enemyUnit"
+      },
+      "keywords": [],
+      "text": "적 1명에게 물리 피해 80, 1초 기절.",
+      "effects": [
+        {
+          "kind": "flatDamage",
+          "selector": "target",
+          "amount": 80,
+          "dmgType": "physical"
+        },
+        {
+          "kind": "stun",
+          "selector": "target",
+          "duration": 1
+        }
+      ],
+      "upgrade": {
+        "text": "적 1명에게 물리 피해 120, 1초 기절.",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "target",
+            "amount": 120,
+            "dmgType": "physical"
+          },
+          {
+            "kind": "stun",
+            "selector": "target",
+            "duration": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_iron_oath",
+      "name": "강철의 맹세",
+      "owner": "cmd_harten",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "아군 전체에 최대 HP 12% 보호막 (4초). 공명 [강철군단]: 보호막이 20%가 된다.",
+      "effects": [
+        {
+          "kind": "shield",
+          "selector": "allAllies",
+          "pctMaxHp": 12,
+          "duration": 4
+        }
+      ],
+      "resonance": {
+        "trait": "iron_legion",
+        "effects": [
+          {
+            "kind": "shield",
+            "selector": "allAllies",
+            "pctMaxHp": 8,
+            "duration": 4
+          }
+        ]
+      },
+      "upgrade": {
+        "text": "아군 전체에 최대 HP 12% 보호막 (4초). 공명 [강철군단]: 보호막이 25%가 된다.",
+        "effects": [
+          {
+            "kind": "shield",
+            "selector": "allAllies",
+            "pctMaxHp": 12,
+            "duration": 4
+          }
+        ],
+        "resonance": {
+          "trait": "iron_legion",
+          "effects": [
+            {
+              "kind": "shield",
+              "selector": "allAllies",
+              "pctMaxHp": 13,
+              "duration": 4
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "harten_leave_no_one",
+      "name": "한 명도 두고 가지 않는다",
+      "owner": "cmd_harten",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [
+        "exhaust"
+      ],
+      "text": "아군 1명 3초간 HP가 1 밑으로 내려가지 않고, HP 200 회복. 소모.",
+      "effects": [
+        {
+          "kind": "undying",
+          "selector": "target",
+          "duration": 3
+        },
+        {
+          "kind": "heal",
+          "selector": "target",
+          "amount": 200
+        }
+      ],
+      "upgrade": {
+        "text": "아군 1명 3초간 HP가 1 밑으로 내려가지 않고, HP 200 회복.",
+        "effects": [
+          {
+            "kind": "undying",
+            "selector": "target",
+            "duration": 3
+          },
+          {
+            "kind": "heal",
+            "selector": "target",
+            "amount": 200
+          }
+        ],
+        "keywords": []
+      }
+    },
+    {
+      "id": "harten_guardian_resolve",
+      "name": "수호자의 결의",
+      "owner": "cmd_harten",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "전열 아군 3초간 받는 피해 -20%. 공명 [수호자]: 전열 아군이 주변 2칸의 적을 도발한다 (3초).",
+      "effects": [
+        {
+          "kind": "damageTakenMult",
+          "selector": "alliesFrontRow",
+          "mult": 0.8,
+          "duration": 3
+        }
+      ],
+      "resonance": {
+        "trait": "guardian",
+        "effects": [
+          {
+            "kind": "taunt",
+            "selector": "alliesFrontRow",
+            "radius": 2,
+            "duration": 3
+          }
+        ]
+      },
+      "upgrade": {
+        "text": "전열 아군 3초간 받는 피해 -30%. 공명 [수호자]: 전열 아군이 주변 2칸의 적을 도발한다 (3초).",
+        "effects": [
+          {
+            "kind": "damageTakenMult",
+            "selector": "alliesFrontRow",
+            "mult": 0.7,
+            "duration": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_solid_formation",
+      "name": "견고한 진형",
+      "owner": "cmd_harten",
+      "rarity": "rare",
+      "type": "operation",
+      "cost": 2,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "이번 전투 동안 전열 아군 받는 피해 -15%, 후열 아군 ATK +10%.",
+      "effects": [
+        {
+          "kind": "damageTakenMult",
+          "selector": "alliesFrontRow",
+          "mult": 0.85,
+          "duration": "combat"
+        },
+        {
+          "kind": "statMod",
+          "selector": "alliesBackRow",
+          "stat": "atk",
+          "pct": 10,
+          "duration": "combat"
+        }
+      ],
+      "upgrade": {
+        "text": "이번 전투 동안 전열 아군 받는 피해 -20%, 후열 아군 ATK +15%.",
+        "effects": [
+          {
+            "kind": "damageTakenMult",
+            "selector": "alliesFrontRow",
+            "mult": 0.8,
+            "duration": "combat"
+          },
+          {
+            "kind": "statMod",
+            "selector": "alliesBackRow",
+            "stat": "atk",
+            "pct": 15,
+            "duration": "combat"
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_build_barrier",
+      "name": "방벽 건설",
+      "owner": "cmd_harten",
+      "rarity": "common",
+      "type": "spell",
+      "cost": 2,
+      "target": {
+        "kind": "area3x3"
+      },
+      "keywords": [],
+      "text": "3×3 범위 아군에게 최대 HP 25% 보호막 (5초).",
+      "effects": [
+        {
+          "kind": "shield",
+          "selector": "alliesInTargetArea",
+          "pctMaxHp": 25,
+          "duration": 5
+        }
+      ],
+      "upgrade": {
+        "text": "3×3 범위 아군에게 최대 HP 35% 보호막 (5초).",
+        "effects": [
+          {
+            "kind": "shield",
+            "selector": "alliesInTargetArea",
+            "pctMaxHp": 35,
+            "duration": 5
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_rally_horn",
+      "name": "재정비 나팔",
+      "owner": "cmd_harten",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "카드 1장을 뽑고, 아군 전체의 해로운 상태를 제거한다.",
+      "effects": [
+        {
+          "kind": "drawCards",
+          "selector": "allAllies",
+          "count": 1
+        },
+        {
+          "kind": "cleanse",
+          "selector": "allAllies"
+        }
+      ],
+      "upgrade": {
+        "text": "카드 2장을 뽑고, 아군 전체의 해로운 상태를 제거한다.",
+        "effects": [
+          {
+            "kind": "drawCards",
+            "selector": "allAllies",
+            "count": 2
+          },
+          {
+            "kind": "cleanse",
+            "selector": "allAllies"
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_steel_storm",
+      "name": "강철 폭풍",
+      "owner": "cmd_harten",
+      "rarity": "epic",
+      "type": "command",
+      "cost": 3,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "아군 전체 5초간 받은 피해의 25%를 반사하고, 최대 HP 10% 보호막 (5초).",
+      "effects": [
+        {
+          "kind": "reflect",
+          "selector": "allAllies",
+          "pct": 25,
+          "duration": 5
+        },
+        {
+          "kind": "shield",
+          "selector": "allAllies",
+          "pctMaxHp": 10,
+          "duration": 5
+        }
+      ],
+      "upgrade": {
+        "text": "아군 전체 5초간 받은 피해의 35%를 반사하고, 최대 HP 10% 보호막 (5초).",
+        "effects": [
+          {
+            "kind": "reflect",
+            "selector": "allAllies",
+            "pct": 35,
+            "duration": 5
+          },
+          {
+            "kind": "shield",
+            "selector": "allAllies",
+            "pctMaxHp": 10,
+            "duration": 5
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_unyielding_march",
+      "name": "불굴의 진군",
+      "owner": "cmd_harten",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "아군 근접 유닛 전체 5초간 AS +25%, 받는 피해 -15%.",
+      "effects": [
+        {
+          "kind": "statMod",
+          "selector": "alliesMelee",
+          "stat": "as",
+          "pct": 25,
+          "duration": 5
+        },
+        {
+          "kind": "damageTakenMult",
+          "selector": "alliesMelee",
+          "mult": 0.85,
+          "duration": 5
+        }
+      ],
+      "upgrade": {
+        "text": "아군 근접 유닛 전체 5초간 AS +35%, 받는 피해 -15%.",
+        "effects": [
+          {
+            "kind": "statMod",
+            "selector": "alliesMelee",
+            "stat": "as",
+            "pct": 35,
+            "duration": 5
+          },
+          {
+            "kind": "damageTakenMult",
+            "selector": "alliesMelee",
+            "mult": 0.85,
+            "duration": 5
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_iron_curtain",
+      "name": "철의 장막",
+      "owner": "cmd_harten",
+      "rarity": "common",
+      "type": "operation",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "이번 전투 동안 전열 아군에게 최대 HP 15% 보호막.",
+      "effects": [
+        {
+          "kind": "shield",
+          "selector": "alliesFrontRow",
+          "pctMaxHp": 15,
+          "duration": "combat"
+        }
+      ],
+      "upgrade": {
+        "text": "이번 전투 동안 전열 아군에게 최대 HP 22% 보호막.",
+        "effects": [
+          {
+            "kind": "shield",
+            "selector": "alliesFrontRow",
+            "pctMaxHp": 22,
+            "duration": "combat"
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_hold_formation",
+      "name": "진형 고수",
+      "owner": "cmd_harten",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "retain"
+      ],
+      "text": "전열 아군 4초간 ARM +30. 보존.",
+      "effects": [
+        {
+          "kind": "statAdd",
+          "selector": "alliesFrontRow",
+          "stat": "arm",
+          "amount": 30,
+          "duration": 4
+        }
+      ],
+      "upgrade": {
+        "text": "전열 아군 4초간 ARM +45. 보존.",
+        "effects": [
+          {
+            "kind": "statAdd",
+            "selector": "alliesFrontRow",
+            "stat": "arm",
+            "amount": 45,
+            "duration": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_cover",
+      "name": "엄호",
+      "owner": "cmd_harten",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "text": "아군 1명이 주변 2칸의 적을 4초간 도발하고, 4초간 받은 피해의 20%를 반사한다.",
+      "effects": [
+        {
+          "kind": "taunt",
+          "selector": "target",
+          "radius": 2,
+          "duration": 4
+        },
+        {
+          "kind": "reflect",
+          "selector": "target",
+          "pct": 20,
+          "duration": 4
+        }
+      ],
+      "upgrade": {
+        "text": "아군 1명이 주변 2칸의 적을 4초간 도발하고, 4초간 받은 피해의 30%를 반사한다.",
+        "effects": [
+          {
+            "kind": "taunt",
+            "selector": "target",
+            "radius": 2,
+            "duration": 4
+          },
+          {
+            "kind": "reflect",
+            "selector": "target",
+            "pct": 30,
+            "duration": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_legion_command",
+      "name": "군단장의 호령",
+      "owner": "cmd_harten",
+      "rarity": "epic",
+      "type": "command",
+      "cost": 3,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "아군 전체 4초간 받는 피해 -30%. 궁극기 게이지 +25.",
+      "effects": [
+        {
+          "kind": "damageTakenMult",
+          "selector": "allAllies",
+          "mult": 0.7,
+          "duration": 4
+        },
+        {
+          "kind": "ultimateGain",
+          "selector": "allAllies",
+          "amount": 25
+        }
+      ],
+      "upgrade": {
+        "text": "아군 전체 4초간 받는 피해 -30%. 궁극기 게이지 +40.",
+        "effects": [
+          {
+            "kind": "damageTakenMult",
+            "selector": "allAllies",
+            "mult": 0.7,
+            "duration": 4
+          },
+          {
+            "kind": "ultimateGain",
+            "selector": "allAllies",
+            "amount": 40
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_phalanx_bond",
+      "name": "방진 결속",
+      "owner": "cmd_harten",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "chain"
+      ],
+      "text": "전열 아군에게 최대 HP 15% 보호막 (4초). 연쇄: 보호막이 25%가 된다.",
+      "effects": [
+        {
+          "kind": "shield",
+          "selector": "alliesFrontRow",
+          "pctMaxHp": 15,
+          "duration": 4
+        }
+      ],
+      "chain": {
+        "effects": [
+          {
+            "kind": "shield",
+            "selector": "alliesFrontRow",
+            "pctMaxHp": 10,
+            "duration": 4
+          }
+        ]
+      },
+      "upgrade": {
+        "text": "전열 아군에게 최대 HP 20% 보호막 (4초). 연쇄: 보호막이 30%가 된다.",
+        "effects": [
+          {
+            "kind": "shield",
+            "selector": "alliesFrontRow",
+            "pctMaxHp": 20,
+            "duration": 4
+          }
+        ],
+        "chain": {
+          "effects": [
+            {
+              "kind": "shield",
+              "selector": "alliesFrontRow",
+              "pctMaxHp": 10,
+              "duration": 4
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "harten_trained_shieldbearer",
+      "name": "훈련된 방패병",
+      "owner": "cmd_harten",
+      "rarity": "common",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "conscript",
+        "exhaust"
+      ],
+      "text": "징집: 전열의 빈 칸에 방패병 1기를 이번 전투 동안 소환한다. 소모.",
+      "effects": [
+        {
+          "kind": "summon",
+          "selector": "allAllies",
+          "count": 1,
+          "unitId": "iron_shieldbearer",
+          "placement": "allyFront"
+        }
+      ],
+      "upgrade": {
+        "text": "징집: 전열의 빈 칸에 2성 방패병 1기를 이번 전투 동안 소환한다. 소모.",
+        "effects": [
+          {
+            "kind": "summon",
+            "selector": "allAllies",
+            "count": 1,
+            "unitId": "iron_shieldbearer",
+            "placement": "allyFront",
+            "star": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_tempered_armor",
+      "name": "단련된 갑주",
+      "owner": "cmd_harten",
+      "rarity": "common",
+      "type": "equipment",
+      "cost": 1,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "text": "준비 CP 1. 아군 1명에게 장착: ARM +40, RES +20. 장비와 효과는 전투 사이에 유지된다.",
+      "effects": [
+        {
+          "kind": "statAdd",
+          "selector": "target",
+          "stat": "arm",
+          "amount": 40,
+          "duration": "combat"
+        },
+        {
+          "kind": "statAdd",
+          "selector": "target",
+          "stat": "res",
+          "amount": 20,
+          "duration": "combat"
+        }
+      ],
+      "upgrade": {
+        "text": "준비 CP 1. 아군 1명에게 장착: ARM +55, RES +30. 장비와 효과는 전투 사이에 유지된다.",
+        "effects": [
+          {
+            "kind": "statAdd",
+            "selector": "target",
+            "stat": "arm",
+            "amount": 55,
+            "duration": "combat"
+          },
+          {
+            "kind": "statAdd",
+            "selector": "target",
+            "stat": "res",
+            "amount": 30,
+            "duration": "combat"
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_captains_shield",
+      "name": "대장의 방패",
+      "owner": "cmd_harten",
+      "rarity": "rare",
+      "type": "equipment",
+      "cost": 2,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "text": "준비 CP 2. 아군 1명에게 장착: 전투 시작 시 최대 HP 25% 보호막, 전투 내내 받는 피해 -10%. 장비와 효과는 전투 사이에 유지된다.",
+      "effects": [
+        {
+          "kind": "shield",
+          "selector": "target",
+          "pctMaxHp": 25,
+          "duration": "combat"
+        },
+        {
+          "kind": "damageTakenMult",
+          "selector": "target",
+          "mult": 0.9,
+          "duration": "combat"
+        }
+      ],
+      "upgrade": {
+        "text": "준비 CP 2. 아군 1명에게 장착: 전투 시작 시 최대 HP 35% 보호막, 전투 내내 받는 피해 -10%. 장비와 효과는 전투 사이에 유지된다.",
+        "effects": [
+          {
+            "kind": "shield",
+            "selector": "target",
+            "pctMaxHp": 35,
+            "duration": "combat"
+          },
+          {
+            "kind": "damageTakenMult",
+            "selector": "target",
+            "mult": 0.9,
+            "duration": "combat"
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_iron_will",
+      "name": "무쇠 의지",
+      "owner": "cmd_harten",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "text": "아군 1명의 해로운 상태를 제거하고 3초간 ARM +30.",
+      "effects": [
+        {
+          "kind": "cleanse",
+          "selector": "target"
+        },
+        {
+          "kind": "statAdd",
+          "selector": "target",
+          "stat": "arm",
+          "amount": 30,
+          "duration": 3
+        }
+      ],
+      "upgrade": {
+        "text": "아군 1명의 해로운 상태를 제거하고 3초간 ARM +45.",
+        "effects": [
+          {
+            "kind": "cleanse",
+            "selector": "target"
+          },
+          {
+            "kind": "statAdd",
+            "selector": "target",
+            "stat": "arm",
+            "amount": 45,
+            "duration": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_counterfire",
+      "name": "맞불",
+      "owner": "cmd_harten",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "enemyUnit"
+      },
+      "keywords": [],
+      "text": "4초간 아군 전체가 지정한 적을 우선 공격한다. 그 적은 4초간 받는 피해 +20%.",
+      "effects": [
+        {
+          "kind": "forceTarget",
+          "selector": "allAllies",
+          "duration": 4
+        },
+        {
+          "kind": "damageTakenMult",
+          "selector": "target",
+          "mult": 1.2,
+          "duration": 4
+        }
+      ],
+      "upgrade": {
+        "text": "4초간 아군 전체가 지정한 적을 우선 공격한다. 그 적은 4초간 받는 피해 +30%.",
+        "effects": [
+          {
+            "kind": "forceTarget",
+            "selector": "allAllies",
+            "duration": 4
+          },
+          {
+            "kind": "damageTakenMult",
+            "selector": "target",
+            "mult": 1.3,
+            "duration": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_last_line",
+      "name": "최후의 방어선",
+      "owner": "cmd_harten",
+      "rarity": "epic",
+      "type": "command",
+      "cost": 4,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "exhaust"
+      ],
+      "text": "아군 전체 4초간 HP가 1 밑으로 내려가지 않는다. 소모.",
+      "effects": [
+        {
+          "kind": "undying",
+          "selector": "allAllies",
+          "duration": 4
+        }
+      ],
+      "upgrade": {
+        "cost": 3,
+        "text": "아군 전체 4초간 HP가 1 밑으로 내려가지 않는다. 소모.",
+        "effects": [
+          {
+            "kind": "undying",
+            "selector": "allAllies",
+            "duration": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_circle_formation",
+      "name": "원진",
+      "owner": "cmd_harten",
+      "rarity": "rare",
+      "type": "operation",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "이번 전투 동안 아군 전체 ARM +15. 공명 [강철군단]: RES +15도.",
+      "effects": [
+        {
+          "kind": "statAdd",
+          "selector": "allAllies",
+          "stat": "arm",
+          "amount": 15,
+          "duration": "combat"
+        }
+      ],
+      "resonance": {
+        "trait": "iron_legion",
+        "effects": [
+          {
+            "kind": "statAdd",
+            "selector": "allAllies",
+            "stat": "res",
+            "amount": 15,
+            "duration": "combat"
+          }
+        ]
+      },
+      "upgrade": {
+        "text": "이번 전투 동안 아군 전체 ARM +20. 공명 [강철군단]: RES +20도.",
+        "effects": [
+          {
+            "kind": "statAdd",
+            "selector": "allAllies",
+            "stat": "arm",
+            "amount": 20,
+            "duration": "combat"
+          }
+        ],
+        "resonance": {
+          "trait": "iron_legion",
+          "effects": [
+            {
+              "kind": "statAdd",
+              "selector": "allAllies",
+              "stat": "res",
+              "amount": 20,
+              "duration": "combat"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "harten_shift_change",
+      "name": "교대 근무",
+      "owner": "cmd_harten",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "allyUnits",
+        "count": 2
+      },
+      "keywords": [],
+      "text": "아군 2명의 위치를 바꾸고, 카드 1장을 뽑는다.",
+      "effects": [
+        {
+          "kind": "swapPositions",
+          "selector": "target"
+        },
+        {
+          "kind": "drawCards",
+          "selector": "allAllies",
+          "count": 1
+        }
+      ],
+      "upgrade": {
+        "cost": 0,
+        "text": "아군 2명의 위치를 바꾸고, 카드 1장을 뽑는다.",
+        "effects": [
+          {
+            "kind": "swapPositions",
+            "selector": "target"
+          },
+          {
+            "kind": "drawCards",
+            "selector": "allAllies",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_iron_advance",
+      "name": "철벽 전진",
+      "owner": "cmd_harten",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "전열 아군이 주변 1칸의 적을 3초간 도발하고, 최대 HP 20% 보호막 (3초). 공명 [수호자]: 4초간 ATK +25%.",
+      "effects": [
+        {
+          "kind": "taunt",
+          "selector": "alliesFrontRow",
+          "radius": 1,
+          "duration": 3
+        },
+        {
+          "kind": "shield",
+          "selector": "alliesFrontRow",
+          "pctMaxHp": 20,
+          "duration": 3
+        }
+      ],
+      "resonance": {
+        "trait": "guardian",
+        "effects": [
+          {
+            "kind": "statMod",
+            "selector": "alliesFrontRow",
+            "stat": "atk",
+            "pct": 25,
+            "duration": 4
+          }
+        ]
+      },
+      "upgrade": {
+        "text": "전열 아군이 주변 1칸의 적을 3초간 도발하고, 최대 HP 30% 보호막 (3초). 공명 [수호자]: 4초간 ATK +25%.",
+        "effects": [
+          {
+            "kind": "taunt",
+            "selector": "alliesFrontRow",
+            "radius": 1,
+            "duration": 3
+          },
+          {
+            "kind": "shield",
+            "selector": "alliesFrontRow",
+            "pctMaxHp": 30,
+            "duration": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "harten_unyielding_memory",
+      "name": "불굴의 기억",
+      "owner": "cmd_harten",
+      "rarity": "epic",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "retain"
+      ],
+      "limits": {
+        "perCombat": 1
+      },
+      "text": "궁극기 게이지 +40. 전투당 1회. 보존.",
+      "effects": [
+        {
+          "kind": "ultimateGain",
+          "selector": "allAllies",
+          "amount": 40
+        }
+      ],
+      "upgrade": {
+        "text": "궁극기 게이지 +60. 전투당 1회. 보존.",
+        "effects": [
+          {
+            "kind": "ultimateGain",
+            "selector": "allAllies",
+            "amount": 60
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_flame_lance",
+      "name": "화염 창",
+      "owner": "cmd_isera",
+      "rarity": "common",
+      "type": "spell",
+      "cost": 2,
+      "target": {
+        "kind": "enemyUnit"
+      },
+      "keywords": [],
+      "text": "적 1명에게 마법 피해 200.",
+      "effects": [
+        {
+          "kind": "flatDamage",
+          "selector": "target",
+          "amount": 200,
+          "dmgType": "magic"
+        }
+      ],
+      "upgrade": {
+        "text": "적 1명에게 마법 피해 280.",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "target",
+            "amount": 280,
+            "dmgType": "magic"
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_flame_wave",
+      "name": "불꽃 파도",
+      "owner": "cmd_isera",
+      "rarity": "common",
+      "type": "spell",
+      "cost": 2,
+      "target": {
+        "kind": "area3x3"
+      },
+      "keywords": [],
+      "text": "3×3 범위 적에게 마법 피해 100, 초당 마법 피해 20의 화상 (3초).",
+      "effects": [
+        {
+          "kind": "flatDamage",
+          "selector": "enemiesInTargetArea",
+          "amount": 100,
+          "dmgType": "magic"
+        },
+        {
+          "kind": "burn",
+          "selector": "enemiesInTargetArea",
+          "dps": 20,
+          "duration": 3
+        }
+      ],
+      "upgrade": {
+        "text": "3×3 범위 적에게 마법 피해 140, 초당 마법 피해 20의 화상 (3초).",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "enemiesInTargetArea",
+            "amount": 140,
+            "dmgType": "magic"
+          },
+          {
+            "kind": "burn",
+            "selector": "enemiesInTargetArea",
+            "dps": 20,
+            "duration": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_ignite",
+      "name": "점화",
+      "owner": "cmd_isera",
+      "rarity": "common",
+      "type": "spell",
+      "cost": 0,
+      "target": {
+        "kind": "enemyUnit"
+      },
+      "keywords": [],
+      "text": "적 1명에게 초당 마법 피해 30의 화상 (4초).",
+      "effects": [
+        {
+          "kind": "burn",
+          "selector": "target",
+          "dps": 30,
+          "duration": 4
+        }
+      ],
+      "upgrade": {
+        "text": "적 1명에게 초당 마법 피해 45의 화상 (4초).",
+        "effects": [
+          {
+            "kind": "burn",
+            "selector": "target",
+            "dps": 45,
+            "duration": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_heat_buildup",
+      "name": "열기 축적",
+      "owner": "cmd_isera",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "chain"
+      ],
+      "text": "카드 1장을 뽑는다. 연쇄: CP +1.",
+      "effects": [
+        {
+          "kind": "drawCards",
+          "selector": "allAllies",
+          "count": 1
+        }
+      ],
+      "chain": {
+        "effects": [
+          {
+            "kind": "cpGain",
+            "selector": "allAllies",
+            "amount": 1
+          }
+        ]
+      },
+      "upgrade": {
+        "text": "카드 2장을 뽑는다. 연쇄: CP +1.",
+        "effects": [
+          {
+            "kind": "drawCards",
+            "selector": "allAllies",
+            "count": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_furnace_preheat",
+      "name": "화로 예열",
+      "owner": "cmd_isera",
+      "rarity": "rare",
+      "type": "operation",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "이번 전투 시작 CP +1, 카드 1장을 뽑는다.",
+      "effects": [
+        {
+          "kind": "startCp",
+          "selector": "allAllies",
+          "amount": 1
+        },
+        {
+          "kind": "drawCards",
+          "selector": "allAllies",
+          "count": 1
+        }
+      ],
+      "upgrade": {
+        "text": "이번 전투 시작 CP +2, 카드 1장을 뽑는다.",
+        "effects": [
+          {
+            "kind": "startCp",
+            "selector": "allAllies",
+            "amount": 2
+          },
+          {
+            "kind": "drawCards",
+            "selector": "allAllies",
+            "count": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_lava_eruption",
+      "name": "용암 분출",
+      "owner": "cmd_isera",
+      "rarity": "rare",
+      "type": "spell",
+      "cost": 3,
+      "target": {
+        "kind": "area3x3"
+      },
+      "keywords": [],
+      "text": "3×3 범위 적에게 마법 피해 180. 공명 [잿불]: 초당 마법 피해 40의 화상 (4초).",
+      "effects": [
+        {
+          "kind": "flatDamage",
+          "selector": "enemiesInTargetArea",
+          "amount": 180,
+          "dmgType": "magic"
+        }
+      ],
+      "resonance": {
+        "trait": "ember",
+        "effects": [
+          {
+            "kind": "burn",
+            "selector": "enemiesInTargetArea",
+            "dps": 40,
+            "duration": 4
+          }
+        ]
+      },
+      "upgrade": {
+        "text": "3×3 범위 적에게 마법 피해 250. 공명 [잿불]: 초당 마법 피해 40의 화상 (4초).",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "enemiesInTargetArea",
+            "amount": 250,
+            "dmgType": "magic"
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_combustion",
+      "name": "연소 폭발",
+      "owner": "cmd_isera",
+      "rarity": "rare",
+      "type": "spell",
+      "cost": 2,
+      "target": {
+        "kind": "enemyUnit"
+      },
+      "keywords": [],
+      "text": "적 1명에게 마법 피해 120. 대상이 화상 중이면 피해 +120.",
+      "effects": [
+        {
+          "kind": "flatDamage",
+          "selector": "target",
+          "amount": 120,
+          "dmgType": "magic",
+          "bonusIfBurning": 120
+        }
+      ],
+      "upgrade": {
+        "text": "적 1명에게 마법 피해 160. 대상이 화상 중이면 피해 +160.",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "target",
+            "amount": 160,
+            "dmgType": "magic",
+            "bonusIfBurning": 160
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_mana_flood",
+      "name": "마나 범람",
+      "owner": "cmd_isera",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "text": "아군 1명의 마나를 가득 채우고, 카드 1장을 뽑는다.",
+      "effects": [
+        {
+          "kind": "manaFill",
+          "selector": "target"
+        },
+        {
+          "kind": "drawCards",
+          "selector": "allAllies",
+          "count": 1
+        }
+      ],
+      "upgrade": {
+        "text": "아군 1명의 마나를 가득 채우고, 카드 2장을 뽑는다.",
+        "effects": [
+          {
+            "kind": "manaFill",
+            "selector": "target"
+          },
+          {
+            "kind": "drawCards",
+            "selector": "allAllies",
+            "count": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_spell_chain",
+      "name": "주문 연쇄",
+      "owner": "cmd_isera",
+      "rarity": "common",
+      "type": "spell",
+      "cost": 1,
+      "target": {
+        "kind": "enemyUnit"
+      },
+      "keywords": [
+        "chain"
+      ],
+      "text": "적 1명에게 마법 피해 90. 연쇄: 비용 0.",
+      "effects": [
+        {
+          "kind": "flatDamage",
+          "selector": "target",
+          "amount": 90,
+          "dmgType": "magic"
+        }
+      ],
+      "chain": {
+        "cost": 0,
+        "effects": []
+      },
+      "upgrade": {
+        "text": "적 1명에게 마법 피해 130. 연쇄: 비용 0.",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "target",
+            "amount": 130,
+            "dmgType": "magic"
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_ember_rain",
+      "name": "불티 폭우",
+      "owner": "cmd_isera",
+      "rarity": "epic",
+      "type": "spell",
+      "cost": 4,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "적 전체에게 마법 피해 120, 초당 마법 피해 20의 화상 (3초).",
+      "effects": [
+        {
+          "kind": "flatDamage",
+          "selector": "allEnemies",
+          "amount": 120,
+          "dmgType": "magic"
+        },
+        {
+          "kind": "burn",
+          "selector": "allEnemies",
+          "dps": 20,
+          "duration": 3
+        }
+      ],
+      "upgrade": {
+        "text": "적 전체에게 마법 피해 170, 초당 마법 피해 20의 화상 (3초).",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "allEnemies",
+            "amount": 170,
+            "dmgType": "magic"
+          },
+          {
+            "kind": "burn",
+            "selector": "allEnemies",
+            "dps": 20,
+            "duration": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_flame_armor",
+      "name": "화염 갑옷",
+      "owner": "cmd_isera",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "text": "아군 1명 4초간 받은 피해의 25%를 반사하고, 최대 HP 15% 보호막 (4초).",
+      "effects": [
+        {
+          "kind": "reflect",
+          "selector": "target",
+          "pct": 25,
+          "duration": 4
+        },
+        {
+          "kind": "shield",
+          "selector": "target",
+          "pctMaxHp": 15,
+          "duration": 4
+        }
+      ],
+      "upgrade": {
+        "text": "아군 1명 4초간 받은 피해의 35%를 반사하고, 최대 HP 15% 보호막 (4초).",
+        "effects": [
+          {
+            "kind": "reflect",
+            "selector": "target",
+            "pct": 35,
+            "duration": 4
+          },
+          {
+            "kind": "shield",
+            "selector": "target",
+            "pctMaxHp": 15,
+            "duration": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_hot_wind",
+      "name": "열풍",
+      "owner": "cmd_isera",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "아군 전체 4초간 AS +20%.",
+      "effects": [
+        {
+          "kind": "statMod",
+          "selector": "allAllies",
+          "stat": "as",
+          "pct": 20,
+          "duration": 4
+        }
+      ],
+      "upgrade": {
+        "text": "아군 전체 4초간 AS +30%.",
+        "effects": [
+          {
+            "kind": "statMod",
+            "selector": "allAllies",
+            "stat": "as",
+            "pct": 30,
+            "duration": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_oath_of_fire",
+      "name": "불의 서약",
+      "owner": "cmd_isera",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 0,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "exhaust"
+      ],
+      "text": "CP +2, 카드 1장을 뽑는다. 소모.",
+      "effects": [
+        {
+          "kind": "cpGain",
+          "selector": "allAllies",
+          "amount": 2
+        },
+        {
+          "kind": "drawCards",
+          "selector": "allAllies",
+          "count": 1
+        }
+      ],
+      "upgrade": {
+        "text": "CP +2, 카드 2장을 뽑는다. 소모.",
+        "effects": [
+          {
+            "kind": "cpGain",
+            "selector": "allAllies",
+            "amount": 2
+          },
+          {
+            "kind": "drawCards",
+            "selector": "allAllies",
+            "count": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_ember_mark",
+      "name": "잿불 각인",
+      "owner": "cmd_isera",
+      "rarity": "common",
+      "type": "spell",
+      "cost": 1,
+      "target": {
+        "kind": "enemyUnit"
+      },
+      "keywords": [],
+      "text": "적 1명 6초간 받는 마법 피해 +30%.",
+      "effects": [
+        {
+          "kind": "damageTakenMult",
+          "selector": "target",
+          "mult": 1.3,
+          "duration": 6,
+          "dmgType": "magic"
+        }
+      ],
+      "upgrade": {
+        "text": "적 1명 6초간 받는 마법 피해 +45%.",
+        "effects": [
+          {
+            "kind": "damageTakenMult",
+            "selector": "target",
+            "mult": 1.45,
+            "duration": 6,
+            "dmgType": "magic"
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_hearth_blessing",
+      "name": "대화로의 축복",
+      "owner": "cmd_isera",
+      "rarity": "rare",
+      "type": "operation",
+      "cost": 2,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "이번 전투 동안 아군 전체의 공격이 대상에게 ATK 10%의 화상을 입힌다 (3초). 공명 [잿불]: ATK 20%.",
+      "effects": [
+        {
+          "kind": "onAttackBurn",
+          "selector": "allAllies",
+          "pctAtk": 10,
+          "duration": 3
+        }
+      ],
+      "resonance": {
+        "trait": "ember",
+        "effects": [
+          {
+            "kind": "onAttackBurn",
+            "selector": "allAllies",
+            "pctAtk": 20,
+            "duration": 3
+          }
+        ]
+      },
+      "upgrade": {
+        "text": "이번 전투 동안 아군 전체의 공격이 대상에게 ATK 15%의 화상을 입힌다 (3초). 공명 [잿불]: ATK 30%.",
+        "effects": [
+          {
+            "kind": "onAttackBurn",
+            "selector": "allAllies",
+            "pctAtk": 15,
+            "duration": 3
+          }
+        ],
+        "resonance": {
+          "trait": "ember",
+          "effects": [
+            {
+              "kind": "onAttackBurn",
+              "selector": "allAllies",
+              "pctAtk": 30,
+              "duration": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "isera_focus",
+      "name": "정신 집중",
+      "owner": "cmd_isera",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "retain"
+      ],
+      "text": "카드 2장을 뽑는다. 보존.",
+      "effects": [
+        {
+          "kind": "drawCards",
+          "selector": "allAllies",
+          "count": 2
+        }
+      ],
+      "upgrade": {
+        "cost": 0,
+        "text": "카드 2장을 뽑는다. 보존.",
+        "effects": [
+          {
+            "kind": "drawCards",
+            "selector": "allAllies",
+            "count": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_spell_circuit",
+      "name": "주술 회로",
+      "owner": "cmd_isera",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "text": "아군 1명의 마나 +50. 공명 [주술사]: 손패 무작위 1장의 비용 -1.",
+      "effects": [
+        {
+          "kind": "manaGain",
+          "selector": "target",
+          "amount": 50
+        }
+      ],
+      "resonance": {
+        "trait": "mystic",
+        "effects": [
+          {
+            "kind": "handCostCut",
+            "selector": "allAllies",
+            "amount": 1
+          }
+        ]
+      },
+      "upgrade": {
+        "text": "아군 1명의 마나를 가득 채운다. 공명 [주술사]: 손패 무작위 1장의 비용 -1.",
+        "effects": [
+          {
+            "kind": "manaFill",
+            "selector": "target"
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_volcanic_bomb",
+      "name": "화산탄",
+      "owner": "cmd_isera",
+      "rarity": "common",
+      "type": "spell",
+      "cost": 3,
+      "target": {
+        "kind": "area3x3"
+      },
+      "keywords": [],
+      "text": "3×3 범위 적에게 물리 피해 150, 1초 기절.",
+      "effects": [
+        {
+          "kind": "flatDamage",
+          "selector": "enemiesInTargetArea",
+          "amount": 150,
+          "dmgType": "physical"
+        },
+        {
+          "kind": "stun",
+          "selector": "enemiesInTargetArea",
+          "duration": 1
+        }
+      ],
+      "upgrade": {
+        "text": "3×3 범위 적에게 물리 피해 200, 1초 기절.",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "enemiesInTargetArea",
+            "amount": 200,
+            "dmgType": "physical"
+          },
+          {
+            "kind": "stun",
+            "selector": "enemiesInTargetArea",
+            "duration": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_flame_snare",
+      "name": "불꽃 올가미",
+      "owner": "cmd_isera",
+      "rarity": "common",
+      "type": "spell",
+      "cost": 2,
+      "target": {
+        "kind": "area3x3"
+      },
+      "keywords": [],
+      "text": "3×3 범위 적을 2초간 속박하고, 초당 마법 피해 15의 화상 (3초).",
+      "effects": [
+        {
+          "kind": "root",
+          "selector": "enemiesInTargetArea",
+          "duration": 2
+        },
+        {
+          "kind": "burn",
+          "selector": "enemiesInTargetArea",
+          "dps": 15,
+          "duration": 3
+        }
+      ],
+      "upgrade": {
+        "text": "3×3 범위 적을 3초간 속박하고, 초당 마법 피해 25의 화상 (3초).",
+        "effects": [
+          {
+            "kind": "root",
+            "selector": "enemiesInTargetArea",
+            "duration": 3
+          },
+          {
+            "kind": "burn",
+            "selector": "enemiesInTargetArea",
+            "dps": 25,
+            "duration": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_masters_lesson",
+      "name": "스승의 가르침",
+      "owner": "cmd_isera",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "exhaust"
+      ],
+      "text": "카드 3장을 뽑는다. 소모.",
+      "effects": [
+        {
+          "kind": "drawCards",
+          "selector": "allAllies",
+          "count": 3
+        }
+      ],
+      "upgrade": {
+        "text": "카드 4장을 뽑는다. 소모.",
+        "effects": [
+          {
+            "kind": "drawCards",
+            "selector": "allAllies",
+            "count": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_meteor_fall",
+      "name": "운석 낙하",
+      "owner": "cmd_isera",
+      "rarity": "epic",
+      "type": "spell",
+      "cost": 4,
+      "target": {
+        "kind": "area3x3"
+      },
+      "keywords": [],
+      "text": "2초 뒤 지정한 3×3 범위에 마법 피해 400.",
+      "effects": [
+        {
+          "kind": "delayedStrike",
+          "selector": "allAllies",
+          "delay": 2,
+          "area": "targetArea",
+          "effects": [
+            {
+              "kind": "flatDamage",
+              "selector": "enemiesInTargetArea",
+              "amount": 400,
+              "dmgType": "magic"
+            }
+          ]
+        }
+      ],
+      "upgrade": {
+        "text": "2초 뒤 지정한 3×3 범위에 마법 피해 550.",
+        "effects": [
+          {
+            "kind": "delayedStrike",
+            "selector": "allAllies",
+            "delay": 2,
+            "area": "targetArea",
+            "effects": [
+              {
+                "kind": "flatDamage",
+                "selector": "enemiesInTargetArea",
+                "amount": 550,
+                "dmgType": "magic"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_ember_spirit",
+      "name": "잿불 정령",
+      "owner": "cmd_isera",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 3,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "conscript",
+        "exhaust"
+      ],
+      "text": "징집: 후열의 빈 칸에 마나가 가득 찬 잿불 점화사 1기를 이번 전투 동안 소환한다. 소모.",
+      "effects": [
+        {
+          "kind": "summon",
+          "selector": "allAllies",
+          "count": 1,
+          "unitId": "ember_kindler",
+          "placement": "allyBack",
+          "manaFull": true
+        }
+      ],
+      "upgrade": {
+        "text": "징집: 후열의 빈 칸에 마나가 가득 찬 2성 잿불 점화사 1기를 이번 전투 동안 소환한다. 소모.",
+        "effects": [
+          {
+            "kind": "summon",
+            "selector": "allAllies",
+            "count": 1,
+            "unitId": "ember_kindler",
+            "placement": "allyBack",
+            "star": 2,
+            "manaFull": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_small_spark",
+      "name": "작은 불씨",
+      "owner": "cmd_isera",
+      "rarity": "common",
+      "type": "spell",
+      "cost": 0,
+      "target": {
+        "kind": "enemyUnit"
+      },
+      "keywords": [],
+      "limits": {
+        "perCombat": 3
+      },
+      "text": "적 1명에게 마법 피해 50. 전투당 3회.",
+      "effects": [
+        {
+          "kind": "flatDamage",
+          "selector": "target",
+          "amount": 50,
+          "dmgType": "magic"
+        }
+      ],
+      "upgrade": {
+        "text": "적 1명에게 마법 피해 70. 전투당 3회.",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "target",
+            "amount": 70,
+            "dmgType": "magic"
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_heat_amplifier",
+      "name": "열 증폭",
+      "owner": "cmd_isera",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "이번 전투 동안 주문 피해 +20%.",
+      "effects": [
+        {
+          "kind": "spellDamageBoost",
+          "selector": "allAllies",
+          "pct": 20
+        }
+      ],
+      "upgrade": {
+        "text": "이번 전투 동안 주문 피해 +30%.",
+        "effects": [
+          {
+            "kind": "spellDamageBoost",
+            "selector": "allAllies",
+            "pct": 30
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_phoenix_feather",
+      "name": "불사조의 깃털",
+      "owner": "cmd_isera",
+      "rarity": "epic",
+      "type": "equipment",
+      "cost": 2,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "text": "준비 CP 2. 아군 1명에게 장착: 전투당 1회, 쓰러지면 최대 HP 40%로 부활한다. 장비와 효과는 전투 사이에 유지된다.",
+      "effects": [
+        {
+          "kind": "reviveOnce",
+          "selector": "target",
+          "hpPct": 40
+        }
+      ],
+      "upgrade": {
+        "text": "준비 CP 2. 아군 1명에게 장착: 전투당 1회, 쓰러지면 최대 HP 60%로 부활한다. 장비와 효과는 전투 사이에 유지된다.",
+        "effects": [
+          {
+            "kind": "reviveOnce",
+            "selector": "target",
+            "hpPct": 60
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_flame_field",
+      "name": "화염 지대",
+      "owner": "cmd_isera",
+      "rarity": "rare",
+      "type": "spell",
+      "cost": 3,
+      "target": {
+        "kind": "area3x3"
+      },
+      "keywords": [],
+      "text": "지정한 3×3 범위에 5초간 1초마다 마법 피해 40.",
+      "effects": [
+        {
+          "kind": "damageZone",
+          "selector": "enemiesInTargetArea",
+          "amount": 40,
+          "dmgType": "magic",
+          "duration": 5,
+          "intervalSeconds": 1
+        }
+      ],
+      "upgrade": {
+        "text": "지정한 3×3 범위에 5초간 1초마다 마법 피해 55.",
+        "effects": [
+          {
+            "kind": "damageZone",
+            "selector": "enemiesInTargetArea",
+            "amount": 55,
+            "dmgType": "magic",
+            "duration": 5,
+            "intervalSeconds": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_eruption_warmup",
+      "name": "대분화 예열",
+      "owner": "cmd_isera",
+      "rarity": "epic",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "retain"
+      ],
+      "limits": {
+        "perCombat": 1
+      },
+      "text": "궁극기 게이지 +35. 전투당 1회. 보존.",
+      "effects": [
+        {
+          "kind": "ultimateGain",
+          "selector": "allAllies",
+          "amount": 35
+        }
+      ],
+      "upgrade": {
+        "text": "궁극기 게이지 +50. 전투당 1회. 보존.",
+        "effects": [
+          {
+            "kind": "ultimateGain",
+            "selector": "allAllies",
+            "amount": 50
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_ignition_chain",
+      "name": "점화 연쇄",
+      "owner": "cmd_isera",
+      "rarity": "rare",
+      "type": "spell",
+      "cost": 1,
+      "target": {
+        "kind": "enemyUnit"
+      },
+      "keywords": [
+        "chain"
+      ],
+      "text": "대상과 그 주변 적에게 마법 피해 60. 연쇄: 초당 마법 피해 25의 화상 (3초).",
+      "effects": [
+        {
+          "kind": "flatDamage",
+          "selector": "targetAndAdjacent",
+          "amount": 60,
+          "dmgType": "magic"
+        }
+      ],
+      "chain": {
+        "effects": [
+          {
+            "kind": "burn",
+            "selector": "targetAndAdjacent",
+            "dps": 25,
+            "duration": 3
+          }
+        ]
+      },
+      "upgrade": {
+        "text": "대상과 그 주변 적에게 마법 피해 90. 연쇄: 초당 마법 피해 25의 화상 (3초).",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "targetAndAdjacent",
+            "amount": 90,
+            "dmgType": "magic"
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_flame_shield",
+      "name": "불꽃 방패",
+      "owner": "cmd_isera",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "text": "아군 1명에게 최대 HP 20% 보호막 (3초), 3초간 받은 피해의 15%를 반사한다.",
+      "effects": [
+        {
+          "kind": "shield",
+          "selector": "target",
+          "pctMaxHp": 20,
+          "duration": 3
+        },
+        {
+          "kind": "reflect",
+          "selector": "target",
+          "pct": 15,
+          "duration": 3
+        }
+      ],
+      "upgrade": {
+        "text": "아군 1명에게 최대 HP 30% 보호막 (3초), 3초간 받은 피해의 15%를 반사한다.",
+        "effects": [
+          {
+            "kind": "shield",
+            "selector": "target",
+            "pctMaxHp": 30,
+            "duration": 3
+          },
+          {
+            "kind": "reflect",
+            "selector": "target",
+            "pct": 15,
+            "duration": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "isera_ash_rain",
+      "name": "재의 비",
+      "owner": "cmd_isera",
+      "rarity": "common",
+      "type": "spell",
+      "cost": 2,
+      "target": {
+        "kind": "area3x3"
+      },
+      "keywords": [],
+      "text": "3×3 범위 적 4초간 ATK -20%, 초당 마법 피해 15의 화상 (4초).",
+      "effects": [
+        {
+          "kind": "statMod",
+          "selector": "enemiesInTargetArea",
+          "stat": "atk",
+          "pct": -20,
+          "duration": 4
+        },
+        {
+          "kind": "burn",
+          "selector": "enemiesInTargetArea",
+          "dps": 15,
+          "duration": 4
+        }
+      ],
+      "upgrade": {
+        "text": "3×3 범위 적 4초간 ATK -30%, 초당 마법 피해 15의 화상 (4초).",
+        "effects": [
+          {
+            "kind": "statMod",
+            "selector": "enemiesInTargetArea",
+            "stat": "atk",
+            "pct": -30,
+            "duration": 4
+          },
+          {
+            "kind": "burn",
+            "selector": "enemiesInTargetArea",
+            "dps": 15,
+            "duration": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_blood_contract",
+      "name": "피의 계약서",
+      "owner": "cmd_nox",
+      "rarity": "common",
+      "type": "command",
+      "cost": 0,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "commanderHpCost": {
+        "amount": 2
+      },
+      "text": "지휘관 HP 2를 잃고 카드 2장을 뽑는다.",
+      "effects": [
+        {
+          "kind": "drawCards",
+          "selector": "allAllies",
+          "count": 2
+        }
+      ],
+      "upgrade": {
+        "text": "지휘관 HP 2를 잃고 카드 3장을 뽑는다.",
+        "effects": [
+          {
+            "kind": "drawCards",
+            "selector": "allAllies",
+            "count": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_usury",
+      "name": "고리대금",
+      "owner": "cmd_nox",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 0,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "commanderHpCost": {
+        "amount": 4
+      },
+      "text": "지휘관 HP 4를 잃고 CP +3.",
+      "effects": [
+        {
+          "kind": "cpGain",
+          "selector": "allAllies",
+          "amount": 3
+        }
+      ],
+      "upgrade": {
+        "text": "지휘관 HP 3을 잃고 CP +3.",
+        "effects": [
+          {
+            "kind": "cpGain",
+            "selector": "allAllies",
+            "amount": 3
+          }
+        ],
+        "commanderHpCost": {
+          "amount": 3
+        }
+      }
+    },
+    {
+      "id": "nox_shadow_strike",
+      "name": "그림자 일격",
+      "owner": "cmd_nox",
+      "rarity": "common",
+      "type": "spell",
+      "cost": 1,
+      "target": {
+        "kind": "enemyUnit"
+      },
+      "keywords": [],
+      "text": "적 1명에게 물리 피해 120 (방어력 30% 무시).",
+      "effects": [
+        {
+          "kind": "flatDamage",
+          "selector": "target",
+          "amount": 120,
+          "dmgType": "physical",
+          "ignoreArmorPct": 30
+        }
+      ],
+      "upgrade": {
+        "text": "적 1명에게 물리 피해 170 (방어력 30% 무시).",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "target",
+            "amount": 170,
+            "dmgType": "physical",
+            "ignoreArmorPct": 30
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_assassin_mark",
+      "name": "암살 표식",
+      "owner": "cmd_nox",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "enemyUnit"
+      },
+      "keywords": [],
+      "text": "적 1명 5초간 받는 피해 +30%. 공명 [암살자]: +50%.",
+      "effects": [
+        {
+          "kind": "damageTakenMult",
+          "selector": "target",
+          "mult": 1.3,
+          "duration": 5
+        }
+      ],
+      "resonance": {
+        "trait": "assassin",
+        "effects": [
+          {
+            "kind": "damageTakenMult",
+            "selector": "target",
+            "mult": 1.1538,
+            "duration": 5
+          }
+        ]
+      },
+      "upgrade": {
+        "text": "적 1명 5초간 받는 피해 +40%. 공명 [암살자]: +65%.",
+        "effects": [
+          {
+            "kind": "damageTakenMult",
+            "selector": "target",
+            "mult": 1.4,
+            "duration": 5
+          }
+        ],
+        "resonance": {
+          "trait": "assassin",
+          "effects": [
+            {
+              "kind": "damageTakenMult",
+              "selector": "target",
+              "mult": 1.1786,
+              "duration": 5
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "nox_abyss_leap",
+      "name": "심연 도약",
+      "owner": "cmd_nox",
+      "rarity": "common",
+      "type": "command",
+      "cost": 0,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "text": "아군 1명이 적 후열의 빈 칸으로 순간이동하고 3초간 ATK +20%.",
+      "effects": [
+        {
+          "kind": "teleport",
+          "selector": "target",
+          "destination": "enemyBackRow"
+        },
+        {
+          "kind": "statMod",
+          "selector": "target",
+          "stat": "atk",
+          "pct": 20,
+          "duration": 3
+        }
+      ],
+      "upgrade": {
+        "text": "아군 1명이 적 후열의 빈 칸으로 순간이동하고 3초간 ATK +35%.",
+        "effects": [
+          {
+            "kind": "teleport",
+            "selector": "target",
+            "destination": "enemyBackRow"
+          },
+          {
+            "kind": "statMod",
+            "selector": "target",
+            "stat": "atk",
+            "pct": 35,
+            "duration": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_life_drain",
+      "name": "생명 착취",
+      "owner": "cmd_nox",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "text": "아군 1명 5초간 생명력 흡수 30%.",
+      "effects": [
+        {
+          "kind": "lifesteal",
+          "selector": "target",
+          "pct": 30,
+          "duration": 5
+        }
+      ],
+      "upgrade": {
+        "text": "아군 1명 5초간 생명력 흡수 45%.",
+        "effects": [
+          {
+            "kind": "lifesteal",
+            "selector": "target",
+            "pct": 45,
+            "duration": 5
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_blood_feast",
+      "name": "피의 축제",
+      "owner": "cmd_nox",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "commanderHpCost": {
+        "amount": 2
+      },
+      "text": "지휘관 HP 2를 잃고 아군 전체 5초간 생명력 흡수 15%.",
+      "effects": [
+        {
+          "kind": "lifesteal",
+          "selector": "allAllies",
+          "pct": 15,
+          "duration": 5
+        }
+      ],
+      "upgrade": {
+        "text": "지휘관 HP 2를 잃고 아군 전체 5초간 생명력 흡수 25%.",
+        "effects": [
+          {
+            "kind": "lifesteal",
+            "selector": "allAllies",
+            "pct": 25,
+            "duration": 5
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_final_deal",
+      "name": "마지막 거래",
+      "owner": "cmd_nox",
+      "rarity": "epic",
+      "type": "command",
+      "cost": 0,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "exhaust"
+      ],
+      "commanderHpCost": {
+        "amount": 8
+      },
+      "text": "지휘관 HP 8을 잃고 CP를 최대(6)까지 채운 뒤 카드 2장을 뽑는다. 소모.",
+      "effects": [
+        {
+          "kind": "cpGain",
+          "selector": "allAllies",
+          "amount": 6
+        },
+        {
+          "kind": "drawCards",
+          "selector": "allAllies",
+          "count": 2
+        }
+      ],
+      "upgrade": {
+        "text": "지휘관 HP 6을 잃고 CP를 최대(6)까지 채운 뒤 카드 2장을 뽑는다. 소모.",
+        "effects": [
+          {
+            "kind": "cpGain",
+            "selector": "allAllies",
+            "amount": 6
+          },
+          {
+            "kind": "drawCards",
+            "selector": "allAllies",
+            "count": 2
+          }
+        ],
+        "commanderHpCost": {
+          "amount": 6
+        }
+      }
+    },
+    {
+      "id": "nox_debt_collection",
+      "name": "빚 독촉",
+      "owner": "cmd_nox",
+      "rarity": "common",
+      "type": "operation",
+      "cost": 0,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "commanderHpCost": {
+        "amount": 2
+      },
+      "text": "지휘관 HP 2를 잃고, 무작위 적 1명의 이번 전투 최대 HP -15%.",
+      "effects": [
+        {
+          "kind": "scout",
+          "selector": "allAllies",
+          "count": 1,
+          "pctMaxHp": 15
+        }
+      ],
+      "upgrade": {
+        "text": "지휘관 HP 2를 잃고, 무작위 적 2명의 이번 전투 최대 HP -15%.",
+        "effects": [
+          {
+            "kind": "scout",
+            "selector": "allAllies",
+            "count": 2,
+            "pctMaxHp": 15
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_poisoned_blade",
+      "name": "독 묻은 칼날",
+      "owner": "cmd_nox",
+      "rarity": "common",
+      "type": "equipment",
+      "cost": 1,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "text": "준비 CP 1. 아군 1명에게 장착: ATK +10, 생명력 흡수 10%. 장비와 효과는 전투 사이에 유지된다.",
+      "effects": [
+        {
+          "kind": "statAdd",
+          "selector": "target",
+          "stat": "atk",
+          "amount": 10,
+          "duration": "combat"
+        },
+        {
+          "kind": "lifesteal",
+          "selector": "target",
+          "pct": 10,
+          "duration": "combat"
+        }
+      ],
+      "upgrade": {
+        "text": "준비 CP 1. 아군 1명에게 장착: ATK +15, 생명력 흡수 15%. 장비와 효과는 전투 사이에 유지된다.",
+        "effects": [
+          {
+            "kind": "statAdd",
+            "selector": "target",
+            "stat": "atk",
+            "amount": 15,
+            "duration": "combat"
+          },
+          {
+            "kind": "lifesteal",
+            "selector": "target",
+            "pct": 15,
+            "duration": "combat"
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_execution",
+      "name": "처형",
+      "owner": "cmd_nox",
+      "rarity": "rare",
+      "type": "spell",
+      "cost": 2,
+      "target": {
+        "kind": "enemyUnit"
+      },
+      "keywords": [],
+      "text": "적 1명에게 물리 피해 150. 대상 HP가 30% 이하면 피해가 2배.",
+      "effects": [
+        {
+          "kind": "flatDamage",
+          "selector": "target",
+          "amount": 150,
+          "dmgType": "physical",
+          "hpBelowPct": 30,
+          "belowMult": 2
+        }
+      ],
+      "upgrade": {
+        "text": "적 1명에게 물리 피해 200. 대상 HP가 30% 이하면 피해가 2배.",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "target",
+            "amount": 200,
+            "dmgType": "physical",
+            "hpBelowPct": 30,
+            "belowMult": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_shadow_veil",
+      "name": "그림자 장막",
+      "owner": "cmd_nox",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "text": "아군 1명 4초간 받는 물리 피해 -50%.",
+      "effects": [
+        {
+          "kind": "damageTakenMult",
+          "selector": "target",
+          "mult": 0.5,
+          "duration": 4,
+          "dmgType": "physical"
+        }
+      ],
+      "upgrade": {
+        "text": "아군 1명 4초간 받는 물리 피해 -65%.",
+        "effects": [
+          {
+            "kind": "damageTakenMult",
+            "selector": "target",
+            "mult": 0.35,
+            "duration": 4,
+            "dmgType": "physical"
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_whisper_of_dread",
+      "name": "공포의 속삭임",
+      "owner": "cmd_nox",
+      "rarity": "common",
+      "type": "spell",
+      "cost": 1,
+      "target": {
+        "kind": "area3x3"
+      },
+      "keywords": [],
+      "text": "3×3 범위 적 4초간 ATK -25%.",
+      "effects": [
+        {
+          "kind": "statMod",
+          "selector": "enemiesInTargetArea",
+          "stat": "atk",
+          "pct": -25,
+          "duration": 4
+        }
+      ],
+      "upgrade": {
+        "text": "3×3 범위 적 4초간 ATK -35%.",
+        "effects": [
+          {
+            "kind": "statMod",
+            "selector": "enemiesInTargetArea",
+            "stat": "atk",
+            "pct": -35,
+            "duration": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_contract_renewal",
+      "name": "계약 갱신",
+      "owner": "cmd_nox",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "retain"
+      ],
+      "commanderHpCost": {
+        "amount": 2
+      },
+      "text": "지휘관 HP 2를 잃고 카드 2장을 뽑은 뒤 CP +1. 보존.",
+      "effects": [
+        {
+          "kind": "drawCards",
+          "selector": "allAllies",
+          "count": 2
+        },
+        {
+          "kind": "cpGain",
+          "selector": "allAllies",
+          "amount": 1
+        }
+      ],
+      "upgrade": {
+        "cost": 0,
+        "text": "지휘관 HP 2를 잃고 카드 2장을 뽑은 뒤 CP +1. 보존.",
+        "effects": [
+          {
+            "kind": "drawCards",
+            "selector": "allAllies",
+            "count": 2
+          },
+          {
+            "kind": "cpGain",
+            "selector": "allAllies",
+            "amount": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_abyss_gaze",
+      "name": "심연 응시",
+      "owner": "cmd_nox",
+      "rarity": "rare",
+      "type": "spell",
+      "cost": 2,
+      "target": {
+        "kind": "enemyUnit"
+      },
+      "keywords": [],
+      "text": "적 1명을 4초간 침묵시키고 마나 50을 줄인다. 공명 [심연]: CP +1.",
+      "effects": [
+        {
+          "kind": "silence",
+          "selector": "target",
+          "duration": 4
+        },
+        {
+          "kind": "manaDrain",
+          "selector": "target",
+          "amount": 50
+        }
+      ],
+      "resonance": {
+        "trait": "abyss",
+        "effects": [
+          {
+            "kind": "cpGain",
+            "selector": "allAllies",
+            "amount": 1
+          }
+        ]
+      },
+      "upgrade": {
+        "text": "적 1명을 6초간 침묵시키고 마나 50을 줄인다. 공명 [심연]: CP +1.",
+        "effects": [
+          {
+            "kind": "silence",
+            "selector": "target",
+            "duration": 6
+          },
+          {
+            "kind": "manaDrain",
+            "selector": "target",
+            "amount": 50
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_blood_armor",
+      "name": "피의 갑옷",
+      "owner": "cmd_nox",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "commanderHpCost": {
+        "amount": 3
+      },
+      "text": "지휘관 HP 3을 잃고 아군 1명에게 최대 HP 40% 보호막 (4초).",
+      "effects": [
+        {
+          "kind": "shield",
+          "selector": "target",
+          "pctMaxHp": 40,
+          "duration": 4
+        }
+      ],
+      "upgrade": {
+        "text": "지휘관 HP 3을 잃고 아군 1명에게 최대 HP 55% 보호막 (4초).",
+        "effects": [
+          {
+            "kind": "shield",
+            "selector": "target",
+            "pctMaxHp": 55,
+            "duration": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_shadow_clone",
+      "name": "그림자 분신",
+      "owner": "cmd_nox",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 3,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "conscript",
+        "exhaust"
+      ],
+      "text": "징집: 적 후열의 빈 칸에 그림자 단검 2기를 이번 전투 동안 소환한다. 소모.",
+      "effects": [
+        {
+          "kind": "summon",
+          "selector": "allAllies",
+          "count": 2,
+          "unitId": "shade_dagger",
+          "placement": "enemyBack"
+        }
+      ],
+      "upgrade": {
+        "text": "징집: 적 후열의 빈 칸에 2성 그림자 단검 2기를 이번 전투 동안 소환한다. 소모.",
+        "effects": [
+          {
+            "kind": "summon",
+            "selector": "allAllies",
+            "count": 2,
+            "unitId": "shade_dagger",
+            "placement": "enemyBack",
+            "star": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_silent_finish",
+      "name": "은밀한 처리",
+      "owner": "cmd_nox",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "text": "아군 1명의 다음 기본 공격이 ATK 200%의 물리 피해를 준다.",
+      "effects": [
+        {
+          "kind": "empoweredAttack",
+          "selector": "target",
+          "pctAtk": 200,
+          "dmgType": "physical"
+        }
+      ],
+      "upgrade": {
+        "text": "아군 1명의 다음 기본 공격이 ATK 280%의 물리 피해를 준다.",
+        "effects": [
+          {
+            "kind": "empoweredAttack",
+            "selector": "target",
+            "pctAtk": 280,
+            "dmgType": "physical"
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_chain_of_debt",
+      "name": "대가의 연쇄",
+      "owner": "cmd_nox",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 0,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "chain"
+      ],
+      "commanderHpCost": {
+        "amount": 1
+      },
+      "text": "지휘관 HP 1을 잃고 카드 1장을 뽑는다. 연쇄: CP +1.",
+      "effects": [
+        {
+          "kind": "drawCards",
+          "selector": "allAllies",
+          "count": 1
+        }
+      ],
+      "chain": {
+        "effects": [
+          {
+            "kind": "cpGain",
+            "selector": "allAllies",
+            "amount": 1
+          }
+        ]
+      },
+      "upgrade": {
+        "text": "지휘관 HP 1을 잃고 카드 2장을 뽑는다. 연쇄: CP +1.",
+        "effects": [
+          {
+            "kind": "drawCards",
+            "selector": "allAllies",
+            "count": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_oblivion_touch",
+      "name": "망각의 손길",
+      "owner": "cmd_nox",
+      "rarity": "epic",
+      "type": "spell",
+      "cost": 2,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "text": "적 전체의 마나를 40 줄이고 2초간 침묵시킨다.",
+      "effects": [
+        {
+          "kind": "manaDrain",
+          "selector": "allEnemies",
+          "amount": 40
+        },
+        {
+          "kind": "silence",
+          "selector": "allEnemies",
+          "duration": 2
+        }
+      ],
+      "upgrade": {
+        "text": "적 전체의 마나를 60 줄이고 2초간 침묵시킨다.",
+        "effects": [
+          {
+            "kind": "manaDrain",
+            "selector": "allEnemies",
+            "amount": 60
+          },
+          {
+            "kind": "silence",
+            "selector": "allEnemies",
+            "duration": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_blood_alliance",
+      "name": "피로 맺은 동맹",
+      "owner": "cmd_nox",
+      "rarity": "rare",
+      "type": "operation",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "commanderHpCost": {
+        "amount": 3
+      },
+      "text": "지휘관 HP 3을 잃고, 이번 전투 동안 아군 전체 ATK +15%.",
+      "effects": [
+        {
+          "kind": "statMod",
+          "selector": "allAllies",
+          "stat": "atk",
+          "pct": 15,
+          "duration": "combat"
+        }
+      ],
+      "upgrade": {
+        "text": "지휘관 HP 3을 잃고, 이번 전투 동안 아군 전체 ATK +20%.",
+        "effects": [
+          {
+            "kind": "statMod",
+            "selector": "allAllies",
+            "stat": "atk",
+            "pct": 20,
+            "duration": "combat"
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_hunt_begins",
+      "name": "사냥 개시",
+      "owner": "cmd_nox",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "enemyUnit"
+      },
+      "keywords": [],
+      "text": "3초간 아군 전체가 지정한 적을 우선 공격한다. 그 적은 3초간 받는 피해 +25%.",
+      "effects": [
+        {
+          "kind": "forceTarget",
+          "selector": "allAllies",
+          "duration": 3
+        },
+        {
+          "kind": "damageTakenMult",
+          "selector": "target",
+          "mult": 1.25,
+          "duration": 3
+        }
+      ],
+      "upgrade": {
+        "text": "3초간 아군 전체가 지정한 적을 우선 공격한다. 그 적은 3초간 받는 피해 +35%.",
+        "effects": [
+          {
+            "kind": "forceTarget",
+            "selector": "allAllies",
+            "duration": 3
+          },
+          {
+            "kind": "damageTakenMult",
+            "selector": "target",
+            "mult": 1.35,
+            "duration": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_abyss_rift",
+      "name": "심연 균열",
+      "owner": "cmd_nox",
+      "rarity": "rare",
+      "type": "spell",
+      "cost": 3,
+      "target": {
+        "kind": "area3x3"
+      },
+      "keywords": [],
+      "text": "3×3 범위 적에게 마법 피해 150, 4초간 RES -30. 공명 [심연]: CP +1.",
+      "effects": [
+        {
+          "kind": "flatDamage",
+          "selector": "enemiesInTargetArea",
+          "amount": 150,
+          "dmgType": "magic"
+        },
+        {
+          "kind": "statAdd",
+          "selector": "enemiesInTargetArea",
+          "stat": "res",
+          "amount": -30,
+          "duration": 4
+        }
+      ],
+      "resonance": {
+        "trait": "abyss",
+        "effects": [
+          {
+            "kind": "cpGain",
+            "selector": "allAllies",
+            "amount": 1
+          }
+        ]
+      },
+      "upgrade": {
+        "text": "3×3 범위 적에게 마법 피해 200, 4초간 RES -30. 공명 [심연]: CP +1.",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "enemiesInTargetArea",
+            "amount": 200,
+            "dmgType": "magic"
+          },
+          {
+            "kind": "statAdd",
+            "selector": "enemiesInTargetArea",
+            "stat": "res",
+            "amount": -30,
+            "duration": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_soul_harvest",
+      "name": "영혼 수확",
+      "owner": "cmd_nox",
+      "rarity": "epic",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "exhaust"
+      ],
+      "text": "이번 전투 동안 아군이 적을 처치할 때마다 CP +1 (최대 3). 소모.",
+      "effects": [
+        {
+          "kind": "cpOnKill",
+          "selector": "allAllies",
+          "amount": 1,
+          "maxPerCombat": 3
+        }
+      ],
+      "upgrade": {
+        "text": "이번 전투 동안 아군이 적을 처치할 때마다 CP +1 (최대 5). 소모.",
+        "effects": [
+          {
+            "kind": "cpOnKill",
+            "selector": "allAllies",
+            "amount": 1,
+            "maxPerCombat": 5
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_blood_veil",
+      "name": "피의 장막",
+      "owner": "cmd_nox",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "commanderHpCost": {
+        "amount": 3
+      },
+      "text": "지휘관 HP 3을 잃고 아군 전체 3초간 받는 피해 -25%.",
+      "effects": [
+        {
+          "kind": "damageTakenMult",
+          "selector": "allAllies",
+          "mult": 0.75,
+          "duration": 3
+        }
+      ],
+      "upgrade": {
+        "text": "지휘관 HP 3을 잃고 아군 전체 3초간 받는 피해 -35%.",
+        "effects": [
+          {
+            "kind": "damageTakenMult",
+            "selector": "allAllies",
+            "mult": 0.65,
+            "duration": 3
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_prepaid_price",
+      "name": "대가 선불",
+      "owner": "cmd_nox",
+      "rarity": "epic",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "limits": {
+        "perCombat": 1
+      },
+      "commanderHpCost": {
+        "amount": 3
+      },
+      "text": "지휘관 HP 3을 잃고 궁극기 게이지 +40. 전투당 1회.",
+      "effects": [
+        {
+          "kind": "ultimateGain",
+          "selector": "allAllies",
+          "amount": 40
+        }
+      ],
+      "upgrade": {
+        "text": "지휘관 HP 3을 잃고 궁극기 게이지 +60. 전투당 1회.",
+        "effects": [
+          {
+            "kind": "ultimateGain",
+            "selector": "allAllies",
+            "amount": 60
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_dance_of_death",
+      "name": "죽음의 춤",
+      "owner": "cmd_nox",
+      "rarity": "rare",
+      "type": "command",
+      "cost": 2,
+      "target": {
+        "kind": "allyUnit"
+      },
+      "keywords": [],
+      "text": "아군 1명 4초간 AS +50%, 생명력 흡수 20%.",
+      "effects": [
+        {
+          "kind": "statMod",
+          "selector": "target",
+          "stat": "as",
+          "pct": 50,
+          "duration": 4
+        },
+        {
+          "kind": "lifesteal",
+          "selector": "target",
+          "pct": 20,
+          "duration": 4
+        }
+      ],
+      "upgrade": {
+        "text": "아군 1명 4초간 AS +70%, 생명력 흡수 20%.",
+        "effects": [
+          {
+            "kind": "statMod",
+            "selector": "target",
+            "stat": "as",
+            "pct": 70,
+            "duration": 4
+          },
+          {
+            "kind": "lifesteal",
+            "selector": "target",
+            "pct": 20,
+            "duration": 4
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_debt_settlement",
+      "name": "빚 청산",
+      "owner": "cmd_nox",
+      "rarity": "common",
+      "type": "command",
+      "cost": 1,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [
+        "exhaust"
+      ],
+      "text": "지휘관 HP 5 회복 (전투에서 승리하면 확정). 소모.",
+      "effects": [
+        {
+          "kind": "commanderHeal",
+          "selector": "allAllies",
+          "amount": 5
+        }
+      ],
+      "upgrade": {
+        "text": "지휘관 HP 8 회복 (전투에서 승리하면 확정). 소모.",
+        "effects": [
+          {
+            "kind": "commanderHeal",
+            "selector": "allAllies",
+            "amount": 8
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_shadow_of_nothing",
+      "name": "무혼의 그림자",
+      "owner": "cmd_nox",
+      "rarity": "epic",
+      "type": "spell",
+      "cost": 4,
+      "target": {
+        "kind": "enemyUnit"
+      },
+      "keywords": [],
+      "text": "적 1명에게 물리 피해 300 (방어력 50% 무시). 처치하면 CP +2.",
+      "effects": [
+        {
+          "kind": "flatDamage",
+          "selector": "target",
+          "amount": 300,
+          "dmgType": "physical",
+          "ignoreArmorPct": 50,
+          "killCp": 2
+        }
+      ],
+      "upgrade": {
+        "text": "적 1명에게 물리 피해 400 (방어력 50% 무시). 처치하면 CP +2.",
+        "effects": [
+          {
+            "kind": "flatDamage",
+            "selector": "target",
+            "amount": 400,
+            "dmgType": "physical",
+            "ignoreArmorPct": 50,
+            "killCp": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "nox_blood_pact",
+      "name": "피의 맹약",
+      "owner": "cmd_nox",
+      "rarity": "common",
+      "type": "operation",
+      "cost": 0,
+      "target": {
+        "kind": "none"
+      },
+      "keywords": [],
+      "commanderHpCost": {
+        "amount": 4
+      },
+      "text": "지휘관 HP 4를 잃고, 이번 전투 시작 CP +2.",
+      "effects": [
+        {
+          "kind": "startCp",
+          "selector": "allAllies",
+          "amount": 2
+        }
+      ],
+      "upgrade": {
+        "text": "지휘관 HP 3을 잃고, 이번 전투 시작 CP +2.",
+        "effects": [
+          {
+            "kind": "startCp",
+            "selector": "allAllies",
+            "amount": 2
+          }
+        ],
+        "commanderHpCost": {
+          "amount": 3
+        }
+      }
     }
   ]
 }

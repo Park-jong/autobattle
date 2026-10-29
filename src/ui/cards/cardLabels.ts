@@ -35,8 +35,9 @@ export function targetLabel(target: CardTarget): string {
 }
 
 /** 카드에 붙은 키워드(소모·보존…)와 제한(전투당 N회)을 짧은 표기 목록으로 */
-export function cardTags(card: Card): string[] {
-  const tags = card.keywords.map((k) => KEYWORD_LABELS[k]);
+export function cardTags(card: Card, upgraded = false): string[] {
+  const keywords = upgraded && card.upgrade?.keywords ? card.upgrade.keywords : card.keywords;
+  const tags = keywords.map((k) => KEYWORD_LABELS[k]);
   if (card.limits?.perCombat !== undefined) tags.push(`전투당 ${card.limits.perCombat}회`);
   if (card.type === 'curse' && !card.curse?.playable) tags.push('사용 불가');
   return tags;
