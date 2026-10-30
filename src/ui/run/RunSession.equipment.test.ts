@@ -27,7 +27,7 @@ function openSaved(run: RunController) {
 }
 
 describe('덱 보기의 장착 중인 장비', () => {
-  it('전투 준비 화면에서 장비 목록이 보이고, 장착 해제하면 덱에 카드로 돌아오며 준비 손패가 다시 만들어진다', () => {
+  it('전투 준비 화면에서 장비 목록이 보이고, 장착 해제하면 덱에 카드로 돌아오며 준비 손패는 그대로다', () => {
     const h = openSaved(runWithEquipment(11, 'forged_blade+'));
     const snap = h.session.snapshot();
     expect(snap.screen).toBe('battle');
@@ -36,7 +36,10 @@ describe('덱 보기의 장착 중인 장비', () => {
     const item = snap.equipment!.items[0]!;
     expect(item.card).toMatchObject({ cardId: 'forged_blade', upgraded: true });
     const before = snap.deck!.find((e) => e.cardId === 'forged_blade' && e.upgraded)?.count ?? 0;
+    const hand = h.battle.cardView().hand.map((c) => [c.instanceId, c.cardId]);
+    expect(hand.length).toBeGreaterThan(0);
     h.session.unequipItem(item.ownedId, item.index);
+    expect(h.battle.cardView().hand.map((c) => [c.instanceId, c.cardId])).toEqual(hand); // 손패를 다시 뽑지 않는다
     const after = h.session.snapshot();
     expect(after.equipment!.items).toHaveLength(0);
     expect(after.deck!.find((e) => e.cardId === 'forged_blade' && e.upgraded)?.count ?? 0).toBe(before + 1);

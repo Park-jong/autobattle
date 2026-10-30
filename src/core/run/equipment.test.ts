@@ -52,6 +52,21 @@ describe('장비 장착 해제·판매 시 반환', () => {
     expect(countOf(run, 'forged_blade')).toBe(before + 1);
   });
 
+  it('전투 준비 중 장착 해제·판매해도 준비 손패는 그대로이고, 카드는 이어받는 덱과 준비 덱에 같은 번호로 들어간다', () => {
+    const run = newRun(5);
+    driveTo(run, 'combat');
+    const owned = equipFirst(run, 'forged_blade');
+    const first = run.createSimulator();
+    const hand = first.deck!.hand.map((c) => c.instanceId);
+    expect(run.unequip(owned, 0)).toEqual({ ok: true });
+    const prepared = (run as unknown as { state: { forces: { preparedDeck: { draw: { instanceId: number; cardId: string }[] } } } }).state.forces.preparedDeck;
+    const again = run.createSimulator();
+    expect(again.deck!.hand.map((c) => c.instanceId)).toEqual(hand);
+    const carryIds = deckCards(run.deck).filter((c) => c.cardId === 'forged_blade').map((c) => c.instanceId).sort();
+    const preparedIds = prepared.draw.filter((c) => c.cardId === 'forged_blade').map((c) => c.instanceId).sort();
+    expect(preparedIds).toEqual(carryIds);
+  });
+
   it('전투 중에는 장착 해제할 수 없다', () => {
     const run = newRun(4);
     driveTo(run, 'combat');
