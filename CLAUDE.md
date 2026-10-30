@@ -49,7 +49,7 @@
   replay/          ReplayState: 이벤트 로그(진행 중이라 늘어나도 됨) + 시각 t -> 유닛 표시 상태·연출 이벤트 (Phaser·DOM 비의존)
   live/            LiveBattle(실시간 시뮬+재생), Gauntlet(고정 편성 5연전), ManagementRun(가변 로스터·상점·장비·제공 카드·골드 이어받기) — 모두 Phaser·DOM 비의존
   economy/         ManagementPanel: 상점·레벨·벤치·판매 UI와 캔버스↔벤치 유닛 드래그
-  cards/           CardInteraction(카드 선택→대상 지정 상태 머신), playbackScale(배속×슬로모션/정지), cardAvailability(사용 불가 사유), cardPanelView(손패 패널 표시 정보 빌더), dealDeck, stagePoint(화면→게임 좌표) — 순수 TS, HandPanel(DOM)+handPanel.css
+  cards/           CardInteraction(카드 선택→대상 지정 상태 머신), playbackScale(배속·카드 집는 동안 1배속 기준 슬로모션/정지), cardAvailability(사용 불가 사유), cardPanelView(손패 패널 표시 정보 빌더), dealDeck, stagePoint(화면→게임 좌표) — 순수 TS, HandPanel(DOM)+handPanel.css
   skin/            화면 스킨(기본 도형 / 아카데미 원화): skins.ts(스킨 목록·유닛 id↔U01~U30·원화 URL/텍스처 키 순수 함수), SkinStore(현재 스킨·localStorage `autochess-skin`·구독, 앱 공용 `appSkin`), SkinPicker(선택 상자 DOM)+skin.css
   battle/          BattleScene(씬), BoardLayout(칸<->좌표), BoardPicker(좌표→칸/유닛, 보간 위치 기준), BoardRenderer, UnitSprite, EffectsLayer(궁극기 배너·운석 예고/착탄·지속 효과 링 포함), TargetingOverlay(대상 강조)
   debug/           BattleSession(편성·지휘관·덱·전투·연전·런 전투 연결을 묶는 파사드, Phaser·DOM 비의존), contracts.ts(씬용 BattleViewSource / 패널용 DebugController / 손패용 CardController 인터페이스), runLink.ts(런 전투 연결 RunBattleLink·RunBattleHost, 로스터 명령 RosterCommands), DebugPanel(DOM) + debugPanel.css
@@ -83,7 +83,7 @@
 - 씬(Phaser)·패널(DOM)·손패(DOM)는 서로 모르고 `BattleSession`을 인터페이스(`BattleViewSource`/`DebugController`/`CardController`)로만 본다. 새 UI는 같은 방식으로 세션을 구독한다.
 - 글자 많은 UI는 HTML/CSS 레이어, 보드·유닛은 Phaser. Phaser 텍스트는 `createText`(hidpi.ts)로 만들어 해상도를 맞춘다.
 - 카드 입력: 손패 카드를 **클릭하면 선택**(이후 보드에서 대상 클릭), **눌러서 8px 이상 움직이면 드래그**(캔버스에 놓으면 사용).  드래그 중에는 손패와 같은 카드 모양(`cardFaceElement`, 포인터 위쪽에 기울어져 반투명)이 따라오고, 유효 대상 유닛 위에서는 굵은 이중 링+조준 브래킷, 잘못된 유닛 위에서는 빨간 X, 범위 카드(cell/area3x3)는 칸 채움+중심 브래킷+범위 안 유닛 링(`TargetingView.areaCenter/areaUnits/invalidHoverUnit`). 취소는 우클릭/ESC. 둘 다 `CardInteraction` 상태 머신을 거치며, 포인터는 게임 좌표(1280x720)로 환산해 세션에 전달한다(씬은 `camera.getWorldPoint`, 손패는 캔버스 사각형 비율 `clientToStage`). 칸/유닛 판정은 `BoardPicker`가 보간 위치 기준으로 한다. 유효 대상 강조는 `TargetingView`로 씬에 전달(`TargetingOverlay`).
-- 카드를 집은 동안 시간 배율 = 배속 × `CARD_UI.SLOWMO_FACTOR`(0.25), 옵션 "카드 선택 중 일시정지"면 0 (`playbackScale`).
+- 카드를 집은 동안 시간 배율 = `CARD_UI.SLOWMO_FACTOR`(0.1, 1배속 기준 10% — 배속 ×2·×4와 무관), 옵션 "카드 선택 중 일시정지"면 0 (`playbackScale`).
 - **궁극기 UI**: 손패 바(`HandPanel`)의 궁극기 칸에 이름·게이지·사용 버튼(`data-testid=use-ultimate`, 단축키 U)·사유/HP 비용을 표시하고, 효과 요약(3줄, 900px 이하 숨김)과 설명 말풍선(`ultimate-help`: 효과·HP 비용·충전 규칙·지금 상태, `buildUltimateHelp`; 칸에 마우스·포커스, 이름을 누르면 열고 닫기)을 붙이며, `CardController.useUltimate()` → `BattleSession`이 `sim.useUltimate()`를 부른다(실패 사유는 토스트, 5연전 "카드 사용 금지"면 막힘). 연출: `ReplayState.meteors()/ultimateAura()`와 `ultimate`·`impact` 연출 이벤트 → `BattleViewSource.meteors()/ultimateAura()` → `EffectsLayer`(이름 배너, 주황 3×3 낙하 예고·착탄 번쩍임, 지속 효과 링). 편성 디버그·5연전·경제 플레이도 지휘관 3명을 고를 수 있고 `tools/formations/*-start.json`으로 시작 편성을 불러온다.
 - 개발 서버(`import.meta.env.DEV`)에서만 `window.__tactics = { battle, run }`을 노출한다 (브라우저 자동화용, 프로덕션 빌드에서는 제거).
 - 지휘관이 있으면 편성 단계가 곧 준비 단계: 손패 5장이 뽑혀 있고 작전 카드를 준비 CP로 쓴다(준비 단계 sim이 살아 있음). 편성·시드·지휘관을 바꾸면 준비 단계를 다시 만든다(쓴 작전 카드는 되돌려짐). 지휘관 없음이면 카드 UI는 숨겨지고 M1 동작. 디버그 화면은 기본 지휘관 하르텐(`gameData.ts`의 `DEFAULT_COMMANDER_ID`, 데이터에 없으면 없음)이 선택되어 있고 시작 편성은 자동 배치하지 않는다. `BattleSession`은 `extras.defaultCommanderId`를 줘야 기본 선택이 켜진다(없으면 지휘관 없음).
