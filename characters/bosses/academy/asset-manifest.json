@@ -1,0 +1,450 @@
+{
+  "version": 1,
+  "skin": "academy",
+  "scope": "bosses",
+  "date": "2026-10-30",
+  "tool": "built-in image_gen",
+  "selected_count": 12,
+  "assets": {
+    "B01/illustration": {
+      "path": "characters/bosses/academy/B01/illustration.png",
+      "unit_id": "gate_breaker",
+      "tool": "built-in image_gen",
+      "prompt": "characters/bosses/academy/B01/illustration.prompt.md",
+      "generation_log": "characters/bosses/academy/generation-log.json",
+      "generated_source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a18a27-3b0d-7de1-b12d-7edb79c59c26\\exec-531421cc-04a5-4a03-a07d-c06978cf4275.png",
+      "references": [],
+      "reference_sha256": {},
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "nearly_transparent_percent": 45.13,
+      "visible_bounds_alpha128": [
+        9,
+        132,
+        1008,
+        1428
+      ],
+      "bytes": 2605743,
+      "sha256": "d59f7e926da8ccb351fa81ff11df65339c39624f008d474d56da3aa8c9431e77",
+      "visual_review": "subject-identity-and-equipment-reviewed",
+      "game_validation": "browser-verified-2026-10-30",
+      "runtime": {
+        "path": "public/skins/academy/illustration/B01.png",
+        "width": 384,
+        "height": 576,
+        "sha256": "280439655270fd3e69ab8165b91ba9a33f036ed4f75ca05cf3d4bdee56b87a2c"
+      }
+    },
+    "B01/portrait": {
+      "path": "characters/bosses/academy/B01/portrait.png",
+      "unit_id": "gate_breaker",
+      "tool": "built-in image_gen",
+      "prompt": "characters/bosses/academy/B01/portrait.prompt.md",
+      "generation_log": "characters/bosses/academy/generation-log.json",
+      "generated_source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a18a27-3b0d-7de1-b12d-7edb79c59c26\\exec-d25eb4e1-0b65-4099-8142-3a0528518964.png",
+      "references": [
+        "characters/bosses/academy/B01/illustration.png"
+      ],
+      "reference_sha256": {
+        "characters/bosses/academy/B01/illustration.png": "d59f7e926da8ccb351fa81ff11df65339c39624f008d474d56da3aa8c9431e77"
+      },
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "nearly_transparent_percent": 21.54,
+      "visible_bounds_alpha128": [
+        0,
+        1,
+        1254,
+        1254
+      ],
+      "bytes": 2794656,
+      "sha256": "58a6043e825809f104a10b930550eece64c99f3bd6b4cda03f0db842f0072c7e",
+      "visual_review": "subject-identity-and-equipment-reviewed",
+      "game_validation": "browser-verified-2026-10-30",
+      "runtime": {
+        "path": "public/skins/academy/portrait/B01.png",
+        "width": 256,
+        "height": 256,
+        "sha256": "a4b0ca0f84a2fe5fea3cffa6ac4ef3d065fb55b30c159a7668194008e8e92723"
+      }
+    },
+    "B01/sd": {
+      "path": "characters/bosses/academy/B01/sd.png",
+      "unit_id": "gate_breaker",
+      "tool": "built-in image_gen",
+      "prompt": "characters/bosses/academy/B01/sd.prompt.md",
+      "generation_log": "characters/bosses/academy/generation-log.json",
+      "generated_source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a18a27-3b0d-7de1-b12d-7edb79c59c26\\exec-ef86df0b-57d1-494f-ae46-f038a5efe9fb.png",
+      "references": [
+        "characters/bosses/academy/B01/illustration.png"
+      ],
+      "reference_sha256": {
+        "characters/bosses/academy/B01/illustration.png": "d59f7e926da8ccb351fa81ff11df65339c39624f008d474d56da3aa8c9431e77"
+      },
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "nearly_transparent_percent": 37.13,
+      "visible_bounds_alpha128": [
+        10,
+        21,
+        1242,
+        1243
+      ],
+      "bytes": 2349947,
+      "sha256": "e44a1900ff95aa3c3e824029daf254e4cddf9366aa0fbdc43aca7d211b25d00e",
+      "visual_review": "subject-identity-and-equipment-reviewed",
+      "game_validation": "browser-verified-2026-10-30",
+      "runtime": {
+        "path": "public/skins/academy/sd/B01.png",
+        "width": 256,
+        "height": 256,
+        "sha256": "b1e863acb70606a9efbcbfd935e8fb110da805901ce9f55c7914c8c8f02eecea"
+      }
+    },
+    "B02/illustration": {
+      "path": "characters/bosses/academy/B02/illustration.png",
+      "unit_id": "twin_ser",
+      "tool": "built-in image_gen",
+      "prompt": "characters/bosses/academy/B02/illustration.prompt.md",
+      "generation_log": "characters/bosses/academy/generation-log.json",
+      "generated_source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a18a27-3b0d-7de1-b12d-7edb79c59c26\\exec-19dcf8a7-593f-4baa-af21-2a7f93bb0193.png",
+      "references": [],
+      "reference_sha256": {},
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "nearly_transparent_percent": 57.09,
+      "visible_bounds_alpha128": [
+        14,
+        17,
+        1012,
+        1510
+      ],
+      "bytes": 2207397,
+      "sha256": "f866a33c8f62b1b71a89865ed92371e4fa7748cb7e212244a8c4cf8b26343ab8",
+      "visual_review": "subject-identity-and-equipment-reviewed",
+      "game_validation": "browser-verified-2026-10-30",
+      "runtime": {
+        "path": "public/skins/academy/illustration/B02.png",
+        "width": 384,
+        "height": 576,
+        "sha256": "0a6e4c87e2568a77e53ad4fca936714ff1f641990376766866b81903fe58735b"
+      }
+    },
+    "B02/portrait": {
+      "path": "characters/bosses/academy/B02/portrait.png",
+      "unit_id": "twin_ser",
+      "tool": "built-in image_gen",
+      "prompt": "characters/bosses/academy/B02/portrait.prompt.md",
+      "generation_log": "characters/bosses/academy/generation-log.json",
+      "generated_source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a18a27-3b0d-7de1-b12d-7edb79c59c26\\exec-a984f28d-6fcd-4bb9-bdb3-8cf5fe4d9d7f.png",
+      "references": [
+        "characters/bosses/academy/B02/illustration.png"
+      ],
+      "reference_sha256": {
+        "characters/bosses/academy/B02/illustration.png": "f866a33c8f62b1b71a89865ed92371e4fa7748cb7e212244a8c4cf8b26343ab8"
+      },
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "nearly_transparent_percent": 39.67,
+      "visible_bounds_alpha128": [
+        0,
+        10,
+        1254,
+        1254
+      ],
+      "bytes": 2026513,
+      "sha256": "d5f50bff234d55d0dbda65fca3064fa73f0dce9a4a62e1b7e15e7714e08564c6",
+      "visual_review": "subject-identity-and-equipment-reviewed",
+      "game_validation": "browser-verified-2026-10-30",
+      "runtime": {
+        "path": "public/skins/academy/portrait/B02.png",
+        "width": 256,
+        "height": 256,
+        "sha256": "a8391d63df388cc6998363eedea7073ee3bd4ef9424fd54c004bfbee0d9579c0"
+      }
+    },
+    "B02/sd": {
+      "path": "characters/bosses/academy/B02/sd.png",
+      "unit_id": "twin_ser",
+      "tool": "built-in image_gen",
+      "prompt": "characters/bosses/academy/B02/sd.prompt.md",
+      "generation_log": "characters/bosses/academy/generation-log.json",
+      "generated_source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a18a27-3b0d-7de1-b12d-7edb79c59c26\\exec-9dc8322a-a38c-4b2f-bae0-56c4120237e2.png",
+      "references": [
+        "characters/bosses/academy/B02/illustration.png"
+      ],
+      "reference_sha256": {
+        "characters/bosses/academy/B02/illustration.png": "f866a33c8f62b1b71a89865ed92371e4fa7748cb7e212244a8c4cf8b26343ab8"
+      },
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "nearly_transparent_percent": 54.93,
+      "visible_bounds_alpha128": [
+        70,
+        15,
+        1202,
+        1244
+      ],
+      "bytes": 1673471,
+      "sha256": "b94c94cfaba6ed9cdc08efe07ba888b03bc52b3975f665212e31f7e3443d9ff0",
+      "visual_review": "subject-identity-and-equipment-reviewed",
+      "game_validation": "browser-verified-2026-10-30",
+      "runtime": {
+        "path": "public/skins/academy/sd/B02.png",
+        "width": 256,
+        "height": 256,
+        "sha256": "58f6c8e576d13ba73cefde3688ecfeb7cfe3cab773c72060b507a12a2bf4a753"
+      }
+    },
+    "B03/illustration": {
+      "path": "characters/bosses/academy/B03/illustration.png",
+      "unit_id": "twin_mir",
+      "tool": "built-in image_gen",
+      "prompt": "characters/bosses/academy/B03/illustration.prompt.md",
+      "generation_log": "characters/bosses/academy/generation-log.json",
+      "generated_source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a18a27-3b0d-7de1-b12d-7edb79c59c26\\exec-b3cfdb8b-6564-47ad-b3d8-37ee8c38b414.png",
+      "references": [],
+      "reference_sha256": {},
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "nearly_transparent_percent": 52.91,
+      "visible_bounds_alpha128": [
+        59,
+        29,
+        966,
+        1517
+      ],
+      "bytes": 2202995,
+      "sha256": "caf9046efee183c84298aaeff386d3f3e85ea46a46ffc2c9c40401984c0853e0",
+      "visual_review": "subject-identity-and-equipment-reviewed",
+      "game_validation": "browser-verified-2026-10-30",
+      "runtime": {
+        "path": "public/skins/academy/illustration/B03.png",
+        "width": 384,
+        "height": 576,
+        "sha256": "c06c37a8ef91900d90995b4376600dc126c6ca5ff46f58df46e3614df5038cd6"
+      }
+    },
+    "B03/portrait": {
+      "path": "characters/bosses/academy/B03/portrait.png",
+      "unit_id": "twin_mir",
+      "tool": "built-in image_gen",
+      "prompt": "characters/bosses/academy/B03/portrait.prompt.md",
+      "generation_log": "characters/bosses/academy/generation-log.json",
+      "generated_source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a18a27-3b0d-7de1-b12d-7edb79c59c26\\exec-a31f7ac6-8e6e-46c6-8540-468df676116e.png",
+      "references": [
+        "characters/bosses/academy/B03/illustration.png"
+      ],
+      "reference_sha256": {
+        "characters/bosses/academy/B03/illustration.png": "caf9046efee183c84298aaeff386d3f3e85ea46a46ffc2c9c40401984c0853e0"
+      },
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "nearly_transparent_percent": 35.03,
+      "visible_bounds_alpha128": [
+        11,
+        0,
+        1251,
+        1254
+      ],
+      "bytes": 2144006,
+      "sha256": "a500ac90638291edfdb468fb593082880378d5acb5d5245bdd069e5e600506d6",
+      "visual_review": "subject-identity-and-equipment-reviewed",
+      "game_validation": "browser-verified-2026-10-30",
+      "runtime": {
+        "path": "public/skins/academy/portrait/B03.png",
+        "width": 256,
+        "height": 256,
+        "sha256": "0cada67c7937d438921b557c35ff592cd47321faa92a4ddb128388033a5bcb56"
+      }
+    },
+    "B03/sd": {
+      "path": "characters/bosses/academy/B03/sd.png",
+      "unit_id": "twin_mir",
+      "tool": "built-in image_gen",
+      "prompt": "characters/bosses/academy/B03/sd.prompt.md",
+      "generation_log": "characters/bosses/academy/generation-log.json",
+      "generated_source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a18a27-3b0d-7de1-b12d-7edb79c59c26\\exec-69f80ff0-4a49-4f77-96c5-63c9a405af1a.png",
+      "references": [
+        "characters/bosses/academy/B03/illustration.png"
+      ],
+      "reference_sha256": {
+        "characters/bosses/academy/B03/illustration.png": "caf9046efee183c84298aaeff386d3f3e85ea46a46ffc2c9c40401984c0853e0"
+      },
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "nearly_transparent_percent": 51.92,
+      "visible_bounds_alpha128": [
+        119,
+        21,
+        1159,
+        1249
+      ],
+      "bytes": 1707164,
+      "sha256": "00bc49234a53a0a6f3ddc9c03ce02e0b77bdb6e195979f5e19e81dc961bcd4d2",
+      "visual_review": "subject-identity-and-equipment-reviewed",
+      "game_validation": "browser-verified-2026-10-30",
+      "runtime": {
+        "path": "public/skins/academy/sd/B03.png",
+        "width": 256,
+        "height": 256,
+        "sha256": "0ce8f92f45613c17506694c70dfaae47a3bae9e780de9c4b1e152c1bcd477c13"
+      }
+    },
+    "B04/illustration": {
+      "path": "characters/bosses/academy/B04/illustration.png",
+      "unit_id": "legion_lord",
+      "tool": "built-in image_gen",
+      "prompt": "characters/bosses/academy/B04/illustration.prompt.md",
+      "generation_log": "characters/bosses/academy/generation-log.json",
+      "generated_source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a18a27-3b0d-7de1-b12d-7edb79c59c26\\exec-1f98933e-1da2-4373-a8ef-8fc8695e988a.png",
+      "references": [],
+      "reference_sha256": {},
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "nearly_transparent_percent": 47.3,
+      "visible_bounds_alpha128": [
+        17,
+        11,
+        1017,
+        1458
+      ],
+      "bytes": 2450440,
+      "sha256": "ac837a563df57057a8a537f7ff87107f0cf7c7fb1fd8f60720bb75943aafd7cc",
+      "visual_review": "subject-identity-and-equipment-reviewed",
+      "game_validation": "browser-verified-2026-10-30",
+      "runtime": {
+        "path": "public/skins/academy/illustration/B04.png",
+        "width": 384,
+        "height": 576,
+        "sha256": "28afd870a5fcac61a597195e96b33d198129b30a30f70dc06877ae36021ffb1a"
+      }
+    },
+    "B04/portrait": {
+      "path": "characters/bosses/academy/B04/portrait.png",
+      "unit_id": "legion_lord",
+      "tool": "built-in image_gen",
+      "prompt": "characters/bosses/academy/B04/portrait.prompt.md",
+      "generation_log": "characters/bosses/academy/generation-log.json",
+      "generated_source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a18a27-3b0d-7de1-b12d-7edb79c59c26\\exec-1c14ca60-5a5e-4228-92bf-dfe6c1f04bd8.png",
+      "references": [
+        "characters/bosses/academy/B04/illustration.png"
+      ],
+      "reference_sha256": {
+        "characters/bosses/academy/B04/illustration.png": "ac837a563df57057a8a537f7ff87107f0cf7c7fb1fd8f60720bb75943aafd7cc"
+      },
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "nearly_transparent_percent": 43.47,
+      "visible_bounds_alpha128": [
+        1,
+        0,
+        1254,
+        1254
+      ],
+      "bytes": 2217983,
+      "sha256": "6205acbc33e736e068d4fdd70c7724c9ea74c646d6930fe0a826ed63c04bfba7",
+      "visual_review": "subject-identity-and-equipment-reviewed",
+      "game_validation": "browser-verified-2026-10-30",
+      "runtime": {
+        "path": "public/skins/academy/portrait/B04.png",
+        "width": 256,
+        "height": 256,
+        "sha256": "a10173b98ca993562bedfc75b053af6b9f5b28c67a101a9434f0c5b33392c085"
+      }
+    },
+    "B04/sd": {
+      "path": "characters/bosses/academy/B04/sd.png",
+      "unit_id": "legion_lord",
+      "tool": "built-in image_gen",
+      "prompt": "characters/bosses/academy/B04/sd.prompt.md",
+      "generation_log": "characters/bosses/academy/generation-log.json",
+      "generated_source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a18a27-3b0d-7de1-b12d-7edb79c59c26\\exec-0d83092b-06cc-4c80-946d-31eddbdb53d0.png",
+      "references": [
+        "characters/bosses/academy/B04/illustration.png"
+      ],
+      "reference_sha256": {
+        "characters/bosses/academy/B04/illustration.png": "ac837a563df57057a8a537f7ff87107f0cf7c7fb1fd8f60720bb75943aafd7cc"
+      },
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "nearly_transparent_percent": 49.8,
+      "visible_bounds_alpha128": [
+        81,
+        10,
+        1207,
+        1206
+      ],
+      "bytes": 2096199,
+      "sha256": "c8b1cd336e1f15714f724953ea88d08663c1f157a4b05de447ea952a262bdf74",
+      "visual_review": "subject-identity-and-equipment-reviewed",
+      "game_validation": "browser-verified-2026-10-30",
+      "runtime": {
+        "path": "public/skins/academy/sd/B04.png",
+        "width": 256,
+        "height": 256,
+        "sha256": "283cdaef83ae72fd4c4ee98090dc19b2532bb4cb90078ae8156dc1add5955ca4"
+      }
+    }
+  }
+}

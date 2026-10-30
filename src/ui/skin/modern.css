@@ -68,6 +68,8 @@ body[data-skin="modern"] .bt-traitchip, body[data-skin="modern"] .bt-status { co
 body[data-skin="modern"] .bt-stats { background: #dfedf6; }
 body[data-skin="modern"] .bt-skill-name { color: #287fa5; }
 body[data-skin="modern"] .bt-skill-line.current { background: #daeff7; color: #35566f; }
+body[data-skin="modern"] .bt-tooltip-note { color: #785126; }
+body[data-skin="modern"] .bt-tooltip-note b { color: #79501e; }
 body[data-skin="modern"] .bt-face { background: radial-gradient(ellipse at 50% 20%, #dbe8f1, #adc6da); }
 body[data-skin="modern"] .academy-hud-portrait { background: #dcebf4; border-color: #9bc3d7; }
 body[data-skin="modern"] #battle-bench { background: #edf5fa; }

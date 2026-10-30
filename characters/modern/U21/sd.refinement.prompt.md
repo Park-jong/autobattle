@@ -1,0 +1,19 @@
+# U21 베가 — sd 생성 프롬프트
+
+내장 image_gen 도구. 참조: characters/modern/U21/illustration.png
+
+```text
+Use case: stylized-concept. Production artwork for CITY OPERATION, an original modern urban tactical anime strategy game. One clearly ADULT woman only, an experienced professional aged 26. Premium clean anime game art, luminous but controlled cel shading, precise elegant linework, believable modern fabric, matte armor and metal, soft neutral upper-left lighting. Bright sophisticated modern-city military character design. Opaque securely fitted tactical fashion with slightly more open necklines and cropped hems as specified in the brief. Show collarbones, shoulders, a modest midriff band and upper thighs according to the individual outfit; tasteful upper cleavage only where specified. Keep nipples, underbust and pelvis covered with opaque fabric, no transparent clothing or underwear styling. Confident non-erotic pose. Exactly two arms and two hands, anatomically connected, natural ownership of each prop. Genuine transparent PNG alpha, no scenery, no floor, no shadow plane, no vignette or colored backdrop, no checkerboard. No labels, writing, logo, watermark, border, halo or school insignia. She is a human adult, no animal ears or tail or fantasy limbs. Headsets and metal insignia reinterpret former fantasy accessories. Body design: medium-busted adult woman with a natural moderate chest silhouette, clearly fuller than the small category and less voluminous than the large category; do not flatten or exaggerate her bust. Follow her individual shoulders, muscle tone, waist and hips from the brief; bust category does not determine those features. Keep the assigned bust category and outfit consistent across full-body, portrait and SD artwork. If an older identity reference conflicts with the current body or outfit brief, use the current brief for those features while preserving face, hair, eyes and equipment. Create ONE full-body SUPER DEFORMED battle token of the SAME ADULT WOMAN from the reference, square canvas. Use genuinely compact 2.8 to 3 HEADS TALL proportions: a very large head about ONE THIRD of the whole figure, tiny compact torso and short compact legs. Chin to boot soles is approximately TWO head heights. This is a stylized adult professional game token, not a younger version. Preserve adult character identity and expression; simplify buckles and patterns into readable shapes. Opaque tactical outfit with secure coverage, no erotic posing. CRITICAL gameplay orientation: face and firearm aim toward IMAGE RIGHT. The firearm muzzle must be on the RIGHT edge at torso height, never on the left. Do not preserve the reference pose if it points left. For shield users specifically: place the shield on IMAGE LEFT and the firing hand and handgun on IMAGE RIGHT; keep both arms anatomically connected. For shields, left arm holds the shield slightly outward without hiding the entire body; right hand holds the compact firearm. For drone specialists, the compact drone sits at upper-right shoulder level, with a small forward-facing device; hands operate a tablet or supported compact carbine. If there is one long weapon, right hand grips it and left hand supports the fore-end. For dual pistols, one pistol in each hand. No shooting effects or muzzle flash baked into the sprite. Complete boots and weapon within wide margins; no platform.
+CHARACTER BRIEF (Korean):
+{
+  "name": "베가",
+  "role": "장거리 지정사수",
+  "measurements": "89/64/92 cm",
+  "bustType": "medium",
+  "body": "중간형. 중간 크기의 가슴과 긴 팔, 곧고 가는 어깨의 장신 사수 체형. 안정적인 골반과 느리고 정확한 동작.",
+  "hair": "푸른빛 흑색 `#26344C`. 허리까지 곧게 내려오는 생머리, 눈썹을 스치는 긴 앞머리.",
+  "eyes": "왼눈 은청색 `#9EBAD7`, 오른눈 진보라색 `#73689F`. 오른눈 위에 별자리 렌즈.",
+  "outfit": "짙은 남색 짧은 사수 재킷을 열어 걸치고, 쇄골이 드러나는 불투명 검정 스쿠프넥 라이너 탑, 복부의 좁은 노출, 짧은 전술 반바지와 긴 부츠, 허벅지 파우치",
+  "equipment": "긴 저격소총과 별 모양 광학 센서"
+}
+```

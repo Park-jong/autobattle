@@ -2,10 +2,11 @@ import raw from '../../../data/skins/modern.json';
 
 export const MODERN_WEAPONS = ['pistol', 'smg', 'rifle', 'shotgun', 'machinegun', 'sniper', 'grenade', 'rocket', 'drone', 'blade'] as const;
 export type ModernWeapon = typeof MODERN_WEAPONS[number];
+export type ModernBustType = 'small' | 'medium' | 'large';
 
 export interface ModernCharacter {
   code: string; id: string; name: string; gender: 'female'; age: number; height: number;
-  measurements: string; body: string; skin: string; hair: string; eyes: string; face: string;
+  measurements: string; bustType: ModernBustType; body: string; skin: string; hair: string; eyes: string; face: string;
   role: string; faction: string; color: string; weapon: ModernWeapon; equipment: string;
   outfit: string; bio: string; skillName: string; quote: string;
 }
@@ -24,6 +25,7 @@ export function loadModernRoster(input: unknown): ModernRoster {
     const row = value as Record<string, unknown>;
     for (const field of strings) if (typeof row[field] !== 'string' || !(row[field] as string).trim()) fail(`characters[${index}].${field}`);
     if (row.gender !== 'female' || !Number.isInteger(row.age) || (row.age as number) < 22 || (row.age as number) > 80) fail(`characters[${index}].성인 여성 설정`);
+    if (row.bustType !== 'small' && row.bustType !== 'medium' && row.bustType !== 'large') fail(`characters[${index}].bustType`);
     if (!Number.isFinite(row.height) || (row.height as number) < 140 || (row.height as number) > 210) fail(`characters[${index}].height`);
     if (!/^#[0-9a-f]{6}$/i.test(row.color as string) || !MODERN_WEAPONS.includes(row.weapon as ModernWeapon)) fail(`characters[${index}].색·무기`);
     if (ids.has(row.id as string) || codes.has(row.code as string)) fail(`characters[${index}].중복 번호·ID`);

@@ -8,6 +8,7 @@ import type { ActiveTrait } from '../../../core/combat/traits';
 import { appSkin } from '../../skin/SkinStore';
 import { isIllustratedSkin, traitSkinName, unitArtUrl, unitSkinName, unitSkinRole, unitSkillName } from '../../skin/skins';
 import { MODERN_UNITS } from '../../skin/modernRoster';
+import { bossProfile } from '../../skin/bossRoster';
 import { button, el, tagged } from '../dom';
 import type { HoverPop } from './hoverPop';
 import { bindTraitChip } from './TraitPanel';
@@ -81,6 +82,8 @@ export class UnitInfoPanel {
       const bio = el('p', 'modern-unit-bio', profile.bio);
       nodes.push(el('div', 'modern-unit-role', `${profile.faction} · ${profile.role} · ${profile.age}세`), bio);
     }
+    const boss = bossProfile(appSkin.current, def.id);
+    if (boss) nodes.push(el('div', 'modern-unit-role', boss.role), el('p', 'modern-unit-bio', boss.bio));
     nodes.push(statsGrid(info), skillBlock(info));
 
     const extra = el('div', 'bt-info-extra');

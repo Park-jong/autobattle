@@ -108,6 +108,7 @@ function bootstrap(): void {
 
   // Keep the start/menu screens free of GPU allocations. Create the game on first battle/debug entry.
   const labels: SceneLabels = {
+    unitName: (unitId, skin = 'default') => unitSkinName(skin, unitId, data.units.get(unitId)?.name ?? unitId),
     unitAbbreviation: (unitId, skin = 'default') => unitAbbreviation(unitSkinName(skin, unitId, data.units.get(unitId)?.name ?? unitId)),
     cardName: (cardId, upgraded) => `${data.cards.get(cardId)?.name ?? cardId}${upgraded ? '+' : ''}`,
     attackProfile: (unitId, skin) => attackProfile(data.units.get(unitId), skin),

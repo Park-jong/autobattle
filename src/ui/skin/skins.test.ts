@@ -29,7 +29,7 @@ describe('스킨 정의', () => {
     expect(Object.fromEntries(rows.map((m) => [m[2], m[1]]))).toEqual(ACADEMY_ART_CODES);
   });
 
-  it('상점 유닛 30종 모두 원화가 있고 보스 전용 유닛은 없다', () => {
+  it('상점 원화 매핑에는 일반 유닛 30종만 포함하고 보스는 별도로 관리한다', () => {
     const units = (unitsJson as { units: { id: string; boss?: unknown }[] }).units;
     for (const unit of units) {
       if (unit.boss) expect(ACADEMY_ART_CODES[unit.id], unit.id).toBeUndefined();
@@ -52,18 +52,18 @@ describe('스킨 정의', () => {
     expect(commanderArtUrl('academy', 'missing', 'portrait')).toBeNull();
   });
 
-  it('화면 이름이 원화 설정 문서와 일치하며 기존 스킨·보스 이름은 유지된다', () => {
+  it('화면 이름이 원화 설정 문서와 일치하며 기본 스킨 이름은 유지된다', () => {
     const markdown = readFileSync(new URL('../../../characters/README.md', import.meta.url), 'utf8');
     const rows = [...markdown.matchAll(/\| \[(U\d\d)\]\([^\n]+?\) \| ([^|]+) \|/g)];
     expect(Object.fromEntries(rows.map(m => [m[1], m[2]!.trim()]))).toEqual(ACADEMY_UNIT_NAMES);
     expect(unitSkinName('academy', 'iron_shieldbearer', '방패병')).toBe('리네');
     expect(unitSkinName('default', 'iron_shieldbearer', '방패병')).toBe('방패병');
-    expect(unitSkinName('academy', 'gate_breaker', '성문 파괴자')).toBe('성문 파괴자');
+    expect(unitSkinName('academy', 'gate_breaker', '성문 파괴자')).toBe('봉인문 파괴 골렘');
   });
 
   it('기본 스킨·원화 없는 유닛은 URL·텍스처 키가 없다', () => {
     expect(unitArtUrl('default', 'iron_shieldbearer', 'sd')).toBeNull();
-    expect(unitArtUrl('academy', 'gate_breaker', 'sd')).toBeNull();
+    expect(unitArtUrl('academy', 'missing', 'sd')).toBeNull();
     expect(unitTextureKey('default', 'iron_shieldbearer', 'sd')).toBeNull();
     expect(skinArtList('default', 'sd')).toEqual([]);
   });
@@ -72,8 +72,8 @@ describe('스킨 정의', () => {
     expect(unitArtUrl('academy', 'iron_shieldbearer', 'sd', './')).toBe('./skins/academy/sd/U01.png');
     expect(unitArtUrl('academy', 'elder_treeking', 'portrait', '/')).toBe('/skins/academy/portrait/U30.png');
     const list = skinArtList('academy', 'sd', './');
-    expect(list).toHaveLength(30);
-    expect(new Set(list.map((a) => a.key)).size).toBe(30);
+    expect(list).toHaveLength(34);
+    expect(new Set(list.map((a) => a.key)).size).toBe(34);
   });
 });
 

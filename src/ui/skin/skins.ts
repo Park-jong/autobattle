@@ -5,6 +5,7 @@
  * - modern: 성인 여성 도시 작전요원 (characters/modern/Uxx → public/skins/modern)
  */
 import { MODERN_COMMANDERS, MODERN_UNITS } from './modernRoster';
+import { BOSS_ART_CODES, bossProfile } from './bossRoster';
 
 export type SkinId = 'default' | 'academy' | 'modern';
 
@@ -16,8 +17,8 @@ export interface SkinDef {
 
 export const SKINS: readonly SkinDef[] = [
   { id: 'default', name: '기본', description: '진영색 도형과 이름 약자로 유닛을 표시합니다.' },
-  { id: 'academy', name: '마도아카데미', description: '성인 여성 캐릭터와 지휘관 원화, 금장과 마법진으로 꾸민 아카데미 테마입니다. 보스는 고유 문장으로 표시합니다.' },
-  { id: 'modern', name: '시티 오퍼레이션', description: '성인 여성 전문 작전요원 30명과 지휘관 3명의 현대 도시전 테마. 총기·드론과 전술 단말기 UI를 사용합니다.' },
+  { id: 'academy', name: '마도아카데미', description: '캐릭터·지휘관 원화와 골렘·화로령·촉수 군주 보스를 갖춘 아카데미 테마입니다.' },
+  { id: 'modern', name: '시티 오퍼레이션', description: '성인 여성 작전요원과 지휘관, 공성 병기·쌍둥이 안드로이드·최고통수관 보스의 현대 도시전 테마입니다.' },
 ];
 
 export const DEFAULT_SKIN: SkinId = 'academy';
@@ -68,11 +69,11 @@ export function cardTypeSkinName(skin: SkinId, type: string, fallback: string): 
 }
 
 export function unitSkinRole(skin: SkinId, id: string, fallback: string): string {
-  return skin === 'modern' ? MODERN_UNITS[id]?.role ?? fallback : fallback;
+  return bossProfile(skin, id)?.role ?? (skin === 'modern' ? MODERN_UNITS[id]?.role ?? fallback : fallback);
 }
 
 export function unitSkillName(skin: SkinId, id: string, fallback: string): string {
-  return skin === 'modern' ? MODERN_UNITS[id]?.skillName ?? fallback : fallback;
+  return bossProfile(skin, id)?.skillName ?? (skin === 'modern' ? MODERN_UNITS[id]?.skillName ?? fallback : fallback);
 }
 
 const MODERN_TRAITS: Readonly<Record<string, string>> = { iron_legion: '도시방위대', forest_pact: '구조정찰대', ember: '화력공병대', abyss: '특수작전국', guardian: '방호', gladiator: '돌격', marksman: '사수', mystic: '지원', assassin: '침투' };
@@ -83,7 +84,7 @@ export function traitSkinName(skin: SkinId, id: string, fallback: string): strin
 /** 원화 종류: 전투·맵용 SD / 초상화 / 선택·정보 화면 전신 */
 export type ArtKind = 'sd' | 'portrait' | 'illustration';
 
-/** 유닛 id → 원화 번호 (CHARACTERS.md 4장 표의 U01~U30). 보스 전용 유닛은 원화가 없다 */
+/** 상점 유닛 id → 원화 번호 (CHARACTERS.md 4장 표의 U01~U30). 보스는 BOSS_ART_CODES에서 관리한다. */
 export const ACADEMY_ART_CODES: Readonly<Record<string, string>> = {
   iron_shieldbearer: 'U01',
   arena_recruit: 'U02',
@@ -117,6 +118,9 @@ export const ACADEMY_ART_CODES: Readonly<Record<string, string>> = {
   elder_treeking: 'U30',
 };
 
+/** 원화 URL·미리 읽기 목록은 상점 유닛과 보스를 함께 포함한다. */
+const UNIT_ART_CODES: Readonly<Record<string, string>> = { ...ACADEMY_ART_CODES, ...BOSS_ART_CODES };
+
 /** 정적 파일 기준 경로 (Vite base). 빌드는 './', 개발 서버는 '/' */
 const BASE_URL: string = import.meta.env?.BASE_URL ?? './';
 
@@ -142,8 +146,7 @@ export const ACADEMY_UNIT_NAMES: Readonly<Record<string, string>> = {
 };
 
 export function unitSkinName(skin: SkinId, unitId: string, fallback: string): string {
-  const bosses: Readonly<Record<string, string>> = { gate_breaker: '중장 진압 병기', twin_ser: '전자전 드론 세르', twin_mir: '전자전 드론 미르', legion_lord: '적 기동대 지휘관' };
-  return skin === 'modern' ? MODERN_UNITS[unitId]?.name ?? bosses[unitId] ?? fallback : skin === 'academy' ? ACADEMY_UNIT_NAMES[ACADEMY_ART_CODES[unitId] ?? ''] ?? fallback : fallback;
+  return bossProfile(skin, unitId)?.name ?? (skin === 'modern' ? MODERN_UNITS[unitId]?.name ?? fallback : skin === 'academy' ? ACADEMY_UNIT_NAMES[ACADEMY_ART_CODES[unitId] ?? ''] ?? fallback : fallback);
 }
 
 export function commanderArtUrl(skin: SkinId, commanderId: string, kind: ArtKind, base: string = BASE_URL): string | null {
@@ -165,20 +168,20 @@ export function commanderArtList(skin: SkinId = 'academy', base: string = BASE_U
 /** 이 스킨에서 유닛 원화 URL. 기본 스킨이거나 원화가 없는 유닛이면 null */
 export function unitArtUrl(skin: SkinId, unitId: string, kind: ArtKind, base: string = BASE_URL): string | null {
   if (!isIllustratedSkin(skin)) return null;
-  const code = ACADEMY_ART_CODES[unitId];
+  const code = UNIT_ART_CODES[unitId];
   return code ? `${base}skins/${skin}/${kind}/${code}.png` : null;
 }
 
 /** Phaser 텍스처 키 (스킨·종류·유닛별로 하나) */
 export function unitTextureKey(skin: SkinId, unitId: string, kind: ArtKind): string | null {
-  if (!isIllustratedSkin(skin) || !ACADEMY_ART_CODES[unitId]) return null;
+  if (!isIllustratedSkin(skin) || !UNIT_ART_CODES[unitId]) return null;
   return `skin:${skin}:${kind}:${unitId}`;
 }
 
 /** 스킨이 쓰는 모든 원화 (Phaser 미리 읽기용) */
 export function skinArtList(skin: SkinId, kind: ArtKind, base: string = BASE_URL): { key: string; url: string }[] {
   if (!isIllustratedSkin(skin)) return [];
-  return Object.keys(ACADEMY_ART_CODES).map((unitId) => ({
+  return Object.keys(UNIT_ART_CODES).map((unitId) => ({
     key: unitTextureKey(skin, unitId, kind)!,
     url: unitArtUrl(skin, unitId, kind, base)!,
   }));
