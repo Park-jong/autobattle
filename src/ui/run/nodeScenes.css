@@ -4,8 +4,8 @@
   color: var(--node-ink); min-height: 100%; background: radial-gradient(ellipse at 15% 5%, var(--node-glow), transparent 65%);
 }
 body[data-skin="modern"] :is(.node-market, .node-event) {
-  --node-panel: #f8fcff; --node-soft: #e8f1f7; --node-ink: #2a4a62; --node-muted: #657f95;
-  --node-line: #9eb9cc88; --node-accent: #287f9f; --node-glow: #6db9d32a;
+  --node-panel: #152333; --node-soft: #1c3043; --node-ink: #e2edf5; --node-muted: #9bafc2;
+  --node-line: #52758d66; --node-accent: #79d3ed; --node-glow: #6db9d31a;
 }
 .node-market > .run-node-main, .node-event > .run-node-main { max-width: 1200px; padding: 24px 28px 36px; gap: 22px; }
 :is(.node-market, .node-event) > .run-node-main > :is(.run-screen-title, .run-screen-subtitle) { display: none; }

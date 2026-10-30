@@ -144,7 +144,6 @@ export class BattleScene extends Phaser.Scene {
     this.board.drawDynamic(this.source.overheating, hover, open.cells, pulse);
     this.openSlotText.setText(open.count > 0 ? `배치 가능 +${open.count} — 아군 진영에 유닛을 더 놓을 수 있습니다` : '');
     this.openSlotText.setAlpha(0.65 + 0.35 * pulse);
-    this.openSlotText.setVisible(visibleStageInset(this) === 0);
     this.updateTexts(editing, time, targeting.hint);
   }
 
@@ -164,23 +163,24 @@ export class BattleScene extends Phaser.Scene {
 
   private updateTexts(editing: boolean, time: number, targetHint: string): void {
     const modern = this.skin.current === 'modern';
-    const compact = visibleStageInset(this) > 0;
+    const compact = this.game.canvas.closest('.bt-board-viewport.fitted') !== null || visibleStageInset(this) > 0;
+    this.openSlotText.setVisible(!compact);
     const centered = modern || compact;
     this.timeText.setPosition(STAGE.WIDTH / 2, compact ? 58 : LAYOUT.TIME_Y)
       .setFontSize(compact ? 20 : 34).setVisible(!compact || !editing);
     this.hintText.setVisible(!compact);
-    this.hintText.setColor(modern ? '#5b7e95' : TEXT_COLORS.MUTED);
+    this.hintText.setColor(modern ? '#9bafc2' : TEXT_COLORS.MUTED);
     this.hintText.setPosition(centered ? STAGE.WIDTH / 2 : 20, centered ? STAGE.HEIGHT - 24 : 20)
       .setOrigin(centered ? 0.5 : 0, centered ? 1 : 0).setFontSize(modern ? 12 : 16);
     if (editing) {
-      this.timeText.setText(this.source.prepping ? '준비 단계' : '편성 중').setColor(modern ? '#5b7e95' : TEXT_COLORS.MUTED);
+      this.timeText.setText(this.source.prepping ? '준비 단계' : '편성 중').setColor(modern ? '#9bafc2' : TEXT_COLORS.MUTED);
       this.hintText.setText(targetHint || (this.source.canPlaceAt({ col: 0, row: 0 }) ? '좌클릭: 배치 / 우클릭: 제거' : ''));
       return;
     }
     const overheat = this.source.overheating ? '  [과열]' : '';
     this.timeText
       .setText(`전투 시각 ${time.toFixed(1)}초 / ${COMBAT.HARD_LIMIT_SECONDS}초${overheat}`)
-      .setColor(this.source.overheating ? TEXT_COLORS.OVERHEAT : modern ? '#365c78' : TEXT_COLORS.TITLE);
+      .setColor(this.source.overheating ? TEXT_COLORS.OVERHEAT : modern ? '#e2edf5' : TEXT_COLORS.TITLE);
     this.hintText.setText(targetHint || this.speedNote());
   }
 

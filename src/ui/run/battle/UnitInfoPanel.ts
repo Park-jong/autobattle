@@ -108,7 +108,7 @@ export class UnitInfoPanel {
     if (subject.kind === 'owned') {
       const unit = subject.unit;
       const actions = el('div', 'bt-info-actions');
-      const toBench = tagged(button('벤치로', () => this.controller.moveManagedToBench(unit.id), 'bt-btn'), 'unit-to-bench');
+      const toBench = tagged(button('손패로 회수', () => this.controller.moveManagedToBench(unit.id), 'bt-btn'), 'unit-recall');
       const sell = tagged(button(`판매 +${sellRefund(def.tier, unit.star)}G`, () => this.controller.sellManagedUnit(unit.id), 'bt-btn'), 'unit-sell');
       toBench.disabled = !subject.canManage || unit.benchIndex !== null;
       sell.disabled = !subject.canManage;

@@ -7,6 +7,16 @@ const ICONS = {
   deck: '<rect x="7" y="3" width="11" height="15" rx="2"/><path d="M4.5 6.5v11.5a2 2 0 0 0 2 2h9"/>',
   /** 시작 화면: 집 */
   home: '<path d="M3.5 11 12 4l8.5 7"/><path d="M6 9.5V20h4.5v-5h3v5H18V9.5"/>',
+  /** 원정 기록 */
+  info: '<circle cx="12" cy="12" r="8.5"/><path d="M12 11v6"/><circle cx="12" cy="7.5" r=".8" fill="currentColor"/>',
+  /** 보유 골드 */
+  coin: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="5.5"/><path d="m12 8-2.5 4 2.5 4 2.5-4z"/>',
+  /** 상점 새로고침 */
+  reroll: '<path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 7.2A7 7 0 0 1 18 6l2 3M4 15l2 3a7 7 0 0 0 11.9-1.2"/>',
+  /** 경험치 구매: 위로 향하는 성장 화살표 */
+  experience: '<path d="m6 11 6-7 6 7M12 4v12M5 20h14"/><path d="m5 5 1-2 1 2M18 15l1-2 1 2"/>',
+  lock: '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/>',
+  unlock: '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 7.5-2M12 14v3"/>',
   /** 일시정지 */
   pause: '<rect x="6.5" y="5" width="3.5" height="14" rx="1"/><rect x="14" y="5" width="3.5" height="14" rx="1"/>',
   /** 재개 */

@@ -1,0 +1,80 @@
+/* One hand for owned unit cards and tactical cards. */
+body .hand-bar.unified-hand {
+  display: grid; grid-template-columns: 148px 126px minmax(0, 1fr);
+  grid-template-rows: 28px minmax(0, 1fr); gap: 5px 10px;
+  padding: 8px 10px; height: 100%; background: var(--bt-bg); color: var(--bt-text);
+}
+body .hand-bar.unified-hand .hand-side { grid-column: 1; grid-row: 1 / -1; min-width: 0; font-size: 12px; }
+body .hand-bar.unified-hand .hand-ultimate { grid-column: 2; grid-row: 1 / -1; min-width: 0; }
+body .hand-bar.unified-hand .hand-library-bar { grid-column: 3; grid-row: 1; display: flex; align-items: center; gap: 10px; min-width: 0; z-index: 4; }
+.hand-library-bar[hidden] { display: none !important; }
+.hand-library-filters { display: flex; flex: 0 0 auto; gap: 3px; }
+.hand-library-filter { padding: 5px 9px; border: 1px solid var(--bt-border); border-radius: 5px; background: var(--bt-panel-bottom); color: var(--bt-muted); font: 11px/1.2 var(--bt-font); cursor: pointer; white-space: nowrap; }
+.hand-library-filter[aria-pressed="true"] { color: var(--bt-gold); border-color: var(--bt-gold-dim); background: color-mix(in srgb, var(--bt-gold) 10%, var(--bt-bg)); }
+.hand-library-filter:focus-visible { outline: 2px solid var(--bt-gold); outline-offset: 2px; }
+.hand-library-hint { color: var(--bt-muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hand-library-hint.summoning { color: var(--bt-gold); }
+body .hand-bar.unified-hand .hand-cards { grid-column: 3; grid-row: 2; min-height: 0; }
+body .hand-bar.unified-hand .hand-scroll-hint { display: none; }
+.unit-summon-card { --frame: #5aa995; --frame-light: #a4e4ca; padding: 0; overflow: hidden; border-color: var(--frame); }
+.unit-summon-card.tier-2 { --frame: var(--bt-tier-2); }
+.unit-summon-card.tier-3 { --frame: var(--bt-tier-3); }
+.unit-summon-card.tier-4 { --frame: var(--bt-tier-4); }
+.unit-summon-card.tier-5 { --frame: var(--bt-tier-5); }
+.unit-summon-card::after { content: none; }
+.unit-card-art { position: relative; flex: 1 1 0; min-height: 45px; display: grid; place-items: center; background: radial-gradient(ellipse at top, #477a75, #182d34); font-size: 26px; color: #d2ece5; overflow: hidden; }
+.unit-card-art > img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 18%; pointer-events: none; }
+.unit-card-art .bt-tier-badge { top: 4px; left: 4px; min-width: 18px; height: 20px; border-width: 1px; }
+.unit-card-stars { position: absolute; bottom: 2px; left: 5px; color: #ffe18b; font-size: 12px; letter-spacing: 1px; text-shadow: 0 1px 3px #000; }
+.unit-card-art .hcard-info { top: 4px; right: 4px; min-width: 29px; min-height: 23px; padding: 2px; font-size: 9px; }
+.unit-card-body { display: flex; flex: 0 0 auto; flex-direction: column; gap: 2px; padding: 5px 6px; background: var(--bt-panel-bottom); color: var(--bt-text); }
+.unit-card-name { font-size: 12px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+.unit-card-traits { color: var(--bt-gold); font-size: 9px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
+.unit-card-stats { color: var(--bt-muted); font-size: 9px; white-space: nowrap; }
+.unit-card-summon { min-height: 24px; margin-top: 1px; padding: 2px 6px; border: 1px solid var(--frame); border-radius: 4px; background: color-mix(in srgb, var(--frame) 15%, var(--bt-bg)); color: var(--bt-text); font: 700 10px var(--bt-font); cursor: pointer; }
+.unit-card-summon:hover:enabled { background: color-mix(in srgb, var(--frame) 30%, var(--bt-bg)); }
+.unit-card-summon:disabled { opacity: .55; cursor: default; }
+.unit-summon-card.unavailable .unit-card-art > img { filter: saturate(.5); }
+.hand-reserve-drop, .hand-sell-drop { display: none; }
+body.roster-dragging .hand-bar.unified-hand .hand-library-filters,
+body.roster-dragging .hand-bar.unified-hand .hand-library-hint { display: none; }
+body.roster-dragging .hand-reserve-drop, body.roster-dragging .hand-sell-drop { display: flex; align-items: center; justify-content: center; flex: 1; align-self: stretch; min-height: 28px; padding: 2px 8px; border: 1px dashed var(--bt-ally); border-radius: 5px; color: var(--bt-ally); background: color-mix(in srgb, var(--bt-ally) 10%, var(--bt-bg)); font-size: 11px; }
+body.roster-dragging .hand-sell-drop { flex: 0 0 100px; color: var(--bt-enemy); border-color: var(--bt-enemy); background: color-mix(in srgb, var(--bt-enemy) 10%, var(--bt-bg)); }
+body.roster-dragging .hand-cards[data-unit-hand-zone] { outline: 1px dashed var(--bt-ally); outline-offset: -2px; border-radius: 6px; }
+body[data-screen="battle"] #battle-bench.bt-deployment { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 42px; height: 42px; padding: 4px 12px; box-sizing: border-box; }
+body[data-screen="battle"] #battle-bench.bt-deployment[data-stage="playing"] { display: none; }
+.bt-deployment-status { display: flex; align-items: center; gap: 12px; color: var(--bt-muted); font: 12px var(--bt-font); }
+.bt-deployment-status .bt-under { color: var(--bt-ally); }
+.bt-deployment-hand { padding: 4px 8px; border: 1px solid var(--bt-border); border-radius: 5px; color: var(--bt-muted); background: transparent; font: inherit; cursor: pointer; }
+.bt-deployment-hand:hover { color: var(--bt-gold); border-color: var(--bt-gold-dim); }
+.bt-deployment-recall { display: none; color: var(--bt-ally); border: 1px dashed var(--bt-ally); border-radius: 5px; padding: 6px 14px; font: 11px var(--bt-font); }
+body.roster-dragging .bt-deployment-recall { display: block; flex: 1; text-align: center; }
+body[data-screen="battle"] #battle-bench.bt-deployment .bt-start { min-height: 32px; padding: 5px 18px; }
+
+@media (max-width: 1100px) {
+  body .hand-bar.unified-hand { grid-template-columns: 122px 112px minmax(0, 1fr); gap: 5px 6px; }
+  .hand-library-hint { display: none; }
+  .hand-library-hint.summoning { display: inline; }
+  .summoning-unit .hand-library-filters { display: none; }
+}
+@media (max-width: 900px), (max-width: 1000px) and (max-height: 620px) {
+  body .hand-bar.unified-hand { grid-template-columns: minmax(0, 1fr) 126px; grid-template-rows: 40px 28px minmax(0, 1fr) 14px; gap: 4px 6px; padding: 5px 6px; }
+  body .hand-bar.unified-hand .hand-side { grid-column: 1; grid-row: 1; }
+  body .hand-bar.unified-hand .hand-ultimate { grid-column: 2; grid-row: 1; }
+  body .hand-bar.unified-hand .hand-library-bar { grid-column: 1 / -1; grid-row: 2; }
+  body .hand-bar.unified-hand .hand-cards { grid-column: 1 / -1; grid-row: 3; }
+  body .hand-bar.unified-hand .hand-scroll-hint { display: block; grid-column: 1 / -1; grid-row: 4; font-size: 10px; }
+  body .hand-bar.unified-hand .unit-card-summon { min-height: 30px; font-size: 11px; }
+  body .hand-bar.unified-hand .unit-card-art .hcard-info { min-height: 30px; min-width: 32px; }
+  body .hand-bar.unified-hand .unit-card-name { font-size: 13px; }
+  body .hand-bar.unified-hand .unit-card-body { gap: 3px; }
+  body .hand-bar.unified-hand .unit-card-stats, body .hand-bar.unified-hand .unit-card-traits { font-size: 10px; }
+  .hand-library-filter { min-height: 28px; padding: 5px 10px; }
+  body[data-screen="battle"] #battle-bench.bt-deployment { min-height: 40px; height: 40px; padding: 3px 6px; gap: 6px; }
+  .bt-deployment-status { gap: 7px; font-size: 11px; }
+  .bt-deployment-recall { font-size: 10px; padding: 4px; }
+  body.roster-dragging .bt-deployment-status { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .unit-summon-card { transition: none; }
+}

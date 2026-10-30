@@ -1,0 +1,41 @@
+.relic-art { --relic-hue: #94b9ce; position: relative; display: inline-grid; place-items: center; flex: 0 0 auto; width: 30px; height: 30px; padding: 2px; box-sizing: border-box; overflow: hidden; border: 1px solid color-mix(in srgb, var(--relic-hue) 55%, transparent); border-radius: 8px; background: radial-gradient(ellipse at 50% 36%, #334963, #111d2e); }
+.relic-art.rarity-rare { --relic-hue: #c19ae8; }.relic-art.rarity-boss { --relic-hue: #ebc771; }
+.relic-art img { width: 100%; height: 100%; object-fit: contain; filter: drop-shadow(0 3px 5px #0008); }
+.relic-art-fallback { color: #e3eaf5; font-size: 20px; }
+.run-relic .relic-art { width: 30px; height: 30px; border-radius: 7px; background: radial-gradient(ellipse, #334963, #111d2e); }
+.run-relic { padding: 3px 9px 3px 3px; border-radius: 10px; }
+.relic-inventory-open, .relic-filter, .relic-dialog-close { min-height: 36px; padding: 6px 12px; border: 1px solid var(--bt-border-strong,#65748a); border-radius: 7px; background: var(--bt-bg,#172234); color: var(--bt-text,#eaf1fa); font: 12px var(--bt-font,sans-serif); cursor: pointer; }
+.relic-catalog-open { margin-top: 12px; font-size: 12px; padding: 7px 15px; border-radius: 18px; }
+.run-relic-card.relic-visual-card { position: relative; box-sizing: border-box; display: flex; flex-direction: column; gap: 8px; padding: 14px; min-width: 0; border-radius: 14px; }
+.relic-visual-card .relic-card-art { position: relative; display: grid; place-items: center; width: 100%; padding: 10px; box-sizing: border-box; border: 1px solid #6d82924d; border-radius: 10px; background: radial-gradient(ellipse at 50% 40%, #30445b, #111e30 85%); cursor: zoom-in; overflow: hidden; }
+.relic-visual-card .relic-art.relic-art-large { width: 150px; height: 150px; padding: 4px; border: 0; border-radius: 0; background: transparent; }
+.relic-visual-card.rarity-rare .relic-card-art { background: radial-gradient(ellipse at 50% 40%, #4c3b65, #1b1930 85%); }
+.relic-visual-card.rarity-boss .relic-card-art { background: radial-gradient(ellipse at 50% 40%, #655331, #231c1b 85%); border-color: #ceb07870; }
+.relic-rarity-badge { display: inline-block; padding: 4px 8px; border: 1px solid #96b6cc55; border-radius: 5px; background: #172337; color: #b9d6e5; font: 700 11px var(--bt-font,sans-serif); }
+.relic-card-art > .relic-rarity-badge { position: absolute; top: 8px; left: 8px; }
+.rarity-rare .relic-rarity-badge { color: #e0c1ff; border-color: #b592df88; background: #32223f; }.rarity-boss .relic-rarity-badge { color: #ffe29a; border-color: #c5a25b88; background: #3c2e1b; }
+.relic-visual-card .run-relic-card-head { margin: 4px 0 0; font-size: 16px; line-height: 1.4; }
+.relic-visual-card .run-card-meta { font-size: 10px; opacity: .7; }.relic-visual-card .run-card-text { margin: 0; line-height: 1.65; font-size: 13px; }
+.node-market .relic-visual-card { height: 100%; max-width: none; }
+.node-market .relic-visual-card .relic-art { width: 150px; height: 150px; }
+.relic-detail-dialog, .relic-collection-dialog { box-sizing: border-box; padding: 0; border: 1px solid var(--bt-border-strong,#7587a1); border-radius: 18px; color: var(--bt-text,#edf3fc); background: var(--bt-bg,#152235); box-shadow: 0 24px 80px #0009; font: 14px/1.5 var(--bt-font,sans-serif); }
+.relic-detail-dialog::backdrop, .relic-collection-dialog::backdrop { background: #070e1cd9; backdrop-filter: blur(5px); }
+.relic-detail-dialog { width: min(440px,calc(100vw - 24px)); max-height: 88dvh; overflow-y: auto; }
+.relic-detail-dialog > .relic-dialog-close { position: absolute; z-index: 2; right: 12px; top: 12px; }
+.relic-detail-art { display: grid; place-items: center; min-height: 260px; background: radial-gradient(ellipse at 50% 45%, #3b526d, #101d2d 85%); }
+.relic-detail-art .relic-art { width: 240px; height: 240px; border: 0; background: transparent; }
+.relic-detail-dialog.rarity-rare .relic-detail-art { background: radial-gradient(ellipse, #5a4178, #1c1830 85%); }.relic-detail-dialog.rarity-boss .relic-detail-art { background: radial-gradient(ellipse, #75613a, #261b18 85%); }
+.relic-detail-copy { padding: 24px 28px 30px; }.relic-detail-copy h2 { margin: 10px 0 22px; font-size: 26px; }.relic-detail-copy p { font-size: 16px; line-height: 1.8; margin: 6px 0 0; }
+.relic-effect-label { font-size: 11px; opacity: .6; letter-spacing: 2px; }
+.relic-collection-dialog { width: min(1080px,calc(100vw - 24px)); max-height: 88dvh; overflow-y: auto; }
+.relic-collection-head { position: sticky; top: 0; z-index: 3; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 20px 24px; background: var(--bt-bg,#152235); border-bottom: 1px solid var(--bt-border,#52617b); }
+.relic-collection-head h2 { margin: 4px 0 0; font-size: 24px; }.relic-collection-eyebrow { color: var(--bt-gold,#e3bf81); letter-spacing: 3px; font-size: 10px; }
+.relic-collection-filters { display: flex; gap: 8px; padding: 16px 24px 0; }.relic-filter[aria-pressed="true"] { color: var(--bt-gold,#e3bf81); border-color: var(--bt-gold,#e3bf81); }
+.relic-collection-grid { display: grid; grid-template-columns: repeat(auto-fill,minmax(200px,1fr)); align-items: stretch; gap: 16px; padding: 20px 24px 26px; }
+.relic-collection-grid .relic-visual-card { max-width: none; color: var(--bt-text,#eaf1fa); background: var(--bt-panel-bottom,#1c2b40); border-color: #7e94ac77; }.relic-collection-grid .relic-visual-card.rarity-rare { border-color: #a580d8; }.relic-collection-grid .relic-visual-card.rarity-boss { border-color: #d8b76b; }
+.relic-detail-dialog button:focus-visible, .relic-collection-dialog button:focus-visible { outline: 3px solid var(--bt-gold,#e3bf81); outline-offset: 3px; }
+@media (max-width: 600px) {
+  .relic-collection-dialog { max-height: 92dvh; }.relic-collection-head { padding: 16px; }.relic-collection-head h2 { font-size: 20px; }.relic-collection-filters { padding: 12px 12px 0; gap: 5px; }.relic-filter { flex: 1; padding: 6px; font-size: 11px; }
+  .relic-collection-grid { grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; padding: 14px 12px 18px; }.relic-collection-grid .relic-visual-card { padding: 8px; }.relic-collection-grid .relic-card-art { padding: 6px; }.relic-collection-grid .relic-art.relic-art-large { width: 116px; height: 116px; }
+  .relic-collection-grid .run-relic-card-head { font-size: 14px; }.relic-collection-grid .run-card-text { font-size: 12px; }.relic-detail-copy { padding: 20px; }
+}

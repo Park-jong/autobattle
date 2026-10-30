@@ -8,6 +8,7 @@ import { commanderArt } from '../skin/commanderArt';
 import { RosterGallery } from '../skin/RosterGallery';
 import { TestStartPanel } from './TestStartPanel';
 import { clampThreatLevel } from './threatViews';
+import { openRelicCollection } from './relicElements';
 
 /** 마지막으로 고른 위협 레벨을 기억하는 localStorage 키 (보는 사람 편의용. 실패해도 게임에는 영향 없음) */
 const THREAT_PREF_KEY = 'autochess-threat-level';
@@ -85,6 +86,7 @@ export class StartScreen {
     if (academy) tags.append(el('span', 'academy-adult-label', appSkin.current === 'modern' ? '성인향 현대전 · 전원 성인 여성' : '성인향 판타지 · 전원 성인 설정'));
     brand.append(tags);
     if (appSkin.current === 'modern') brand.append(tagged(button('대원 도감 · 30', () => this.gallery.open(), 'dbg-btn modern-gallery-open'), 'open-roster-gallery'));
+    brand.append(tagged(button(`유물 도감 · ${start.testCatalog.relics.length}`, () => openRelicCollection(start.testCatalog.relics, '유물 도감'), 'dbg-btn relic-catalog-open'), 'open-relic-catalog'));
     card.append(brand);
 
     card.append(tagged(el('p', 'run-meta-points-line', start.meta.status === 'ok' ? `보유 전공 ${start.meta.points}` : '전공 기록 손상'), 'meta-points'));

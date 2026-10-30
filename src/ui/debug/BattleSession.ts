@@ -22,7 +22,7 @@ import type { TraitCatalog } from '../../core/data/traitLoader';
 import type { UnitCatalog } from '../../core/data/unitLoader';
 import { Rng } from '../../core/rng';
 import { Economy, type BattleKind } from '../../core/economy';
-import type { ManagementResult } from '../../core/management';
+import { MANAGEMENT, type ManagementResult, type ManagementSnapshot } from '../../core/management';
 import { forceCombatResult, type BattleSettlement, type ForcedResult } from '../../core/run';
 import { BoardLayout } from '../battle/BoardLayout';
 import { BoardPicker, type BoardPick } from '../battle/BoardPicker';
@@ -37,6 +37,7 @@ import { ReplayState, type MeteorView, type ReplayEffect, type ReviveWatchView, 
 import { CARD_UI, LAYOUT } from '../theme';
 import type { RosterCommands, RunBattleHost, RunBattleLink } from './runLink';
 import type { ActionCue } from '../feedback/ActionCue';
+import { detectUnitMerges } from '../feedback/unitMerge';
 import type {
   BattleViewSource,
   Brush,
@@ -119,6 +120,7 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
   private fallbackDeck: Deck | null = null;
   private readonly listeners = new Set<() => void>();
   private readonly actionListeners = new Set<(cue: ActionCue) => void>();
+  private mergeBaseline: ManagementSnapshot | null = null;
   private readonly traitEngine: TraitEngine;
   private readonly interaction: CardInteraction;
   private readonly picker: BoardPicker;
@@ -413,7 +415,15 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
   }
 
   buyUnit(slot: number): void {
-    this.manage((roster) => roster.buy(slot));
+    const before = this.roster?.snapshot();
+    const offer = before?.offers[slot];
+    if (!this.manage((roster) => roster.buy(slot), slot) || !before || !offer) return;
+    const after = this.roster!.snapshot();
+    const previousIds = new Set([...before.board, ...before.bench].filter((unit) => unit !== null).map((unit) => unit.id));
+    const recruited = [...after.board, ...after.bench].find((unit) => unit?.unitId === offer.unitId && unit.star === 1 && !previousIds.has(unit.id));
+    // A merge has its own converging-card effect; ordinary recruitment flies to its new slot.
+    if (recruited) this.actionFeedback({ kind: 'purchase', label: this.units.get(offer.unitId)?.name ?? offer.unitId,
+      amount: before.gold - after.gold, unitId: offer.unitId, shopSlot: slot, benchIndex: recruited.benchIndex, origin: recruited.cell ?? undefined });
   }
 
   subscribeActionFeedback(listener: (cue: ActionCue) => void): () => void {
@@ -426,15 +436,27 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
   }
 
   rerollShop(): void {
-    this.manage((roster) => roster.reroll());
+    const before = this.roster?.snapshot();
+    if (this.manage((roster) => roster.reroll()) && before) {
+      const amount = before.gold - this.roster!.snapshot().gold;
+      this.actionFeedback({ kind: 'reroll', label: amount === 0 ? '무료 리롤' : `리롤 · −${amount}G`, amount });
+    }
   }
 
   buyExperience(): void {
-    this.manage((roster) => roster.buyXp());
+    const before = this.roster?.snapshot();
+    if (this.manage((roster) => roster.buyXp()) && before) {
+      const after = this.roster!.snapshot();
+      this.actionFeedback({ kind: 'experience', label: after.level > before.level ? `LEVEL UP · 레벨 ${after.level}` : `+${MANAGEMENT.XP_PER_PURCHASE} XP`,
+        amount: before.gold - after.gold, level: after.level, previousLevel: before.level });
+    }
   }
 
   toggleShopLock(): void {
-    this.manage((roster) => roster.toggleLock());
+    if (this.manage((roster) => roster.toggleLock())) {
+      const locked = this.roster!.snapshot().locked;
+      this.actionFeedback({ kind: 'shopLock', label: locked ? '진열 잠금' : '잠금 해제', locked });
+    }
   }
 
   selectManagedUnit(id: number | null): void {
@@ -446,11 +468,22 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
   }
 
   moveManagedToBoard(id: number, cell: Cell): void {
-    this.manage((roster) => roster.moveToBoard(id, cell));
+    const unit = this.roster?.snapshot().bench.find(entry => entry?.id === id);
+    if (!this.manage((roster) => roster.moveToBoard(id, cell)) || !unit) return;
+    this.selectedOwnedId = null;
+    this.notify();
+    this.actionFeedback({ kind: 'summon', label: this.units.get(unit.unitId)?.name ?? unit.unitId,
+      unitId: unit.unitId, star: unit.star, origin: cell, benchIndex: unit.benchIndex });
   }
 
   moveManagedToBench(id: number, index?: number): void {
-    this.manage((roster) => roster.moveToBench(id, index));
+    const unit = this.roster?.snapshot().board.find(entry => entry.id === id);
+    if (!this.manage((roster) => roster.moveToBench(id, index)) || !unit) return;
+    this.selectedOwnedId = null;
+    this.notify();
+    const recalled = this.roster!.snapshot().bench.find(entry => entry?.id === id);
+    this.actionFeedback({ kind: 'recall', label: this.units.get(unit.unitId)?.name ?? unit.unitId,
+      unitId: unit.unitId, star: unit.star, origin: unit.cell ?? undefined, benchIndex: recalled?.benchIndex });
   }
 
   sellManagedUnit(id: number): void {
@@ -489,18 +522,30 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
     return this.roster !== null && this.currentPhase === 'edit' && !(this.managementRun?.done ?? false);
   }
 
-  private manage(action: (roster: RosterCommands) => ManagementResult): boolean {
+  private manage(action: (roster: RosterCommands) => ManagementResult, shopSlot?: number): boolean {
     const roster = this.roster;
     if (!roster || !this.canManage()) return false;
+    const before = roster.snapshot();
     const formationBefore = JSON.stringify(this.formations[0]);
     const result = action(roster);
-    if (!result.ok) { this.showToast(result.reason); return false; }
+    if (!result.ok) { this.showToast(result.reason.replace(/벤치/g, '유닛 손패')); return false; }
     const snapshot = roster.snapshot();
     if (![...snapshot.board, ...snapshot.bench].some((unit) => unit?.id === this.selectedOwnedId)) this.selectedOwnedId = null;
     this.syncManagementFormation();
     if (JSON.stringify(this.formations[0]) !== formationBefore) this.formationChanged();
     else this.notify();
+    this.presentRosterMerges(before, snapshot, shopSlot);
     return true;
+  }
+
+  private presentRosterMerges(before: ManagementSnapshot, snapshot: ManagementSnapshot, shopSlot?: number): void {
+    const owned = (state: typeof before) => [...state.board, ...state.bench.filter((unit) => unit !== null)];
+    for (const merge of detectUnitMerges(owned(before), owned(snapshot), shopSlot !== undefined ? before.offers[shopSlot]?.unitId : undefined)) {
+      if (shopSlot !== undefined && before.offers[shopSlot]?.unitId === merge.unitId) merge.sources.push({ star: 1, shopSlot });
+      this.actionFeedback({ kind: 'merge', label: this.units.get(merge.unitId)?.name ?? merge.unitId,
+        unitId: merge.unitId, star: merge.star, fromStar: merge.fromStar, origin: merge.origin, benchIndex: merge.benchIndex, mergeSources: merge.sources });
+    }
+    this.mergeBaseline = snapshot;
   }
 
   private syncManagementFormation(): void {
@@ -939,6 +984,7 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
   // ---- RunBattleHost: 런 코어 전투 연결 ----
 
   attachRun(link: RunBattleLink): void {
+    const mergeBefore = this.runLink?.roster === link.roster ? this.mergeBaseline : null;
     if (this.gauntlet) this.endSeries();
     if (this.managementRun) this.endManagementRun();
     if (!this.runLink) {
@@ -950,6 +996,9 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
     this.selectedOwnedId = null;
     this.syncManagementFormation();
     this.toBattlePrep();
+    const current = link.roster.snapshot();
+    if (mergeBefore) this.presentRosterMerges(mergeBefore, current);
+    else this.mergeBaseline = current;
   }
 
   detachRun(): void {
@@ -957,6 +1006,7 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
     if (!link) return;
     if (this.currentPhase === 'playing' || this.currentPhase === 'paused') link.abandon();
     this.runLink = null;
+    this.mergeBaseline = null;
     this.runResult = null;
     this.selectedOwnedId = null;
     this.commander = this.savedCommander;

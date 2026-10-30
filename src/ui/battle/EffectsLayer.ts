@@ -132,6 +132,7 @@ export class EffectsLayer {
     combat?: CombatVisualFrame,
   ): void {
     this.lines.clear();
+    this.cardBanner.setY(this.scene.game.canvas.closest('.bt-board-viewport.fitted') ? 658 : LAYOUT.CARD_BANNER_Y);
     const visual = combat ?? buildCombatVisualFrame(time, effects, views);
     this.skillCutins.update(time, effects, views, visual.reduced);
     this.cutin?.setVisible(false);

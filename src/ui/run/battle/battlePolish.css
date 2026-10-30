@@ -75,6 +75,12 @@ body.roster-dragging .bt-sell-overlay { border: 2px dashed var(--bt-gold); backg
 .bt-board-viewport:not(.zoomed) canvas { touch-action: none !important; }
 .bt-board-viewport.zoomed canvas { touch-action: pan-x pan-y !important; }
 
+@media (min-width: 1001px), (min-width: 901px) and (min-height: 621px) {
+  /* Keep traits beside the enlarged battlefield, with room for the full board. */
+  body[data-screen="battle"] .bt-board-viewport { left: 238px; right: 12px; }
+  body[data-screen="battle"] #battle-bench[data-stage="playing"] { display: none; }
+}
+
 @media (max-width: 900px), (max-width: 1000px) and (max-height: 620px) {
   body[data-screen="battle"] #battle-top { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 8px; padding: 4px 8px; }
   body[data-screen="battle"] .bt-top-node { grid-column: 1; grid-row: 1; flex: none; }
@@ -150,6 +156,30 @@ body.roster-dragging .bt-sell-overlay { border: 2px dashed var(--bt-gold); backg
   body[data-screen="battle"] .hand-bar:has(.hand-cancel:not([hidden])) .hand-scroll-hint { color: var(--bt-gold); font-size: 11px; }
   body[data-screen="battle"] .hand-empty, body[data-screen="battle"] .hand-notice { position: static; transform: none; white-space: normal; align-self: center; }
   body[data-screen="battle"] .bt-info { top: 44px; max-height: calc(100% - 48px); }
+}
+
+@media (max-width: 900px) and (orientation: portrait) {
+  /* Match the fitted board window (864 × 640), instead of stretching its
+     empty background. Give the remaining height to the open shop/hand. */
+  body[data-screen="battle"] #stage:has(#tray.stacked:not(.collapsed)) #arena {
+    flex: 0 0 auto;
+    min-height: 0;
+    aspect-ratio: 864 / 640;
+  }
+  body[data-screen="battle"] #tray.stacked:not(.collapsed) {
+    flex: 1 0 248px;
+    min-height: 248px;
+    height: auto;
+  }
+  body[data-screen="battle"] .hand-cards .hcard-art {
+    flex: 1 0 27px;
+    max-height: 120px;
+  }
+  body[data-screen="battle"] .hand-cards .hcard .hcard-text {
+    flex: 2 1 auto;
+    font-size: 12px;
+    line-height: 1.45;
+  }
 }
 
 @media (max-width: 1000px) and (max-height: 620px) and (orientation: landscape) {
