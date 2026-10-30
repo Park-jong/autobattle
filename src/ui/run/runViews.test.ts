@@ -163,6 +163,8 @@ describe('이벤트·야영지', () => {
       const candidate = run.campView()!.promotions.find((unit) => unit.id === p.id)!;
       expect(p.unitId).toBe(candidate.unitId);
       expect(p.unitName).toBe(units.get(candidate.unitId)!.name);
+      expect(p.tier).toBe(units.get(candidate.unitId)!.tier);
+      expect(p.onBoard).toBe(run.roster.snapshot().board.some((unit) => unit.id === p.id));
       expect(p.nextStar).toBe(p.star + 1);
     }
   });
