@@ -25,12 +25,13 @@ function toAct(run: RunController, act: number): void {
 }
 
 describe('액트 1은 3액트 도입 전과 비트 단위로 같다', () => {
-  // HEAD(8b7529a)에서 같은 방법으로 계산한 지문: 맵 JSON, 모든 전투 노드의 편성 계획(편성·보정·변이)
+  // HEAD(8b7529a)에서 같은 방법으로 계산한 지문: 맵 JSON, 모든 전투 노드의 편성 계획(편성·보정·변이).
+  // 편성 계획 지문은 정예 변이를 항상 1개로, 층 보정을 0.03으로 바꾼 뒤 다시 계산했다(맵 지문은 그대로)
   const BASELINE: Record<number, [string, string]> = {
-    1: ['ee2de3ad64d09bce', 'b7a244120eba795b'],
-    7: ['12f101754649ffae', '36e911e6c3e9f734'],
-    42: ['43c1a6806903794b', 'edbc3611b30d2534'],
-    1234: ['caf46d14cd6afb87', 'a8430cb5296fb0fa'],
+    1: ['ee2de3ad64d09bce', '6308dbee5f06b99f'],
+    7: ['12f101754649ffae', '286c95cf4822e9df'],
+    42: ['43c1a6806903794b', '2aa04812ab4577c3'],
+    1234: ['caf46d14cd6afb87', '181d705d980a0dfb'],
   };
 
   it.each(Object.keys(BASELINE).map(Number))('시드 %i: 액트 1 맵과 적 편성 계획이 기존과 같다', (seed) => {
@@ -78,21 +79,21 @@ describe('액트별 맵과 층 보정', () => {
     expect(globalFloor(2, 1)).toBe(14);
     expect(globalFloor(3, 13)).toBe(39);
     expect(floorScale(1)).toBe(1);
-    expect(floorScale(13)).toBeCloseTo(1.48);
+    expect(floorScale(13)).toBeCloseTo(1.36);
     const run = newRun(3, 'starter', 3);
     const first = run.previewAvailable()[0]!.plan!;
     expect(first.act).toBe(1);
     expect(first.scale).toBe(1);
     const bossPlan = run.previewNode(run.map.bossNode.id)!;
-    expect(bossPlan.scale).toBeCloseTo(1.48);
+    expect(bossPlan.scale).toBeCloseTo(1.36);
     toAct(run, 2);
     const act2 = run.previewAvailable()[0]!.plan!;
     expect([act2.act, act2.floor, act2.globalFloor]).toEqual([2, 1, 14]);
-    expect(act2.scale).toBeCloseTo(1 + 0.04 * 13);
+    expect(act2.scale).toBeCloseTo(1 + 0.03 * 13);
     expect(act2.enemy).toEqual({ hpMult: act2.scale, atkMult: act2.scale, mutations: [] });
-    expect(run.previewNode(run.map.bossNode.id)!.scale).toBeCloseTo(1 + 0.04 * 25);
+    expect(run.previewNode(run.map.bossNode.id)!.scale).toBeCloseTo(1 + 0.03 * 25);
     toAct(run, 3);
-    expect(run.previewNode(run.map.bossNode.id)!.scale).toBeCloseTo(1 + 0.04 * 38);
+    expect(run.previewNode(run.map.bossNode.id)!.scale).toBeCloseTo(1 + 0.03 * 38);
   });
 
   it('액트마다 그 액트에 맞는 적 편성이 나온다 (액트 2는 잿불 고원, 액트 3은 몰락한 수도, 보스는 액트 보스)', () => {

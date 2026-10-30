@@ -46,10 +46,10 @@ export const RUN = {
   },
 
   /** 층 보정: 적 편성 HP·ATK 배율 = 1 + PER_FLOOR × (층 − 1) */
-  FLOOR_SCALE_PER_FLOOR: 0.04,
+  FLOOR_SCALE_PER_FLOOR: 0.03,
 
-  /** 정예 변이 개수: 1개, 확률 TWO_CHANCE로 2개 */
-  ELITE_MUTATION_TWO_CHANCE: 0.5,
+  /** 정예 변이 개수 (위협 레벨의 최소 변이 수가 더 크면 그 수) */
+  ELITE_MUTATION_COUNT: 1,
 
   /** 패배(무승부 포함) 지휘관 피해 = ceil((BASE + 생존 적 유닛 등급 합 + floor(층 / FLOOR_DIVISOR)) × 종류 배율) */
   DEFEAT: {

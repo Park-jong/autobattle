@@ -53,7 +53,7 @@ export interface EncounterPlan {
   bossPatterns: BossPatternInfo[];
 }
 
-/** 층 보정 배율 = 1 + 0.04 × (전체 층 − 1). 액트 1은 층 번호 그대로다 */
+/** 층 보정 배율 = 1 + 0.03 × (전체 층 − 1). 액트 1은 층 번호 그대로다 */
 export function floorScale(floor: number): number {
   return 1 + RUN.FLOOR_SCALE_PER_FLOOR * (floor - 1);
 }
@@ -116,12 +116,13 @@ export class EncounterPlanner {
   }
 
   /**
-   * 정예 노드마다 결정적으로 1개(확률 ELITE_MUTATION_TWO_CHANCE로 2개), 서로 다른 변이.
+   * 정예 노드마다 결정적으로 ELITE_MUTATION_COUNT개(1개), 서로 다른 변이.
    * 위협 레벨의 최소 변이 수가 더 크면 그 수로 올린다 (난수 사용은 그대로라 같은 노드의 변이 종류 순서는 변하지 않는다)
    */
   private pickMutations(node: MapNode): MutationId[] {
     const rng = new Rng(deriveSeed(this.runSeed, 'mutation', node.id));
-    const count = Math.max(rng.next() < RUN.ELITE_MUTATION_TWO_CHANCE ? 2 : 1, this.threat?.eliteMutationsMin ?? 0);
+    rng.next(); // 예전 "2개 확률" 판정 자리: 소비를 유지해 기존 시드·저장본의 첫 변이 종류가 그대로다
+    const count = Math.max(RUN.ELITE_MUTATION_COUNT, this.threat?.eliteMutationsMin ?? 0);
     return rng.shuffle(MUTATION_IDS).slice(0, count);
   }
 }
