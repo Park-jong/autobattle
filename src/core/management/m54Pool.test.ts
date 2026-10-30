@@ -10,9 +10,9 @@ const units = loadUnits(unitsJson, loadTraits(traitsJson));
 const shopUnits = units.units.filter((u) => !u.boss);
 
 describe('M5-4 상점 유닛 풀 (30종)', () => {
-  it('등급별 유닛 수는 8/8/6/5/3이고 풀 개수는 18/16/14/10/8이다', () => {
+  it('등급별 유닛 수는 8/8/6/5/3이고 풀 개수는 18/16/14/10/9이다', () => {
     expect([1, 2, 3, 4, 5].map((tier) => shopUnits.filter((u) => u.tier === tier).length)).toEqual([8, 8, 6, 5, 3]);
-    expect(MANAGEMENT.POOL_COPIES).toEqual({ 1: 18, 2: 16, 3: 14, 4: 10, 5: 8 });
+    expect(MANAGEMENT.POOL_COPIES).toEqual({ 1: 18, 2: 16, 3: 14, 4: 10, 5: 9 });
     const manager = new Management(units, new Economy(100), new Rng(1));
     const pool = manager.snapshot().pool;
     expect(Object.keys(pool).sort()).toEqual(shopUnits.map((u) => u.id).sort());
