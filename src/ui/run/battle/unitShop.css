@@ -32,6 +32,7 @@
 .bt-shop.unit-market .tier-5 { --offer-tier: var(--bt-tier-5); }
 .bt-shop.unit-market .bt-offer {
   min-width: 0;
+  min-height: 0;
   border: 1px solid color-mix(in srgb, var(--offer-tier) 65%, var(--bt-border));
   border-top: 3px solid var(--offer-tier);
   border-radius: 9px;
@@ -41,26 +42,32 @@
   transition: border-color .15s, box-shadow .15s;
 }
 .bt-shop.unit-market .bt-offer:hover:not(:disabled), .bt-shop.unit-market .bt-offer:focus-within { transform: none; border-color: var(--offer-tier); box-shadow: 0 0 0 1px var(--offer-tier), 0 4px 14px #00000020; }
-.bt-shop.unit-market .bt-offer-art { flex: 1 1 0; min-height: 53px; overflow: hidden; background: radial-gradient(ellipse at 50% 20%, color-mix(in srgb, var(--offer-tier) 25%, var(--shop-surface)), var(--shop-surface)); }
+.bt-shop.unit-market .bt-offer-art { position: absolute; inset: 0; min-height: 0; overflow: hidden; background: radial-gradient(ellipse at 50% 20%, color-mix(in srgb, var(--offer-tier) 25%, var(--shop-surface)), var(--shop-surface)); }
 .bt-shop.unit-market .bt-offer-art img { object-fit: contain; object-position: center; }
-.bt-shop.unit-market .bt-offer .bt-tier-badge { top: 5px; left: 6px; min-width: 22px; height: 23px; border-width: 1px; background: #101725d9; }
-.bt-shop.unit-market .bt-offer-info { top: 5px; right: 6px; min-width: 34px; min-height: 27px; border-radius: 6px; font-size: 10px; }
-.bt-shop.unit-market .bt-offer-foot { display: flex; flex-direction: column; align-items: stretch; flex-wrap: nowrap; flex: 0 0 auto; gap: 4px; padding: 7px 9px; background: var(--shop-surface); border-top: 1px solid var(--bt-border); }
-.bt-shop.unit-market .bt-offer .academy-offer-label { flex: none; gap: 1px; }
-.bt-shop.unit-market .academy-offer-label b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; line-height: 1.4; }
-.bt-shop.unit-market .academy-offer-label small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--bt-muted); font-size: 10px; }
-.bt-shop.unit-market .bt-offer-traits { position: static; display: flex; flex-direction: row; flex-wrap: wrap; gap: 3px; min-height: 17px; }
-.bt-shop.unit-market .bt-offer-traits span { display: inline-flex; align-items: center; padding: 1px 5px; border: 1px solid var(--bt-border); border-radius: 4px; background: transparent; color: var(--bt-muted); font-size: 10px; line-height: 1.3; }
-.bt-shop.unit-market .bt-offer-traits .shared-trait { color: var(--shop-accent); background: color-mix(in srgb, var(--shop-accent) 9%, transparent); border-color: color-mix(in srgb, var(--shop-accent) 50%, var(--bt-border)); }
-.bt-shop.unit-market .bt-offer-owned { min-height: 14px; padding: 0; color: var(--bt-muted); background: transparent; font-size: 10px; line-height: 1.4; }
-.bt-shop.unit-market .is-owned .bt-offer-owned { color: var(--shop-accent); }
+.bt-shop.unit-market .bt-offer .bt-tier-badge { position: static; min-width: 23px; height: 26px; padding: 0 4px; border: 1px solid color-mix(in srgb, var(--offer-tier) 65%, transparent); border-radius: 6px; background: #0b1123b8; color: var(--offer-tier); font-size: 11px; }
+.bt-shop.unit-market .bt-offer-info { display: grid; place-items: center; z-index: 3; top: 8px; right: 8px; min-width: 28px; min-height: 28px; padding: 0; border: 1px solid #ffffff29; border-radius: 50%; background: #0b1123b8; color: #f1f4fa; }
+.bt-shop.unit-market .bt-offer-info svg { pointer-events: none; }
+.bt-shop.unit-market .bt-offer-traits { position: absolute; z-index: 2; top: 8px; left: 8px; bottom: auto; display: flex; flex-direction: row; gap: 4px; }
+.bt-shop.unit-market .bt-trait-emblem { --emblem-color: #dce6fb; display: grid; place-items: center; width: 26px; height: 26px; min-width: 26px; padding: 0; border: 1px solid color-mix(in srgb, var(--emblem-color) 38%, transparent); border-radius: 7px; color: var(--emblem-color); background: #0b1123d1; box-shadow: 0 2px 6px #0002; cursor: help; }
+.bt-shop.unit-market .bt-trait-emblem.job { border-radius: 50%; }
+.bt-shop.unit-market .emblem-iron_legion { --emblem-color: #b9d1f3; }
+.bt-shop.unit-market .emblem-ember { --emblem-color: #ffb08b; }
+.bt-shop.unit-market .emblem-abyss { --emblem-color: #c8b0fa; }
+.bt-shop.unit-market .emblem-forest_pact { --emblem-color: #9cd9be; }
+.bt-shop.unit-market .bt-trait-emblem svg { pointer-events: none; }
+.bt-shop.unit-market .bt-trait-emblem:hover, .bt-shop.unit-market .bt-trait-emblem:focus-visible { background: #1c2947; border-color: var(--emblem-color); }
+.bt-shop.unit-market .bt-trait-emblem.shared-trait { box-shadow: 0 0 0 1px var(--shop-accent); }
+.bt-shop.unit-market .bt-offer-owned { display: block; align-self: flex-start; min-height: 0; padding: 0; margin-bottom: 3px; color: #ede5ce; background: transparent; font-size: 10px; line-height: 1.4; text-shadow: 0 1px 4px #000; }
 .bt-shop.unit-market .merge-ready { border-color: var(--shop-accent); box-shadow: 0 0 0 1px var(--shop-accent); }
 .bt-shop.unit-market .bt-offer-owned.merge { color: var(--shop-accent); font-weight: 800; }
 .bt-shop.unit-market .bt-offer-owned.merge::before { content: '✦ '; }
-.bt-shop.unit-market .bt-offer-buy { display: flex; justify-content: space-between; align-items: center; min-height: 32px; padding: 4px 9px; margin-top: 1px; border: 1px solid color-mix(in srgb, var(--offer-tier) 50%, var(--bt-border)); border-radius: 5px; color: var(--bt-text); background: color-mix(in srgb, var(--offer-tier) 10%, var(--bt-bg)); font-size: 11px; }
-.bt-shop.unit-market .bt-offer-buy:hover:enabled { background: color-mix(in srgb, var(--offer-tier) 23%, var(--bt-bg)); border-color: var(--offer-tier); }
-.bt-shop.unit-market .bt-offer-cost { color: var(--shop-accent); font-size: 13px; font-variant-numeric: tabular-nums; }
-.bt-shop.unit-market .bt-offer-buy:disabled { opacity: .55; }
+.bt-shop.unit-market .bt-offer-buy, .bt-shop.unit-market .bt-offer-buy:hover:enabled { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; gap: 0; width: 100%; height: 100%; min-height: 0; padding: 50px 11px 11px; margin: 0; border: 0; border-radius: 0; color: #fff; background: linear-gradient(0deg, #07101af0, #07101a66 25%, transparent 56%); text-align: left; }
+.bt-shop.unit-market .bt-offer-caption { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; min-width: 0; text-shadow: 0 1px 5px #000; }
+.bt-shop.unit-market .bt-offer-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; line-height: 1.4; }
+.bt-shop.unit-market .bt-offer-cost { flex: 0 0 auto; color: #ffe1a4; font-size: 13px; font-variant-numeric: tabular-nums; }
+.bt-shop.unit-market .bt-offer-buy:disabled { opacity: 1; cursor: not-allowed; }
+.bt-shop.unit-market .unaffordable .bt-offer-cost { color: #c3c6d0; }
+.bt-shop.unit-market .bt-offer-buy:focus-visible { outline-offset: -3px; }
 .bt-shop.unit-market .unaffordable .bt-offer-art img { filter: saturate(.65); }
 .bt-shop.unit-market .bt-offer.sold { gap: 7px; border: 1px dashed var(--bt-border-strong); color: var(--bt-muted); background: color-mix(in srgb, var(--shop-surface) 50%, transparent); text-align: center; }
 .bt-shop.unit-market .bt-sold-mark { display: grid; place-items: center; width: 32px; height: 32px; margin-bottom: 2px; border: 1px solid var(--bt-border-strong); border-radius: 50%; color: var(--shop-accent); font-size: 17px; }
@@ -73,8 +80,6 @@ body[data-screen="battle"] #tray.stacked:has(.unit-market):not(.collapsed) { hei
 @media (max-width: 1100px) {
   .bt-shop.unit-market .bt-shop-side { flex-basis: 152px; }
   .bt-shop.unit-market .bt-offers { gap: 7px; }
-  .bt-shop.unit-market .bt-offer-foot { padding: 6px; }
-  .bt-shop.unit-market .academy-offer-label small { display: none; }
 }
 
 @media (max-width: 900px), (max-width: 1000px) and (max-height: 620px) {
@@ -95,10 +100,10 @@ body[data-screen="battle"] #tray.stacked:has(.unit-market):not(.collapsed) { hei
   body.roster-dragging .bt-shop.unit-market .bt-sell-overlay { display: flex; position: absolute; inset: 0; z-index: 6; font-size: 16px; background: var(--bt-bg); }
   .bt-shop.unit-market .bt-offers { display: flex; flex: 1 1 0; gap: 8px; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; overscroll-behavior-x: contain; scrollbar-width: thin; padding: 1px 1px 4px; }
   .bt-shop.unit-market .bt-offer { flex: 0 0 148px; scroll-snap-align: start; }
-  .bt-shop.unit-market .bt-offer-foot { gap: 3px; padding: 5px 7px; }
-  .bt-shop.unit-market .bt-offer-info { min-height: 32px; min-width: 36px; }
-  .bt-shop.unit-market .bt-offer-buy { min-height: 36px; }
-  .bt-shop.unit-market .bt-offer-owned { padding: 0; }
+  .bt-shop.unit-market .bt-offer-traits { top: 6px; left: 6px; gap: 3px; }
+  .bt-shop.unit-market .bt-offer-info { top: 6px; right: 6px; }
+  .bt-shop.unit-market .bt-offer-name { font-size: 13px; }
+  .bt-shop.unit-market .bt-offer-buy, .bt-shop.unit-market .bt-offer-buy:hover:enabled { padding: 50px 8px 9px; }
   body[data-screen="battle"] #tray.stacked:has(.unit-market):not(.collapsed) { height: 322px; min-height: 322px; }
 }
 

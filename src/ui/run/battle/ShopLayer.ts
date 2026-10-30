@@ -2,7 +2,7 @@ import type { TraitCatalog } from '../../../core/data/traitLoader';
 import type { UnitCatalog } from '../../../core/data/unitLoader';
 import { LEVEL_ODDS, MANAGEMENT, type ShopOffer } from '../../../core/management';
 import type { DebugController, SessionSnapshot } from '../../debug/contracts';
-import { isIllustratedSkin, traitSkinName, unitArtUrl, unitSkinName, unitSkinRole } from '../../skin/skins';
+import { traitSkinName, unitArtUrl, unitSkinName } from '../../skin/skins';
 import { appSkin } from '../../skin/SkinStore';
 import { unitAbbreviation } from '../../gameData';
 import type { ActiveTrait } from '../../../core/combat/traits';
@@ -16,11 +16,12 @@ import { tierBadge } from './unitFace';
 import { purchaseHint } from './unitPresentation';
 import type { OwnedUnit } from '../../../core/management';
 import { iconSvg, setIconTip } from '../iconButton';
+import { traitBadge } from './traitBadge';
 
 /**
  * 하단 트레이의 유닛 상점 층: 레벨·XP·골드, 리롤·경험치·잠금, 진열 5칸(원화·등급 색·기원/직업·가격).
  * 판매 구역에 유닛을 끌어 놓으면 판다. 전투 중에는 잠김 안내를 덮는다.
- * 진열 카드에 마우스를 올리면 카드 위에 유닛 정보(능력치·1/2/3성 스킬)를, 특성 이름 위면 특성 설명을 띄운다.
+ * 원화 위에 이름·가격을 겹친다. 정보 아이콘과 소속·직업 배지에서 설명을 볼 수 있다.
  */
 export class ShopLayer {
   readonly root = tagged(el('div', 'bt-shop unit-market'), 'unit-shop');
@@ -123,7 +124,7 @@ export class ShopLayer {
   private offer(offer: ShopOffer | null, slot: number, canManage: boolean, gold: number): HTMLElement {
     if (!offer) {
       const sold = tagged(el('div', 'bt-offer sold'), `shop-offer-${slot}`);
-      sold.append(el('span', 'bt-sold-mark', '✓'), el('strong', '', '영입 완료'), el('small', '', '새로고침하면 새 유닛 등장'));
+      sold.append(el('span', 'bt-sold-mark', '✓'), el('strong', '', '영입 완료'));
       return sold;
     }
     const def = this.units.get(offer.unitId);
@@ -144,14 +145,15 @@ export class ShopLayer {
       img.src = url;
       img.alt = '';
       img.draggable = false;
-      img.addEventListener('error', () => { img.remove(); art.prepend(unitAbbreviation(name)); });
+      img.addEventListener('error', () => { img.remove(); art.prepend(unitAbbreviation(displayName)); });
       art.append(img);
     } else {
-      art.append(unitAbbreviation(name));
+      art.append(unitAbbreviation(displayName));
     }
     if (def) {
       for (const id of [def.origin, def.job]) {
-        const chip = el('span', '', traitSkinName(appSkin.current, id, this.traits.get(id)?.name ?? id));
+        const trait = this.traits.get(id);
+        const chip = traitBadge(id, traitSkinName(appSkin.current, id, trait?.name ?? id), id === def.origin ? 'origin' : 'job');
         chip.classList.toggle('shared-trait', this.allyTraits().some((trait) => trait.traitId === id));
         bindTraitChip(chip, id, this.traits, this.traitPop, this.allyTraits);
         traits.append(chip);
@@ -161,43 +163,41 @@ export class ShopLayer {
         const info = buildUnitInfo(def, 1, { traitName: (id) => traitSkinName(appSkin.current, id, this.traits.get(id)?.name ?? id) });
         return [infoHead(info, false, { large: false }), el('div', 'bt-unit-pop-cost', `${offer.tier}등급 · ${offer.cost}G`), statsGrid(info), skillBlock(info)];
       };
-      const inspect = button('정보', () => {
+      const inspect = button('', () => {
         this.unitPop.hide();
         this.traitPop.hide();
         this.detail.replaceChildren(button('닫기', () => this.detail.close(), 'bt-btn bt-detail-close'), ...content());
         this.detail.showModal();
       }, 'bt-offer-info');
+      inspect.innerHTML = iconSvg('info', 17);
       inspect.setAttribute('aria-label', `${unitSkinName(appSkin.current, offer.unitId, name)} 상세 정보`);
-      art.append(inspect);
-      // 특성 이름 위에서는 특성 팝업만, 나머지 부분에서는 유닛 팝업을 띄운다
-      node.addEventListener('mouseover', (event) => {
+      node.append(inspect);
+      inspect.addEventListener('mouseenter', () => {
         if (!window.matchMedia('(hover: hover)').matches) return;
-        if ((event.target as Element).closest('[data-trait-id]')) this.unitPop.hide();
-        else this.unitPop.show(node, content, 'above');
+        this.traitPop.hide();
+        this.unitPop.show(inspect, content, 'above');
       });
-      node.addEventListener('mouseleave', () => this.unitPop.hide());
+      inspect.addEventListener('mouseleave', () => this.unitPop.hide());
     }
-    art.append(tierBadge(offer.tier));
-    const foot = el('div', 'bt-offer-foot');
-    const label = el('div', 'academy-offer-label');
-    label.append(el('b', '', displayName));
-    if (isIllustratedSkin(appSkin.current)) label.append(el('small', '', unitSkinRole(appSkin.current, offer.unitId, name)));
+    traits.prepend(tierBadge(offer.tier));
     const buy = button('', () => {
       this.unitPop.hide();
       this.traitPop.hide();
       this.controller.buyUnit(slot);
     }, 'bt-btn bt-offer-buy');
-    buy.append(el('span', '', '영입'), el('strong', 'bt-offer-cost', `${offer.cost} G`));
+    const caption = el('span', 'bt-offer-caption');
+    caption.append(el('strong', 'bt-offer-name', displayName), el('strong', 'bt-offer-cost', `${offer.cost}G`));
+    if (hint !== '미보유') {
+      const ownership = el('span', `bt-offer-owned${merging ? ' merge' : ''}`, hint);
+      ownership.title = '동일 유닛 3기 합성 기준. 유물의 추가 합성 효과는 별도로 적용됩니다.';
+      buy.append(ownership);
+    }
+    buy.append(caption);
     buy.setAttribute('aria-label', `${displayName} 영입 ${offer.cost}G`);
     buy.disabled = !canManage || gold < offer.cost;
-    buy.title = !canManage ? '전투 중 사용 불가' : gold < offer.cost ? '골드 부족' : `${name} 구매`;
-    const ownership = el('div', `bt-offer-owned${merging ? ' merge' : ''}`, hint === '미보유' ? '새 유닛' : hint);
-    ownership.title = '동일 유닛 3기 합성 기준. 유물의 추가 합성 효과는 별도로 적용됩니다.';
-    if (gold < offer.cost && canManage) {
-      buy.replaceChildren(el('span', '', '골드 부족'), el('strong', 'bt-offer-cost', `${offer.cost} G`));
-    }
-    foot.append(label, traits, ownership, buy);
-    node.append(art, foot);
+    buy.title = !canManage ? '전투 중 사용 불가' : gold < offer.cost ? '골드 부족' : `${displayName} 영입 · ${offer.cost}G`;
+    node.prepend(art, buy);
+    node.append(traits);
     return node;
   }
 

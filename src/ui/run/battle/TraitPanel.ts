@@ -72,9 +72,13 @@ export function bindTraitChip(
   chip.dataset.traitId = traitId;
   chip.dataset.popKey = `trait:${traitId}`;
   chip.classList.add('bt-trait-hover');
-  chip.addEventListener('mouseenter', () => {
+  const show = () => {
     const def = traits.get(traitId);
     if (def) pop.show(chip, () => traitPopContent(traitRowFor(def, active().find((t) => t.traitId === traitId))));
-  });
+  };
+  chip.addEventListener('mouseenter', show);
   chip.addEventListener('mouseleave', () => pop.hide());
+  chip.addEventListener('focus', show);
+  chip.addEventListener('blur', () => pop.hide());
+  if (chip instanceof HTMLButtonElement) chip.addEventListener('click', show);
 }
