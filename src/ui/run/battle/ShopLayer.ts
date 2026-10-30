@@ -7,7 +7,7 @@ import { appSkin } from '../../skin/SkinStore';
 import { unitAbbreviation } from '../../gameData';
 import type { ActiveTrait } from '../../../core/combat/traits';
 import { button, el, tagged } from '../dom';
-import type { HoverPop } from './hoverPop';
+import { traitPopContent, type HoverPop } from './hoverPop';
 import { skillBlock, statsGrid } from './UnitInfoPanel';
 import { buildUnitInfo } from './unitInfoView';
 import { sellRefund } from './unitInfoView';
@@ -181,19 +181,50 @@ export class ShopLayer {
     const backScroll = el('div', 'bt-offer-back-scroll');
     backScroll.tabIndex = 0;
     backScroll.setAttribute('role', 'region');
-    backScroll.setAttribute('aria-label', `${displayName} 소속·직업·스킬 정보`);
+    backScroll.setAttribute('aria-label', `${displayName} 소속·직업·스킬 정보 · 다시 누르면 초상화`);
+    back.title = '다시 누르면 초상화로 뒤집기';
+    let backPress: { x: number; y: number; moved: boolean } | null = null;
+    back.addEventListener('pointerdown', event => {
+      if (event.button === 0) backPress = { x: event.clientX, y: event.clientY, moved: false };
+    });
+    back.addEventListener('pointermove', event => {
+      if (backPress && Math.hypot(event.clientX - backPress.x, event.clientY - backPress.y) >= 8) backPress.moved = true;
+    });
+    back.addEventListener('pointercancel', () => { if (backPress) backPress.moved = true; });
+    backScroll.addEventListener('scroll', () => { if (backPress) backPress.moved = true; }, { passive: true });
+    back.addEventListener('click', event => {
+      const moved = backPress?.moved;
+      backPress = null;
+      if (event.detail !== 0 && moved) return;
+      setFlipped(false, true);
+    });
+    back.addEventListener('keydown', event => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      event.stopPropagation();
+      setFlipped(false, true);
+    });
     backScroll.append(backTitle, el('span', 'bt-offer-back-tier', `${offer.tier}등급 · 1성`));
     if (def) {
-      const affiliations: string[] = [];
       for (const id of [def.origin, def.job]) {
         const trait = this.traits.get(id);
         const traitName = traitSkinName(appSkin.current, id, trait?.name ?? id);
-        affiliations.push(traitName);
         const kind = id === def.origin ? 'origin' : 'job';
         const chip = traitBadge(id, traitName, kind);
         chip.classList.toggle('shared-trait', this.allyTraits().some((trait) => trait.traitId === id));
         chip.dataset.traitId = id;
+        chip.dataset.popKey = `offer-trait:${slot}:${id}`;
+        chip.removeAttribute('title');
         chip.setAttribute('aria-label', `${kind === 'origin' ? '소속' : '직업'} ${traitName} 정보 보기`);
+        const showTrait = () => {
+          if (!trait) return;
+          this.unitPop.hide();
+          this.traitPop.show(chip, () => traitPopContent(traitRowFor(trait, this.allyTraits().find(t => t.traitId === id))), 'above');
+        };
+        chip.addEventListener('mouseenter', showTrait);
+        chip.addEventListener('focus', showTrait);
+        chip.addEventListener('mouseleave', () => this.traitPop.hide());
+        chip.addEventListener('blur', () => this.traitPop.hide());
         chip.addEventListener('click', () => setFlipped(true, true));
         traits.append(chip);
         const section = el('section', 'bt-offer-back-trait');
@@ -207,13 +238,12 @@ export class ShopLayer {
       const info = buildUnitInfo(def, 1, { traitName: id => traitSkinName(appSkin.current, id, this.traits.get(id)?.name ?? id) });
       info.skillName = unitSkillName(appSkin.current, offer.unitId, info.skillName);
       backScroll.append(statsGrid(info), skillBlock(info));
-      toggle.append(el('span', 'bt-offer-affiliation', affiliations.join(' · ')));
     }
     const caption = el('span', 'bt-offer-caption');
     caption.append(el('strong', 'bt-offer-name', displayName));
     toggle.append(caption);
-    front.append(art, toggle, traits, tierBadge(offer.tier), el('span', 'bt-offer-flip-hint', '눌러서 정보 보기'));
-    back.append(backScroll, tagged(button('초상화', () => setFlipped(false, true), 'bt-offer-return'), `shop-return-${slot}`));
+    front.append(art, toggle, traits, tierBadge(offer.tier));
+    back.append(backScroll);
     turner.append(front, back);
     const buy = button('', () => {
       this.unitPop.hide();
