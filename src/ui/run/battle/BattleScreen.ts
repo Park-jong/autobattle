@@ -9,7 +9,7 @@ import { appSkin } from '../../skin/SkinStore';
 import type { BattleStage, RunCommands, RunSnapshot, RunViewSource } from '../contracts';
 import { button, el, tagged } from '../dom';
 import { BattleTopBar } from './BattleTopBar';
-import { DeploymentBar } from './DeploymentBar';
+import { BenchBar } from './BenchBar';
 import { MapModal } from '../MapModal';
 import { HoverPop } from './hoverPop';
 import { ShopLayer } from './ShopLayer';
@@ -20,8 +20,6 @@ import { UnitInfoPanel, type InfoSubject } from './UnitInfoPanel';
 import { UnitTooltip } from './UnitTooltip';
 import './battleScreen.css';
 import { BoardViewport } from './BoardViewport';
-import type { HandPanel } from '../../cards/HandPanel';
-import { UnitHand } from '../../cards/UnitHand';
 
 /** 전투 화면이 쓰는 DOM 자리 (index.html) */
 export interface BattleScreenHosts {
@@ -31,7 +29,7 @@ export interface BattleScreenHosts {
   arena: HTMLElement;
   /** Phaser 캔버스를 담은 요소 */
   canvasHost: HTMLElement;
-  /** 보드 아래 소환 현황과 전투 시작 줄 */
+  /** 보드 아래 대기 벤치와 전투 시작 줄 */
   bench: HTMLElement;
   /** 하단 트레이 (상점·카드 겹침) */
   tray: HTMLElement;
@@ -47,7 +45,7 @@ export interface BattleScreenCatalogs {
 
 /**
  * 런 전투 화면(오른쪽 패널 없이 화면에 직접 배치):
- * 상단 바 / 보드 + 특성·유닛 정보 / 소환 현황 / 하단 유닛 상점·통합 손패 트레이.
+ * 상단 바 / 보드 + 특성·유닛 정보 / 대기 벤치 / 하단 유닛 상점·전술 손패 트레이.
  * 세션은 기존 인터페이스(RunViewSource·RunCommands·DebugController·CardController·UnitHoverSource)로만 본다.
  */
 export class BattleScreen {
@@ -61,14 +59,13 @@ export class BattleScreen {
   private readonly resultBackdrop = el('div', 'bt-result-backdrop');
   private readonly topBar: BattleTopBar;
   private readonly boardViewport: BoardViewport;
-  private readonly deployment: DeploymentBar;
+  private readonly bench: BenchBar;
   private readonly shop: ShopLayer;
   private readonly tray: TrayStack;
   private readonly traitPanel: TraitPanel;
   private readonly info: UnitInfoPanel;
   private readonly tooltip: UnitTooltip;
   private readonly drag: RosterDrag;
-  private readonly unitHand: UnitHand;
   /** 전투 중 맵 보기 창 */
   private readonly mapModal: MapModal;
   /** 특성 설명 팝업(특성 패널·상점·정보 창 공용) / 상점 진열 유닛 정보 팝업 */
@@ -88,7 +85,6 @@ export class BattleScreen {
     private readonly cards: CardController,
     private readonly hover: UnitHoverSource,
     catalogs: BattleScreenCatalogs,
-    private readonly handPanel: HandPanel,
   ) {
     this.boardViewport = new BoardViewport(hosts.arena, hosts.canvasHost);
     this.resultBackdrop.hidden = true;
@@ -119,22 +115,17 @@ export class BattleScreen {
         this.traitPop.hide();
         this.unitPop.hide();
         this.cards.cancelCard();
-        this.tray.bringFront('cards');
         this.shop.previewSale(this.ownedUnit(id));
+        this.bench.previewSale(this.ownedUnit(id));
       },
       onSelect: id => { this.cards.cancelCard(); this.battle.selectManagedUnit(id); },
+      onDragEnd: () => { this.shop.previewSale(null); this.bench.previewSale(null); },
     });
-    this.unitHand = new UnitHand(battle, cards, catalogs.units, catalogs.traits, this.drag);
-    handPanel.attachUnits(this.unitHand);
-    battle.subscribeActionFeedback?.(cue => {
-      if (this.active && (cue.kind === 'purchase' && cue.shopSlot !== undefined || cue.kind === 'recall' || cue.kind === 'merge' && cue.benchIndex != null)) {
-        this.handPanel.showUnifiedHand();
-        this.tray.bringFront('cards');
-      }
-    });
-    this.deployment = new DeploymentBar(hosts.bench, () => this.commands.startBattle(), () => {
-      this.handPanel.showUnifiedHand(); this.tray.bringFront('cards');
-    });
+    this.bench = new BenchBar(hosts.bench, battle, cards, catalogs.units, this.drag, () => this.commands.startBattle());
+    // Choosing a tactical card cancels a pending bench placement.
+    for (const type of ['pointerdown', 'keydown'] as const) hosts.hand.addEventListener(type, event => {
+      if ((event.target as Element).closest('.hcard') && this.battle.snapshot().management?.selectedUnitId != null) this.battle.selectManagedUnit(null);
+    }, true);
     this.mapModal = new MapModal(view);
     this.topBar = new BattleTopBar(hosts.top, battle, () => this.cards.cardView(), undefined, () => this.mapModal.open(), (ownedId, index) => this.commands.unequipItem(ownedId, index));
 
@@ -157,7 +148,6 @@ export class BattleScreen {
     if (!active || !snap.battle) return;
     const session = this.battle.snapshot();
     const stage = snap.battle.stage;
-    this.unitHand.render(session, true);
     this.hosts.bench.dataset.stage = stage;
     if (stage !== this.stage) {
       // 준비 단계는 상점이, 전투가 시작되면 카드가 앞으로 나온다
@@ -168,7 +158,7 @@ export class BattleScreen {
     }
     this.tooltip.setEnabled(true, snap.battle.plan);
     this.topBar.render(snap, session);
-    this.deployment.render(session, stage);
+    this.bench.render(session, stage);
     this.shop.render(session, stage);
     this.traitPanel.render(session.traits[0], session.traits[1]);
     this.errorBox.hidden = session.error === null;
@@ -178,7 +168,6 @@ export class BattleScreen {
   }
 
   private setActive(active: boolean): void {
-    if (!active) this.unitHand.render(this.battle.snapshot(), false);
     if (active === this.active) return;
     this.active = active;
     this.hosts.top.hidden = !active;
@@ -205,7 +194,7 @@ export class BattleScreen {
     requestAnimationFrame(this.loop);
     if (!this.active) return;
     this.topBar.tick();
-    this.tray.setCardCount(this.cards.cardView().hand.length, this.unitHand.count);
+    this.tray.setCardCount(this.cards.cardView().hand.length);
     if (this.inspectUid !== null) this.renderInfo(this.battle.snapshot());
   };
 
@@ -216,7 +205,6 @@ export class BattleScreen {
   private infoSubject(session: SessionSnapshot): InfoSubject | null {
     if (this.stage === 'prep') {
       const id = session.management?.selectedUnitId ?? null;
-      if (this.unitHand.selected) return null;
       const unit = id === null ? null : this.ownedUnit(id);
       return unit ? { kind: 'owned', unit, canManage: session.management?.canManage ?? false } : null;
     }

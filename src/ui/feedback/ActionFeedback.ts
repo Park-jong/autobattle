@@ -61,7 +61,7 @@ class ActionFeedback {
       : cue.kind === 'sale' ? `${unitLabel} 판매 · +${cue.amount ?? 0}G`
       : cue.kind === 'purchase' && cue.shopSlot !== undefined ? `${unitLabel} 영입 · −${cue.amount ?? 0}G`
       : cue.kind === 'summon' ? `${unitLabel} 소환`
-      : cue.kind === 'recall' ? `${unitLabel} · 손패로 회수`
+      : cue.kind === 'recall' ? `${unitLabel} · 벤치로 회수`
       : cue.kind === 'equipment' ? `${cue.label} · 장비 적용` : cue.kind === 'card' ? `${cue.label} · 적용 완료` : cue.label;
     this.status.textContent = label;
     if (cue.kind === 'reroll' || cue.kind === 'experience' || cue.kind === 'shopLock') {
