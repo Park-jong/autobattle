@@ -873,6 +873,9 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
   }
 
   private traitsOf(side: Side): ActiveTrait[] {
+    // 시뮬(준비 단계 포함)이 있으면 그 시뮬이 실제로 적용한 단계를 쓴다 — 유물(다섯 번째 깃발·대군기)의 단계 +1이 들어 있다
+    const sim = this.live?.sim;
+    if (sim) return [...sim.activeTraits[side]];
     const defs = this.formations[side]
       .map((e) => this.units.get(e.unitId))
       .filter((d): d is UnitDef => d !== undefined);

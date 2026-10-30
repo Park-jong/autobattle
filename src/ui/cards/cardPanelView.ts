@@ -272,3 +272,27 @@ export function ultimateCostLabel(ult: UltimateView): string | null {
   if (ult.hpCost <= 0) return null;
   return ult.used ? `사용 시 지휘관 HP -${ult.hpCost} 소모` : `지휘관 HP -${ult.hpCost}`;
 }
+
+/** 궁극기 설명 말풍선의 줄들: 효과 → (HP 비용) → 충전 규칙 → 지금 상태 */
+export interface UltimateHelpView {
+  name: string;
+  effect: string;
+  cost: string | null;
+  rules: string;
+  status: string;
+}
+
+export function buildUltimateHelp(ult: UltimateView, name: string): UltimateHelpView {
+  const status = ult.used
+    ? '이번 전투에서 이미 사용했습니다.'
+    : ult.ready
+      ? '지금 사용할 수 있습니다 (단축키 U).'
+      : `게이지 ${ult.charge} / ${ult.max}${ult.reason ? ` — ${ult.reason}` : ''}`;
+  return {
+    name,
+    effect: ult.text,
+    cost: ult.hpCost > 0 ? `사용 시 지휘관 HP ${ult.hpCost} 소모` : null,
+    rules: `게이지 ${ult.max}이 차면 사용 — 카드를 쓰면 +${ULTIMATE.CARD_CHARGE}, 아군이 쓰러지면 +${ULTIMATE.ALLY_DEATH_CHARGE}. 전투당 1회.`,
+    status,
+  };
+}

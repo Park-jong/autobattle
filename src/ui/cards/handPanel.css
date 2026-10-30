@@ -211,3 +211,24 @@
   z-index: 30;
 }
 .hand-toast.show { opacity: 1; }
+
+/* 궁극기: 이름(누르면 설명 열기/닫기)·효과 요약(3줄까지)·설명 말풍선 */
+button.hand-ult-name { padding: 0; background: none; border: 0; text-align: left; font: inherit; font-weight: 700; color: #ffb454; font-size: 13px; cursor: help; }
+button.hand-ult-name:hover, button.hand-ult-name:focus-visible { text-decoration: underline; outline: none; }
+.hand-ult-desc {
+  font-size: 10px; line-height: 1.3; color: #cfd6e6;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
+.hand-ult-pop {
+  position: fixed; z-index: 400; width: 260px; padding: 10px 12px; box-sizing: border-box; pointer-events: none;
+  background: #0f131c; border: 1px solid #ffb454; border-radius: 8px; box-shadow: 0 10px 24px #000c;
+  color: #e6e9f0; font: 12px "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; line-height: 1.45;
+}
+.hand-ult-pop[hidden] { display: none; }
+.hand-ult-pop p { margin: 6px 0 0; }
+.hand-ult-pop-title { color: #ffb454; font-size: 13px; }
+.hand-ult-pop-cost { color: #ff9a8a; }
+.hand-ult-pop-rules { color: #9aa3b5; font-size: 11px; }
+.hand-ult-pop-status { color: #ffd54a; }
+/* 좁은 화면(궁극기 칸 74~86px)은 요약을 숨기고 이름을 눌러 말풍선으로 본다 */
+@media (max-width: 900px) { .hand-ult-desc { display: none; } }
