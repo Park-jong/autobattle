@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { Deck } from '../../core/cards';
 import { cardCatalog, handSnapshot, harten, newRng } from '../../core/combat/testSupport';
 import type { UltimateView } from '../../core/combat';
-import { CardPanelViewBuilder, ultimateCostLabel, type PanelInput } from './cardPanelView';
+import { CardPanelViewBuilder, buildUltimateHelp, ultimateCostLabel, type PanelInput } from './cardPanelView';
 
 const builder = new CardPanelViewBuilder(cardCatalog);
 
@@ -112,5 +112,21 @@ describe('ultimateCostLabel', () => {
 
   it('소모가 없으면 표기하지 않는다', () => {
     expect(ultimateCostLabel(view({ hpCost: 0 }))).toBeNull();
+  });
+});
+
+describe('buildUltimateHelp (궁극기 설명 말풍선)', () => {
+  const base = { commanderId: 'cmd_nox', name: '대가 지불', text: '지휘관 현재 HP의 10%를 소모. 5초간 흡수 25%.', charge: 40, max: 100, used: false, ready: false, reason: '게이지가 부족합니다', hpCost: 7 };
+  it('효과·HP 비용·충전 규칙·지금 상태를 담는다', () => {
+    const help = buildUltimateHelp(base as never, '대가 지불');
+    expect(help).toMatchObject({ name: '대가 지불', effect: base.text, cost: '사용 시 지휘관 HP 7 소모' });
+    expect(help.rules).toContain('+15');
+    expect(help.rules).toContain('+25');
+    expect(help.rules).toContain('전투당 1회');
+    expect(help.status).toBe('게이지 40 / 100 — 게이지가 부족합니다');
+  });
+  it('사용 가능·사용함 상태 문구, HP 비용이 없으면 cost null', () => {
+    expect(buildUltimateHelp({ ...base, ready: true, reason: null, hpCost: 0 } as never, 'x')).toMatchObject({ cost: null, status: '지금 사용할 수 있습니다 (단축키 U).' });
+    expect(buildUltimateHelp({ ...base, used: true } as never, 'x').status).toBe('이번 전투에서 이미 사용했습니다.');
   });
 });

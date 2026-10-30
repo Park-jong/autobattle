@@ -359,6 +359,30 @@ export function buildCardView(cards: CardCatalog, cardId: string, upgraded = fal
   };
 }
 
+/** 강화 결과 창: 방금 강화된 카드마다 강화 전/후 모습 */
+export interface UpgradeNoticeView {
+  cards: { instanceId: number; before: CardView; after: CardView }[];
+}
+
+export function buildUpgradeNotice(cards: CardCatalog, instances: readonly CardInstance[]): UpgradeNoticeView {
+  return {
+    cards: instances.map((instance) => ({
+      instanceId: instance.instanceId,
+      before: buildCardView(cards, instance.cardId, false),
+      after: buildCardView(cards, instance.cardId, true),
+    })),
+  };
+}
+
+/**
+ * 명령 전후 덱을 비교해 새로 강화된 카드(전에는 강화 전이던 같은 인스턴스)를 찾는다.
+ * 야영지 단련·이벤트(골라서/무작위)·유물(획득 즉시 강화) 등 강화 경로와 무관하게 결과만 본다
+ */
+export function newlyUpgraded(before: readonly CardInstance[], after: readonly CardInstance[]): CardInstance[] {
+  const wasPlain = new Set(before.filter((c) => !c.upgraded).map((c) => c.instanceId));
+  return after.filter((c) => c.upgraded && wasPlain.has(c.instanceId));
+}
+
 export function buildDeckCardView(cards: CardCatalog, instance: CardInstance): DeckCardView {
   const card = requireCard(cards, instance.cardId);
   const up = !instance.upgraded && card.upgrade ? effectiveCard(card, true) : null;

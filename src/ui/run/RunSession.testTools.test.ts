@@ -198,3 +198,18 @@ describe('RunSession 플레이 테스트 도구', () => {
     expect(h.session.snapshot().battle!.settlement).not.toBeNull();
   });
 });
+
+describe('특성 패널 단계에 유물 보정 반영', () => {
+  it('다섯 번째 깃발: 수호자 5기(종류 3)면 패널의 수호자 단계가 1 → 2 (전투 시뮬과 같은 값)', () => {
+    // 같은 유닛 3기는 자동 합성되므로 서로 다른 수호자 유닛으로 채운다: 시작 방패병 2 + 이끼 파수꾼 2 + 전쟁 북잡이 1
+    const board = (unitId: string) => ({ unitId, place: 'board' as const });
+    const guardianTier = (relics: string[]): number | undefined => {
+      const h = createHarness();
+      h.session.startTestRun(5, { commanderId: 'cmd_harten', level: 6, relics, units: [board('moss_warden'), board('moss_warden'), board('war_drummer')] });
+      h.session.chooseNode(h.session.snapshot().map!.availableIds[0]!);
+      return h.battle.snapshot().traits[0].find((t) => t.traitId === 'guardian')?.tier;
+    };
+    expect(guardianTier([])).toBe(1); // 종류 3 → 1단계
+    expect(guardianTier(['fifth_banner'])).toBe(2); // 5기 이상 → +1
+  });
+});

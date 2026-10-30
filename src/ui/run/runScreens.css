@@ -378,3 +378,10 @@
   margin: 4px -20px -48px; padding: 14px 20px 18px;
   background: linear-gradient(180deg, transparent, #0e1119f2 30%);
 }
+
+/* 카드 강화 결과 창: 강화 전 → 강화 후 카드를 한 줄씩 (보상 창보다 위) */
+.up-backdrop { z-index: 115; }
+.up-list { display: flex; flex-direction: column; gap: 14px; max-height: 70vh; overflow: auto; padding: 4px 8px; }
+.up-row { display: flex; align-items: center; justify-content: center; gap: 18px; }
+.up-card { zoom: 1.4; }
+.up-arrow { font-size: 30px; color: #9be29b; font-weight: 800; }

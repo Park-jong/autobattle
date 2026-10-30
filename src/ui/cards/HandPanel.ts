@@ -1,6 +1,6 @@
 import type { CardController } from '../debug/contracts';
 import { CARD_UI } from '../theme';
-import { ultimateCostLabel, type CardPanelView, type HandCardView, type PileView } from './cardPanelView';
+import { buildUltimateHelp, ultimateCostLabel, type CardPanelView, type HandCardView, type PileView, type UltimateHelpView } from './cardPanelView';
 import { fanLayout } from './cardFan';
 import { clientToStage } from './stagePoint';
 import './handPanel.css';
@@ -55,6 +55,9 @@ export class HandPanel {
   private readonly ultimateBox = el('div', 'hand-ultimate');
   private readonly ultimateFill = el('div', 'hand-ult-fill');
   private readonly ultimateGaugeLabel = el('div', 'hand-ult-label');
+  /** 궁극기 설명 말풍선 (body에 붙는 fixed — 좁은 궁극기 칸·트레이 overflow에 잘리지 않게) */
+  private readonly ultimatePop = el('div', 'hand-ult-pop');
+  private ultimateHelp: UltimateHelpView | null = null;
 
   /** 손패 카드 노드 (인스턴스 id → 모양 키·노드·최신 상태) */
   private readonly cardNodes = new Map<number, { face: string; node: HTMLElement; card: HandCardView }>();
@@ -77,6 +80,15 @@ export class HandPanel {
     this.root.style.setProperty('--hand-height', `${CARD_UI.HAND_HEIGHT}px`);
     this.buildSide();
     this.root.replaceChildren(this.side, this.ultimateBox, this.cards, this.pileList, this.toastBox);
+    this.ultimatePop.dataset.testid = 'ultimate-help';
+    this.ultimatePop.setAttribute('role', 'tooltip');
+    this.ultimatePop.hidden = true;
+    document.body.append(this.ultimatePop);
+    // 마우스를 올리거나 키보드로 포커스하면 설명을 띄운다. 터치는 이름을 눌러 열고 닫는다
+    this.ultimateBox.addEventListener('mouseenter', () => this.showUltimateHelp());
+    this.ultimateBox.addEventListener('mouseleave', () => this.hideUltimateHelp());
+    this.ultimateBox.addEventListener('focusin', () => this.showUltimateHelp());
+    this.ultimateBox.addEventListener('focusout', () => this.hideUltimateHelp());
     this.root.hidden = true;
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') this.cancelAll();
@@ -157,6 +169,7 @@ export class HandPanel {
     if (visible === this.visible) return;
     this.visible = visible;
     this.root.hidden = !visible;
+    if (!visible) this.hideUltimateHelp();
     // 캔버스가 남는 높이에 맞춰 다시 크기를 잡도록 알린다 (Phaser Scale.FIT)
     window.dispatchEvent(new Event('resize'));
   }
@@ -302,7 +315,8 @@ export class HandPanel {
     this.ultimateBox.hidden = ult === null;
     if (!ult) return;
     const name = commanderSkillName(appSkin.current, view.commanderId, 'ultimate', ult.name);
-    this.ultimateBox.title = `${name}: ${ult.text}`;
+    this.ultimateHelp = buildUltimateHelp(ult, name);
+    if (!this.ultimatePop.hidden) this.fillUltimateHelp();
     this.ultimateBox.classList.toggle('ready', ult.ready);
     this.ultimateBox.classList.toggle('used', ult.used);
     const gauge = el('div', 'hand-ult-gauge');
@@ -315,8 +329,46 @@ export class HandPanel {
     const costLabel = ultimateCostLabel(ult);
     const cost = costLabel ? el('div', 'hand-ult-cost', costLabel) : null;
     const reason = !ult.ready && ult.reason ? el('div', 'hand-ult-reason', ult.reason) : null;
+    const title = el('button', 'hand-ult-name', name);
+    title.type = 'button';
+    title.dataset.testid = 'ultimate-name';
+    title.setAttribute('aria-label', `${name} — 궁극기 설명 보기`);
+    title.addEventListener('click', () => (this.ultimatePop.hidden ? this.showUltimateHelp() : this.hideUltimateHelp()));
+    // 칸 안에도 효과 요약을 보여 준다 (좁으면 3줄까지, 전체는 말풍선)
+    const desc = el('div', 'hand-ult-desc', ult.text);
+    desc.dataset.testid = 'ultimate-desc';
     this.ultimateBox.replaceChildren(
-      el('strong', 'hand-ult-name', name), gauge, this.ultimateGaugeLabel, use, ...(cost ? [cost] : []), ...(reason ? [reason] : []),
+      title, desc, gauge, this.ultimateGaugeLabel, use, ...(cost ? [cost] : []), ...(reason ? [reason] : []),
+    );
+  }
+
+  private showUltimateHelp(): void {
+    if (!this.ultimateHelp || this.ultimateBox.hidden) return;
+    this.fillUltimateHelp();
+    this.ultimatePop.hidden = false;
+    // 궁극기 칸 위쪽에 띄우고, 화면 밖으로 나가지 않게 맞춘다
+    const rect = this.ultimateBox.getBoundingClientRect();
+    const width = this.ultimatePop.offsetWidth;
+    const height = this.ultimatePop.offsetHeight;
+    const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
+    const top = rect.top - height - 8 >= 8 ? rect.top - height - 8 : Math.min(window.innerHeight - height - 8, rect.bottom + 8);
+    this.ultimatePop.style.left = `${Math.round(left)}px`;
+    this.ultimatePop.style.top = `${Math.round(top)}px`;
+  }
+
+  private hideUltimateHelp(): void {
+    this.ultimatePop.hidden = true;
+  }
+
+  private fillUltimateHelp(): void {
+    const help = this.ultimateHelp;
+    if (!help) return;
+    this.ultimatePop.replaceChildren(
+      el('strong', 'hand-ult-pop-title', `궁극기 · ${help.name}`),
+      el('p', 'hand-ult-pop-effect', help.effect),
+      ...(help.cost ? [el('p', 'hand-ult-pop-cost', help.cost)] : []),
+      el('p', 'hand-ult-pop-rules', help.rules),
+      el('p', 'hand-ult-pop-status', help.status),
     );
   }
 
@@ -326,6 +378,14 @@ export class HandPanel {
     const ratio = Math.max(0, Math.min(1, ult.charge / ult.max));
     this.ultimateFill.style.width = `${Math.round(ratio * 100)}%`;
     this.ultimateGaugeLabel.textContent = ult.used ? '게이지 소진' : `게이지 ${ult.charge} / ${ult.max}`;
+    // 설명 말풍선이 열려 있으면 "지금 상태" 줄(게이지)을 따라 갱신한다
+    if (!this.ultimatePop.hidden && this.ultimateHelp) {
+      const next = buildUltimateHelp(ult, this.ultimateHelp.name);
+      if (next.status !== this.ultimateHelp.status) {
+        this.ultimateHelp = next;
+        this.fillUltimateHelp();
+      }
+    }
   }
 
   private renderPileList(view: CardPanelView): void {

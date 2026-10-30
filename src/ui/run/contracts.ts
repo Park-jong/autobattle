@@ -3,7 +3,7 @@ import type { CardListEntry } from '../cards/cardListView';
 import type { EndMetaView, MetaStartView } from './metaViews';
 import type { SaveStatus } from './RunSaveStore';
 import type {
-  ActIntroView, BossRelicView, CommanderChoiceView, CampScreenView, EncounterPreviewView, EndScreenView, EventScreenView, MapView, RewardView, RunHud,
+  ActIntroView, BossRelicView, CommanderChoiceView, CampScreenView, EncounterPreviewView, EndScreenView, EventScreenView, MapView, UpgradeNoticeView, RewardView, RunHud,
   SettlementView, ShopScreenView,
 } from './runViews';
 import type { TestCatalogView, TestToolsView } from './testViews';
@@ -69,6 +69,8 @@ export interface RunSnapshot {
   endMeta: EndMetaView | null;
   /** 테스트 런 중의 "테스트 도구" 패널 정보 (일반 런·시작 화면이면 null) */
   testTools: TestToolsView | null;
+  /** 방금 강화된 카드 (야영지·이벤트·유물 등으로 강화되면 강화 전/후를 보여 주는 창. 확인하면 null) */
+  upgraded: UpgradeNoticeView | null;
 }
 
 /** 화면이 보는 쪽 (구독 + 스냅샷). Phaser·DOM과 무관 */
@@ -113,6 +115,8 @@ export interface RunCommands {
   skipBossRelic(): void;
   /** 액트 소개를 확인하고 새 액트의 맵으로 간다 */
   continueAct(): void;
+  /** 강화 결과 창을 닫는다 */
+  dismissUpgradeNotice(): void;
   // 상점
   buyShopCard(slot: number): void;
   buyShopRelic(slot: number): void;

@@ -1,5 +1,5 @@
 import { RUN, RunController, type ForcedResult, type RunDeps, type RunResult, type TestRunSetup } from '../../core/run';
-import { deckCards } from '../../core/cards';
+import { deckCards, type CardInstance } from '../../core/cards';
 import type { CardListEntry } from '../cards/cardListView';
 import type { CardCatalog } from '../../core/data/cardLoader';
 import type { UnitCatalog } from '../../core/data/unitLoader';
@@ -15,7 +15,7 @@ import type {
 } from './contracts';
 import {
   buildActIntroView, buildBossRelicView, buildCampView, buildCommanderChoices, buildDeckList, buildEncounterPreview, buildEndView, buildEventView, buildHud, buildMapView, buildRewardView, buildSettlementView,
-  buildShopView, type EncounterPreviewView, type MapView,
+  buildShopView, buildUpgradeNotice, newlyUpgraded, type EncounterPreviewView, type MapView,
 } from './runViews';
 import { buildTestCatalog, buildTestToolsView, type TestCatalogView } from './testViews';
 
@@ -69,6 +69,8 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
   private attachedKey: string | null = null;
   /** 연결한 전투의 시도 번호(1부터). 정산 후에는 tries가 늘어 있으므로 결과 화면은 이 값을 쓴다 */
   private attachedAttempt = 1;
+  /** 강화 결과 창에 보여 줄 방금 강화된 카드 (닫으면 null) */
+  private upgradeNotice: CardInstance[] | null = null;
   /**
    * 지금 연결된 전투의 적 편성. 결과 창을 보여 주는 동안 런은 이미 다음 단계로 넘어가 있을 수 있어서
    * (보스 유물 후보가 0개면 곧바로 다음 액트 — 현재 노드가 없다) 전투 단계일 때 계산한 것을 기억해 둔다
@@ -149,6 +151,7 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
       ended: live && screen === 'ended' ? buildEndView(run, this.cards, this.units, this.o.deps.relics) : null,
       endMeta: live && screen === 'ended' && this.endSettlement
         ? buildEndMetaView(this.endSettlement, this.o.meta.catalog, this.o.deps.commanders, this.o.deps.relics, this.o.deps.threat) : null,
+      upgraded: live && this.upgradeNotice ? buildUpgradeNotice(this.cards, this.upgradeNotice) : null,
       testTools: live && screen !== 'ended' ? buildTestToolsView(run, this.o.deps, this.testCatalog(), this.resultPending) : null,
     };
   }
@@ -379,10 +382,20 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
   private run(command: (run: RunController) => RunResult): void {
     const run = this.controller;
     if (!run || this.mode !== 'run') return;
+    const before = deckCards(run.deck);
     const result = command(run);
     if (!result.ok) return this.fail(result.reason);
     this.notice = null;
+    // 이 명령으로 강화된 카드가 있으면 강화 결과 창으로 보여 준다 (이미 떠 있으면 이어 붙인다)
+    const upgraded = newlyUpgraded(before, deckCards(run.deck));
+    if (upgraded.length > 0) this.upgradeNotice = [...(this.upgradeNotice ?? []), ...upgraded];
     this.afterChange();
+  }
+
+  dismissUpgradeNotice(): void {
+    if (this.upgradeNotice === null) return;
+    this.upgradeNotice = null;
+    this.notify();
   }
 
   private adopt(controller: RunController): void {
@@ -395,6 +408,7 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
   /** 진행 중인 런 연결(전투 세션, 상태 플래그)을 정리한다 */
   private leaveRun(): void {
     this.deckListCache = null;
+    this.upgradeNotice = null;
     this.controller = null; // 연결을 풀며 전투 세션이 알림을 보내도 옛 런을 건드리지 않게 먼저 비운다
     this.resultPending = false;
     this.rewardOverBattle = false;
