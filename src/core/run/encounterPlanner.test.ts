@@ -10,11 +10,11 @@ const planner = new EncounterPlanner(runDeps.units, runDeps.encounters, 4);
 const battleNodes = map.allNodes().filter((n) => n.type === 'combat' || n.type === 'elite' || n.type === 'boss');
 
 describe('층 보정', () => {
-  it('배율 = 1 + 0.04 × (층 − 1)', () => {
+  it('배율 = 1 + 0.03 × (층 − 1)', () => {
     expect(floorScale(1)).toBe(1);
-    expect(floorScale(6)).toBeCloseTo(1.2);
-    expect(floorScale(13)).toBeCloseTo(1.48);
-    expect(RUN.FLOOR_SCALE_PER_FLOOR).toBe(0.04);
+    expect(floorScale(6)).toBeCloseTo(1.15);
+    expect(floorScale(13)).toBeCloseTo(1.36);
+    expect(RUN.FLOOR_SCALE_PER_FLOOR).toBe(0.03);
   });
 
   it('미리보기 스탯은 보정 후 HP·ATK이고 시뮬 보정 옵션과 같은 값이다', () => {
@@ -72,8 +72,9 @@ describe('적 편성 선택', () => {
 });
 
 describe('정예 변이 선택', () => {
-  it('정예 노드마다 서로 다른 변이 1~2개를 결정적으로 고르고 일반 노드는 없다', () => {
+  it('정예 노드마다 변이 1개를 결정적으로 고르고 일반 노드는 없다', () => {
     const counts = new Set<number>();
+    const kinds = new Set<string>();
     for (let seed = 1; seed <= 200; seed++) {
       const m = new MapGenerator().generate(seed);
       const p = new EncounterPlanner(runDeps.units, runDeps.encounters, seed);
@@ -85,14 +86,15 @@ describe('정예 변이 선택', () => {
           continue;
         }
         counts.add(plan.mutations.length);
-        expect(plan.mutations.length).toBeGreaterThanOrEqual(1);
-        expect(plan.mutations.length).toBeLessThanOrEqual(2);
-        expect(new Set(plan.mutations).size).toBe(plan.mutations.length);
-        for (const id of plan.mutations) expect(MUTATION_IDS).toContain(id);
+        for (const id of plan.mutations) {
+          expect(MUTATION_IDS).toContain(id);
+          kinds.add(id);
+        }
         expect(p.plan(node)!.mutations).toEqual(plan.mutations);
         expect(plan.enemy.mutations).toEqual(plan.mutations);
       }
     }
-    expect([...counts].sort()).toEqual([1, 2]);
+    expect([...counts]).toEqual([1]);
+    expect(kinds.size).toBe(MUTATION_IDS.length); // 4종이 모두 나온다
   });
 });
