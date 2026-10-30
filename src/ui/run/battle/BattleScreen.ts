@@ -119,7 +119,7 @@ export class BattleScreen {
     });
     this.bench = new BenchRow(hosts.bench, catalogs.units, this.drag, hosts.canvasHost, () => this.commands.startBattle());
     this.mapModal = new MapModal(view);
-    this.topBar = new BattleTopBar(hosts.top, battle, () => this.cards.cardView(), undefined, () => this.mapModal.open());
+    this.topBar = new BattleTopBar(hosts.top, battle, () => this.cards.cardView(), undefined, () => this.mapModal.open(), (ownedId, index) => this.commands.unequipItem(ownedId, index));
 
     hosts.canvasHost.addEventListener('pointerdown', this.onCanvasDown);
     hosts.canvasHost.addEventListener('pointerup', (event) => {

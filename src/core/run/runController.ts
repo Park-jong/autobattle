@@ -158,7 +158,7 @@ export class RunController {
     this.roster = new RunRoster(state.forces.management, {
       canEdit: () => this.state.phase !== 'battle' && this.state.phase !== 'ended',
       canShop: () => this.state.phase === 'battlePrep' || this.state.phase === 'shop',
-    });
+    }, (items) => this.state.forces.returnEquipmentCards(items));
     this.test = new TestRunTools(deps, state, {
       acquireRelic: (relicId) => this.acquireRelic(relicId),
       visitNode: (node) => this.visitNode(node),
@@ -676,6 +676,24 @@ export class RunController {
     if (!view.canHeal) return fail('이미 HP가 가득합니다');
     this.state.health.heal(view.healAmount);
     this.toMap();
+    return OK;
+  }
+
+  /**
+   * 소유 유닛이 끼고 있는 장비 하나(index번째)를 장착 해제해 카드로 덱에 되돌린다.
+   * 전투 중·런 종료 후에는 불가(로스터 편집과 같은 조건). 전투 준비 중이면 준비 손패는 다시 뽑힌다
+   */
+  unequip(ownedId: number, index: number): RunResult {
+    if (this.state.phase === 'battle' || this.state.phase === 'ended') return fail('전투 중에는 장비를 장착 해제할 수 없습니다');
+    const management = this.state.forces.management;
+    const snapshot = management.snapshot();
+    const unit = [...snapshot.board, ...snapshot.bench].find((u) => u?.id === ownedId);
+    if (!unit) return fail('소유하지 않은 유닛입니다');
+    const item = unit.equipment[index];
+    if (item === undefined) return fail('그 장비를 끼고 있지 않습니다');
+    const result = management.setEquipment(ownedId, unit.equipment.filter((_, i) => i !== index));
+    if (!result.ok) return result;
+    this.state.forces.returnEquipmentCards([item]);
     return OK;
   }
 

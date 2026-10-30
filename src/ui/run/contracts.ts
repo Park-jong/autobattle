@@ -3,7 +3,7 @@ import type { CardListEntry } from '../cards/cardListView';
 import type { EndMetaView, MetaStartView } from './metaViews';
 import type { SaveStatus } from './RunSaveStore';
 import type {
-  ActIntroView, BossRelicView, CommanderChoiceView, CampScreenView, EncounterPreviewView, EndScreenView, EventScreenView, MapView, UpgradeNoticeView, RewardView, RunHud,
+  ActIntroView, BossRelicView, CommanderChoiceView, CampScreenView, EncounterPreviewView, EndScreenView, EventScreenView, EquipmentView, MapView, UpgradeNoticeView, RewardView, RunHud,
   SettlementView, ShopScreenView,
 } from './runViews';
 import type { TestCatalogView, TestToolsView } from './testViews';
@@ -69,6 +69,8 @@ export interface RunSnapshot {
   endMeta: EndMetaView | null;
   /** 테스트 런 중의 "테스트 도구" 패널 정보 (일반 런·시작 화면이면 null) */
   testTools: TestToolsView | null;
+  /** 덱 보기 창의 장착 중인 장비 (맵·전투 화면만) */
+  equipment: EquipmentView | null;
   /** 방금 강화된 카드 (야영지·이벤트·유물 등으로 강화되면 강화 전/후를 보여 주는 창. 확인하면 null) */
   upgraded: UpgradeNoticeView | null;
 }
@@ -115,6 +117,8 @@ export interface RunCommands {
   skipBossRelic(): void;
   /** 액트 소개를 확인하고 새 액트의 맵으로 간다 */
   continueAct(): void;
+  /** 소유 유닛의 index번째 장비를 장착 해제해 카드로 덱에 되돌린다 (전투 중이 아닐 때만) */
+  unequipItem(ownedId: number, index: number): void;
   /** 강화 결과 창을 닫는다 */
   dismissUpgradeNotice(): void;
   // 상점

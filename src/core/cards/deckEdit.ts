@@ -44,6 +44,23 @@ export function addCardToDeck(snapshot: DeckSnapshot, catalog: CardCatalog, card
   return out;
 }
 
+/**
+ * 장비를 장착 해제하거나 장착 유닛을 팔 때 장비 카드를 덱(뽑을 더미)으로 되돌린다.
+ * 장착할 때 소모 더미로 보낸 같은 카드(id·강화 여부)가 있으면 그 인스턴스를 되살리고, 없으면 새로 넣는다. 뽑을 더미는 덱 Rng로 다시 섞는다
+ */
+export function returnCardToDeck(snapshot: DeckSnapshot, catalog: CardCatalog, cardId: string, upgraded: boolean): DeckSnapshot {
+  const index = snapshot.exhaust.findIndex((card) => card.cardId === cardId && card.upgraded === upgraded && card.grantedBy === undefined);
+  if (index < 0) return addCardToDeck(snapshot, catalog, cardId, upgraded);
+  const out = structuredClone(snapshot);
+  const [card] = out.exhaust.splice(index, 1);
+  const rng = new Rng(0);
+  rng.setState(out.rngState);
+  out.draw.push(card as CardInstance);
+  out.draw = rng.shuffle(out.draw);
+  out.rngState = rng.getState();
+  return out;
+}
+
 /** 덱에서 카드 한 장을 제거한다 (소모 더미로 보내지 않고 완전히 삭제). 제공 카드·없는 카드는 Error */
 export function removeCardFromDeck(snapshot: DeckSnapshot, instanceId: number): DeckSnapshot {
   const out = structuredClone(snapshot);

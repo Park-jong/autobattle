@@ -1,5 +1,5 @@
 import {
-  addCardToDeck, createStartingDeck, dealOpeningHand, exhaustCardInDeck, removeCardFromDeck,
+  addCardToDeck, createStartingDeck, dealOpeningHand, exhaustCardInDeck, returnCardToDeck, removeCardFromDeck,
   syncGrantedCards, upgradableCards, upgradeCardInDeck, type DeckPreset, type DeckSnapshot,
 } from '../cards';
 import { parseDeckSnapshot } from '../cards/deckSnapshot';
@@ -116,6 +116,19 @@ export class PlayerForces {
     };
     this.carryDeck = consume(this.carryDeck);
     if (this.preparedDeck) this.preparedDeck = consume(this.preparedDeck);
+  }
+
+  /**
+   * 장비 카드를 덱으로 되돌린다 (장착 해제·장착 유닛 판매). 장비 id는 'forged_blade+'처럼 강화면 +를 붙인 형태.
+   * 준비 손패는 다음 준비 때 덱에서 다시 뽑는다 (준비 덱과 이어받는 덱의 인스턴스 번호가 어긋나지 않게)
+   */
+  returnEquipmentCards(items: readonly string[]): void {
+    if (items.length === 0) return;
+    for (const item of items) {
+      const upgraded = item.endsWith('+');
+      this.carryDeck = returnCardToDeck(this.carryDeck, this.cards, upgraded ? item.slice(0, -1) : item, upgraded);
+    }
+    this.preparedDeck = null;
   }
 
   /**

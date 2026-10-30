@@ -1,5 +1,5 @@
 import type { RunCommands, RunSnapshot, RunViewSource } from './contracts';
-import { CardListModal, type CardListSpec } from './CardListModal';
+import { CardListModal, equipmentExtra, type CardListSpec } from './CardListModal';
 import { button, el, tagged } from './dom';
 import { iconButton } from './iconButton';
 import { encounterPreviewElement } from './encounterPreview';
@@ -24,7 +24,7 @@ export class MapScreen {
   ) {}
 
   private deckSpec(snap: RunSnapshot): CardListSpec {
-    return { title: '덱', entries: snap.deck ?? [] };
+    return { title: '덱', entries: snap.deck ?? [], extra: equipmentExtra(snap.equipment, (ownedId, index) => this.commands.unequipItem(ownedId, index)) };
   }
 
   render(snap: RunSnapshot): void {
