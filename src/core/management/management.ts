@@ -61,6 +61,10 @@ export interface OwnedUnit {
   benchIndex: number | null;
   equipment: string[];
 }
+export interface RosterPlacement {
+  id: number;
+  cell: Cell;
+}
 export interface ShopOffer {
   id: number;
   unitId: string;
@@ -447,6 +451,41 @@ export class Management {
     }
     if (this.levelValue === MANAGEMENT.MAX_LEVEL) this.xpValue = 0;
     return amount;
+  }
+
+  /** Validate a whole team before moving anyone, including swaps with a full bench. */
+  applyFormation(placements: readonly RosterPlacement[]): ManagementResult {
+    if (placements.length > this.levelValue) return fail('배치 인원이 레벨 한도를 넘습니다');
+    if (this.owned.length - placements.length > MANAGEMENT.BENCH_SIZE) return fail('벤치에 빈 자리가 없습니다');
+    const owned = new Set(this.owned.map(unit => unit.id));
+    const selected = new Map<number, Cell>();
+    const taken = new Set<string>();
+    for (const { id, cell } of placements) {
+      if (!owned.has(id) || selected.has(id)) return fail('편성 유닛이 없거나 중복되었습니다');
+      if (!Number.isInteger(cell.col) || !Number.isInteger(cell.row) || !isInOwnHalf(0, cell)) return fail('아군 보드 안의 칸을 선택하세요');
+      const key = `${cell.col}:${cell.row}`;
+      if (taken.has(key)) return fail('같은 칸에 두 유닛을 배치할 수 없습니다');
+      selected.set(id, { ...cell });
+      taken.add(key);
+    }
+    const next = this.owned.map(copyUnit);
+    const occupiedBench = new Set(next.filter(unit => !selected.has(unit.id) && unit.benchIndex !== null).map(unit => unit.benchIndex!));
+    for (const unit of next) {
+      const cell = selected.get(unit.id);
+      if (cell) {
+        unit.cell = cell; unit.benchIndex = null;
+      } else {
+        unit.cell = null;
+        if (unit.benchIndex === null) {
+          let index = 0;
+          while (occupiedBench.has(index)) index++;
+          unit.benchIndex = index;
+          occupiedBench.add(index);
+        }
+      }
+    }
+    this.owned = next;
+    return OK;
   }
 
   moveToBoard(id: number, cell: Cell): ManagementResult {

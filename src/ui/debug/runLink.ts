@@ -3,7 +3,7 @@ import type { CombatSimulator, FormationEntry } from '../../core/combat';
 import type { Cell } from '../../core/combat/board';
 import type { CommanderDef } from '../../core/data/commander';
 import type { BattleKind, EconomyView } from '../../core/economy';
-import type { ManagementResult, ManagementSnapshot } from '../../core/management';
+import type { ManagementResult, ManagementSnapshot, RosterPlacement } from '../../core/management';
 import type { BattleSettlement, ForcedResult, SettleResult } from '../../core/run';
 import type { SessionPhase } from './contracts';
 
@@ -17,6 +17,7 @@ export interface RosterCommands {
   sell(id: number): ManagementResult;
   moveToBoard(id: number, cell: Cell): ManagementResult;
   moveToBench(id: number, index?: number): ManagementResult;
+  applyFormation(placements: readonly RosterPlacement[]): ManagementResult;
 }
 
 /**

@@ -38,6 +38,7 @@ import { CARD_UI, LAYOUT } from '../theme';
 import type { RosterCommands, RunBattleHost, RunBattleLink } from './runLink';
 import type { ActionCue } from '../feedback/ActionCue';
 import { detectUnitMerges } from '../feedback/unitMerge';
+import { buildAutoFormation } from '../../core/management';
 import type {
   BattleViewSource,
   Brush,
@@ -484,6 +485,18 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
     const recalled = this.roster!.snapshot().bench.find(entry => entry?.id === id);
     this.actionFeedback({ kind: 'recall', label: this.units.get(unit.unitId)?.name ?? unit.unitId,
       unitId: unit.unitId, star: unit.star, origin: unit.cell ?? undefined, benchIndex: recalled?.benchIndex });
+  }
+
+  autoArrangeUnits(): void {
+    if (!this.canManage() || !this.roster) return;
+    const state = this.roster.snapshot();
+    const placements = buildAutoFormation(state, this.units, this.traits);
+    if (placements.length === 0) return this.showToast('편성할 유닛이 없습니다');
+    this.cancelCard();
+    this.selectedOwnedId = null;
+    if (!this.manage(roster => roster.applyFormation(placements))) return;
+    const active = this.traitsOf(0).filter(trait => trait.tier > 0).length;
+    this.actionFeedback({ kind: 'event', label: `자동 편성 완료 · ${placements.length}명 출전 · 시너지 ${active}개 활성` });
   }
 
   sellManagedUnit(id: number): void {
