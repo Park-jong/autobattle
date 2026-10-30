@@ -19,7 +19,7 @@ export const MANAGEMENT = {
   // 레벨 3→4부터 8→9까지 필요한 XP. 남은 XP는 다음 레벨로 이월한다.
   XP_TO_NEXT: { 3: 4, 4: 8, 5: 12, 6: 20, 7: 32, 8: 48 } as Record<number, number>,
   // 원본 1성 개수. 2·3성은 각각 3·9개의 재고를 차지한다.
-  POOL_COPIES: { 1: 18, 2: 16, 3: 14, 4: 10, 5: 8 } as Record<number, number>,
+  POOL_COPIES: { 1: 18, 2: 16, 3: 14, 4: 10, 5: 9 } as Record<number, number>,
   /**
    * M5-4(유닛 14종 → 30종)에서 추가된 유닛. 그 전에 만든 저장본의 유닛 풀(`pool`)에는 이 유닛들의 재고가 없으므로,
    * 복원할 때 빠져 있으면 등급별 기본 재고(`POOL_COPIES`)로 채운다. 저장본은 이 유닛을 소유하거나 진열한 적이 없다.
