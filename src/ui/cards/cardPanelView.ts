@@ -11,6 +11,8 @@ import { sortCardEntries, type CardListEntry } from './cardListView';
 export interface HandCardView {
   instanceId: number;
   cardId: string;
+  /** 소유 지휘관 id 또는 'neutral' (카드 그림 선택) */
+  owner: string;
   name: string;
   type: CardType;
   typeLabel: string;
@@ -197,6 +199,7 @@ export class CardPanelViewBuilder {
     return {
       instanceId: instance.instanceId,
       cardId: card.id,
+      owner: card.owner,
       name: instance.upgraded ? `${card.name}+` : card.name,
       type: card.type,
       typeLabel: CARD_TYPE_LABELS[card.type],
@@ -249,6 +252,7 @@ export class CardPanelViewBuilder {
     if (view.commanderHpCost) tags.push(`지휘관 HP ${view.commanderHpCost.amount}`);
     return {
       cardId: card.id,
+      owner: card.owner,
       name: instance.upgraded ? `${card.name}+` : card.name,
       type: card.type,
       typeLabel: CARD_TYPE_LABELS[card.type],

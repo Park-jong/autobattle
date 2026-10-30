@@ -1,7 +1,7 @@
 import type { CardType } from '../../core/data/card';
 import type { Rarity } from '../../core/data/card';
 import { appSkin } from '../skin/SkinStore';
-import { cardArtUnit, cardTypeSkinName, unitArtUrl } from '../skin/skins';
+import { cardArtUrl, cardTypeSkinName } from '../skin/skins';
 
 /** 카드 그림 칸의 종류 문양 */
 const TYPE_GLYPHS: Record<CardType, string> = { operation: '⚑', command: '⚔', spell: '✦', equipment: '◈', curse: '☠' };
@@ -19,6 +19,10 @@ export interface CardFaceSpec {
   upgraded: boolean;
   text: string;
   tags: readonly string[];
+  /** 카드 id (공용 카드 그림을 카드마다 고정해 고를 때 쓴다) */
+  cardId?: string;
+  /** 소유: 지휘관 id(전용 카드 — 그 지휘관 초상화) 또는 'neutral'(공용). 생략하면 공용으로 본다 */
+  owner?: string;
 }
 
 /**
@@ -55,7 +59,8 @@ export function cardFaceElement(card: CardFaceSpec): HTMLElement {
   if (card.cost !== baseCost) cost.title = `기본 비용 ${baseCost} → ${card.cost} (${card.cost < baseCost ? '주술사 특성' : '방해 변이'})`;
 
   const art = node('div', 'hcard-art');
-  const artUrl = unitArtUrl(appSkin.current, cardArtUnit(card.type), 'portrait');
+  // 지휘관 전용 카드는 그 지휘관 초상화, 공용 카드는 설명·종류에 어울리는 유닛 초상화 (스킨마다 다른 원화)
+  const artUrl = cardArtUrl(appSkin.current, card);
   if (artUrl) {
     const img = node('img', 'academy-card-art');
     img.src = artUrl;
