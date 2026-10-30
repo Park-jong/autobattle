@@ -1,12 +1,14 @@
-import { button, el } from '../dom';
+import { el } from '../dom';
+import { iconButton, iconSvg, setIconTip } from '../iconButton';
 import { boardViewportLayout } from './boardViewportLayout';
 
 /** Crop empty stage gutters without changing game coordinates or pointer mapping. */
 export class BoardViewport {
+  readonly tools = el('div', 'bt-board-tools');
   private readonly viewport = el('div', 'bt-board-viewport');
   private readonly surface = el('div', 'bt-board-surface');
   private readonly mobile = window.matchMedia('(max-width: 900px), (max-width: 1000px) and (max-height: 620px)');
-  private readonly zoomButton = button('판 확대', () => this.toggleZoom(), 'bt-btn bt-board-zoom');
+  private readonly zoomButton = iconButton('zoomIn', '전장 확대', () => this.toggleZoom(), 'bt-btn bt-board-tool');
   private zoomed = false;
   private active = false;
 
@@ -17,7 +19,12 @@ export class BoardViewport {
     this.viewport.append(this.surface);
     this.surface.append(canvasHost);
     this.zoomButton.setAttribute('aria-pressed', 'false');
-    arena.append(this.zoomButton);
+    this.zoomButton.dataset.testid = 'board-zoom';
+    this.tools.setAttribute('role', 'toolbar');
+    this.tools.setAttribute('aria-label', '전장 보기');
+    this.tools.setAttribute('aria-orientation', 'vertical');
+    this.tools.append(this.zoomButton);
+    arena.append(this.tools);
     new ResizeObserver(() => this.fit()).observe(this.viewport);
     this.mobile.addEventListener('change', () => this.fit());
     this.fit();
@@ -38,10 +45,12 @@ export class BoardViewport {
   private fit(): void {
     const mobile = this.mobile.matches;
     this.viewport.classList.toggle('fitted', this.active);
+    this.tools.hidden = !this.active;
     this.zoomButton.hidden = !this.active || !mobile;
     const zoomed = this.active && mobile && this.zoomed;
     this.viewport.classList.toggle('zoomed', zoomed);
-    this.zoomButton.textContent = zoomed ? '전체 보기' : '판 확대';
+    this.zoomButton.innerHTML = iconSvg(zoomed ? 'zoomOut' : 'zoomIn', 20);
+    setIconTip(this.zoomButton, zoomed ? '전장 전체 보기' : '전장 확대');
     this.zoomButton.title = zoomed ? '확대 중 · 보드를 밀어서 이동합니다' : '보드와 유닛을 40% 확대합니다';
     this.zoomButton.setAttribute('aria-pressed', String(zoomed));
     if (!this.active) {

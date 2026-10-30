@@ -20,6 +20,8 @@ import './ui/run/battle/mobileBattle.css';
 import './ui/run/battle/battlePolish.css';
 import './ui/run/battle/unitShop.css';
 import './ui/cards/unitHand.css';
+import './ui/run/battle/boardTools.css';
+import './ui/run/battle/traySheets.css';
 import { attackProfile } from './ui/battle/combatVisuals';
 import { installActionFeedback } from './ui/feedback/ActionFeedback';
 import { unitSkinName } from './ui/skin/skins';
