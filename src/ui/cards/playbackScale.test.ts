@@ -10,11 +10,11 @@ describe('playbackScale', () => {
     expect(playbackScale({ ...base, speed: 4 })).toBe(4);
   });
 
-  it('카드를 집으면 배속에 슬로모션 배율을 곱한다', () => {
-    expect(CARD_UI.SLOWMO_FACTOR).toBe(0.25);
-    expect(playbackScale({ ...base, cardHeld: true })).toBeCloseTo(0.25);
-    expect(playbackScale({ ...base, speed: 2, cardHeld: true })).toBeCloseTo(0.5);
-    expect(playbackScale({ ...base, speed: 4, cardHeld: true })).toBeCloseTo(1);
+  it('카드를 집으면 배속과 무관하게 1배속 기준 10% 속도', () => {
+    expect(CARD_UI.SLOWMO_FACTOR).toBe(0.1);
+    expect(playbackScale({ ...base, cardHeld: true })).toBeCloseTo(0.1);
+    expect(playbackScale({ ...base, speed: 2, cardHeld: true })).toBeCloseTo(0.1);
+    expect(playbackScale({ ...base, speed: 4, cardHeld: true })).toBeCloseTo(0.1);
   });
 
   it('카드 선택 중 일시정지 옵션이면 정지한다', () => {

@@ -18,10 +18,10 @@ export interface PlaybackScaleInput {
 
 /**
  * 실제 경과 시간에 곱할 시간 배율.
- * 일시정지면 0, 카드를 집었으면 (옵션에 따라) 0 또는 배속 × 슬로모션 배율, 아니면 배속 그대로.
+ * 일시정지면 0, 카드를 집었으면 (옵션에 따라) 0 또는 1배속 기준 슬로모션 배율(배속과 무관), 아니면 배속 그대로.
  */
 export function playbackScale(input: PlaybackScaleInput, slowFactor: number = CARD_UI.SLOWMO_FACTOR): number {
   if (input.paused) return 0;
-  if (input.cardHeld) return input.pauseOnCardHold ? 0 : input.speed * slowFactor;
+  if (input.cardHeld) return input.pauseOnCardHold ? 0 : slowFactor;
   return input.speed;
 }
