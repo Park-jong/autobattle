@@ -41,6 +41,14 @@ export function applyHiDpiCamera(scene: Phaser.Scene, metrics: HiDpiMetrics): vo
   camera.setScroll(0, 0);
 }
 
+/** Visible side margin in stage coordinates when the mobile arena trims canvas gutters. */
+export function visibleStageInset(scene: Phaser.Scene): number {
+  const canvas = scene.game.canvas;
+  const width = canvas.getBoundingClientRect().width;
+  const arenaWidth = canvas.parentElement?.parentElement?.clientWidth ?? width;
+  return width > 0 ? Math.max(0, (width - arenaWidth) / width * STAGE.WIDTH / 2) : 0;
+}
+
 /** HiDPI 해상도가 적용된 텍스트를 만든다. */
 export function createText(
   scene: Phaser.Scene,

@@ -16,6 +16,7 @@ import { COLORS } from './ui/theme';
 import { installPresentation } from './ui/skin/presentation';
 import './ui/skin/academy.css';
 import './ui/skin/modern.css';
+import './ui/run/battle/mobileBattle.css';
 import { attackProfile } from './ui/battle/combatVisuals';
 import { unitSkinName } from './ui/skin/skins';
 
@@ -116,6 +117,7 @@ function bootstrap(): void {
   };
   let game: Phaser.Game | undefined;
   let rendererActive = false;
+  new ResizeObserver(() => game?.scale.refresh()).observe(gameHost);
   const syncRenderer = (): void => {
     const active = needsBattleRenderer(runSession.screen);
     if (active === rendererActive) return;

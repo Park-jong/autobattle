@@ -134,6 +134,7 @@ export class BattleScreen {
     if (!active || !snap.battle) return;
     const session = this.battle.snapshot();
     const stage = snap.battle.stage;
+    this.hosts.bench.dataset.stage = stage;
     if (stage !== this.stage) {
       // 준비 단계는 상점이, 전투가 시작되면 카드가 앞으로 나온다
       if (stage === 'prep') this.tray.bringFront('shop', false);
