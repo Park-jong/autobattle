@@ -5,6 +5,7 @@ import { COLORS, LAYOUT, STATUS_BADGES, TEXT_COLORS, TIMING } from '../theme';
 import type { BoardLayout } from './BoardLayout';
 import type { UnitPose } from './combatVisuals';
 import type { SkinId } from '../skin/skins';
+import { TIER_COLORS } from '../run/battle/unitPresentation';
 
 /**
  * 유닛 하나의 표시: 진영색 도형 + 이름 약자(또는 스킨 원화) + 성급 + HP/보호막/마나 바 + 상태 배지. UnitView만 보고 그린다.
@@ -31,6 +32,7 @@ export class UnitSprite {
     artKey: string | null = null,
     private readonly bossCrest = false,
     private readonly skin: SkinId = 'default',
+    private readonly tier = 1,
   ) {
     this.base = scene.add.graphics();
     this.gfx = scene.add.graphics();
@@ -38,7 +40,7 @@ export class UnitSprite {
       ? scene.add.image(0, LAYOUT.SKIN_ART_Y, artKey).setDisplaySize(LAYOUT.SKIN_ART_SIZE, LAYOUT.SKIN_ART_SIZE)
       : null;
     const stars = createText(scene, metrics, 0, LAYOUT.STAR_Y, '★'.repeat(star), {
-      fontSize: '14px',
+      fontSize: '19px', stroke: '#10131b', strokeThickness: 3,
       color: TEXT_COLORS.STAR,
     }).setOrigin(0.5);
     const middle: Phaser.GameObjects.GameObject[] = this.art
@@ -49,7 +51,11 @@ export class UnitSprite {
         color: TEXT_COLORS.UNIT_NAME,
       }).setOrigin(0.5)];
     this.actor = scene.add.container(0, 0, middle);
-    this.container = scene.add.container(0, 0, [...(this.art ? [this.base] : []), this.actor, this.gfx, stars]).setDepth(10);
+    const tierBadge = createText(scene, metrics, -30, -20, `${tier}`, {
+      fontSize: '22px', fontStyle: 'bold', color: '#ffffff', backgroundColor: '#10131b',
+      padding: { x: 5, y: 1 }, stroke: '#10131b', strokeThickness: 1,
+    }).setOrigin(0.5);
+    this.container = scene.add.container(0, 0, [...(this.art ? [this.base] : []), this.actor, this.gfx, stars, tierBadge]).setDepth(10);
   }
 
   update(view: UnitView, time: number, pose?: UnitPose): void {
@@ -138,6 +144,9 @@ export class UnitSprite {
       b.fillCircle(0, 0, LAYOUT.UNIT_RADIUS);
     }
     this.drawAuras(view);
+    // Dedicated tier accent leaves allegiance and status outlines independent.
+    g.lineStyle(3, TIER_COLORS[this.tier - 1] ?? TIER_COLORS[0], 1);
+    g.strokeRoundedRect(-43, -34, 26, 27, 4);
 
     // HP 바 (보호막은 HP 바 위에 덧칠)
     const w = LAYOUT.BAR_WIDTH;

@@ -38,13 +38,13 @@ export function hudElement(hud: RunHud): HTMLElement {
     root.append(badge);
   }
   root.append(
-    item('지휘관', commanderSkinName(appSkin.current, hud.commanderId, hud.commanderName)),
-    item('층', `${hud.floor} / ${hud.floorCount}`),
+    item('지휘관', commanderSkinName(appSkin.current, hud.commanderId, hud.commanderName), 'run-hud-commander'),
+    item('층', `${hud.floor} / ${hud.floorCount}`, 'run-hud-floor'),
     hp,
     item('골드', `${hud.gold}G`, 'run-hud-gold'),
-    item('덱', `${hud.deckCount}장`),
-    item('위치', hud.location),
-    item('시드', String(hud.seed)),
+    item('덱', `${hud.deckCount}장`, 'run-hud-deck'),
+    item('위치', hud.location, 'run-hud-location'),
+    item('시드', String(hud.seed), 'run-hud-seed'),
   );
   const relics = el('div', 'run-hud-item run-hud-relics');
   relics.append(el('span', 'run-hud-label', `유물 ${hud.relics.length}개`), relicRow(hud.relics, '없음'));

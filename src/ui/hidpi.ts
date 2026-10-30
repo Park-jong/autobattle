@@ -58,7 +58,7 @@ export function createText(
   text: string,
   style: Phaser.Types.GameObjects.Text.TextStyle = {},
 ): Phaser.GameObjects.Text {
-  const obj = scene.add.text(x, y, text, { fontFamily: FONT_FAMILY, ...style });
-  obj.setResolution(metrics.scale);
-  return obj;
+  // CanvasRenderer reads frame.source.resolution, initialized by the Text constructor.
+  // Changing only TextStyle afterward leaves the source at 1 and shrinks mobile labels.
+  return scene.add.text(x, y, text, { fontFamily: FONT_FAMILY, ...style, resolution: Math.max(1, metrics.scale) });
 }

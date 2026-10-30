@@ -1,0 +1,10 @@
+.action-fx-layer { position: fixed; inset: 0; z-index: 160; pointer-events: none; overflow: hidden; }
+.action-fx-layer > * { position: absolute; pointer-events: none !important; }
+.action-fx-label { --fx: #a9daff; max-width: min(320px, 88vw); padding: 8px 14px; border: 1px solid var(--fx); border-radius: 8px; background: #0b1725ef; color: #fff; box-shadow: 0 0 24px #79beff44; font: 700 14px/1.4 var(--bt-font, sans-serif); text-align: center; z-index: 3; }
+.action-fx-layer .gold { --fx: #ffe087; }.action-fx-layer .mint { --fx: #83f5ce; }.action-fx-layer .blue { --fx: #8ddaff; }.action-fx-layer .violet { --fx: #d3abff; }
+.action-fx-ring { width: 74px; height: 74px; border: 3px solid var(--fx); border-radius: 50%; box-shadow: 0 0 18px var(--fx), inset 0 0 16px var(--fx); }
+.action-fx-spark { width: 7px; height: 7px; background: var(--fx); border-radius: 2px; box-shadow: 0 0 10px var(--fx); }
+.action-fx-coin { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; color: #634311; background: #ffe08b; border: 2px solid #c89635; box-shadow: 0 0 12px #ffcc4c88; font: 800 12px sans-serif; }
+.action-fx-unit { width: 72px; height: 72px; object-fit: contain; }
+.action-fx-layer .action-fx-card { position: absolute !important; bottom: auto !important; width: 112px !important; height: 158px !important; margin: 0 !important; transition: none !important; }
+.action-fx-status { position: fixed; width: 1px; height: 1px; clip-path: inset(50%); overflow: hidden; white-space: nowrap; }

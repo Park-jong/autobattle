@@ -6,6 +6,7 @@ import { el } from '../dom';
 /** 유닛 얼굴: 원화 스킨이면 초상화, 아니면(또는 원화가 없으면) 이름 약자. 등급 색 테두리 */
 export function unitFace(unitId: string, name: string, tier: number, options: { large?: boolean; enemy?: boolean; skin?: SkinStore } = {}): HTMLElement {
   const face = el('div', `bt-face tier-${tier}${options.large ? ' large' : ''}${options.enemy ? ' enemy' : ''}`);
+  face.append(tierBadge(tier));
   const url = unitArtUrl((options.skin ?? appSkin).current, unitId, 'portrait');
   if (url) {
     const img = el('img');
@@ -14,11 +15,11 @@ export function unitFace(unitId: string, name: string, tier: number, options: { 
     img.draggable = false;
     img.addEventListener('error', () => {
       img.remove();
-      face.textContent = unitAbbreviation(name);
+      face.prepend(unitAbbreviation(name));
     });
     face.append(img);
   } else {
-    face.textContent = unitAbbreviation(name);
+    face.prepend(unitAbbreviation(name));
   }
   return face;
 }
@@ -46,7 +47,14 @@ export function unitDragGhost(unitId: string, name: string, tier: number, star: 
   } else {
     plain();
   }
-  ghost.append(token, el('div', 'bt-token-stars', '★'.repeat(star)));
+  ghost.append(token, tierBadge(tier), el('div', 'bt-token-stars', '★'.repeat(star)));
   ghost.title = name;
   return ghost;
+}
+
+export function tierBadge(tier: number): HTMLElement {
+  const badge = el('span', `bt-tier-badge tier-${tier}`, String(tier));
+  badge.setAttribute('aria-label', `${tier}등급`);
+  badge.title = `기본 ${tier}등급 · 별은 합성 성급`;
+  return badge;
 }

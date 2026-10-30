@@ -8,6 +8,7 @@ import { appSkin } from '../skin/SkinStore';
 import { commanderArt } from '../skin/commanderArt';
 import { cardFaceElement } from './cardFace';
 import { commanderSkinName, commanderSkillName } from '../skin/skins';
+import { handGesture } from './handGesture';
 
 type PileKey = 'draw' | 'discard' | 'exhaust';
 const PILE_LABELS: Record<PileKey, string> = { draw: '뽑을 더미', discard: '버린 더미', exhaust: '소모 더미' };
@@ -28,6 +29,9 @@ interface Press {
   startX: number;
   startY: number;
   dragging: boolean;
+  pointerId: number;
+  pointerType: string;
+  scrolling: boolean;
 }
 
 /**
@@ -50,6 +54,9 @@ export class HandPanel {
   private readonly cpBar = el('div', 'hand-cp-bar');
   private readonly prepLabel = el('div', 'hand-prep');
   private readonly hintBox = el('div', 'hand-hint');
+  private readonly scrollHint = el('div', 'hand-scroll-hint', '좌우로 밀어 보기 · 카드 탭 후 보드에서 대상 선택');
+  private readonly cancelButton = el('button', 'hand-cancel', '선택 취소');
+  private readonly detail = el('dialog', 'hand-detail');
   private readonly pileButtons = new Map<PileKey, HTMLButtonElement>();
   /** 궁극기 영역: 이름 + 게이지 + 사용 버튼 */
   private readonly ultimateBox = el('div', 'hand-ultimate');
@@ -79,7 +86,14 @@ export class HandPanel {
     this.root.classList.add('hand-bar');
     this.root.style.setProperty('--hand-height', `${CARD_UI.HAND_HEIGHT}px`);
     this.buildSide();
-    this.root.replaceChildren(this.side, this.ultimateBox, this.cards, this.pileList, this.toastBox);
+    this.cards.setAttribute('aria-label', '손패 · 좌우 스크롤');
+    this.cards.tabIndex = 0;
+    this.cancelButton.type = 'button';
+    this.cancelButton.addEventListener('click', () => this.cancelAll());
+    this.cancelButton.hidden = true;
+    this.side.append(this.cancelButton);
+    this.detail.setAttribute('aria-label', '카드 상세 정보');
+    this.root.replaceChildren(this.side, this.ultimateBox, this.cards, this.scrollHint, this.pileList, this.toastBox, this.detail);
     this.ultimatePop.dataset.testid = 'ultimate-help';
     this.ultimatePop.setAttribute('role', 'tooltip');
     this.ultimatePop.hidden = true;
@@ -91,11 +105,12 @@ export class HandPanel {
     this.ultimateBox.addEventListener('focusout', () => this.hideUltimateHelp());
     this.root.hidden = true;
     window.addEventListener('keydown', (e) => {
+      if (document.querySelector('dialog[open]')) return;
       if (e.key === 'Escape') this.cancelAll();
       // 궁극기 단축키 U (입력칸에 글자를 쓰는 중에는 무시)
       const target = e.target as HTMLElement | null;
       const typing = target !== null && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable);
-      if ((e.key === 'u' || e.key === 'U' || e.code === 'KeyU') && !typing && !e.ctrlKey && !e.metaKey && !e.altKey && this.visible) this.controller.useUltimate();
+      if ((e.key === 'u' || e.key === 'U' || e.code === 'KeyU') && !typing && !e.ctrlKey && !e.metaKey && !e.altKey && this.visible && !document.querySelector('dialog[open]')) this.controller.useUltimate();
     });
     // 손패 칸 폭이 바뀌면 부채꼴을 다시 편다
     new ResizeObserver(() => this.layoutFan()).observe(this.cards);
@@ -169,6 +184,10 @@ export class HandPanel {
     if (visible === this.visible) return;
     this.visible = visible;
     this.root.hidden = !visible;
+    if (!visible) {
+      if (this.detail.open) this.detail.close();
+      this.endPress();
+    }
     if (!visible) this.hideUltimateHelp();
     // 캔버스가 남는 높이에 맞춰 다시 크기를 잡도록 알린다 (Phaser Scale.FIT)
     window.dispatchEvent(new Event('resize'));
@@ -184,8 +203,12 @@ export class HandPanel {
     this.renderUltimate(view);
     this.hintBox.textContent = view.holding ? view.hint : '';
     this.hintBox.hidden = !view.holding;
+    this.scrollHint.textContent = view.holding ? view.hint : '좌우로 밀어 보기 · 카드 탭 후 보드에서 대상 선택';
+    this.scrollHint.title = this.scrollHint.textContent;
+    this.cancelButton.hidden = !view.holding;
+    this.root.dataset.handCount = String(view.hand.length);
 
-    this.cpLabel.textContent = `지휘력 CP ${view.cp.combat} / ${view.cp.max}`;
+    this.cpLabel.replaceChildren(el('span', 'hand-cp-caption', '지휘력 '), `CP ${view.cp.combat} / ${view.cp.max}`);
     this.prepLabel.hidden = !view.cp.showPrep;
     this.prepLabel.textContent = `준비 CP ${view.cp.prep} / ${view.cp.prepMax} (작전 전용)`;
 
@@ -271,13 +294,41 @@ export class HandPanel {
       else this.controller.beginCard(instanceId, 'click');
     });
     node.addEventListener('pointerdown', (e) => this.onCardDown(e, current()));
+    const info = el('button', 'hcard-info', '설명');
+    info.type = 'button';
+    info.setAttribute('aria-label', `${card.name} 설명 보기`);
+    info.addEventListener('pointerdown', (e) => e.stopPropagation());
+    info.addEventListener('keydown', (e) => e.stopPropagation());
+    info.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const now = current();
+      const close = el('button', 'hand-detail-close', '닫기');
+      close.type = 'button';
+      close.addEventListener('click', () => this.detail.close());
+      const use = el('button', 'hand-detail-use', now.targetKind === 'none' ? '바로 사용' : '대상 선택');
+      use.type = 'button';
+      use.disabled = !now.playable;
+      use.addEventListener('click', () => {
+        this.detail.close();
+        if (current().targetKind === 'none') this.controller.useCardNow(instanceId);
+        else this.controller.beginCard(instanceId, 'click');
+      });
+      this.detail.replaceChildren(el('h3', '', `${now.name} · ${now.cost} CP`), el('p', '', now.text), el('p', '', now.reason ?? now.targetLabel), use, close);
+      this.detail.showModal();
+    });
+    node.append(info);
+    node.addEventListener('click', (e) => {
+      // Native buttons may synthesize a click without pointer events (assistive technology).
+      if (e.detail === 0 && e.target === node) this.controller.beginCard(instanceId, 'click');
+    });
     return node;
   }
 
   /** 사용 가능 여부·선택·사유·바로 사용 버튼처럼 전투 중 자주 바뀌는 상태만 고친다 */
   private applyCardState(node: HTMLElement, card: HandCardView): void {
     node.setAttribute('aria-label', `${card.name}, ${card.cost}CP. ${card.reason ?? card.text}`);
-    node.setAttribute('aria-disabled', String(!card.playable));
+    // The group still contains an enabled information button when play is unavailable.
+    node.dataset.unavailable = String(!card.playable);
     node.classList.toggle('selected', card.selected);
     node.classList.toggle('disabled', !card.playable);
     node.title = card.reason ? `사용 불가: ${card.reason}` : `${card.name}: ${card.text}`;
@@ -438,22 +489,24 @@ export class HandPanel {
 
   private onCardDown(e: PointerEvent, card: HandCardView): void {
     if (e.button !== 0) return;
-    if (!card.playable) {
-      this.controller.beginCard(card.instanceId, 'click'); // 사유 토스트를 띄운다
-      return;
-    }
-    this.press = { card, startX: e.clientX, startY: e.clientY, dragging: false };
+    this.endPress();
+    this.press = { card, startX: e.clientX, startY: e.clientY, dragging: false, pointerId: e.pointerId, pointerType: e.pointerType, scrolling: false };
     window.addEventListener('pointermove', this.onMove);
     window.addEventListener('pointerup', this.onUp);
-    window.addEventListener('pointercancel', this.cancelAll);
+    window.addEventListener('pointercancel', this.onPointerCancel);
     window.addEventListener('contextmenu', this.cancelAll);
   }
 
   private onMove = (e: PointerEvent): void => {
     const press = this.press;
-    if (!press) return;
+    if (!press || e.pointerId !== press.pointerId || press.scrolling) return;
     if (!press.dragging) {
-      if (Math.hypot(e.clientX - press.startX, e.clientY - press.startY) < CARD_UI.DRAG_START_PX) return;
+      const gesture = handGesture(press.pointerType, e.clientX - press.startX, e.clientY - press.startY, CARD_UI.DRAG_START_PX);
+      if (gesture === 'tap') return;
+      if (gesture === 'scroll' || !press.card.playable) {
+        press.scrolling = true;
+        return;
+      }
       press.dragging = true;
       this.controller.beginCard(press.card.instanceId, 'drag');
       this.ghost = this.createGhost(press.card);
@@ -469,10 +522,18 @@ export class HandPanel {
 
   private onUp = (e: PointerEvent): void => {
     const press = this.press;
+    if (!press || e.pointerId !== press.pointerId) return;
     this.endPress();
-    if (!press) return;
+    if (press.scrolling || (press.pointerType === 'touch' && handGesture('touch', e.clientX - press.startX, e.clientY - press.startY, CARD_UI.DRAG_START_PX) === 'scroll')) return;
     if (press.dragging) this.controller.dropCard(this.stagePoint(e));
     else this.controller.beginCard(press.card.instanceId, 'click');
+  };
+
+  private onPointerCancel = (e: PointerEvent): void => {
+    if (e.pointerId !== this.press?.pointerId) return;
+    const dragging = this.press.dragging;
+    this.endPress();
+    if (dragging) this.controller.cancelCard();
   };
 
   private cancelAll = (e?: Event): void => {
@@ -487,7 +548,7 @@ export class HandPanel {
     this.ghost = null;
     window.removeEventListener('pointermove', this.onMove);
     window.removeEventListener('pointerup', this.onUp);
-    window.removeEventListener('pointercancel', this.cancelAll);
+    window.removeEventListener('pointercancel', this.onPointerCancel);
     window.removeEventListener('contextmenu', this.cancelAll);
   }
 

@@ -497,6 +497,7 @@ export type EventPendingView =
   | { kind: 'removeCard' | 'upgradeCard'; title: string; options: { optionIndex: number; card: DeckCardView }[] };
 
 export interface EventScreenView {
+  eventId?: string;
   title: string;
   text: string;
   choices: EventChoiceEntry[];
@@ -520,6 +521,7 @@ export function buildEventView(view: EventView, run: RunController, cards: CardC
     pendingView = { kind: pending.kind, title: pending.kind === 'removeCard' ? '제거할 카드를 고르세요' : '강화할 카드를 고르세요', options };
   }
   return {
+      eventId: view.eventId,
     title: view.title,
     text: view.text,
     choices: view.choices.map((c, index) => ({ index, text: c.text, enabled: c.enabled, reason: c.reason ?? null })),

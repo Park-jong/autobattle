@@ -11,6 +11,10 @@ import type { HoverPop } from './hoverPop';
 import { bindTraitChip } from './TraitPanel';
 import { infoHead, skillBlock, statsGrid } from './UnitInfoPanel';
 import { buildUnitInfo } from './unitInfoView';
+import { sellRefund } from './unitInfoView';
+import { tierBadge } from './unitFace';
+import { purchaseHint } from './unitPresentation';
+import type { OwnedUnit } from '../../../core/management';
 
 /**
  * 하단 트레이의 유닛 상점 층: 레벨·XP·골드, 리롤·경험치·잠금, 진열 5칸(원화·등급 색·기원/직업·가격).
@@ -23,6 +27,8 @@ export class ShopLayer {
   private readonly offers = el('div', 'bt-offers');
   private readonly lockMsg = el('div', 'bt-shop-lockmsg');
   private readonly sellOverlay = el('div', 'bt-sell-overlay', '여기에 놓아 판매');
+  private readonly detail = el('dialog', 'bt-shop-detail bt-panel');
+  private owned: OwnedUnit[] = [];
   private signature = '';
 
   constructor(
@@ -34,14 +40,19 @@ export class ShopLayer {
     /** 아군의 지금 특성 (특성 팝업의 종류 수·단계) */
     private readonly allyTraits: () => readonly ActiveTrait[],
   ) {
-    this.root.dataset.sellZone = 'true';
-    this.root.append(this.side, this.offers, this.lockMsg, this.sellOverlay);
+    this.sellOverlay.dataset.sellZone = 'true';
+    this.sellOverlay.setAttribute('aria-label', '유닛 판매 구역');
+    this.root.append(this.side, this.offers, this.lockMsg);
+    this.detail.setAttribute('aria-label', '상점 유닛 상세 정보');
+    this.detail.addEventListener('click', (event) => { if (event.target === this.detail) this.detail.close(); });
+    this.root.append(this.detail);
     appSkin.subscribe(() => { this.signature = ''; });
   }
 
   render(session: SessionSnapshot, stage: 'prep' | 'playing' | 'result'): void {
+    if (stage !== 'prep' && this.detail.open) this.detail.close();
     const management = session.management;
-    const signature = JSON.stringify([management?.state.offers, management?.state.level, management?.state.xp, management?.state.locked, management?.canManage, session.economy.gold, stage, appSkin.current]);
+    const signature = JSON.stringify([management?.state.offers, management?.state.board, management?.state.bench, management?.state.level, management?.state.xp, management?.state.locked, management?.canManage, session.economy.gold, stage, appSkin.current]);
     if (signature === this.signature) return;
     this.signature = signature;
     if (!management) {
@@ -49,6 +60,7 @@ export class ShopLayer {
       return;
     }
     const state = management.state;
+    this.owned = [...state.board, ...state.bench.filter((unit): unit is OwnedUnit => unit !== null)];
     const canManage = management.canManage;
     const gold = session.economy.gold;
 
@@ -66,9 +78,12 @@ export class ShopLayer {
     lock.title = state.locked ? '다음 전투에서도 진열을 유지한 뒤 잠금이 해제됩니다.' : '다음 전투 준비 때 무료로 새 진열을 받습니다. 잠그면 유지합니다.';
     reroll.disabled = lock.disabled = !canManage;
     buyXp.disabled = !canManage || gold < MANAGEMENT.XP_COST || state.xpToNext === null;
+    reroll.title = !canManage ? '전투 중 사용 불가' : '유물의 무료 리롤을 먼저 사용합니다. 무료 횟수가 없으면 1G를 지불합니다.';
+    buyXp.title = !canManage ? '전투 중 사용 불가' : state.xpToNext === null ? '최대 레벨' : gold < MANAGEMENT.XP_COST ? '골드 부족' : `경험치 +${MANAGEMENT.XP_PER_PURCHASE}`;
     const actions = el('div', 'bt-shop-actions');
     actions.append(reroll, buyXp, lock);
-    this.side.replaceChildren(level, xp, el('div', 'bt-shop-gold', `${gold}G`), actions);
+    const reason = el('div', 'bt-action-reason', !canManage ? '전투 중 사용 불가' : state.xpToNext === null ? '최대 레벨' : gold < MANAGEMENT.XP_COST ? '경험치 구매: 골드 부족' : `경험치 구매 시 +${MANAGEMENT.XP_PER_PURCHASE} XP`);
+    this.side.replaceChildren(level, xp, actions, reason, this.sellOverlay);
 
     this.offers.replaceChildren(...state.offers.map((offer, slot) => this.offer(offer, slot, canManage, gold)));
     this.unitPop.reattach(this.offers);
@@ -79,17 +94,13 @@ export class ShopLayer {
 
   private offer(offer: ShopOffer | null, slot: number, canManage: boolean, gold: number): HTMLElement {
     if (!offer) {
-      const sold = el('button', 'bt-offer sold', '품절');
-      sold.type = 'button';
-      sold.disabled = true;
+      const sold = el('div', 'bt-offer sold', '품절');
       return sold;
     }
     const def = this.units.get(offer.unitId);
     const name = def?.name ?? offer.unitId;
-    const node = tagged(el('button', `bt-offer tier-${offer.tier}`), `shop-offer-${slot}`);
-    node.type = 'button';
-    node.disabled = !canManage || gold < offer.cost;
-    node.addEventListener('click', () => this.controller.buyUnit(slot));
+    const node = tagged(el('article', `bt-offer tier-${offer.tier}`), `shop-offer-${slot}`);
+    node.setAttribute('aria-label', `${name} · ${offer.tier}등급 · ${offer.cost}G`);
     const art = el('div', 'bt-offer-art');
     const url = unitArtUrl(appSkin.current, offer.unitId, 'portrait');
     if (url) {
@@ -115,19 +126,44 @@ export class ShopLayer {
         const info = buildUnitInfo(def, 1, { traitName: (id) => traitSkinName(appSkin.current, id, this.traits.get(id)?.name ?? id) });
         return [infoHead(info, false, { large: false }), el('div', 'bt-unit-pop-cost', `${offer.tier}등급 · ${offer.cost}G`), statsGrid(info), skillBlock(info)];
       };
+      const inspect = button('정보', () => {
+        this.unitPop.hide();
+        this.detail.replaceChildren(button('닫기', () => this.detail.close(), 'bt-btn bt-detail-close'), ...content());
+        this.detail.showModal();
+      }, 'bt-offer-info');
+      inspect.setAttribute('aria-label', `${unitSkinName(appSkin.current, offer.unitId, name)} 상세 정보`);
+      art.append(inspect);
       // 특성 이름 위에서는 특성 팝업만, 나머지 부분에서는 유닛 팝업을 띄운다
       node.addEventListener('mouseover', (event) => {
+        if (!window.matchMedia('(hover: hover)').matches) return;
         if ((event.target as Element).closest('[data-trait-id]')) this.unitPop.hide();
         else this.unitPop.show(node, content, 'above');
       });
       node.addEventListener('mouseleave', () => this.unitPop.hide());
     }
+    art.append(tierBadge(offer.tier));
     const foot = el('div', 'bt-offer-foot');
     const label = el('div', 'academy-offer-label');
     label.append(el('b', '', unitSkinName(appSkin.current, offer.unitId, name)));
     if (isIllustratedSkin(appSkin.current)) label.append(el('small', '', unitSkinRole(appSkin.current, offer.unitId, name)));
-    foot.append(label, el('span', 'bt-offer-cost', `${offer.cost}G`));
-    node.append(art, foot);
+    const buy = button(`구매 ${offer.cost}G`, () => this.controller.buyUnit(slot), 'bt-btn bt-offer-buy');
+    buy.disabled = !canManage || gold < offer.cost;
+    buy.title = !canManage ? '전투 중 사용 불가' : gold < offer.cost ? '골드 부족' : `${name} 구매`;
+    const hint = purchaseHint(offer.unitId, this.owned);
+    const ownership = el('div', `bt-offer-owned${hint.includes('합성') ? ' merge' : ''}`, hint);
+    ownership.title = '동일 유닛 3기 합성 기준. 유물의 추가 합성 효과는 별도로 적용됩니다.';
+    foot.append(label, buy);
+    node.append(art, ownership, foot);
+    if (buy.disabled) node.append(el('div', 'bt-offer-reason', !canManage ? '전투 중 사용 불가' : '골드 부족'));
     return node;
+  }
+
+  previewSale(unit: OwnedUnit | null): void {
+    const tier = unit ? this.units.get(unit.unitId)?.tier : undefined;
+    this.sellOverlay.textContent = tier && unit ? `여기에 놓아 판매 +${sellRefund(tier, unit.star)}G` : '유닛을 여기에 놓아 판매';
+  }
+
+  closeDetails(): void {
+    if (this.detail.open) this.detail.close();
   }
 }
