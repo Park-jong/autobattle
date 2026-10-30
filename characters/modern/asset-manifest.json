@@ -5,7 +5,7 @@
   "assets": {
     "U01/illustration": {
       "path": "characters/modern/U01/illustration.png",
-      "prompt": "characters/modern/U01/illustration.prompt.md",
+      "prompt": "characters/modern/U01/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -13,14 +13,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.6126,
-      "bytes": 1895344,
-      "sha256": "781013336cd049c5494ea9c8ca9b1958aea3e424a3fa5c5321c7bc2f90a35096",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6013,
+      "bytes": 1863581,
+      "sha256": "dea3b39c54abbabe194b70af42aa6f1674fe2996183c9f40b7a63356a5d5b398",
+      "tool": "built-in image_gen",
+      "original_prompt": "characters/modern/U01/illustration.prompt.md",
+      "design_revision": "0b8917448ef3188359205d87f326711361a877d0909d6da6317906ff31225468"
     },
     "U01/portrait": {
       "path": "characters/modern/U01/portrait.png",
-      "prompt": "characters/modern/U01/portrait.prompt.md",
+      "prompt": "characters/modern/U01/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -28,14 +30,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.24,
-      "bytes": 2412277,
-      "sha256": "965a331ae65925f25b2a14bb80c3a8f42dc50a7fd4f01d17ce4c67ca82f5346f",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.2736,
+      "bytes": 2178548,
+      "sha256": "25cf0e7c12b6928244e9018508651cc3b159231ac52469f14a9ef78c69af5aaf",
+      "tool": "built-in image_gen",
+      "design_revision": "0b8917448ef3188359205d87f326711361a877d0909d6da6317906ff31225468",
+      "original_prompt": "characters/modern/U01/portrait.prompt.md"
     },
     "U01/sd": {
       "path": "characters/modern/U01/sd.png",
-      "prompt": "characters/modern/U01/sd.prompt.md",
+      "prompt": "characters/modern/U01/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -43,14 +47,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.5389,
-      "bytes": 1522373,
-      "sha256": "55829b4af3b9cddb1958612b181ede7243f677b976705173535eab550cc0c87e",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.5336,
+      "bytes": 1506627,
+      "sha256": "47c9834110960924f637a115f521b9988760507c76811c63c85e7c298a59d1bb",
+      "tool": "built-in image_gen",
+      "design_revision": "0b8917448ef3188359205d87f326711361a877d0909d6da6317906ff31225468",
+      "original_prompt": "characters/modern/U01/sd.prompt.md"
     },
     "U03/illustration": {
       "path": "characters/modern/U03/illustration.png",
-      "prompt": "characters/modern/U03/illustration.prompt.md",
+      "prompt": "characters/modern/U03/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -58,14 +64,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.7137,
-      "bytes": 1746710,
-      "sha256": "1876ab47ca33cb9355c5b5c79dcd77dcfb01d5cb651c8d2862f775a447cf70f3",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.7114,
+      "bytes": 1721052,
+      "sha256": "469e48e691cdd1db3666fb0e4bd59d3d766261b5bd465fe8111b35ee862cce39",
+      "tool": "built-in image_gen",
+      "design_revision": "a269d4ef94819dd03fda7963710277966a4c5947e5caf66b6ac6246f4afca909",
+      "original_prompt": "characters/modern/U03/illustration.prompt.md"
     },
     "U03/portrait": {
       "path": "characters/modern/U03/portrait.png",
-      "prompt": "characters/modern/U03/portrait.prompt.md",
+      "prompt": "characters/modern/U03/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -73,14 +81,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.3634,
-      "bytes": 2280478,
-      "sha256": "327cdbbbb0097e3fbc5bb6fe3d3798b06ea2ce5812b00c3964c2d4a1dfe6195d",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.3586,
+      "bytes": 2123991,
+      "sha256": "a5d24d1bc6c91de8be62e96fb04b1bdf71975661ad62ae0b139eb7a85b1d4cce",
+      "tool": "built-in image_gen",
+      "design_revision": "a269d4ef94819dd03fda7963710277966a4c5947e5caf66b6ac6246f4afca909",
+      "original_prompt": "characters/modern/U03/portrait.prompt.md"
     },
     "U03/sd": {
       "path": "characters/modern/U03/sd.png",
-      "prompt": "characters/modern/U03/sd.prompt.md",
+      "prompt": "characters/modern/U03/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -88,14 +98,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.5773,
-      "bytes": 1562455,
-      "sha256": "b3507da1a616cd4f46b8c0441c5e03fd953a0a50e527eca64f8aab87a32d6159",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6013,
+      "bytes": 1507998,
+      "sha256": "4fb8029d4cb840027c44b93bf6e1ef183d2539c02846db4398f71fd2d9008a31",
+      "tool": "built-in image_gen",
+      "design_revision": "a269d4ef94819dd03fda7963710277966a4c5947e5caf66b6ac6246f4afca909",
+      "original_prompt": "characters/modern/U03/sd.prompt.md"
     },
     "U06/illustration": {
       "path": "characters/modern/U06/illustration.png",
-      "prompt": "characters/modern/U06/illustration.prompt.md",
+      "prompt": "characters/modern/U06/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -103,14 +115,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.6826,
-      "bytes": 1844069,
-      "sha256": "2035c2fb709a333a9f15a96cfaf4972678721166735ed86ac0f23168e684be07",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6818,
+      "bytes": 1864975,
+      "sha256": "1f34bb0e761e62258ed967b403f473ab9fb0d20c42cc7724914158fae027d8fc",
+      "tool": "built-in image_gen",
+      "design_revision": "581e490ac05cf43e3ba1f593025e7ecd7f4ba3abf2bbd94b731b879e0567e906",
+      "original_prompt": "characters/modern/U06/illustration.prompt.md"
     },
     "U06/portrait": {
       "path": "characters/modern/U06/portrait.png",
-      "prompt": "characters/modern/U06/portrait.prompt.md",
+      "prompt": "characters/modern/U06/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -118,14 +132,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.306,
-      "bytes": 2255821,
-      "sha256": "fda56eff6960d7ac7a66de70d37de3403053f9e7f3f6e5c56389de2e19ad9334",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.3389,
+      "bytes": 2224042,
+      "sha256": "930d97d81a017d5569700d41df7507f8ea7ea0718e368dc67ce0f645795cb65b",
+      "tool": "built-in image_gen",
+      "design_revision": "581e490ac05cf43e3ba1f593025e7ecd7f4ba3abf2bbd94b731b879e0567e906",
+      "original_prompt": "characters/modern/U06/portrait.prompt.md"
     },
     "U06/sd": {
       "path": "characters/modern/U06/sd.png",
-      "prompt": "characters/modern/U06/sd.prompt.md",
+      "prompt": "characters/modern/U06/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -133,10 +149,12 @@
         0,
         255
       ],
-      "transparent_fraction": 0.6258,
-      "bytes": 1358773,
-      "sha256": "2997e258255f32db6864eeb334479204fa731af7818daa57a31cc86171ecd44f",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6192,
+      "bytes": 1339730,
+      "sha256": "efbb43664363295d0ac128dbf9635f89948a9966345bbdab88c9cbb4bafd7230",
+      "tool": "built-in image_gen",
+      "design_revision": "581e490ac05cf43e3ba1f593025e7ecd7f4ba3abf2bbd94b731b879e0567e906",
+      "original_prompt": "characters/modern/U06/sd.prompt.md"
     },
     "C01/illustration": {
       "path": "characters/modern/C01/illustration.png",
@@ -148,10 +166,11 @@
         0,
         254
       ],
-      "transparent_fraction": 0.6247,
-      "bytes": 1804123,
-      "sha256": "a28f964c3e7698907c51cf5b809f1e34af89cf9023af8212c82938ca14ad38f5",
+      "transparent_fraction": 0.6148,
+      "bytes": 1843750,
+      "sha256": "10dbce4cb2d5e2e82ad8ad0874213bb47960583f90fb042e255d31bc301e7733",
       "tool": "built-in image_gen",
+      "design_revision": "44ff388f602ad06d10126bbbecac0b2258896090cf9c21e5ea7e2b1595b8c8b8",
       "original_prompt": "characters/modern/C01/illustration.prompt.md"
     },
     "C01/portrait": {
@@ -164,10 +183,11 @@
         0,
         255
       ],
-      "transparent_fraction": 0.4588,
-      "bytes": 1723547,
-      "sha256": "d9ea80af8b5d57388dcb51574a6eb5842ffa8c86d522adf61c9c6eac38e995c8",
+      "transparent_fraction": 0.4769,
+      "bytes": 1636658,
+      "sha256": "c230fd4df289bcdcb5c46a068eb8e26ff63b703eacf66658b0762364ab1856cc",
       "tool": "built-in image_gen",
+      "design_revision": "44ff388f602ad06d10126bbbecac0b2258896090cf9c21e5ea7e2b1595b8c8b8",
       "original_prompt": "characters/modern/C01/portrait.prompt.md"
     },
     "C01/sd": {
@@ -180,15 +200,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.6048,
-      "bytes": 1370190,
-      "sha256": "979c19100f195633ef0c78a8dbbd4aac79daa9dd4e9f5baa8b1c04bc1af5bd25",
+      "transparent_fraction": 0.5431,
+      "bytes": 1563473,
+      "sha256": "5a7f99700f7c555a2e86fe770d4d2755fad3f93135827142eb89743120460263",
       "tool": "built-in image_gen",
+      "design_revision": "44ff388f602ad06d10126bbbecac0b2258896090cf9c21e5ea7e2b1595b8c8b8",
       "original_prompt": "characters/modern/C01/sd.prompt.md"
     },
     "U02/illustration": {
       "path": "characters/modern/U02/illustration.png",
-      "prompt": "characters/modern/U02/illustration.prompt.md",
+      "prompt": "characters/modern/U02/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -196,14 +217,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.708,
-      "bytes": 1774083,
-      "sha256": "c7294a450b39984973f1dc7f3d07ab4ef4c73138504a8cea901ca3932cda818a",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.7018,
+      "bytes": 1758290,
+      "sha256": "a3a3cf969f9bc4b79c9ffae6dd31a8c4e621f584f5a5b4f47d8d99d9750c17dd",
+      "tool": "built-in image_gen",
+      "design_revision": "08d115c6bb7c4ffd19594d0d28c7b1a356340c11594d7d33aa36d67653022794",
+      "original_prompt": "characters/modern/U02/illustration.prompt.md"
     },
     "U02/portrait": {
       "path": "characters/modern/U02/portrait.png",
-      "prompt": "characters/modern/U02/portrait.prompt.md",
+      "prompt": "characters/modern/U02/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -211,14 +234,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.4093,
-      "bytes": 1996407,
-      "sha256": "7b83276c08e591e00d6d6a3e7b8ff305b849955401f94956779e0d115e87592f",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.3988,
+      "bytes": 1966240,
+      "sha256": "b0a1d40d728d140c6913a6c1a727341738611864b92c64a8c6bbdf3d1876d898",
+      "tool": "built-in image_gen",
+      "design_revision": "08d115c6bb7c4ffd19594d0d28c7b1a356340c11594d7d33aa36d67653022794",
+      "original_prompt": "characters/modern/U02/portrait.prompt.md"
     },
     "U02/sd": {
       "path": "characters/modern/U02/sd.png",
-      "prompt": "characters/modern/U02/sd.prompt.md",
+      "prompt": "characters/modern/U02/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -226,14 +251,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.6456,
-      "bytes": 1290410,
-      "sha256": "fee7a2ef271c9761f57defe6dd244ef3ab2145546a5d25abd710c9f0604b5ca3",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.5924,
+      "bytes": 1466846,
+      "sha256": "21bbeb9648c3a750222309a9a2ee590db134cdc5946d1b87ebc2f5a6e3d0be7a",
+      "tool": "built-in image_gen",
+      "design_revision": "08d115c6bb7c4ffd19594d0d28c7b1a356340c11594d7d33aa36d67653022794",
+      "original_prompt": "characters/modern/U02/sd.prompt.md"
     },
     "U04/illustration": {
       "path": "characters/modern/U04/illustration.png",
-      "prompt": "characters/modern/U04/illustration.prompt.md",
+      "prompt": "characters/modern/U04/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -241,14 +268,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.555,
-      "bytes": 2017945,
-      "sha256": "53c1a7e593feb140d1bcb325f9b0999726b2f5c6170218e0e8f023a3f5122a8c",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.5434,
+      "bytes": 2017631,
+      "sha256": "9cf7a5542edf52cf86b089958da4a1549ac5593599e7850f22050a8e5b8cc2ac",
+      "tool": "built-in image_gen",
+      "design_revision": "cd292bc7fd2176122c66fd70540c5f2b3c7b26ad7ab4ff3303a4d4675e98073e",
+      "original_prompt": "characters/modern/U04/illustration.prompt.md"
     },
     "U04/portrait": {
       "path": "characters/modern/U04/portrait.png",
-      "prompt": "characters/modern/U04/portrait.prompt.md",
+      "prompt": "characters/modern/U04/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -256,14 +285,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.2952,
-      "bytes": 2264682,
-      "sha256": "a51a626d29aa0ee884050ffd0defa768e552dbe3f5fd2ae4220ecc2c9a05a7cb",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.3084,
+      "bytes": 2238184,
+      "sha256": "d1252c0b8f904e712b44cf48fb43258efe597a25f09a52e01c2467a90322cc35",
+      "tool": "built-in image_gen",
+      "design_revision": "cd292bc7fd2176122c66fd70540c5f2b3c7b26ad7ab4ff3303a4d4675e98073e",
+      "original_prompt": "characters/modern/U04/portrait.prompt.md"
     },
     "U04/sd": {
       "path": "characters/modern/U04/sd.png",
-      "prompt": "characters/modern/U04/sd.prompt.md",
+      "prompt": "characters/modern/U04/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -271,14 +302,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.5338,
-      "bytes": 1596502,
-      "sha256": "9a2624ec56f2f4957158433056ea8ad5fbcb28e5093e31e41d4f178d2c0b1fd5",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.5444,
+      "bytes": 1538796,
+      "sha256": "9169b4fe86df9ac52c8e895c07338fc0563b88f35909edcf66b098868e48db40",
+      "tool": "built-in image_gen",
+      "design_revision": "cd292bc7fd2176122c66fd70540c5f2b3c7b26ad7ab4ff3303a4d4675e98073e",
+      "original_prompt": "characters/modern/U04/sd.prompt.md"
     },
     "U05/illustration": {
       "path": "characters/modern/U05/illustration.png",
-      "prompt": "characters/modern/U05/illustration.prompt.md",
+      "prompt": "characters/modern/U05/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -286,14 +319,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.6548,
-      "bytes": 1911956,
-      "sha256": "de7aeaaa8f02794eaf9f72ca92027a6d4cb4a0985db5f8ce850246007d62b73a",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6451,
+      "bytes": 1874562,
+      "sha256": "01f6537c5298690083bb2b95be0cc4e82069c850fa3a86be8401e57389efc91c",
+      "tool": "built-in image_gen",
+      "design_revision": "ae5ef067c9508ac3d188a8ada0d93028fb88d4d73ce455feef81cc4a40cdf5c0",
+      "original_prompt": "characters/modern/U05/illustration.prompt.md"
     },
     "U05/portrait": {
       "path": "characters/modern/U05/portrait.png",
-      "prompt": "characters/modern/U05/portrait.prompt.md",
+      "prompt": "characters/modern/U05/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -301,14 +336,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.3381,
-      "bytes": 2267634,
-      "sha256": "44088f76ccd46eda7454881c1966371ff9bab8d19b14917eb262409a5d9e1aa7",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.3183,
+      "bytes": 2206907,
+      "sha256": "d08b8030facdfe6fb976f36fdf556a283285522d1354ccdd54fe48eb3fe3bd94",
+      "tool": "built-in image_gen",
+      "design_revision": "ae5ef067c9508ac3d188a8ada0d93028fb88d4d73ce455feef81cc4a40cdf5c0",
+      "original_prompt": "characters/modern/U05/portrait.prompt.md"
     },
     "U05/sd": {
       "path": "characters/modern/U05/sd.png",
-      "prompt": "characters/modern/U05/sd.prompt.md",
+      "prompt": "characters/modern/U05/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -316,14 +353,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.5768,
-      "bytes": 1565294,
-      "sha256": "aa1c9601d0924f6c5c0cae469e27dac0c5e7331b1eb0726fc880cdecb88c8f44",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.563,
+      "bytes": 1570970,
+      "sha256": "6247c59bdcf9d156ad3530016cf66aef5b6e2650dc2ee99e0d2e5aa53bbf18e9",
+      "tool": "built-in image_gen",
+      "design_revision": "ae5ef067c9508ac3d188a8ada0d93028fb88d4d73ce455feef81cc4a40cdf5c0",
+      "original_prompt": "characters/modern/U05/sd.prompt.md"
     },
     "U07/illustration": {
       "path": "characters/modern/U07/illustration.png",
-      "prompt": "characters/modern/U07/illustration.prompt.md",
+      "prompt": "characters/modern/U07/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -331,14 +370,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.6613,
-      "bytes": 1871392,
-      "sha256": "293eb1fd7f824562f1dda81a50e04ee422441dda13c74dd8c287e336bb30e344",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6379,
+      "bytes": 1918888,
+      "sha256": "01ebfd928b7130f0e9e0dda8c7ba0903881bcb40cd10fa7422430922f370a9ab",
+      "tool": "built-in image_gen",
+      "design_revision": "cda218faa072dd96745176c7daf843e3e4df48ea7189313aea8be5c9b420b16e",
+      "original_prompt": "characters/modern/U07/illustration.prompt.md"
     },
     "U07/portrait": {
       "path": "characters/modern/U07/portrait.png",
-      "prompt": "characters/modern/U07/portrait.prompt.md",
+      "prompt": "characters/modern/U07/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -346,14 +387,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.2279,
-      "bytes": 2491331,
-      "sha256": "aad3ace847be097d504e17b23863a00b337ddf102fd0b2c2c425146e00581bfe",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.2957,
+      "bytes": 2268144,
+      "sha256": "0801c5fa7d9a6d36589f27309e0f2dd22fc4d1a05d6e421639171422e0091ee1",
+      "tool": "built-in image_gen",
+      "design_revision": "cda218faa072dd96745176c7daf843e3e4df48ea7189313aea8be5c9b420b16e",
+      "original_prompt": "characters/modern/U07/portrait.prompt.md"
     },
     "U07/sd": {
       "path": "characters/modern/U07/sd.png",
-      "prompt": "characters/modern/U07/sd.prompt.md",
+      "prompt": "characters/modern/U07/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -361,14 +404,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.5804,
-      "bytes": 1528794,
-      "sha256": "ebe68aaa69df7ad7f6524238250194b4daacd421184e35d64ca7a5b51e7ed50c",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.571,
+      "bytes": 1469926,
+      "sha256": "248d382241108bb1b2ff5ee89c79e1d001f605901ab7c141139be8ef2ac9ee7b",
+      "tool": "built-in image_gen",
+      "design_revision": "cda218faa072dd96745176c7daf843e3e4df48ea7189313aea8be5c9b420b16e",
+      "original_prompt": "characters/modern/U07/sd.prompt.md"
     },
     "U08/illustration": {
       "path": "characters/modern/U08/illustration.png",
-      "prompt": "characters/modern/U08/illustration.prompt.md",
+      "prompt": "characters/modern/U08/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -376,14 +421,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.6959,
-      "bytes": 1738782,
-      "sha256": "219e40811ec8d1a72b04b0ae01a66a36887b848bed7856b678f5d971b070dd63",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6952,
+      "bytes": 1722324,
+      "sha256": "2536fa3fe8874eb0a7e7143ed4b0a25a98763b8bf0cfadc69536cba96a02970e",
+      "tool": "built-in image_gen",
+      "design_revision": "96f02bf70dc8a3631fe515f753390c73dd633f94e7432e8cae54ae614702aa1d",
+      "original_prompt": "characters/modern/U08/illustration.prompt.md"
     },
     "U08/portrait": {
       "path": "characters/modern/U08/portrait.png",
-      "prompt": "characters/modern/U08/portrait.prompt.md",
+      "prompt": "characters/modern/U08/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -391,14 +438,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.3028,
-      "bytes": 2286891,
-      "sha256": "77d16420b60d63f7a3ca25bd1db6ff020fbf23a72ca2481d617a0aaf019671f8",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.2915,
+      "bytes": 2225107,
+      "sha256": "783650ca0037f815b0ceb5c9a2973db47f3d509346837061c4c9b5730c5257b7",
+      "tool": "built-in image_gen",
+      "design_revision": "96f02bf70dc8a3631fe515f753390c73dd633f94e7432e8cae54ae614702aa1d",
+      "original_prompt": "characters/modern/U08/portrait.prompt.md"
     },
     "U08/sd": {
       "path": "characters/modern/U08/sd.png",
-      "prompt": "characters/modern/U08/sd.prompt.md",
+      "prompt": "characters/modern/U08/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -406,14 +455,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.6164,
-      "bytes": 1311710,
-      "sha256": "bd7d70dcf062838efafbf8eed569417f17a727f9170e978f08092347be880709",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6305,
+      "bytes": 1287362,
+      "sha256": "e487adfe426e062eccbb068f7e9907801a03b7549d254152c62524198e378e1a",
+      "tool": "built-in image_gen",
+      "design_revision": "96f02bf70dc8a3631fe515f753390c73dd633f94e7432e8cae54ae614702aa1d",
+      "original_prompt": "characters/modern/U08/sd.prompt.md"
     },
     "U09/illustration": {
       "path": "characters/modern/U09/illustration.png",
-      "prompt": "characters/modern/U09/illustration.prompt.md",
+      "prompt": "characters/modern/U09/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -421,14 +472,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.6718,
-      "bytes": 1869313,
-      "sha256": "936d9f9d51ca28c0dce3d675e100d9cc7233c5b3a5e3bc5102cc16efa07a76f8",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6642,
+      "bytes": 1816986,
+      "sha256": "2cba1ebd1b9da7344dac75ea79f5a7ac6aa4253adba292f96e4782b68c31bb8b",
+      "tool": "built-in image_gen",
+      "design_revision": "d178b4751795a5868201d838cfdad8779dc30aafa6a92505d04a1fedea1d4617",
+      "original_prompt": "characters/modern/U09/illustration.prompt.md"
     },
     "U09/portrait": {
       "path": "characters/modern/U09/portrait.png",
-      "prompt": "characters/modern/U09/portrait.prompt.md",
+      "prompt": "characters/modern/U09/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -436,14 +489,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.3171,
-      "bytes": 2174000,
-      "sha256": "b441884f638bcfea8a5dadf7ae82163207525b7950de922481751731e20b622f",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.2497,
+      "bytes": 2242002,
+      "sha256": "65314b3ec7ac17f672db22c0842ae2ad71c17dc9b816845fe72369a647742697",
+      "tool": "built-in image_gen",
+      "design_revision": "d178b4751795a5868201d838cfdad8779dc30aafa6a92505d04a1fedea1d4617",
+      "original_prompt": "characters/modern/U09/portrait.prompt.md"
     },
     "U09/sd": {
       "path": "characters/modern/U09/sd.png",
-      "prompt": "characters/modern/U09/sd.prompt.md",
+      "prompt": "characters/modern/U09/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -451,14 +506,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.6318,
-      "bytes": 1309409,
-      "sha256": "089e2c67893086c23370b250e0852ed5e460f3a3235def93e769ba5233d2b719",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.5903,
+      "bytes": 1415768,
+      "sha256": "d9c6dac845e262e8507b8805732c2acbe1f6721c1f9ec875c460735da21c88a5",
+      "tool": "built-in image_gen",
+      "design_revision": "d178b4751795a5868201d838cfdad8779dc30aafa6a92505d04a1fedea1d4617",
+      "original_prompt": "characters/modern/U09/sd.prompt.md"
     },
     "U10/illustration": {
       "path": "characters/modern/U10/illustration.png",
-      "prompt": "characters/modern/U10/illustration.prompt.md",
+      "prompt": "characters/modern/U10/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -466,14 +523,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.7081,
-      "bytes": 1727183,
-      "sha256": "a4755466f3e69c87a4c2ae918e7b2b412d18fbd9bac8d34c03fe1b27283ee037",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.7069,
+      "bytes": 1684273,
+      "sha256": "8ce798992b94fcbaf0cc726d85a5826400e4760e67279dd5459a1bfa2fb02a29",
+      "tool": "built-in image_gen",
+      "design_revision": "dfd60e9e1cc9c219cbdb665d912f52f94eec5fdc4af440b8d8b16b3d37da4330",
+      "original_prompt": "characters/modern/U10/illustration.prompt.md"
     },
     "U10/portrait": {
       "path": "characters/modern/U10/portrait.png",
-      "prompt": "characters/modern/U10/portrait.prompt.md",
+      "prompt": "characters/modern/U10/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -481,14 +540,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.34,
-      "bytes": 2203018,
-      "sha256": "4153349ada7259a954846615eba00a0f5b4b8378a6580832fbcf4c2a554674ed",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.4006,
+      "bytes": 1963036,
+      "sha256": "022af5653b32fa455edea92b2d97cd38dd58e05c0ca828598615b97688a92f0f",
+      "tool": "built-in image_gen",
+      "design_revision": "dfd60e9e1cc9c219cbdb665d912f52f94eec5fdc4af440b8d8b16b3d37da4330",
+      "original_prompt": "characters/modern/U10/portrait.prompt.md"
     },
     "U10/sd": {
       "path": "characters/modern/U10/sd.png",
-      "prompt": "characters/modern/U10/sd.prompt.md",
+      "prompt": "characters/modern/U10/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -496,14 +557,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.6308,
-      "bytes": 1295733,
-      "sha256": "b3c4eff438069782308181e7aa4538164f24c38d7b4024427f99f9de6c09b6ac",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6499,
+      "bytes": 1204169,
+      "sha256": "159e035afc63f9b5a17882a706d0815fa2fe27e148d48e6700836db0ca0b533a",
+      "tool": "built-in image_gen",
+      "design_revision": "dfd60e9e1cc9c219cbdb665d912f52f94eec5fdc4af440b8d8b16b3d37da4330",
+      "original_prompt": "characters/modern/U10/sd.prompt.md"
     },
     "C02/illustration": {
       "path": "characters/modern/C02/illustration.png",
-      "prompt": "characters/modern/C02/illustration.prompt.md",
+      "prompt": "characters/modern/C02/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -511,14 +574,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.6123,
-      "bytes": 2004802,
-      "sha256": "b6473f6b8e14974923025bd2f6c72ff6e35baeda501748ce5cbb1c1a55f59abb",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6063,
+      "bytes": 1976167,
+      "sha256": "50badba7a532c0488d551614101b511c8de194af7eb792483e2bd418dde781d4",
+      "tool": "built-in image_gen",
+      "design_revision": "18c3de076ebbcfec368035c44e39b997dd041523e80a317253f319bd759eb305",
+      "original_prompt": "characters/modern/C02/illustration.prompt.md"
     },
     "C02/portrait": {
       "path": "characters/modern/C02/portrait.png",
-      "prompt": "characters/modern/C02/portrait.prompt.md",
+      "prompt": "characters/modern/C02/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -526,14 +591,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.245,
-      "bytes": 2409479,
-      "sha256": "071a60691954e31a9527465f169aafc634e97827e3869beb5c094c31a04c14bf",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.254,
+      "bytes": 2406638,
+      "sha256": "10c975f8f22bd8f6a52b8c72857bf599f107c2dda9200c3c77652d68c30512c1",
+      "tool": "built-in image_gen",
+      "design_revision": "18c3de076ebbcfec368035c44e39b997dd041523e80a317253f319bd759eb305",
+      "original_prompt": "characters/modern/C02/portrait.prompt.md"
     },
     "C02/sd": {
       "path": "characters/modern/C02/sd.png",
-      "prompt": "characters/modern/C02/sd.prompt.md",
+      "prompt": "characters/modern/C02/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -541,14 +608,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.5206,
-      "bytes": 1688954,
-      "sha256": "84560baf1460026984edce1ff73b1bf42b510f30bb1ba85a67050daaadf7ea1b",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.5115,
+      "bytes": 1760388,
+      "sha256": "7f7ba2e67bf81613903599a3038b7cd89aadd4e6109c9a2384b019286085dba1",
+      "tool": "built-in image_gen",
+      "design_revision": "18c3de076ebbcfec368035c44e39b997dd041523e80a317253f319bd759eb305",
+      "original_prompt": "characters/modern/C02/sd.prompt.md"
     },
     "C03/illustration": {
       "path": "characters/modern/C03/illustration.png",
-      "prompt": "characters/modern/C03/illustration.prompt.md",
+      "prompt": "characters/modern/C03/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -556,14 +625,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.6462,
-      "bytes": 1900503,
-      "sha256": "968430ba0c72424cefc2fd813fbe447b2418b5606f186ad896b217f941c7c5ea",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6329,
+      "bytes": 1961292,
+      "sha256": "f2b09d5b032637839e8aea8af85c81d020851c014ded5842b1e4640e064d99f4",
+      "tool": "built-in image_gen",
+      "design_revision": "d3203170eb372d3b830f5df20d7fc37785a1c1d5465ba94e77f3dac03f107f74",
+      "original_prompt": "characters/modern/C03/illustration.prompt.md"
     },
     "C03/portrait": {
       "path": "characters/modern/C03/portrait.png",
-      "prompt": "characters/modern/C03/portrait.prompt.md",
+      "prompt": "characters/modern/C03/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -571,14 +642,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.2507,
-      "bytes": 2412728,
-      "sha256": "6cb6c0f539b08664e0623c488c1e0a5468d77620ff018ccbd5d936cf6da50af2",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.2844,
+      "bytes": 2390728,
+      "sha256": "e9609df29bff5609df52b9590b1bdd634f7349e13a177a50128817135535d455",
+      "tool": "built-in image_gen",
+      "design_revision": "d3203170eb372d3b830f5df20d7fc37785a1c1d5465ba94e77f3dac03f107f74",
+      "original_prompt": "characters/modern/C03/portrait.prompt.md"
     },
     "C03/sd": {
       "path": "characters/modern/C03/sd.png",
-      "prompt": "characters/modern/C03/sd.prompt.md",
+      "prompt": "characters/modern/C03/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -586,14 +659,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.5498,
-      "bytes": 1679422,
-      "sha256": "eae26e5d5964804d25eaef5ba26e858f027563256dd2e39d425f2488d6890211",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.5372,
+      "bytes": 1722152,
+      "sha256": "dd2a322cf30330e91847f0b4290d8920bbce25c4d5c1e93759422f5df8d75296",
+      "tool": "built-in image_gen",
+      "design_revision": "d3203170eb372d3b830f5df20d7fc37785a1c1d5465ba94e77f3dac03f107f74",
+      "original_prompt": "characters/modern/C03/sd.prompt.md"
     },
     "U11/illustration": {
       "path": "characters/modern/U11/illustration.png",
-      "prompt": "characters/modern/U11/illustration.prompt.md",
+      "prompt": "characters/modern/U11/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -601,14 +676,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.6509,
-      "bytes": 1899784,
-      "sha256": "54e5d2ce5774e4ce2ee88e1f7dc4a31e5c4444881f5c20a1132a4dcfa2a001d0",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6536,
+      "bytes": 1870645,
+      "sha256": "486c75dd8147c538cf0861e731f15b8292af3990a5409d64958df6382c7f793e",
+      "tool": "built-in image_gen",
+      "design_revision": "50a16895ec826da2a86d9660909ebdec88f14ff7aa8a6342529628b6181c961d",
+      "original_prompt": "characters/modern/U11/illustration.prompt.md"
     },
     "U11/portrait": {
       "path": "characters/modern/U11/portrait.png",
-      "prompt": "characters/modern/U11/portrait.prompt.md",
+      "prompt": "characters/modern/U11/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -616,14 +693,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.2796,
-      "bytes": 2242522,
-      "sha256": "2581c9f2c3f3911a9d03eb531b0752f81eacc864b7f85d83b4aa53f5fd89a265",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.3332,
+      "bytes": 2036763,
+      "sha256": "39f7a3083bb256f5afbf078422ef829d0b78c041be03b9d9b186626e719a2693",
+      "tool": "built-in image_gen",
+      "design_revision": "50a16895ec826da2a86d9660909ebdec88f14ff7aa8a6342529628b6181c961d",
+      "original_prompt": "characters/modern/U11/portrait.prompt.md"
     },
     "U11/sd": {
       "path": "characters/modern/U11/sd.png",
-      "prompt": "characters/modern/U11/sd.prompt.md",
+      "prompt": "characters/modern/U11/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -631,14 +710,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.6243,
-      "bytes": 1348282,
-      "sha256": "ee862775dc8438ab19a8011ab5bd1242df1493ab486fcc0434d6cd17e074e473",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.5646,
+      "bytes": 1556149,
+      "sha256": "cc479bce9352b4dd164bc2d51f796d93b8bd01ec652133beb9a0a3761ac2fc71",
+      "tool": "built-in image_gen",
+      "design_revision": "50a16895ec826da2a86d9660909ebdec88f14ff7aa8a6342529628b6181c961d",
+      "original_prompt": "characters/modern/U11/sd.prompt.md"
     },
     "U12/illustration": {
       "path": "characters/modern/U12/illustration.png",
-      "prompt": "characters/modern/U12/illustration.prompt.md",
+      "prompt": "characters/modern/U12/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -646,14 +727,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.6293,
-      "bytes": 1938361,
-      "sha256": "cfe3005c782e54854b52172ce1039a0c011beb06500ca4b33f8b6f8c16bf77f2",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6105,
+      "bytes": 1943775,
+      "sha256": "ec9c531be1ec9ebd0aa8df91c0820cd3267f466bb72bbc7853eaa1c34a233119",
+      "tool": "built-in image_gen",
+      "design_revision": "e8576290db683c5b7abb958d08bbb5fc87fa45cb6a236f2e38be4b2fb03c5e58",
+      "original_prompt": "characters/modern/U12/illustration.prompt.md"
     },
     "U12/portrait": {
       "path": "characters/modern/U12/portrait.png",
-      "prompt": "characters/modern/U12/portrait.prompt.md",
+      "prompt": "characters/modern/U12/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -661,14 +744,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.2608,
-      "bytes": 2345277,
-      "sha256": "3e68b1eacb327270a052cdcb505c3a71209277cf43e05ed61b84f9f5d39dfa65",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.2963,
+      "bytes": 2294832,
+      "sha256": "d48c5c38066f9e0a28e5bf259212861565f7a1623033a1851c431015eb9a04a6",
+      "tool": "built-in image_gen",
+      "design_revision": "e8576290db683c5b7abb958d08bbb5fc87fa45cb6a236f2e38be4b2fb03c5e58",
+      "original_prompt": "characters/modern/U12/portrait.prompt.md"
     },
     "U12/sd": {
       "path": "characters/modern/U12/sd.png",
-      "prompt": "characters/modern/U12/sd.prompt.md",
+      "prompt": "characters/modern/U12/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -676,14 +761,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.5461,
-      "bytes": 1605236,
-      "sha256": "75478aac65a20e792fa0c88af011e2752255f3305289c924be8385b8dc77d695",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.5306,
+      "bytes": 1600494,
+      "sha256": "fda6a49bb6a2532142e74f873758e1ec36a1b12b21b86c29b2f4aefbda5e75af",
+      "tool": "built-in image_gen",
+      "design_revision": "e8576290db683c5b7abb958d08bbb5fc87fa45cb6a236f2e38be4b2fb03c5e58",
+      "original_prompt": "characters/modern/U12/sd.prompt.md"
     },
     "U13/illustration": {
       "path": "characters/modern/U13/illustration.png",
-      "prompt": "characters/modern/U13/illustration.prompt.md",
+      "prompt": "characters/modern/U13/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -691,14 +778,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.6281,
-      "bytes": 1940217,
-      "sha256": "f6fe1e8e6a666fa2d0a48daa16323eba3502d0e7d71235a50d9fc9d3b0382fae",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6132,
+      "bytes": 1968130,
+      "sha256": "ce1e638c135651d1cf1399fa7f82b2b988744d25aa46d306de21b9a6a8575ded",
+      "tool": "built-in image_gen",
+      "design_revision": "cb9d2c6c260f4b1032bd6cd34f59920b57c28bf84194f97ebf80a50d0d6f3b6c",
+      "original_prompt": "characters/modern/U13/illustration.prompt.md"
     },
     "U13/portrait": {
       "path": "characters/modern/U13/portrait.png",
-      "prompt": "characters/modern/U13/portrait.prompt.md",
+      "prompt": "characters/modern/U13/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -706,14 +795,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.385,
-      "bytes": 2114261,
-      "sha256": "9689f617d0b1d115e4023c80111afcc0ab9277dd336750083423e93a82bac3ce",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.2553,
+      "bytes": 2469961,
+      "sha256": "5862629778b978de255678971f805b5348e9bfc4c50bd007cfcc4e87223f211f",
+      "tool": "built-in image_gen",
+      "design_revision": "cb9d2c6c260f4b1032bd6cd34f59920b57c28bf84194f97ebf80a50d0d6f3b6c",
+      "original_prompt": "characters/modern/U13/portrait.prompt.md"
     },
     "U13/sd": {
       "path": "characters/modern/U13/sd.png",
-      "prompt": "characters/modern/U13/sd.prompt.md",
+      "prompt": "characters/modern/U13/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -721,14 +812,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.5333,
-      "bytes": 1711241,
-      "sha256": "aeb39519c55363fc8aca7d72dd7ebebf5d42b9f02aedcf7c19465b360f1b2333",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.4916,
+      "bytes": 1832353,
+      "sha256": "70f1a8b276ec8c468c9642b2bf02caf4f8ace646c2d9e5353c6abb6a116831a5",
+      "tool": "built-in image_gen",
+      "design_revision": "cb9d2c6c260f4b1032bd6cd34f59920b57c28bf84194f97ebf80a50d0d6f3b6c",
+      "original_prompt": "characters/modern/U13/sd.prompt.md"
     },
     "U14/illustration": {
       "path": "characters/modern/U14/illustration.png",
-      "prompt": "characters/modern/U14/illustration.prompt.md",
+      "prompt": "characters/modern/U14/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -736,14 +829,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.6252,
-      "bytes": 2003786,
-      "sha256": "0e3da2160d3eeed40a4657b3e336ad762f72f3fa4693546256cf2d67fa3d07cf",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6132,
+      "bytes": 1983625,
+      "sha256": "b455635debb40d87c5958e304f9eed060843b3e970d589c95ed805c639f3765f",
+      "tool": "built-in image_gen",
+      "design_revision": "94bcbddaa2def8492c7667cd1521cf5f694029167e318a1f9aff487f7d9933d0",
+      "original_prompt": "characters/modern/U14/illustration.prompt.md"
     },
     "U14/portrait": {
       "path": "characters/modern/U14/portrait.png",
-      "prompt": "characters/modern/U14/portrait.prompt.md",
+      "prompt": "characters/modern/U14/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -751,14 +846,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.2932,
-      "bytes": 2371705,
-      "sha256": "7ccca8184278455e99fb030dd05686f2265344a2faec8105035050dcf091b4af",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.2743,
+      "bytes": 2276169,
+      "sha256": "ee841b03904b437a2610ca4ab2445a690335bb52756bf84643239aedf90af664",
+      "tool": "built-in image_gen",
+      "design_revision": "94bcbddaa2def8492c7667cd1521cf5f694029167e318a1f9aff487f7d9933d0",
+      "original_prompt": "characters/modern/U14/portrait.prompt.md"
     },
     "U14/sd": {
       "path": "characters/modern/U14/sd.png",
-      "prompt": "characters/modern/U14/sd.prompt.md",
+      "prompt": "characters/modern/U14/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -766,14 +863,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.5701,
-      "bytes": 1556759,
-      "sha256": "4cca854349b59e63993abe618d0dc8ef4a4685ccbf2704b3772c422bed3239ff",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.5339,
+      "bytes": 1659445,
+      "sha256": "712b9e19c4d191dea5afaac04c559147f2d161d1bf8d5c3120f9f68c40de2d25",
+      "tool": "built-in image_gen",
+      "design_revision": "94bcbddaa2def8492c7667cd1521cf5f694029167e318a1f9aff487f7d9933d0",
+      "original_prompt": "characters/modern/U14/sd.prompt.md"
     },
     "U15/illustration": {
       "path": "characters/modern/U15/illustration.png",
-      "prompt": "characters/modern/U15/illustration.prompt.md",
+      "prompt": "characters/modern/U15/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -781,14 +880,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.6376,
-      "bytes": 1926423,
-      "sha256": "c6f1e74583e021bc85d8753d5bfb522278659969e99e1d50027119e4c0f6d2ef",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6271,
+      "bytes": 1930610,
+      "sha256": "d21560fcf4aeec91a1e81cae33d5384885f9316865642b9bd9b60c9229731340",
+      "tool": "built-in image_gen",
+      "design_revision": "51d128a03640a5ce242e81247ac93eee1d2b484ea994b5fb9ddf4f22343fa4e6",
+      "original_prompt": "characters/modern/U15/illustration.prompt.md"
     },
     "U15/portrait": {
       "path": "characters/modern/U15/portrait.png",
-      "prompt": "characters/modern/U15/portrait.prompt.md",
+      "prompt": "characters/modern/U15/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -796,10 +897,12 @@
         0,
         255
       ],
-      "transparent_fraction": 0.2833,
-      "bytes": 2456486,
-      "sha256": "370f69b59e035f641b3eb54fd41eb4001bc4f5fae3d879bd0f50c7bf37f9ef20",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.3278,
+      "bytes": 2178400,
+      "sha256": "b2e76b7bf60b95bacae625b19a801e6c85919fdeb11628eca2d06ea9a1400916",
+      "tool": "built-in image_gen",
+      "design_revision": "51d128a03640a5ce242e81247ac93eee1d2b484ea994b5fb9ddf4f22343fa4e6",
+      "original_prompt": "characters/modern/U15/portrait.prompt.md"
     },
     "U15/sd": {
       "path": "characters/modern/U15/sd.png",
@@ -811,15 +914,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.5859,
-      "bytes": 1575175,
-      "sha256": "1dc0bd7b2dad4250e9cd292bf62e5514058d5b05faf57289fac2475fde2ff397",
+      "transparent_fraction": 0.5871,
+      "bytes": 1519253,
+      "sha256": "a8f84feff084c50bbf1d7c63bd022ec4415531eb53969645d36cb97f22748fae",
       "tool": "built-in image_gen",
+      "design_revision": "51d128a03640a5ce242e81247ac93eee1d2b484ea994b5fb9ddf4f22343fa4e6",
       "original_prompt": "characters/modern/U15/sd.prompt.md"
     },
     "U16/illustration": {
       "path": "characters/modern/U16/illustration.png",
-      "prompt": "characters/modern/U16/illustration.prompt.md",
+      "prompt": "characters/modern/U16/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -827,14 +931,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.6566,
-      "bytes": 1824700,
-      "sha256": "342b2c409a110b8faf671869e4c7c56ef69ef72089fb8815fd3f8e834a285fd1",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6432,
+      "bytes": 1880429,
+      "sha256": "f5d9f3635168bbf09d2efb92ba01282b5ec9ec29248387adcd6a63756d7a6b48",
+      "tool": "built-in image_gen",
+      "design_revision": "eb3143a338b020cc2abde43535b74efd4dbf2b425570e548f2fa764abe35110e",
+      "original_prompt": "characters/modern/U16/illustration.prompt.md"
     },
     "U16/portrait": {
       "path": "characters/modern/U16/portrait.png",
-      "prompt": "characters/modern/U16/portrait.prompt.md",
+      "prompt": "characters/modern/U16/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -842,14 +948,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.2789,
-      "bytes": 2295226,
-      "sha256": "6ac4585f164d90627d8967436ea0462e521999e0e27d31f64bdb26b9ff0040f5",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.2639,
+      "bytes": 2281970,
+      "sha256": "047aab256445f184ff79813615c87af2b52bf000a2182ecf5d18d86a5b841d7a",
+      "tool": "built-in image_gen",
+      "design_revision": "eb3143a338b020cc2abde43535b74efd4dbf2b425570e548f2fa764abe35110e",
+      "original_prompt": "characters/modern/U16/portrait.prompt.md"
     },
     "U16/sd": {
       "path": "characters/modern/U16/sd.png",
-      "prompt": "characters/modern/U16/sd.prompt.md",
+      "prompt": "characters/modern/U16/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -857,59 +965,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.5603,
-      "bytes": 1609313,
-      "sha256": "5aca682b800438501bfbccc6b69ab4a6a792ec64e4a6496897bdb5441071cbe1",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.5517,
+      "bytes": 1584544,
+      "sha256": "3d36cb817d5ac7cc848348fb1f96dd888fbe88c50712ab087b690bdf5eb306e6",
+      "tool": "built-in image_gen",
+      "design_revision": "eb3143a338b020cc2abde43535b74efd4dbf2b425570e548f2fa764abe35110e",
+      "original_prompt": "characters/modern/U16/sd.prompt.md"
     },
     "U17/illustration": {
       "path": "characters/modern/U17/illustration.png",
-      "prompt": "characters/modern/U17/illustration.prompt.md",
-      "width": 1024,
-      "height": 1536,
-      "mode": "RGBA",
-      "alpha_range": [
-        0,
-        254
-      ],
-      "transparent_fraction": 0.6374,
-      "bytes": 1919409,
-      "sha256": "5e6538d70e2ec4540e577614e7dc26ba4aa78f15d0bd71fd3381da50b22d6bef",
-      "tool": "built-in image_gen"
-    },
-    "U17/portrait": {
-      "path": "characters/modern/U17/portrait.png",
-      "prompt": "characters/modern/U17/portrait.prompt.md",
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "alpha_range": [
-        0,
-        255
-      ],
-      "transparent_fraction": 0.229,
-      "bytes": 2524126,
-      "sha256": "2e92acf7647707557aa87b26fd6a3084f47314487ce06da02d1481a96550beba",
-      "tool": "built-in image_gen"
-    },
-    "U17/sd": {
-      "path": "characters/modern/U17/sd.png",
-      "prompt": "characters/modern/U17/sd.prompt.md",
-      "width": 1254,
-      "height": 1254,
-      "mode": "RGBA",
-      "alpha_range": [
-        0,
-        255
-      ],
-      "transparent_fraction": 0.538,
-      "bytes": 1626751,
-      "sha256": "d539166d63e945244767a4ad890f164aab97d683620c2bac55f876fc6cb322f2",
-      "tool": "built-in image_gen"
-    },
-    "U18/illustration": {
-      "path": "characters/modern/U18/illustration.png",
-      "prompt": "characters/modern/U18/illustration.prompt.md",
+      "prompt": "characters/modern/U17/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -918,13 +983,66 @@
         254
       ],
       "transparent_fraction": 0.6301,
-      "bytes": 1991977,
-      "sha256": "ff58ee8980b4060ddcdf47766ee0dd613c6336f66ccca3dfd50f3701625fb8ca",
-      "tool": "built-in image_gen"
+      "bytes": 1915725,
+      "sha256": "52565e8e7686511c2d6461a0c477b190b44a1d2bbeb7b569b7deab8b5fb1cfab",
+      "tool": "built-in image_gen",
+      "design_revision": "ad277a89b69f0c5e5849f64272268f6e20acf9bf845649278839de98c906ff46",
+      "original_prompt": "characters/modern/U17/illustration.prompt.md"
+    },
+    "U17/portrait": {
+      "path": "characters/modern/U17/portrait.png",
+      "prompt": "characters/modern/U17/portrait.refinement.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.2845,
+      "bytes": 2243737,
+      "sha256": "c6c58abed6816b0db641c2ce9e3aa60d8949bcde5b38d93c41b36561f2786d9a",
+      "tool": "built-in image_gen",
+      "design_revision": "ad277a89b69f0c5e5849f64272268f6e20acf9bf845649278839de98c906ff46",
+      "original_prompt": "characters/modern/U17/portrait.prompt.md"
+    },
+    "U17/sd": {
+      "path": "characters/modern/U17/sd.png",
+      "prompt": "characters/modern/U17/sd.refinement.prompt.md",
+      "width": 1254,
+      "height": 1254,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.5024,
+      "bytes": 1750553,
+      "sha256": "267be38b0b23433770dfa8afcc314227e2dc3d1aefdc28b2939a136d9cb8577d",
+      "tool": "built-in image_gen",
+      "design_revision": "ad277a89b69f0c5e5849f64272268f6e20acf9bf845649278839de98c906ff46",
+      "original_prompt": "characters/modern/U17/sd.prompt.md"
+    },
+    "U18/illustration": {
+      "path": "characters/modern/U18/illustration.png",
+      "prompt": "characters/modern/U18/illustration.refinement.prompt.md",
+      "width": 1024,
+      "height": 1536,
+      "mode": "RGBA",
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.6234,
+      "bytes": 1968817,
+      "sha256": "ee1f7ed11ffc8b898c5091dda0c6b08297ba18dc99ff736488d5a150578cc8f7",
+      "tool": "built-in image_gen",
+      "design_revision": "942151d7be56578a39ea27fc724182803be7a029c869538f511a8da8f07eae61",
+      "original_prompt": "characters/modern/U18/illustration.prompt.md"
     },
     "U18/portrait": {
       "path": "characters/modern/U18/portrait.png",
-      "prompt": "characters/modern/U18/portrait.prompt.md",
+      "prompt": "characters/modern/U18/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -932,14 +1050,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.3401,
-      "bytes": 2207438,
-      "sha256": "5da051c92da3d2bd4852f0fff6c65109929c65f85325974daa63ed2808009de6",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.3404,
+      "bytes": 2057841,
+      "sha256": "2adbfb5f26c18318d424c0b5874eb324cd6c9440805825c3a1e2fd93c44843df",
+      "tool": "built-in image_gen",
+      "design_revision": "942151d7be56578a39ea27fc724182803be7a029c869538f511a8da8f07eae61",
+      "original_prompt": "characters/modern/U18/portrait.prompt.md"
     },
     "U18/sd": {
       "path": "characters/modern/U18/sd.png",
-      "prompt": "characters/modern/U18/sd.prompt.md",
+      "prompt": "characters/modern/U18/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -947,14 +1067,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.6084,
-      "bytes": 1405253,
-      "sha256": "08b4da21b58f524c409f7614d1e0cd03a8e3d066e7d49c1945601bdec4f75553",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.5648,
+      "bytes": 1578388,
+      "sha256": "314327b2d25463b53f3b0a87afccc4158be66f47de981b811e1540745aaef0a2",
+      "tool": "built-in image_gen",
+      "design_revision": "942151d7be56578a39ea27fc724182803be7a029c869538f511a8da8f07eae61",
+      "original_prompt": "characters/modern/U18/sd.prompt.md"
     },
     "U19/illustration": {
       "path": "characters/modern/U19/illustration.png",
-      "prompt": "characters/modern/U19/illustration.prompt.md",
+      "prompt": "characters/modern/U19/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -962,14 +1084,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.6436,
-      "bytes": 1963713,
-      "sha256": "e2016582c9f9fb1f6a97cbc3c1416c1ce829060cea82d9c267f9cc8e28094a6c",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.641,
+      "bytes": 1955759,
+      "sha256": "529b75a44081461e645480b1a0d2a4241041be7a7b3057e3facb08c5e8e10ccd",
+      "tool": "built-in image_gen",
+      "design_revision": "08250a670dbb5631111a16dc747e2b6d19d93584f088eb3bb4bc0399d12d1d07",
+      "original_prompt": "characters/modern/U19/illustration.prompt.md"
     },
     "U19/portrait": {
       "path": "characters/modern/U19/portrait.png",
-      "prompt": "characters/modern/U19/portrait.prompt.md",
+      "prompt": "characters/modern/U19/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -977,14 +1101,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.2193,
-      "bytes": 2527982,
-      "sha256": "2810ba1b1b8e8dd327c2747955bbea70a109176f3b8e79256625465c606e67c4",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.2331,
+      "bytes": 2532958,
+      "sha256": "acc7ae96f4c955b225c62298871eca4ebc14ceb5a51487e88aececa3357ace58",
+      "tool": "built-in image_gen",
+      "design_revision": "08250a670dbb5631111a16dc747e2b6d19d93584f088eb3bb4bc0399d12d1d07",
+      "original_prompt": "characters/modern/U19/portrait.prompt.md"
     },
     "U19/sd": {
       "path": "characters/modern/U19/sd.png",
-      "prompt": "characters/modern/U19/sd.prompt.md",
+      "prompt": "characters/modern/U19/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -992,14 +1118,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.5184,
-      "bytes": 1727775,
-      "sha256": "4df851ffc2d16ea5c44657d88a050a59ae9cc201b57332944574ff0300d57018",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.5503,
+      "bytes": 1632967,
+      "sha256": "5b82d09d66c435f1505f773a05737726f3836e671fe995339d43cdcfb1215b23",
+      "tool": "built-in image_gen",
+      "design_revision": "08250a670dbb5631111a16dc747e2b6d19d93584f088eb3bb4bc0399d12d1d07",
+      "original_prompt": "characters/modern/U19/sd.prompt.md"
     },
     "U20/illustration": {
       "path": "characters/modern/U20/illustration.png",
-      "prompt": "characters/modern/U20/illustration.prompt.md",
+      "prompt": "characters/modern/U20/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -1007,14 +1135,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.7061,
-      "bytes": 1708845,
-      "sha256": "566d21237cfb420ee803f1a7dd98863c5bf7d5bfd3832d04c1e9df943b7eeaa9",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6834,
+      "bytes": 1745604,
+      "sha256": "cc31ee091c975da1dbaa57595a5fc13a394fbf6746430ef2c59a5e67666cb7b9",
+      "tool": "built-in image_gen",
+      "design_revision": "9f41b807c3995c1bebd0912cbc6a9dfec3ca8195f19a4052ba8ef847a621b3e1",
+      "original_prompt": "characters/modern/U20/illustration.prompt.md"
     },
     "U20/portrait": {
       "path": "characters/modern/U20/portrait.png",
-      "prompt": "characters/modern/U20/portrait.prompt.md",
+      "prompt": "characters/modern/U20/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -1022,14 +1152,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.2971,
-      "bytes": 2281500,
-      "sha256": "8b7e07b7c032e6b17b156f86456e9942bd5d4bc99f14b6060f1a5caa853063b6",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.3129,
+      "bytes": 2249592,
+      "sha256": "3b59195ba0eb0d62f256d0ff7c7c6d3735456fe29935a540bfee9422265ec168",
+      "tool": "built-in image_gen",
+      "design_revision": "9f41b807c3995c1bebd0912cbc6a9dfec3ca8195f19a4052ba8ef847a621b3e1",
+      "original_prompt": "characters/modern/U20/portrait.prompt.md"
     },
     "U20/sd": {
       "path": "characters/modern/U20/sd.png",
-      "prompt": "characters/modern/U20/sd.prompt.md",
+      "prompt": "characters/modern/U20/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -1037,14 +1169,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.6392,
-      "bytes": 1324837,
-      "sha256": "6c1e394f412f69d89ca8b5edfdae738493dba998278c273dcf23859793930717",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6245,
+      "bytes": 1351371,
+      "sha256": "3758e33c112a150060a28504c2bf41bb76f1efffe9540410578eb98383f1434a",
+      "tool": "built-in image_gen",
+      "design_revision": "9f41b807c3995c1bebd0912cbc6a9dfec3ca8195f19a4052ba8ef847a621b3e1",
+      "original_prompt": "characters/modern/U20/sd.prompt.md"
     },
     "U21/illustration": {
       "path": "characters/modern/U21/illustration.png",
-      "prompt": "characters/modern/U21/illustration.prompt.md",
+      "prompt": "characters/modern/U21/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -1052,14 +1186,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.6565,
-      "bytes": 1945222,
-      "sha256": "82227e5c4ee4f3f1c48b8262a1feab9d3f58e91f34f0ea86459b0f7af4dbcd76",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6441,
+      "bytes": 1982945,
+      "sha256": "f3f3b0c0674fe4592ef96aa9ac349196be133198bfde8c0b04492708c33b8209",
+      "tool": "built-in image_gen",
+      "design_revision": "a8258af254f09351a4dc78e412ed1b86376a28d22b864e0512fc5d93b225a08b",
+      "original_prompt": "characters/modern/U21/illustration.prompt.md"
     },
     "U21/portrait": {
       "path": "characters/modern/U21/portrait.png",
-      "prompt": "characters/modern/U21/portrait.prompt.md",
+      "prompt": "characters/modern/U21/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -1067,14 +1203,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.3085,
-      "bytes": 2300745,
-      "sha256": "e594ec191621c2af5b230d2446128441c158e7d650b8f13889b7548b283a7c08",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.3011,
+      "bytes": 2325639,
+      "sha256": "51100207cc4b6544f1d3f3f86041d1538a4179c9f583d97b84162bc7d5da4f48",
+      "tool": "built-in image_gen",
+      "design_revision": "a8258af254f09351a4dc78e412ed1b86376a28d22b864e0512fc5d93b225a08b",
+      "original_prompt": "characters/modern/U21/portrait.prompt.md"
     },
     "U21/sd": {
       "path": "characters/modern/U21/sd.png",
-      "prompt": "characters/modern/U21/sd.prompt.md",
+      "prompt": "characters/modern/U21/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -1082,14 +1220,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.5432,
-      "bytes": 1604464,
-      "sha256": "9ed7d4cf00b644635a609dfa1899c95dba7f5356a8da4b22285381e10dae1320",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.5923,
+      "bytes": 1524893,
+      "sha256": "61ce8acdf02f2acd4dee2ff23b33c691639227b608d8b73926c618592c279d2d",
+      "tool": "built-in image_gen",
+      "design_revision": "a8258af254f09351a4dc78e412ed1b86376a28d22b864e0512fc5d93b225a08b",
+      "original_prompt": "characters/modern/U21/sd.prompt.md"
     },
     "U22/illustration": {
       "path": "characters/modern/U22/illustration.png",
-      "prompt": "characters/modern/U22/illustration.prompt.md",
+      "prompt": "characters/modern/U22/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -1097,14 +1237,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.6119,
-      "bytes": 2028025,
-      "sha256": "111f43704fc4997136f642a9c1f1c9d7f973b8b6a3de5d3952f5ea29b99a631f",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.599,
+      "bytes": 2045595,
+      "sha256": "89ba63b883260b6c9d06dde3926603ccb7531fc36ade0cf5e6668a3828a41259",
+      "tool": "built-in image_gen",
+      "design_revision": "6227917f7557a69416f61add96a905ab7a0ca2a73150ef747287a0f5caec9972",
+      "original_prompt": "characters/modern/U22/illustration.prompt.md"
     },
     "U22/portrait": {
       "path": "characters/modern/U22/portrait.png",
-      "prompt": "characters/modern/U22/portrait.prompt.md",
+      "prompt": "characters/modern/U22/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -1112,14 +1254,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.2636,
-      "bytes": 2462505,
-      "sha256": "9638187b586e3680399891203591b60202ffbdc8f380abfae0de9e3daffacafe",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.2595,
+      "bytes": 2441424,
+      "sha256": "7665b69b383ede252da2c85065a121e7f64915b1715b1a79f55018ec08e1783e",
+      "tool": "built-in image_gen",
+      "design_revision": "6227917f7557a69416f61add96a905ab7a0ca2a73150ef747287a0f5caec9972",
+      "original_prompt": "characters/modern/U22/portrait.prompt.md"
     },
     "U22/sd": {
       "path": "characters/modern/U22/sd.png",
-      "prompt": "characters/modern/U22/sd.prompt.md",
+      "prompt": "characters/modern/U22/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -1127,14 +1271,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.5209,
-      "bytes": 1788742,
-      "sha256": "67cc6918d65781e998ef1e4dbb65f2b3dc1418fdb26a799d0983e4a9f48d3e73",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.5487,
+      "bytes": 1671014,
+      "sha256": "df69e179799ee86124659bd70f2289b48c40f82cb79dd97b3b506fcf5a46e08a",
+      "tool": "built-in image_gen",
+      "design_revision": "6227917f7557a69416f61add96a905ab7a0ca2a73150ef747287a0f5caec9972",
+      "original_prompt": "characters/modern/U22/sd.prompt.md"
     },
     "U23/illustration": {
       "path": "characters/modern/U23/illustration.png",
-      "prompt": "characters/modern/U23/illustration.prompt.md",
+      "prompt": "characters/modern/U23/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -1142,14 +1288,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.6677,
-      "bytes": 1872738,
-      "sha256": "cbda46def2be7d5c6a2490d10c7881b76866d0ce247361b15c3294ce5229421e",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6685,
+      "bytes": 1852454,
+      "sha256": "861e614bc475a8f2784bf4b4f5716be26cff660431b13698f28bd338f4ebcd9e",
+      "tool": "built-in image_gen",
+      "design_revision": "965c1447acd4e569fb6071941ed81f58004a6fd7817c55a5a4cb3aac7fec7914",
+      "original_prompt": "characters/modern/U23/illustration.prompt.md"
     },
     "U23/portrait": {
       "path": "characters/modern/U23/portrait.png",
-      "prompt": "characters/modern/U23/portrait.prompt.md",
+      "prompt": "characters/modern/U23/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -1157,14 +1305,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.2999,
-      "bytes": 2349875,
-      "sha256": "fb296c69bde9ffd2cc74291e87f8ffb797445b7b2f6d9c70d8a9270c4639035f",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.2797,
+      "bytes": 2372157,
+      "sha256": "78adb525167319cf7285798a140f41c3a82289cc225d35e1f10fdb4b36d423da",
+      "tool": "built-in image_gen",
+      "design_revision": "965c1447acd4e569fb6071941ed81f58004a6fd7817c55a5a4cb3aac7fec7914",
+      "original_prompt": "characters/modern/U23/portrait.prompt.md"
     },
     "U23/sd": {
       "path": "characters/modern/U23/sd.png",
-      "prompt": "characters/modern/U23/sd.prompt.md",
+      "prompt": "characters/modern/U23/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -1172,14 +1322,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.5476,
-      "bytes": 1636869,
-      "sha256": "75a719b787190424241c9fa7cb2501ae048757b53e3744233d4ce407545e3d28",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.587,
+      "bytes": 1534436,
+      "sha256": "7f3856d585ff4630940918148c95db32db05e2ae18a4667a2a14f66816535bfb",
+      "tool": "built-in image_gen",
+      "design_revision": "965c1447acd4e569fb6071941ed81f58004a6fd7817c55a5a4cb3aac7fec7914",
+      "original_prompt": "characters/modern/U23/sd.prompt.md"
     },
     "U24/illustration": {
       "path": "characters/modern/U24/illustration.png",
-      "prompt": "characters/modern/U24/illustration.prompt.md",
+      "prompt": "characters/modern/U24/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -1187,14 +1339,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.676,
-      "bytes": 1790051,
-      "sha256": "6052d71df323563d033096981b8a18b2af3f7de435266c09686e55fa71477038",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.6734,
+      "bytes": 1783922,
+      "sha256": "0b28bcf94805a3b229518d014b33fb86058d8ca328c9243c0d61a09ca5d6bf59",
+      "tool": "built-in image_gen",
+      "design_revision": "75339ea8ecbc7254326be7bfe06ed58d0fec0b8b32935c9f99700f0f232a4b10",
+      "original_prompt": "characters/modern/U24/illustration.prompt.md"
     },
     "U24/portrait": {
       "path": "characters/modern/U24/portrait.png",
-      "prompt": "characters/modern/U24/portrait.prompt.md",
+      "prompt": "characters/modern/U24/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -1202,14 +1356,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.2805,
-      "bytes": 2283537,
-      "sha256": "b7a538fa90b6c0fe2c156355cb981ba8e097294cfb00adfd0c2edc49f89b24be",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.3164,
+      "bytes": 2185695,
+      "sha256": "b52b41dd5a3c04836b462c825238fbcc221eaac5afe668081e28948911be7574",
+      "tool": "built-in image_gen",
+      "design_revision": "75339ea8ecbc7254326be7bfe06ed58d0fec0b8b32935c9f99700f0f232a4b10",
+      "original_prompt": "characters/modern/U24/portrait.prompt.md"
     },
     "U24/sd": {
       "path": "characters/modern/U24/sd.png",
-      "prompt": "characters/modern/U24/sd.prompt.md",
+      "prompt": "characters/modern/U24/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -1217,14 +1373,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.6083,
-      "bytes": 1461527,
-      "sha256": "d4989719617601fb5c73bc02f9a6ae935a4ebf1809cbd10182c953585443aa54",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.5778,
+      "bytes": 1493979,
+      "sha256": "b64e289a84fed4ea039cbcbfcdb6b1a2766848152e800919359e539645e193ae",
+      "tool": "built-in image_gen",
+      "design_revision": "75339ea8ecbc7254326be7bfe06ed58d0fec0b8b32935c9f99700f0f232a4b10",
+      "original_prompt": "characters/modern/U24/sd.prompt.md"
     },
     "U25/illustration": {
       "path": "characters/modern/U25/illustration.png",
-      "prompt": "characters/modern/U25/illustration.prompt.md",
+      "prompt": "characters/modern/U25/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -1232,14 +1390,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.5808,
-      "bytes": 2082595,
-      "sha256": "a8650db4ce4007f47f05ad5e37ef0ecba4a0751fc4afb8f04b691d4f1c8b5dd5",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.5832,
+      "bytes": 2090761,
+      "sha256": "7f8aca717a736ef5b60f4d3830e3038d2129dd9a882094e3e6709655b9ad88af",
+      "tool": "built-in image_gen",
+      "design_revision": "50b3dd9069b3fd30c1131dc4b9ecc414d1ecc28e4dcfd1f722c36d74d3b856ee",
+      "original_prompt": "characters/modern/U25/illustration.prompt.md"
     },
     "U25/portrait": {
       "path": "characters/modern/U25/portrait.png",
-      "prompt": "characters/modern/U25/portrait.prompt.md",
+      "prompt": "characters/modern/U25/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -1247,14 +1407,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.2676,
-      "bytes": 2293725,
-      "sha256": "e83e7dc4ce14bbc60e27590501437d037d541bd62337926f2c3b3550953565b0",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.2329,
+      "bytes": 2350945,
+      "sha256": "8a66c96487f2092da3b6c206e67f91cd70933036980d1527382cb434483cb881",
+      "tool": "built-in image_gen",
+      "design_revision": "50b3dd9069b3fd30c1131dc4b9ecc414d1ecc28e4dcfd1f722c36d74d3b856ee",
+      "original_prompt": "characters/modern/U25/portrait.prompt.md"
     },
     "U25/sd": {
       "path": "characters/modern/U25/sd.png",
-      "prompt": "characters/modern/U25/sd.prompt.md",
+      "prompt": "characters/modern/U25/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -1262,14 +1424,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.5772,
-      "bytes": 1563954,
-      "sha256": "d6cfd5525ec2e64366788e1bc92c4e1514aedf40e19cbfc802b1e397c42426d0",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.5316,
+      "bytes": 1652648,
+      "sha256": "f4a0f5323a746816ee79f5c90a2e63453d05d535045e25550f8953d68a21cec6",
+      "tool": "built-in image_gen",
+      "design_revision": "50b3dd9069b3fd30c1131dc4b9ecc414d1ecc28e4dcfd1f722c36d74d3b856ee",
+      "original_prompt": "characters/modern/U25/sd.prompt.md"
     },
     "U26/illustration": {
       "path": "characters/modern/U26/illustration.png",
-      "prompt": "characters/modern/U26/illustration.prompt.md",
+      "prompt": "characters/modern/U26/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -1277,14 +1441,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.5109,
-      "bytes": 2105588,
-      "sha256": "976b2b8e97eda56819aa23d3a19d228e7ffaad209d5907b121758baee420f006",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.489,
+      "bytes": 2122594,
+      "sha256": "dd5a299fc018c092ed3e8dd1132f21ebee7a8df3e210b8a9664ced1829069fab",
+      "tool": "built-in image_gen",
+      "design_revision": "03e75ef708e4f75ef77b98163a235271ef7ee1ed426f405155ead6d810bb8e4f",
+      "original_prompt": "characters/modern/U26/illustration.prompt.md"
     },
     "U26/portrait": {
       "path": "characters/modern/U26/portrait.png",
-      "prompt": "characters/modern/U26/portrait.prompt.md",
+      "prompt": "characters/modern/U26/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -1292,14 +1458,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.3102,
-      "bytes": 2258356,
-      "sha256": "280aa77c78635fc28d58a7bdfd98009f9af48e7083580d87507c2e6d388e0334",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.3156,
+      "bytes": 2087836,
+      "sha256": "c7131a3a8874c0b63e7c63ad8ac591a2bde6d9b7f01925ae813b83a68b8aa6ec",
+      "tool": "built-in image_gen",
+      "design_revision": "03e75ef708e4f75ef77b98163a235271ef7ee1ed426f405155ead6d810bb8e4f",
+      "original_prompt": "characters/modern/U26/portrait.prompt.md"
     },
     "U26/sd": {
       "path": "characters/modern/U26/sd.png",
-      "prompt": "characters/modern/U26/sd.prompt.md",
+      "prompt": "characters/modern/U26/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -1307,14 +1475,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.4548,
-      "bytes": 1809712,
-      "sha256": "8fdb8e4cdc50079ea3c4b38feb7be9cc8e79b21afa072f1f80a8890110c4ff97",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.4553,
+      "bytes": 1816795,
+      "sha256": "3bcb98933e74c2d548bb10b529d9c38a00bc594921727c0e9dc9e58da7f9d931",
+      "tool": "built-in image_gen",
+      "design_revision": "03e75ef708e4f75ef77b98163a235271ef7ee1ed426f405155ead6d810bb8e4f",
+      "original_prompt": "characters/modern/U26/sd.prompt.md"
     },
     "U27/illustration": {
       "path": "characters/modern/U27/illustration.png",
-      "prompt": "characters/modern/U27/illustration.prompt.md",
+      "prompt": "characters/modern/U27/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -1322,14 +1492,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.585,
-      "bytes": 2055763,
-      "sha256": "7f2caa8e7d54176decc0c5a335393bc5f2ea86d653538498cabc2072380b73ce",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.5669,
+      "bytes": 2082132,
+      "sha256": "4a5d69cf3e34700d475a9ba8224a6900051e61f0dfecb1f811dfb57c3594cc41",
+      "tool": "built-in image_gen",
+      "design_revision": "10c334cea5b3df5260aefd3cb95eb7e43753e2b79faf351eabda0959255e6ddb",
+      "original_prompt": "characters/modern/U27/illustration.prompt.md"
     },
     "U27/portrait": {
       "path": "characters/modern/U27/portrait.png",
-      "prompt": "characters/modern/U27/portrait.prompt.md",
+      "prompt": "characters/modern/U27/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -1337,14 +1509,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.2536,
-      "bytes": 2472430,
-      "sha256": "32b6fd2a9b464d375afdbb40e38abf0b23be7605ebb97a3ac194bac4eda901cd",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.261,
+      "bytes": 2381226,
+      "sha256": "6a77c3b89ca68ff446f11a5d8118cc6f3f9e984bbb281c2a536c1cea2425fe0c",
+      "tool": "built-in image_gen",
+      "design_revision": "10c334cea5b3df5260aefd3cb95eb7e43753e2b79faf351eabda0959255e6ddb",
+      "original_prompt": "characters/modern/U27/portrait.prompt.md"
     },
     "U27/sd": {
       "path": "characters/modern/U27/sd.png",
-      "prompt": "characters/modern/U27/sd.prompt.md",
+      "prompt": "characters/modern/U27/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -1352,14 +1526,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.4969,
-      "bytes": 1805828,
-      "sha256": "72cc6771bcd61b44a63e3a393afe171457056c93a1fd3a4508671b596311081f",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.4491,
+      "bytes": 1953343,
+      "sha256": "f273464b42dfaa71a0f733ee590843676663f1177620d21e6380f598444fa748",
+      "tool": "built-in image_gen",
+      "design_revision": "10c334cea5b3df5260aefd3cb95eb7e43753e2b79faf351eabda0959255e6ddb",
+      "original_prompt": "characters/modern/U27/sd.prompt.md"
     },
     "U28/illustration": {
       "path": "characters/modern/U28/illustration.png",
-      "prompt": "characters/modern/U28/illustration.prompt.md",
+      "prompt": "characters/modern/U28/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -1367,14 +1543,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.5612,
-      "bytes": 2070820,
-      "sha256": "5d947cc5177fafa187dfaf8ef98d1b5e59ada71529067790fbeca18eac717844",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.5365,
+      "bytes": 2101363,
+      "sha256": "a2b13ee737c6903cb17f5371ab4da6f4e5570d32facf5294df2680b0e5120871",
+      "tool": "built-in image_gen",
+      "design_revision": "62d3f7ed83151bc3d6ab5940227d0f453d651b8e7b16e86201f165bb22d9e995",
+      "original_prompt": "characters/modern/U28/illustration.prompt.md"
     },
     "U28/portrait": {
       "path": "characters/modern/U28/portrait.png",
-      "prompt": "characters/modern/U28/portrait.prompt.md",
+      "prompt": "characters/modern/U28/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -1382,14 +1560,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.2568,
-      "bytes": 2375968,
-      "sha256": "5ba7b87efac8ddd9c850b76aac993237051ed5086ef45220001d1fa2ac77fc46",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.2699,
+      "bytes": 2271878,
+      "sha256": "bc8e6b5e5c7e5aee081d43670abaf03e4e4a78ceb25302ca4cc93d158bddb502",
+      "tool": "built-in image_gen",
+      "design_revision": "62d3f7ed83151bc3d6ab5940227d0f453d651b8e7b16e86201f165bb22d9e995",
+      "original_prompt": "characters/modern/U28/portrait.prompt.md"
     },
     "U28/sd": {
       "path": "characters/modern/U28/sd.png",
-      "prompt": "characters/modern/U28/sd.prompt.md",
+      "prompt": "characters/modern/U28/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -1397,14 +1577,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.4983,
-      "bytes": 1823278,
-      "sha256": "3499c58ef82c60f5c482a22dd4104677fc3ded8abd564aaab3f5a126b5305d0c",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.4883,
+      "bytes": 1775360,
+      "sha256": "1c5399065b002cb332ee37f2794d5ed30cf2362ea58fb87651bea1ee21ee1843",
+      "tool": "built-in image_gen",
+      "design_revision": "62d3f7ed83151bc3d6ab5940227d0f453d651b8e7b16e86201f165bb22d9e995",
+      "original_prompt": "characters/modern/U28/sd.prompt.md"
     },
     "U29/illustration": {
       "path": "characters/modern/U29/illustration.png",
-      "prompt": "characters/modern/U29/illustration.prompt.md",
+      "prompt": "characters/modern/U29/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -1412,14 +1594,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.7161,
-      "bytes": 1663577,
-      "sha256": "bd03cc3210f7763915246bdae87c5c207777faebd29de281fdb25c39aab743d2",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.7054,
+      "bytes": 1692130,
+      "sha256": "9d13cd509b04665470fc8e9373c15de804a2fd8ed45e39893966ae9a6cfe05c8",
+      "tool": "built-in image_gen",
+      "design_revision": "c27cbfdbf15e2f7cd686e978cb3a2a543f7b501e82d45bf2fd3a2a98c695c52b",
+      "original_prompt": "characters/modern/U29/illustration.prompt.md"
     },
     "U29/portrait": {
       "path": "characters/modern/U29/portrait.png",
-      "prompt": "characters/modern/U29/portrait.prompt.md",
+      "prompt": "characters/modern/U29/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -1427,10 +1611,12 @@
         0,
         255
       ],
-      "transparent_fraction": 0.3547,
-      "bytes": 1995041,
-      "sha256": "ffba96447cbc6f53d6cbc9635ef34a6d77580989781dc59965e69f01ac26c93b",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.4062,
+      "bytes": 1861320,
+      "sha256": "b23c337b3ec307b925e0db7f72dd3396997e62d29be8a11b2f262e57b1e72d31",
+      "tool": "built-in image_gen",
+      "design_revision": "c27cbfdbf15e2f7cd686e978cb3a2a543f7b501e82d45bf2fd3a2a98c695c52b",
+      "original_prompt": "characters/modern/U29/portrait.prompt.md"
     },
     "U29/sd": {
       "path": "characters/modern/U29/sd.png",
@@ -1442,15 +1628,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.6657,
-      "bytes": 1195974,
-      "sha256": "4114bf9357811a35c7b8a671e66492d1f17cf91554210fa7104923783a5aae8b",
+      "transparent_fraction": 0.659,
+      "bytes": 1225793,
+      "sha256": "18c9ff5bdc3300a3990d5f327b7b702d4ea57ecaf9d10fdaf76d16aa271b7fa5",
       "tool": "built-in image_gen",
+      "design_revision": "c27cbfdbf15e2f7cd686e978cb3a2a543f7b501e82d45bf2fd3a2a98c695c52b",
       "original_prompt": "characters/modern/U29/sd.prompt.md"
     },
     "U30/illustration": {
       "path": "characters/modern/U30/illustration.png",
-      "prompt": "characters/modern/U30/illustration.prompt.md",
+      "prompt": "characters/modern/U30/illustration.refinement.prompt.md",
       "width": 1024,
       "height": 1536,
       "mode": "RGBA",
@@ -1458,14 +1645,16 @@
         0,
         254
       ],
-      "transparent_fraction": 0.5211,
-      "bytes": 2277439,
-      "sha256": "8d8f1b67341193846074555e43dd7753a716b796686d603d54b3809590da3a80",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.4995,
+      "bytes": 2297599,
+      "sha256": "d35e16331e2e3bda0db8b55cab1eba409e33b3522dd28e25a12ef800da2eeca3",
+      "tool": "built-in image_gen",
+      "design_revision": "0fa904f49c24aaeaa6dee0c8d18051cd3b091012015dab116a2e6dfd40f4cc2c",
+      "original_prompt": "characters/modern/U30/illustration.prompt.md"
     },
     "U30/portrait": {
       "path": "characters/modern/U30/portrait.png",
-      "prompt": "characters/modern/U30/portrait.prompt.md",
+      "prompt": "characters/modern/U30/portrait.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -1473,14 +1662,16 @@
         0,
         255
       ],
-      "transparent_fraction": 0.2781,
-      "bytes": 2415637,
-      "sha256": "edf92fff5d62aa144b2c22e6f8ee66870e5619acf1260a05c8f19ce133025aee",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.2853,
+      "bytes": 2201294,
+      "sha256": "54fca9d2acf0f9d6cbf6e95f219de4e6533de197ec0ebd70b92aa3719eb8d81b",
+      "tool": "built-in image_gen",
+      "design_revision": "0fa904f49c24aaeaa6dee0c8d18051cd3b091012015dab116a2e6dfd40f4cc2c",
+      "original_prompt": "characters/modern/U30/portrait.prompt.md"
     },
     "U30/sd": {
       "path": "characters/modern/U30/sd.png",
-      "prompt": "characters/modern/U30/sd.prompt.md",
+      "prompt": "characters/modern/U30/sd.refinement.prompt.md",
       "width": 1254,
       "height": 1254,
       "mode": "RGBA",
@@ -1488,10 +1679,12 @@
         0,
         255
       ],
-      "transparent_fraction": 0.4677,
-      "bytes": 2018451,
-      "sha256": "a74e6e1d5bfc52e952934104a423cd99e4a260768fe7e4af5bc9cd9a8b99e4bd",
-      "tool": "built-in image_gen"
+      "transparent_fraction": 0.3899,
+      "bytes": 2199174,
+      "sha256": "3b143c62053e2f82f76a04a7cd03f4d2b8eb3e0e8f2fa427b1fec1d04164f818",
+      "tool": "built-in image_gen",
+      "design_revision": "0fa904f49c24aaeaa6dee0c8d18051cd3b091012015dab116a2e6dfd40f4cc2c",
+      "original_prompt": "characters/modern/U30/sd.prompt.md"
     }
   }
 }

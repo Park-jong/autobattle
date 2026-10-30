@@ -8,6 +8,7 @@ import { buildCombatVisualFrame, damageLabels, projectilePoint, type AttackVisua
 import { commanderProfile, commanderTextureKey, isIllustratedSkin, unitSkillName } from '../skin/skins';
 import { MODERN_COMMANDERS } from '../skin/modernRoster';
 import { appSkin } from '../skin/SkinStore';
+import { SkillCutinLayer } from './SkillCutinLayer';
 
 interface PooledText {
   text: Phaser.GameObjects.Text;
@@ -48,6 +49,7 @@ export type CardNamer = (cardId: string, upgraded: boolean) => string;
  * 전투 시간 기준으로 매 프레임 다시 계산하므로 일시정지·배속·슬로모션을 그대로 따른다.
  */
 export class EffectsLayer {
+  private readonly skillCutins: SkillCutinLayer;
   private readonly lines: Phaser.GameObjects.Graphics;
   private readonly texts = new Map<number, PooledText>();
   private readonly banner: Phaser.GameObjects.Text;
@@ -64,7 +66,9 @@ export class EffectsLayer {
     private readonly metrics: HiDpiMetrics,
     private readonly layout: BoardLayout,
     private readonly cardName: CardNamer,
+    unitName: (id: string) => string = (id) => id,
   ) {
+    this.skillCutins = new SkillCutinLayer(scene, metrics, unitName);
     this.lines = scene.add.graphics().setDepth(20);
     this.banner = createText(scene, metrics, STAGE.WIDTH / 2, 84, '과열 시작! 받는 피해 증가', {
       fontSize: '26px',
@@ -129,6 +133,7 @@ export class EffectsLayer {
   ): void {
     this.lines.clear();
     const visual = combat ?? buildCombatVisualFrame(time, effects, views);
+    this.skillCutins.update(time, effects, views, visual.reduced);
     this.cutin?.setVisible(false);
     let ultimateText: { text: string; alpha: number } | null = null;
     let phaseText: { text: string; alpha: number } | null = null;
@@ -284,6 +289,7 @@ export class EffectsLayer {
 
   /** 모든 연출을 지운다 (리셋용) */
   clear(): void {
+    this.skillCutins.clear();
     this.lines.clear();
     for (const pooled of this.texts.values()) pooled.text.destroy();
     this.texts.clear();

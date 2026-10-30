@@ -18,6 +18,7 @@ import { buildCombatVisualFrame, type AttackProfile } from './combatVisuals';
 
 /** 씬이 화면에 쓸 이름을 얻는 창구 (데이터 카탈로그를 직접 알 필요가 없게) */
 export interface SceneLabels {
+  unitName?(unitId: string, skin?: SkinId): string;
   /** 유닛 id → 화면에 쓸 이름 약자 */
   unitAbbreviation(unitId: string, skin?: SkinId): string;
   /** 카드 id → 카드 이름 (강화면 + 표기) */
@@ -63,7 +64,8 @@ export class BattleScene extends Phaser.Scene {
     this.layout = new BoardLayout(LAYOUT.BOARD_X, LAYOUT.BOARD_Y, LAYOUT.CELL_SIZE);
     this.board = new BoardRenderer(this, this.layout, this.metrics);
     this.targetingOverlay = new TargetingOverlay(this, this.layout);
-    this.effects = new EffectsLayer(this, this.metrics, this.layout, (id, upgraded) => this.labels.cardName(id, upgraded));
+    this.effects = new EffectsLayer(this, this.metrics, this.layout, (id, upgraded) => this.labels.cardName(id, upgraded),
+      (id) => this.labels.unitName?.(id, this.skin.current) ?? this.labels.unitAbbreviation(id, this.skin.current));
 
     this.timeText = createText(this, this.metrics, STAGE.WIDTH / 2, LAYOUT.TIME_Y, '', {
       fontSize: '34px',
@@ -187,7 +189,8 @@ export class BattleScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(skin === 'modern' ? MODERN_COLORS.BACKGROUND : skin === 'academy' ? ACADEMY_COLORS.BACKGROUND : COLORS.BACKGROUND);
     this.signature = '';
     if (this.loadedSkins.has(skin) || this.loadingSkins.has(skin)) return;
-    const pending = [...skinArtList(skin, 'sd'), ...commanderArtList(skin)].filter((art) => !this.textures.exists(art.key));
+    const pending = [...skinArtList(skin, 'sd'), ...skinArtList(skin, 'illustration'), ...commanderArtList(skin)]
+      .filter((art) => !this.textures.exists(art.key));
     if (pending.length === 0) {
       this.loadedSkins.add(skin);
       return;

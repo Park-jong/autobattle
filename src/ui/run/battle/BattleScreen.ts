@@ -71,7 +71,7 @@ export class BattleScreen {
   private readonly unitPop = new HoverPop('bt-unit-pop', 'unit-pop');
   private active = false;
   private stage: BattleStage | null = null;
-  /** 전투 중 클릭해 정보를 띄운 유닛 uid (준비 단계는 세션의 선택 유닛을 쓴다) */
+  /** 전투 중 클릭해 정보를 띄운 유닛 uid (적·보스 포함, 준비 단계는 소유 유닛 선택) */
   private inspectUid: number | null = null;
   private resultSignature = '';
 
@@ -194,6 +194,13 @@ export class BattleScreen {
     if (this.inspectUid === null) return null;
     const view = this.hover.views().find((v) => v.uid === this.inspectUid);
     if (!view) return null;
+    const planned = view.side === 1 ? this.view.snapshot().battle?.plan.units.find((u) => u.unitId === view.unitId && u.star === view.star) : undefined;
+    if (planned) {
+      return { kind: 'live', view, stats: {
+        hp: view.maxHp, atk: planned.atk, as: planned.as, range: planned.range,
+        arm: planned.arm, res: planned.res, mana: planned.mana,
+      } };
+    }
     return { kind: 'live', view };
   }
 
@@ -209,13 +216,13 @@ export class BattleScreen {
     this.renderInfo(this.battle.snapshot());
   }
 
-  /** 전투 중 아군 유닛을 누르면 정보 패널을 띄운다 (카드를 집고 있으면 카드 대상 지정이 우선) */
+  /** 전투 중 유닛을 누르면 읽기 전용 정보를 띄운다. 카드 대상 지정이 우선이다. */
   private onCanvasDown = (event: PointerEvent): void => {
     if (!this.active || this.stage !== 'playing' || event.button !== 0 || this.cards.cardView().holding) return;
     const canvas = this.hosts.canvasHost.querySelector('canvas');
     const point = canvas ? clientToStage(event.clientX, event.clientY, canvas.getBoundingClientRect()) : null;
     const unit = point ? this.hover.unitAtStage(point.x, point.y) : null;
-    this.inspectUid = unit && unit.side === 0 ? unit.uid : null;
+    this.inspectUid = unit?.uid ?? null;
     this.renderInfo(this.battle.snapshot());
   };
 

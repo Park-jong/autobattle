@@ -19,11 +19,17 @@ describe('현대전 대원 설정과 표시 매핑', () => {
     }
   });
 
-  it.each(['code', 'id', 'gender', 'age', 'height', 'weapon', 'color', 'bio'] as const)('잘못된 %s 설정은 로드 단계에서 찾는다', field => {
+  it.each(['code', 'id', 'gender', 'age', 'height', 'bustType', 'weapon', 'color', 'bio'] as const)('잘못된 %s 설정은 로드 단계에서 찾는다', field => {
     const copy = structuredClone(raw);
     const row = copy.characters[1]! as unknown as Record<string, unknown>;
-    row[field] = ({ code: copy.characters[0]!.code, id: copy.characters[0]!.id, gender: 'male', age: 17, height: 0, weapon: 'unknown', color: 'blue', bio: '' } as Record<string, unknown>)[field];
+    row[field] = ({ code: copy.characters[0]!.code, id: copy.characters[0]!.id, gender: 'male', age: 17, height: 0, bustType: 'unknown', weapon: 'unknown', color: 'blue', bio: '' } as Record<string, unknown>)[field];
     expect(() => loadModernRoster(copy)).toThrow();
+  });
+
+  it.each(['small', 'medium', 'large'] as const)('%s 체형 구분을 지원한다', bustType => {
+    const copy = structuredClone(raw);
+    copy.characters[0]!.bustType = bustType;
+    expect(loadModernRoster(copy).characters[0]!.bustType).toBe(bustType);
   });
 
   it('빠진 대원과 U/C 번호 오기는 허용하지 않는다', () => {
@@ -40,8 +46,8 @@ describe('현대전 대원 설정과 표시 매핑', () => {
     expect(commanderArtUrl('modern', 'cmd_nox', 'illustration', './')).toBe('./skins/modern/illustration/C03.png');
     expect(unitTextureKey('modern', 'grove_archer', 'sd')).not.toBe(unitTextureKey('academy', 'grove_archer', 'sd'));
     expect(commanderTextureKey('cmd_harten', 'modern')).not.toBe(commanderTextureKey('cmd_harten', 'academy'));
-    expect(skinArtList('modern', 'sd')).toHaveLength(30); expect(commanderArtList('modern')).toHaveLength(3);
-    expect(unitArtUrl('modern', 'gate_breaker', 'sd')).toBeNull();
+    expect(skinArtList('modern', 'sd')).toHaveLength(34); expect(commanderArtList('modern')).toHaveLength(3);
+    expect(unitArtUrl('modern', 'gate_breaker', 'sd', './')).toBe('./skins/modern/sd/B01.png');
   });
 
   it('현대전 선택을 저장하고 이름·특성·기술만 바꾼다', () => {

@@ -1,15 +1,16 @@
 ﻿# 원본을 보존하고 배포용 PNG만 축소한다.
 param(
   [ValidateSet('academy', 'modern')][string]$Skin = 'academy',
-  [switch]$AllowPartial
+  [switch]$AllowPartial,
+  [switch]$BossesOnly
 )
 Add-Type -AssemblyName System.Drawing
 $assetRoot = Split-Path -Parent $PSScriptRoot
 $sourceRoot = if ($Skin -eq 'modern') { 'characters/modern' } else { 'characters' }
 $exported = 0
 
-function Export-SkinArt([string]$Code, [string]$Kind, [int]$Width, [int]$Height) {
-  $source = Join-Path $assetRoot "$sourceRoot/$Code/$Kind.png"
+function Export-SkinArt([string]$Code, [string]$Kind, [int]$Width, [int]$Height, [string]$ArtRoot = $sourceRoot) {
+  $source = Join-Path $assetRoot "$ArtRoot/$Code/$Kind.png"
   if (-not (Test-Path -LiteralPath $source)) {
     if ($AllowPartial) { return 0 }
     throw "Missing character art: $source"
@@ -39,16 +40,25 @@ function Export-SkinArt([string]$Code, [string]$Kind, [int]$Width, [int]$Height)
   return 1
 }
 
-for ($n = 1; $n -le 30; $n++) {
-  $code = 'U{0:D2}' -f $n
-  $exported += (Export-SkinArt $code 'sd' 256 256)
-  $exported += (Export-SkinArt $code 'portrait' 256 256)
-  $exported += (Export-SkinArt $code 'illustration' 384 576)
+if (-not $BossesOnly) {
+  for ($n = 1; $n -le 30; $n++) {
+    $code = 'U{0:D2}' -f $n
+    $exported += (Export-SkinArt $code 'sd' 256 256)
+    $exported += (Export-SkinArt $code 'portrait' 256 256)
+    $exported += (Export-SkinArt $code 'illustration' 384 576)
+  }
+  for ($n = 1; $n -le 3; $n++) {
+    $code = 'C{0:D2}' -f $n
+    $exported += (Export-SkinArt $code 'sd' 256 256)
+    $exported += (Export-SkinArt $code 'portrait' 512 512)
+    $exported += (Export-SkinArt $code 'illustration' 640 960)
+  }
 }
-for ($n = 1; $n -le 3; $n++) {
-  $code = 'C{0:D2}' -f $n
-  $exported += (Export-SkinArt $code 'sd' 256 256)
-  $exported += (Export-SkinArt $code 'portrait' 512 512)
-  $exported += (Export-SkinArt $code 'illustration' 640 960)
+for ($n = 1; $n -le 4; $n++) {
+  $code = 'B{0:D2}' -f $n
+  $bossRoot = "characters/bosses/$Skin"
+  $exported += (Export-SkinArt $code 'sd' 256 256 $bossRoot)
+  $exported += (Export-SkinArt $code 'portrait' 256 256 $bossRoot)
+  $exported += (Export-SkinArt $code 'illustration' 384 576 $bossRoot)
 }
 Write-Output "Saved $exported game assets: public/skins/$Skin"

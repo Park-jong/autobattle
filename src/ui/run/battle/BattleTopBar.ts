@@ -83,7 +83,11 @@ export class BattleTopBar {
     gold.append(el('span', 'bt-chip-label', '골드'), el('b', '', `${session.economy.gold}G`));
     chips.push(hp, gold, this.piles);
     for (const m of plan.mutations) chips.push(this.tipChip('bt-chip mutation', `변이 ${m.name}`, m.text));
-    for (const p of plan.bossPatterns) chips.push(this.tipChip('bt-chip pattern', `패턴 ${p.title}`, `${p.unitName}\n${p.lines.join('\n')}`));
+    for (const p of plan.bossPatterns) {
+      const unit = plan.units.find((u) => u.name === p.unitName);
+      const name = unit ? unitSkinName(appSkin.current, unit.unitId, p.unitName) : p.unitName;
+      chips.push(this.tipChip('bt-chip pattern', `패턴 ${p.title}`, `${name}\n${p.lines.join('\n')}`));
+    }
     const relics = el('span', 'bt-chip bt-relics');
     relics.append(el('span', 'bt-chip-label', '유물'), relicRow(hud.relics, '없음'));
     chips.push(relics);
@@ -183,5 +187,5 @@ export class BattleTopBar {
     return chip;
   }
 }
-import { actPresentation, commanderSkinName, encounterSkinName } from '../../skin/skins';
+import { actPresentation, commanderSkinName, encounterSkinName, unitSkinName } from '../../skin/skins';
 import { appSkin } from '../../skin/SkinStore';

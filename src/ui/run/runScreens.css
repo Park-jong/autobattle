@@ -108,6 +108,11 @@
 .run-preview.kind-boss { border-color: #c01f3a; }
 .run-preview-head { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
 .run-preview-name { color: #ffd54a; }
+.run-preview-bosses { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 10px; }
+.run-preview-boss { min-width: 0; margin: 0; padding: 8px; border: 1px solid #818ca030; border-radius: 8px; background: #818ca012; }
+.run-preview-boss img { display: block; width: 100%; height: 160px; object-fit: contain; }
+.run-preview-boss figcaption { display: grid; gap: 3px; text-align: center; font-size: 12px; overflow-wrap: anywhere; }
+.run-preview-boss figcaption span { font-size: 11px; opacity: 0.75; }
 .run-preview-scale { margin: 4px 0 0; font-size: 12px; color: #9be29b; }
 .run-mutation { display: flex; flex-direction: column; margin-top: 6px; padding: 4px 6px; background: #2a1d33; border-radius: 4px; font-size: 12px; }
 .run-preview-units { margin-top: 8px; display: flex; flex-direction: column; gap: 3px; }
