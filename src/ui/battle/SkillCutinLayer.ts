@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { createText, type HiDpiMetrics } from '../hidpi';
+import { createText, visibleStageInset, type HiDpiMetrics } from '../hidpi';
 import type { ReplayEffect, UnitView } from '../replay/ReplayState';
 import { STAGE, TIMING } from '../theme';
 import { appSkin } from '../skin/SkinStore';
@@ -52,6 +52,7 @@ export class SkillCutinLayer {
     if (!active.length) return;
     const strength = Math.max(...active.map(e => this.opacity((time - e.t) / TIMING.SKILL_CUTIN)));
     this.backdrop.fillStyle(0x060c19, 0.16 * strength).fillRect(0, 0, STAGE.WIDTH, STAGE.HEIGHT);
+    const inset = visibleStageInset(this.scene);
 
     for (const event of active) {
       const unit = views.get(event.unit)!;
@@ -61,7 +62,7 @@ export class SkillCutinLayer {
       const exit = Math.max(0, (progress - 0.7) / 0.3);
       const side = unit.side;
       const direction = side === 0 ? 1 : -1;
-      const anchor = side === 0 ? 164 : STAGE.WIDTH - 164;
+      const anchor = side === 0 ? inset + 164 : STAGE.WIDTH - inset - 164;
       const x = anchor - direction * (1 - entrance) * 90 + direction * exit * 28;
       const colorHex = skin === 'modern' ? MODERN_UNITS[unit.unitId]?.color : undefined;
       const color = colorHex ? Number.parseInt(colorHex.slice(1), 16) : side === 0 ? 0x86d5ff : 0xffab91;
@@ -72,7 +73,7 @@ export class SkillCutinLayer {
       const width = source.width * scale;
       const height = source.height * scale;
 
-      const edge = side === 0 ? 0 : STAGE.WIDTH;
+      const edge = side === 0 ? inset : STAGE.WIDTH - inset;
       this.backdrop.fillStyle(0x071323, 0.78 * alpha);
       this.backdrop.fillPoints([
         { x: edge, y: 160 }, { x: edge + direction * 285, y: 160 },

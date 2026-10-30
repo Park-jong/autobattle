@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { createText, type HiDpiMetrics } from '../hidpi';
+import { createText, visibleStageInset, type HiDpiMetrics } from '../hidpi';
 import type { MeteorView, ReplayEffect, ReviveWatchView, TelegraphView, UltimateAuraView, UnitView, ZoneView } from '../replay/ReplayState';
 import { BOARD_COLS, BOARD_ROWS } from '../../core/combat/board';
 import { COLORS, COMBAT_FX, LAYOUT, MOTION, STAGE, TEXT_COLORS, TIMING } from '../theme';
@@ -780,7 +780,7 @@ export class EffectsLayer {
     const sign = e.delta > 0 ? '+' : '';
     const pool = e.pool === 'prep' ? '작전 CP' : 'CP';
     const label = `${pool} ${sign}${e.delta} (${CP_REASON_LABELS[e.reason]})`;
-    this.showAt(e.seq, live, STAGE.WIDTH - 24, LAYOUT.CP_TEXT_Y, label, TEXT_COLORS.CP, progress, {
+    this.showAt(e.seq, live, STAGE.WIDTH - visibleStageInset(this.scene) - 24, LAYOUT.CP_TEXT_Y, label, TEXT_COLORS.CP, progress, {
       lift: 18,
       size: '17px',
       originX: 1,

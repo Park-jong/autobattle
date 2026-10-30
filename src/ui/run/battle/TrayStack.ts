@@ -23,7 +23,8 @@ export class TrayStack {
   private readonly layers = new Map<TrayLayerId, HTMLElement>();
   private frontId: TrayLayerId = 'cards';
   private stacked = false;
-  private collapsed = typeof window !== 'undefined' && window.innerHeight < 620;
+  private readonly shortViewport = window.matchMedia('(max-height: 620px)');
+  private collapsed = this.shortViewport.matches;
   private readonly collapseButton = tagged(el('button', 'tray-collapse'), 'tray-collapse');
 
   constructor(private readonly tray: HTMLElement, contents: Record<TrayLayerId, HTMLElement>) {
@@ -51,6 +52,10 @@ export class TrayStack {
       this.apply(false);
     });
     tray.append(this.collapseButton);
+    this.shortViewport.addEventListener('change', () => {
+      this.collapsed = this.shortViewport.matches;
+      this.apply(false);
+    });
     window.addEventListener('keydown', (e) => {
       if (!this.stacked || e.ctrlKey || e.metaKey || e.altKey || isTyping(e.target)) return;
       const spec = LAYERS.find((l) => l.code === e.code);
@@ -95,7 +100,7 @@ export class TrayStack {
       }
     }
     // 겹침 모드가 바뀌면 트레이 높이가 달라지므로 캔버스(Scale.FIT)가 남는 공간에 맞춰 다시 잡도록 알린다
-    if (!animate) window.dispatchEvent(new Event('resize'));
+    window.dispatchEvent(new Event('resize'));
   }
 }
 

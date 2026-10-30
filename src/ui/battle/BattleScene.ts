@@ -3,7 +3,7 @@ import { COMBAT } from '../../core/combat';
 import { BOARD_COLS, BOARD_ROWS } from '../../core/combat/board';
 import type { Cell } from '../../core/combat';
 import type { BattleViewSource } from '../debug/contracts';
-import { applyHiDpiCamera, createText, type HiDpiMetrics } from '../hidpi';
+import { applyHiDpiCamera, createText, visibleStageInset, type HiDpiMetrics } from '../hidpi';
 import type { UnitView } from '../replay/ReplayState';
 import { ACADEMY_COLORS, COLORS, LAYOUT, MODERN_COLORS, STAGE, TEXT_COLORS, TIMING } from '../theme';
 import { BoardLayout } from './BoardLayout';
@@ -154,9 +154,10 @@ export class BattleScene extends Phaser.Scene {
 
   private updateTexts(editing: boolean, time: number, targetHint: string): void {
     const modern = this.skin.current === 'modern';
+    const centered = modern || visibleStageInset(this) > 0;
     this.hintText.setColor(modern ? '#5b7e95' : TEXT_COLORS.MUTED);
-    this.hintText.setPosition(modern ? STAGE.WIDTH / 2 : 20, modern ? STAGE.HEIGHT - 24 : 20)
-      .setOrigin(modern ? 0.5 : 0, modern ? 1 : 0).setFontSize(modern ? 12 : 16);
+    this.hintText.setPosition(centered ? STAGE.WIDTH / 2 : 20, centered ? STAGE.HEIGHT - 24 : 20)
+      .setOrigin(centered ? 0.5 : 0, centered ? 1 : 0).setFontSize(modern ? 12 : 16);
     if (editing) {
       this.timeText.setText(this.source.prepping ? '준비 단계' : '편성 중').setColor(modern ? '#5b7e95' : TEXT_COLORS.MUTED);
       this.hintText.setText(targetHint || (this.source.canPlaceAt({ col: 0, row: 0 }) ? '좌클릭: 배치 / 우클릭: 제거' : ''));
