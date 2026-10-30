@@ -287,19 +287,19 @@ describe('BattleSession 카드 사용 (대상 지정)', () => {
 });
 
 describe('BattleSession 슬로모션', () => {
-  it('카드를 집는 동안 배속의 25%로 진행하고 취소하면 복귀한다', () => {
+  it('카드를 집는 동안 1배속 기준 10%로 진행하고(배속과 무관) 취소하면 복귀한다', () => {
     const s = newSession();
     dealWith(s, 'hold_the_line');
     s.start(s.snapshot().seed);
     const card = handCard(s, 'hold_the_line');
     expect(s.timeScale).toBe(1);
     s.beginCard(card.instanceId, 'click');
-    expect(s.timeScale).toBeCloseTo(0.25);
+    expect(s.timeScale).toBeCloseTo(0.1);
     const t0 = s.time;
     s.advance(1);
-    expect(s.time - t0).toBeCloseTo(0.25);
+    expect(s.time - t0).toBeCloseTo(0.1);
     s.setSpeed(4);
-    expect(s.timeScale).toBeCloseTo(1);
+    expect(s.timeScale).toBeCloseTo(0.1);
     s.cancelCard();
     expect(s.timeScale).toBe(4);
   });

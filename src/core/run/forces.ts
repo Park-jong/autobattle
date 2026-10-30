@@ -120,15 +120,21 @@ export class PlayerForces {
 
   /**
    * 장비 카드를 덱으로 되돌린다 (장착 해제·장착 유닛 판매). 장비 id는 'forged_blade+'처럼 강화면 +를 붙인 형태.
-   * 준비 손패는 다음 준비 때 덱에서 다시 뽑는다 (준비 덱과 이어받는 덱의 인스턴스 번호가 어긋나지 않게)
+   * 전투 준비 중이면 이미 뽑은 준비 손패는 그대로 두고 카드는 뽑을 더미로만 넣는다. 이어받는 덱과 준비 덱에 같은 인스턴스 번호로
+   * 넣어(새 카드면 두 덱의 다음 번호 중 큰 값) 이후 장비 확정·전투 정산에서 번호가 어긋나지 않게 한다
    */
   returnEquipmentCards(items: readonly string[]): void {
-    if (items.length === 0) return;
     for (const item of items) {
       const upgraded = item.endsWith('+');
-      this.carryDeck = returnCardToDeck(this.carryDeck, this.cards, upgraded ? item.slice(0, -1) : item, upgraded);
+      const cardId = upgraded ? item.slice(0, -1) : item;
+      if (!this.preparedDeck) {
+        this.carryDeck = returnCardToDeck(this.carryDeck, this.cards, cardId, upgraded);
+        continue;
+      }
+      const nextInstanceId = Math.max(this.carryDeck.nextInstanceId, this.preparedDeck.nextInstanceId);
+      this.carryDeck = returnCardToDeck({ ...this.carryDeck, nextInstanceId }, this.cards, cardId, upgraded);
+      this.preparedDeck = returnCardToDeck({ ...this.preparedDeck, nextInstanceId }, this.cards, cardId, upgraded);
     }
-    this.preparedDeck = null;
   }
 
   /**
