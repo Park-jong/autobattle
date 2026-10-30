@@ -3,7 +3,7 @@ import { clientToStage } from '../cards/stagePoint';
 
 type Origin = 'board' | 'bench' | 'canvas';
 
-interface UnitPress { id: number; x: number; y: number; origin: Origin; dragging: boolean; }
+interface UnitPress { id: number; x: number; y: number; origin: Origin; dragging: boolean; pointerId: number; pointerType: string; }
 
 export interface RosterDragOptions {
   controller: DebugController;
@@ -14,6 +14,7 @@ export interface RosterDragOptions {
   ghost?(id: number): HTMLElement;
   /** 드래그가 시작될 때 (판매 구역을 앞으로 꺼내는 등) */
   onDragStart?(id: number): void;
+  onSelect?(id: number): void;
 }
 
 /**
@@ -32,12 +33,12 @@ export class RosterDrag {
   /** 버튼에 드래그·선택을 붙인다 */
   bind(node: HTMLElement, id: number, origin: 'board' | 'bench', enabled: boolean): void {
     node.addEventListener('pointerdown', (event) => {
-      if (event.button !== 0 || !enabled) return;
-      this.begin(id, event.clientX, event.clientY, origin);
+      if (event.button !== 0 || !enabled || !this.options.isActive()) return;
+      this.begin(id, event, origin);
     });
     // 키보드(Enter/Space)로 누른 클릭은 detail이 0이다
     node.addEventListener('click', (event) => {
-      if (event.detail === 0) this.options.controller.selectManagedUnit(id);
+      if (event.detail === 0 && event.target === node && enabled && this.options.isActive()) this.select(id);
     });
   }
 
@@ -52,20 +53,24 @@ export class RosterDrag {
     const point = this.stagePoint(event);
     if (!point) return;
     const id = this.options.controller.managedUnitAtStage(point.x, point.y);
-    if (id !== null) this.begin(id, event.clientX, event.clientY, 'canvas');
+    if (id !== null) this.begin(id, event, 'canvas');
   };
 
-  private begin(id: number, x: number, y: number, origin: Origin): void {
+  private begin(id: number, event: PointerEvent, origin: Origin): void {
     this.end();
-    this.press = { id, x, y, origin, dragging: false };
+    this.press = { id, x: event.clientX, y: event.clientY, origin, dragging: false, pointerId: event.pointerId, pointerType: event.pointerType };
     window.addEventListener('pointermove', this.onMove, { passive: false });
     window.addEventListener('pointerup', this.onUp);
     window.addEventListener('pointercancel', this.end);
+    window.addEventListener('keydown', this.onKey);
   }
 
   private onMove = (event: PointerEvent): void => {
     const press = this.press;
-    if (!press) return;
+    if (!press || event.pointerId !== press.pointerId) return;
+    if (!this.options.isActive()) return this.end();
+    // Touch hand cards use native scrolling and tap-to-summon, like tactical cards.
+    if (press.origin === 'bench' && press.pointerType === 'touch' && Math.hypot(event.clientX - press.x, event.clientY - press.y) >= 8) return this.end();
     if (!press.dragging && Math.hypot(event.clientX - press.x, event.clientY - press.y) >= 8) {
       press.dragging = true;
       this.ghostNode = this.options.ghost?.(press.id) ?? defaultGhost();
@@ -82,20 +87,36 @@ export class RosterDrag {
 
   private onUp = (event: PointerEvent): void => {
     const press = this.press;
+    if (!press || event.pointerId !== press.pointerId) return;
+    // Resolve temporary drop zones before removing the dragging presentation.
+    const under = press.dragging ? document.elementFromPoint(event.clientX, event.clientY) : null;
     this.end();
-    if (!press) return;
+    if (!this.options.isActive()) return;
     const controller = this.options.controller;
     if (!press.dragging) {
-      if (press.origin !== 'canvas') controller.selectManagedUnit(press.id);
+      if (press.pointerType === 'touch' && Math.hypot(event.clientX - press.x, event.clientY - press.y) >= 8) return;
+      if (press.origin !== 'canvas') this.select(press.id);
       return;
     }
     // 포인터 아래 요소 (드래그 표시는 pointer-events: none)
-    const under = document.elementFromPoint(event.clientX, event.clientY);
     const bench = under?.closest<HTMLElement>('[data-bench-index]');
     if (bench?.dataset.benchIndex !== undefined) return controller.moveManagedToBench(press.id, Number(bench.dataset.benchIndex));
     if (under?.closest('[data-sell-zone]')) return controller.sellManagedUnit(press.id);
+    if (under?.closest('[data-unit-hand-zone]')) {
+      if (press.origin !== 'bench') controller.moveManagedToBench(press.id);
+      return;
+    }
     const point = this.stagePoint(event);
     if (point && under?.closest('canvas')) controller.dropManagedToBoard(press.id, point.x, point.y);
+  };
+
+  private select(id: number): void {
+    if (this.options.onSelect) this.options.onSelect(id);
+    else this.options.controller.selectManagedUnit(id);
+  }
+
+  private onKey = (event: KeyboardEvent): void => {
+    if (event.key === 'Escape') this.end();
   };
 
   private stagePoint(event: PointerEvent): { x: number; y: number } | null {
@@ -111,6 +132,7 @@ export class RosterDrag {
     window.removeEventListener('pointermove', this.onMove);
     window.removeEventListener('pointerup', this.onUp);
     window.removeEventListener('pointercancel', this.end);
+    window.removeEventListener('keydown', this.onKey);
   };
 }
 

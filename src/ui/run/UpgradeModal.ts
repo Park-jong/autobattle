@@ -2,6 +2,8 @@ import { cardFaceElement } from '../cards/cardFace';
 import type { RunCommands, RunSnapshot } from './contracts';
 import { button, el, tagged } from './dom';
 import type { CardView } from './runViews';
+import { motionPreferences } from '../skin/presentation';
+import './upgradeMotion.css';
 
 function face(card: CardView): HTMLElement {
   const node = cardFaceElement({ ...card, tags: [...card.tags, ...(card.hpCostLabel ? [card.hpCostLabel] : [])] });
@@ -36,6 +38,7 @@ export class UpgradeModal {
     const signature = notice ? JSON.stringify(notice.cards.map((c) => c.instanceId)) : '';
     if (signature === this.signature) return;
     this.signature = signature;
+    this.root.getAnimations({ subtree: true }).forEach((animation) => animation.cancel());
     this.root.hidden = notice === null;
     if (!notice) {
       this.root.replaceChildren();
@@ -45,8 +48,14 @@ export class UpgradeModal {
     const list = tagged(el('div', 'up-list'), 'upgrade-cards');
     for (const { before, after } of notice.cards) {
       const row = el('div', 'up-row');
-      row.append(face(before), el('span', 'up-arrow', '→'), face(after));
-      list.append(row);
+      const source = face(before), destination = face(after);
+      source.classList.add('up-fusion-source'); destination.classList.add('up-fusion-result');
+      source.prepend(el('span', 'up-face-label', '강화 전'));
+      destination.prepend(el('span', 'up-face-label', '강화 후'));
+      row.append(source, el('span', 'up-arrow', '→'), destination);
+      const entry = el('section', 'up-entry');
+      entry.append(row, el('p', 'up-effect-summary', `${after.name}${before.cost !== after.cost ? ` · 비용 ${before.cost} → ${after.cost} CP` : ''}: ${after.text}`));
+      list.append(entry);
     }
     const ok = tagged(button('확인', () => this.commands.dismissUpgradeNotice(), 'rw-btn rw-primary'), 'dismiss-upgrade');
     panel.append(
@@ -55,7 +64,32 @@ export class UpgradeModal {
       ok,
     );
     this.root.replaceChildren(panel);
-    queueMicrotask(() => ok.focus());
+    queueMicrotask(() => { ok.focus(); this.animateFusion(); });
+  }
+
+  /** A single original card flows into its actual upgraded result; no extra cards are consumed. */
+  private animateFusion(): void {
+    if (motionPreferences.reduced || this.root.hidden) return;
+    for (const row of this.root.querySelectorAll<HTMLElement>('.up-row')) {
+      const source = row.querySelector<HTMLElement>('.up-fusion-source .hcard');
+      const result = row.querySelector<HTMLElement>('.up-fusion-result .hcard');
+      if (!source || !result) continue;
+      const from = source.getBoundingClientRect(), to = result.getBoundingClientRect();
+      if (from.bottom < 0 || from.top > innerHeight) continue;
+      const ghost = source.cloneNode(true) as HTMLElement;
+      ghost.classList.add('up-fusion-ghost'); ghost.setAttribute('aria-hidden', 'true');
+      Object.assign(ghost.style, { left: `${from.left + from.width / 2}px`, top: `${from.top + from.height / 2}px`, width: `${from.width}px`, height: `${from.height}px` });
+      this.root.append(ghost);
+      const dx = to.left + to.width / 2 - (from.left + from.width / 2), dy = to.top + to.height / 2 - (from.top + from.height / 2);
+      const flight = ghost.animate([{ transform: 'translate(-50%,-50%) scale(1)', opacity: .95 },
+        { transform: 'translate(-50%,-65%) scale(1.04)', opacity: 1, offset: .22 },
+        { transform: `translate(calc(-50% + ${dx}px),calc(-50% + ${dy}px)) scale(.12) rotate(12deg)`, opacity: 0 }], { duration: 650, easing: 'cubic-bezier(.25,.65,.3,1)', fill: 'both' });
+      flight.finished.then(() => ghost.remove(), () => ghost.remove());
+      source.animate([{ opacity: 1 }, { opacity: .5 }], { duration: 400, fill: 'forwards' });
+      result.animate([{ transform: 'scale(.94)', filter: 'brightness(.55)', boxShadow: '0 0 0 transparent' },
+        { transform: 'scale(1.07)', filter: 'brightness(1.5)', boxShadow: '0 0 34px #ffe094', offset: .48 },
+        { transform: 'scale(1)', filter: 'brightness(1)', boxShadow: '0 0 14px #ffe09466' }], { duration: 1100, delay: 200, easing: 'ease-out', fill: 'both' });
+    }
   }
 
   /** 열려 있는 동안: Enter·Esc는 닫고, 나머지 키는 뒤 화면의 단축키로 가지 않게 막는다 */

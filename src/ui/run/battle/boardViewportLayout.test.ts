@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { boardViewportLayout } from './boardViewportLayout';
 
-describe('mobile board viewport', () => {
-  for (const [width, height] of [[390, 325], [844, 210], [768, 640]]) {
+describe('board viewport', () => {
+  for (const [width, height] of [[390, 325], [844, 210], [768, 640], [1190, 546], [1190, 623], [774, 726], [1670, 803]]) {
     it(`keeps all eight columns and five rows inside ${width}×${height}`, () => {
       const layout = boardViewportLayout(width!, height!);
       const scale = layout.width / 1280;

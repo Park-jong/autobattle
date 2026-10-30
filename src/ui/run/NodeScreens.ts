@@ -1,8 +1,7 @@
 import { deckPicker, cardChoice } from './cardElements';
 import type { RunCommands, RunSnapshot } from './contracts';
 import { button, el, tagged } from './dom';
-import { iconButton } from './iconButton';
-import { hudElement } from './hudElement';
+import { expeditionHeader } from './expeditionHeader';
 import { encounterPreviewElement } from './encounterPreview';
 import { relicCard, relicRow } from './relicElements';
 import { actPresentation } from '../skin/skins';
@@ -26,8 +25,7 @@ abstract class NodeScreen {
 
   protected frame(snap: RunSnapshot, title: string, subtitle: string, body: readonly HTMLElement[]): void {
     if (!snap.hud) return;
-    const header = el('div', 'run-screen-header');
-    header.append(hudElement(snap.hud), tagged(iconButton('home', '시작 화면으로', () => this.commands.toStart()), 'to-start'));
+    const header = expeditionHeader(snap.hud, { onHome: () => this.commands.toStart() });
     const main = el('div', 'run-node-main');
     main.append(el('h2', 'run-screen-title', title), el('p', 'run-screen-subtitle', subtitle), ...body);
     this.root.replaceChildren(header, main);

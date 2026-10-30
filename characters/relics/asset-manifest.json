@@ -1,0 +1,506 @@
+[
+  {
+    "id": "old_baton",
+    "name": "낡은 지휘봉",
+    "rarity": "common",
+    "source": "characters/relics/source/old_baton.png",
+    "asset": "public/relics/old_baton.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "6625ecf12f5cdf7c68f797b31dd158a2d8e7251e91d80f3bc460b4cab3d1a1de",
+    "webSha256": "5580a23d38f855b7100c4b9e57ea25927dd912ae5e98f6a4f13749c9994d21d7",
+    "bytes": 14304
+  },
+  {
+    "id": "merchants_scale",
+    "name": "상인의 저울",
+    "rarity": "common",
+    "source": "characters/relics/source/merchants_scale.png",
+    "asset": "public/relics/merchants_scale.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "a98a9e7e8401dbbe6ef4680f2fcb8674e2424ae4b497d3584385d2dd98ea8445",
+    "webSha256": "d183177d52be3f4b56b80b703256aa03177baa304645c37a36b61b24a77e81e0",
+    "bytes": 57916
+  },
+  {
+    "id": "bulwark_crest",
+    "name": "철벽의 인장",
+    "rarity": "common",
+    "source": "characters/relics/source/bulwark_crest.png",
+    "asset": "public/relics/bulwark_crest.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "8cc941bc1b7b64cbfc28948afb892965cbc8a8fff96797570dfe2864673fe0cd",
+    "webSha256": "120c644686881be8f256ae92ef338afec6ce896205146ce40a4f2b4bc6d106e1",
+    "bytes": 55660
+  },
+  {
+    "id": "ember_charm",
+    "name": "잿불 부적",
+    "rarity": "common",
+    "source": "characters/relics/source/ember_charm.png",
+    "asset": "public/relics/ember_charm.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "aab2dd90aceee9e163434b8abca6645a436df7e1b63ab2d2d9e79b89e1ee5c9c",
+    "webSha256": "9422a26074d6b139dc86781d02346e020d606f69736ec22b525016ca3c9ca03e",
+    "bytes": 40092
+  },
+  {
+    "id": "blood_ledger",
+    "name": "피의 장부",
+    "rarity": "common",
+    "source": "characters/relics/source/blood_ledger.png",
+    "asset": "public/relics/blood_ledger.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "f8161fadddd775686922b048ecf640c56862abb538314df8b7548b4e221a6647",
+    "webSha256": "8cca0c46d1b21c20ef09e5550161d77d2d03b1198e23accd651c5579a6ec38f3",
+    "bytes": 41318
+  },
+  {
+    "id": "trophy_chain",
+    "name": "전리품 사슬",
+    "rarity": "common",
+    "source": "characters/relics/source/trophy_chain.png",
+    "asset": "public/relics/trophy_chain.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "548eeccab0a178a6d13afda6238570a71e7b7a0853c6536a3d39cd06b4ab6b38",
+    "webSha256": "326bd58374f64be63f40ccbc0515b604f54b48b63d39e5fdcd74fa107e7c4477",
+    "bytes": 42514
+  },
+  {
+    "id": "loot_sack",
+    "name": "전리품 자루",
+    "rarity": "common",
+    "source": "characters/relics/source/loot_sack.png",
+    "asset": "public/relics/loot_sack.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "63ec8926cb006cc0b47ae020aec5453dc75d8668d3745da71727bedbe5afc0a2",
+    "webSha256": "0f1d1535438391709a3ed09e6c0c52c22ef76b29bf43ba47453cef8b94642c97",
+    "bytes": 41998
+  },
+  {
+    "id": "field_tent",
+    "name": "야전 천막",
+    "rarity": "common",
+    "source": "characters/relics/source/field_tent.png",
+    "asset": "public/relics/field_tent.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "7c44b8344a80b6eb2ad9d3a8f9075cbb0d5950c8343a1bacaf1a60b63b24567d",
+    "webSha256": "005264b5b6660acd21bdffea43ebdaf93015524341532305d6f297b2ab227bf1",
+    "bytes": 32708
+  },
+  {
+    "id": "veteran_manual",
+    "name": "숙련자의 교본",
+    "rarity": "common",
+    "source": "characters/relics/source/veteran_manual.png",
+    "asset": "public/relics/veteran_manual.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "8f74969f2544d398f1e2a8b2fd43235b393038c47f97f3b0dd98e70ba0ca3d04",
+    "webSha256": "9ba1dc79483c5672890b4c7b99c6d0344f0e3dfbe1897b43f691a77d1f690954",
+    "bytes": 49330
+  },
+  {
+    "id": "blood_oath",
+    "name": "피의 맹세",
+    "rarity": "rare",
+    "source": "characters/relics/source/blood_oath.png",
+    "asset": "public/relics/blood_oath.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "82bf7293bc3989507bfe965313d4cc656e0d92c29dcd661ee47d4af7a8554867",
+    "webSha256": "b15d21ba8c7d36f60a62dd3a4a3471f12ea9e5ae55ada852e10734fb0c412dce",
+    "bytes": 45894
+  },
+  {
+    "id": "fifth_banner",
+    "name": "다섯 번째 깃발",
+    "rarity": "rare",
+    "source": "characters/relics/source/fifth_banner.png",
+    "asset": "public/relics/fifth_banner.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "045f2387f131ba843798cb211588f525daeb6d8e2feb7ae2df3938158f79faa7",
+    "webSha256": "c9edcce944d0bdf1ea5b679283fa82eb01e66ef323a75e164dd681be57aac861",
+    "bytes": 43502
+  },
+  {
+    "id": "twin_mirror",
+    "name": "쌍둥이 거울",
+    "rarity": "rare",
+    "source": "characters/relics/source/twin_mirror.png",
+    "asset": "public/relics/twin_mirror.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "3851c421186fac4fd43b1ef223f93f40d4ca1bc706257bca3936877f63aac216",
+    "webSha256": "2e671d0e15f086ce3253004ca94a0542f80f27145fc869d6769b1f0e215d686e",
+    "bytes": 53398
+  },
+  {
+    "id": "heralds_bag",
+    "name": "전령의 가방",
+    "rarity": "rare",
+    "source": "characters/relics/source/heralds_bag.png",
+    "asset": "public/relics/heralds_bag.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "34fee4844bc538db3038b375d73bb924a53c0a9e8402dd08cb486fc6da9f0c58",
+    "webSha256": "367dd7c33bfdec2ccce382e0084096d2926d20f6a8fa294bd5f55f87182d6495",
+    "bytes": 40560
+  },
+  {
+    "id": "tacticians_journal",
+    "name": "전술가의 일지",
+    "rarity": "rare",
+    "source": "characters/relics/source/tacticians_journal.png",
+    "asset": "public/relics/tacticians_journal.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "b8dd03597f61ae778f0af91293fdf45c5cd5f7ace795281ffd72b88f82bcaf7c",
+    "webSha256": "a00467aa26e9d5f32da084ee3fac47e9f8f5dd160d1123680c624d237b00e999",
+    "bytes": 47712
+  },
+  {
+    "id": "war_record",
+    "name": "전쟁의 기록부",
+    "rarity": "rare",
+    "source": "characters/relics/source/war_record.png",
+    "asset": "public/relics/war_record.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "d8eb9de6de3357a37d80ce42f326f1f3596c3f3240566703a401790e8a411177",
+    "webSha256": "b1a57b8e01413743b053f585ef9a1b40d7a43148c110ebad70ecb829d0e04099",
+    "bytes": 48494
+  },
+  {
+    "id": "fat_purse",
+    "name": "두둑한 전대",
+    "rarity": "rare",
+    "source": "characters/relics/source/fat_purse.png",
+    "asset": "public/relics/fat_purse.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "c273c2f579e452da5ca55e609f2c213ddc92e180b8a6b04cba949cf22433e275",
+    "webSha256": "facb246ba88721de3d810a984d5228f3dc3be31d86c748ed2df26aa68b7ea7cb",
+    "bytes": 43624
+  },
+  {
+    "id": "wholesale_voucher",
+    "name": "도매 증서",
+    "rarity": "rare",
+    "source": "characters/relics/source/wholesale_voucher.png",
+    "asset": "public/relics/wholesale_voucher.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "41bb572e192c71b62a59e99ea9df8c66628eaa117595cfc58d0e883bc968860f",
+    "webSha256": "5c5bb83bb786519fba7307694a128345f7c1781d99784ac04b70b531cefabed4",
+    "bytes": 31106
+  },
+  {
+    "id": "rift_heart",
+    "name": "균열의 심장",
+    "rarity": "boss",
+    "source": "characters/relics/source/rift_heart.png",
+    "asset": "public/relics/rift_heart.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "dd9e8df564b52c708c41f90094498487887b96309dbfed962b1a51a20e820a2c",
+    "webSha256": "10ced8cefc0669ba14a1e896415d4d8f2419143baddc2740d0efe48bcfe052d4",
+    "bytes": 50930
+  },
+  {
+    "id": "legion_seal",
+    "name": "군단장의 인장",
+    "rarity": "boss",
+    "source": "characters/relics/source/legion_seal.png",
+    "asset": "public/relics/legion_seal.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "739cbc39f8473c34c73afb1dbc700c13dfc03dd3777da922dfe7b1d7f7cb816f",
+    "webSha256": "db2916e629dc1e3febe3602df0f886b7e5885fb0281ec8da53dc49b87cdaa236",
+    "bytes": 52500
+  },
+  {
+    "id": "iron_heart",
+    "name": "강철 심장",
+    "rarity": "boss",
+    "source": "characters/relics/source/iron_heart.png",
+    "asset": "public/relics/iron_heart.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "119b882b22ea6d68289483da2372b35aba8ce0ac655e955ae1fc8a0915970b50",
+    "webSha256": "5b2ad69f5031f63287b58a3321af62cfa4ce0b3529eee8b41206d509436a0e30",
+    "bytes": 47470
+  },
+  {
+    "id": "war_crown",
+    "name": "전쟁군주의 왕관",
+    "rarity": "boss",
+    "source": "characters/relics/source/war_crown.png",
+    "asset": "public/relics/war_crown.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "0be01a29222ffc159e1c2ca742c540d5cf2a634ff7aa2783eb3942c239999451",
+    "webSha256": "a7af9d229e24881257eb86a15fc2f1f404958bad88f0b88569352365ab445f65",
+    "bytes": 53452
+  },
+  {
+    "id": "golden_ledger",
+    "name": "황금 장부",
+    "rarity": "boss",
+    "source": "characters/relics/source/golden_ledger.png",
+    "asset": "public/relics/golden_ledger.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "3ccce5c2f8ec4c7399ca6c3160bd2f7ad29a8c6e0e563bd7e05d8cb7dac63554",
+    "webSha256": "6f0305651996906e58e5b7064df75335af35b2642e961f457c4a914c5fe1d0ce",
+    "bytes": 50168
+  },
+  {
+    "id": "mana_wellspring",
+    "name": "마력의 샘",
+    "rarity": "boss",
+    "source": "characters/relics/source/mana_wellspring.png",
+    "asset": "public/relics/mana_wellspring.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "fc89b78f4dc98f899c2e6359a5dd1c116db0e9bd62b0b0c054282a4ab09347f3",
+    "webSha256": "955096cdee10df64aa1f1f0ece9390d0ded7729cab53285dbd05b4b54b9b4600",
+    "bytes": 58214
+  },
+  {
+    "id": "phoenix_ember",
+    "name": "불사조의 잔불",
+    "rarity": "boss",
+    "source": "characters/relics/source/phoenix_ember.png",
+    "asset": "public/relics/phoenix_ember.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "79223c889df327ee69eca09b413c7cf55e4ba4c87324317fdab4cb673e67348c",
+    "webSha256": "d8d59333274b3d726316e731fa2815c658afa136965c0815e168a01a6811c0fd",
+    "bytes": 61048
+  },
+  {
+    "id": "arcane_codex",
+    "name": "대마도서",
+    "rarity": "boss",
+    "source": "characters/relics/source/arcane_codex.png",
+    "asset": "public/relics/arcane_codex.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "975323461758723f18bd9a690bffd59f1b45289dc9406933296bbde6223a2e47",
+    "webSha256": "c22d58c39fa58a13f17f5b6d9947f5323f7b6a21350e659654b000a67e20ef36",
+    "bytes": 54056
+  },
+  {
+    "id": "strategist_satchel",
+    "name": "대전략가의 가방",
+    "rarity": "boss",
+    "source": "characters/relics/source/strategist_satchel.png",
+    "asset": "public/relics/strategist_satchel.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "8a2a913ce8167b18de473b1cd5354a9c3cbe1aa374f22512610b7990c3b6b8bc",
+    "webSha256": "144de58b9ab756918f902befb04dd52223c48b95d97a4fe68f85bfdc4f6477f3",
+    "bytes": 58172
+  },
+  {
+    "id": "master_forge",
+    "name": "명장의 대장간",
+    "rarity": "boss",
+    "source": "characters/relics/source/master_forge.png",
+    "asset": "public/relics/master_forge.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "17a681693eb3822f5a68a11594f4e65225f3c3c186d56025d7c5ba9111f2a002",
+    "webSha256": "935aad20ecf12e74688ca85fb78ad76451be39b9b7d56bc3747215e05261aaea",
+    "bytes": 43394
+  },
+  {
+    "id": "grand_banner",
+    "name": "대군기",
+    "rarity": "boss",
+    "source": "characters/relics/source/grand_banner.png",
+    "asset": "public/relics/grand_banner.webp",
+    "sourceSize": [
+      1254,
+      1254
+    ],
+    "webSize": [
+      384,
+      384
+    ],
+    "sourceSha256": "2a2e4df93125f1093ed5cbb1e107bb0ddaf8a6675bf9e67646eda8b3e978f013",
+    "webSha256": "bd2d91cab042ff1d30988ab9fa3417bdf80da1bba827415dca19ef3c7fe05f9d",
+    "bytes": 54524
+  }
+]

@@ -8,3 +8,12 @@
 .action-fx-unit { width: 72px; height: 72px; object-fit: contain; }
 .action-fx-layer .action-fx-card { position: absolute !important; bottom: auto !important; width: 112px !important; height: 158px !important; margin: 0 !important; transition: none !important; }
 .action-fx-status { position: fixed; width: 1px; height: 1px; clip-path: inset(50%); overflow: hidden; white-space: nowrap; }
+.action-fx-merge-card { display: flex; flex-direction: column; width: 76px; padding: 4px; border: 2px solid #b6cce6; border-radius: 9px; background: #142238; box-shadow: 0 7px 20px #0008; color: #f2f6ff; font: 11px/1.3 var(--bt-font,sans-serif); text-align: center; }
+.action-fx-merge-card img { width: 76px; height: 65px; object-fit: cover; object-position: 50% 18%; border-radius: 5px; }
+.action-fx-merge-card b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 3px; }
+.action-fx-merge-card .merge-stars { color: #ffe38e; letter-spacing: 2px; font-size: 15px; }
+.action-fx-merge-card .merge-glyph { display: grid; place-items: center; min-height: 65px; color: #cbeaff; background: #334c6b; font-size: 24px; }
+.action-fx-merge-card.merge-result { border-color: #ffe08c; box-shadow: 0 0 0 2px #f3d07866, 0 0 28px #f3d078aa; z-index: 2; }
+.action-fx-recruit { display: flex; flex-direction: column; width: 84px; padding: 4px; border: 2px solid #ffe08c; border-radius: 9px; color: #fff2c1; background: #142238; box-shadow: 0 0 24px #f3d07888; font: 700 11px/1.6 var(--bt-font, sans-serif); text-align: center; }
+.action-fx-recruit img { width: 84px; height: 80px; object-fit: cover; object-position: 50% 18%; border-radius: 5px; }
+.action-fx-recruit b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }

@@ -1,4 +1,5 @@
 import { el, tagged } from '../dom';
+import { motionPreferences } from '../../skin/presentation';
 
 export type TrayLayerId = 'shop' | 'cards';
 
@@ -12,7 +13,7 @@ interface LayerSpec {
 
 const LAYERS: readonly LayerSpec[] = [
   { id: 'shop', label: '유닛 상점', code: 'KeyS', key: 'S' },
-  { id: 'cards', label: '카드', code: 'KeyC', key: 'C' },
+  { id: 'cards', label: '통합 손패', code: 'KeyC', key: 'C' },
 ];
 
 /**
@@ -27,6 +28,7 @@ export class TrayStack {
   private collapsed = this.shortViewport.matches;
   private readonly collapseButton = tagged(el('button', 'tray-collapse'), 'tray-collapse');
   private readonly tabs = new Map<TrayLayerId, HTMLButtonElement>();
+  private motions: Animation[] = [];
 
   constructor(private readonly tray: HTMLElement, contents: Record<TrayLayerId, HTMLElement>) {
     const tabBar = el('div', 'tray-tabs');
@@ -73,6 +75,7 @@ export class TrayStack {
       const spec = LAYERS.find((l) => l.code === e.code);
       if (spec) this.bringFront(spec.id);
     });
+    motionPreferences.subscribe(() => this.apply(false));
     this.apply(false);
   }
 
@@ -80,9 +83,9 @@ export class TrayStack {
     return this.frontId;
   }
 
-  setCardCount(count: number): void {
+  setCardCount(count: number, units = 0): void {
     const tab = this.tabs.get('cards');
-    const label = `카드 ${count}장`;
+    const label = `손패 ${count + units}장`;
     if (tab && tab.firstChild?.textContent !== label) tab.firstChild!.textContent = label;
   }
 
@@ -101,6 +104,9 @@ export class TrayStack {
   }
 
   private apply(animate: boolean): void {
+    const outgoing = [...this.layers.entries()].find(([id, layer]) => id !== this.frontId && !layer.hidden && !layer.inert)?.[1];
+    for (const motion of this.motions) motion.cancel();
+    this.motions = [];
     this.tray.classList.toggle('stacked', this.stacked);
     this.tray.classList.toggle('collapsed', this.stacked && this.collapsed);
     this.collapseButton.hidden = !this.stacked;
@@ -109,12 +115,34 @@ export class TrayStack {
     for (const [id, layer] of this.layers) {
       const front = id === this.frontId;
       layer.hidden = this.stacked ? !front || this.collapsed : id !== 'cards';
+      layer.inert = this.stacked && !front;
+      layer.setAttribute('aria-hidden', String(layer.hidden));
       const tab = this.tabs.get(id)!;
       tab.setAttribute('aria-selected', String(front));
       tab.tabIndex = front ? 0 : -1;
       layer.classList.toggle('front', !this.stacked || front);
       layer.classList.toggle('back', this.stacked && !front);
       layer.classList.remove('raised');
+    }
+    if (animate && this.stacked && !this.collapsed && !motionPreferences.reduced) {
+      const front = this.layers.get(this.frontId)!;
+      this.motions.push(front.animate([
+        { transform: 'translateY(22px) scale(.97)', opacity: .35, filter: 'brightness(.7)' },
+        { transform: 'translateY(-9px) scale(1.005)', opacity: 1, filter: 'brightness(1.12)', offset: .55 },
+        { transform: 'translateY(0) scale(1)', opacity: 1, filter: 'brightness(1)' },
+      ], { duration: 360, easing: 'cubic-bezier(.2,.8,.2,1)' }));
+      if (outgoing) {
+        outgoing.hidden = false;
+        // Keep the departing panel visible for motion while excluding its controls from input.
+        outgoing.inert = true;
+        outgoing.setAttribute('aria-hidden', 'true');
+        const departure = outgoing.animate([
+          { transform: 'translateY(0) scale(1)', opacity: 1 },
+          { transform: 'translateY(-22px) scale(.96)', opacity: 0 },
+        ], { duration: 240, easing: 'ease-out' });
+        this.motions.push(departure);
+        departure.finished.then(() => { outgoing.hidden = true; }, () => {});
+      }
     }
     // 겹침 모드가 바뀌면 트레이 높이가 달라지므로 캔버스(Scale.FIT)가 남는 공간에 맞춰 다시 잡도록 알린다
     window.dispatchEvent(new Event('resize'));

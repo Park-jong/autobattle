@@ -1,0 +1,157 @@
+/* Shop layout stays readable within the battle tray, across all three skins. */
+.bt-shop.unit-market {
+  --shop-surface: var(--bt-panel-bottom);
+  --shop-accent: var(--bt-gold);
+  gap: 14px;
+  padding: 10px 14px;
+  background: var(--bt-bg);
+}
+.bt-shop.unit-market .bt-shop-side { flex: 0 0 178px; min-width: 0; gap: 4px; }
+.bt-shop.unit-market .bt-shop-wallet { display: flex; align-items: center; justify-content: space-between; color: var(--bt-muted); font-size: 11px; }
+.bt-shop.unit-market .bt-shop-gold { color: var(--shop-accent); font-size: 23px; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.bt-shop.unit-market .bt-shop-progression { display: flex; flex-direction: column; gap: 5px; }
+.bt-shop.unit-market .bt-shop-level { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+.bt-shop.unit-market .bt-shop-level span { margin: 0; font-size: 10px; }
+.bt-shop.unit-market .bt-xp { height: 4px; flex-shrink: 0; background: var(--shop-surface); }
+.bt-shop.unit-market .bt-shop-odds { display: flex; justify-content: space-between; gap: 4px; }
+.bt-shop.unit-market .shop-odds-tier { display: flex; align-items: center; gap: 3px; font-size: 10px; color: var(--bt-text); font-variant-numeric: tabular-nums; }
+.bt-shop.unit-market .shop-odds-tier::before { content: ''; width: 5px; height: 5px; flex: 0 0 5px; border-radius: 2px; background: var(--offer-tier); }
+.bt-shop.unit-market .shop-odds-tier.unavailable { opacity: .45; }
+.bt-shop.unit-market .bt-shop-actions { display: grid; grid-template-columns: 1fr; gap: 4px; margin: 0; }
+.bt-shop.unit-market .bt-shop-actions .bt-btn { display: flex; justify-content: space-between; align-items: center; gap: 4px; min-height: 30px; padding: 4px 9px; font-size: 11px; }
+.bt-shop.unit-market .bt-shop-actions .lock { grid-column: auto; justify-content: center; min-height: 25px; border-style: dashed; color: var(--bt-muted); }
+.bt-shop.unit-market .bt-shop-actions .lock.selected { color: var(--shop-accent); border-color: var(--shop-accent); border-style: solid; background: color-mix(in srgb, var(--shop-accent) 12%, var(--bt-bg)); }
+.bt-shop.unit-market .bt-action-reason { display: none; min-height: 0; font-size: 10px; line-height: 1.3; text-align: center; }
+.bt-shop.unit-market.shop-locked .bt-action-reason { display: block; }
+.bt-shop.unit-market .bt-sell-overlay { min-height: 22px; margin-top: auto; padding: 3px; font-size: 10px; }
+.bt-shop.unit-market .bt-offers { gap: 10px; min-height: 0; padding: 0; }
+.bt-shop.unit-market .tier-1 { --offer-tier: var(--bt-tier-1); }
+.bt-shop.unit-market .tier-2 { --offer-tier: var(--bt-tier-2); }
+.bt-shop.unit-market .tier-3 { --offer-tier: var(--bt-tier-3); }
+.bt-shop.unit-market .tier-4 { --offer-tier: var(--bt-tier-4); }
+.bt-shop.unit-market .tier-5 { --offer-tier: var(--bt-tier-5); }
+.bt-shop.unit-market .bt-offer {
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--offer-tier) 65%, var(--bt-border));
+  border-top: 3px solid var(--offer-tier);
+  border-radius: 9px;
+  color: var(--bt-text);
+  background: var(--shop-surface);
+  box-shadow: 0 3px 10px #00000018;
+  transition: border-color .15s, box-shadow .15s;
+}
+.bt-shop.unit-market .bt-offer:hover:not(:disabled), .bt-shop.unit-market .bt-offer:focus-within { transform: none; border-color: var(--offer-tier); box-shadow: 0 0 0 1px var(--offer-tier), 0 4px 14px #00000020; }
+.bt-shop.unit-market .bt-offer-art { flex: 1 1 0; min-height: 53px; overflow: hidden; background: radial-gradient(ellipse at 50% 20%, color-mix(in srgb, var(--offer-tier) 25%, var(--shop-surface)), var(--shop-surface)); }
+.bt-shop.unit-market .bt-offer-art img { object-position: 50% 20%; }
+.bt-shop.unit-market .bt-offer .bt-tier-badge { top: 5px; left: 6px; min-width: 22px; height: 23px; border-width: 1px; background: #101725d9; }
+.bt-shop.unit-market .bt-offer-info { top: 5px; right: 6px; min-width: 34px; min-height: 27px; border-radius: 6px; font-size: 10px; }
+.bt-shop.unit-market .bt-offer-foot { display: flex; flex-direction: column; align-items: stretch; flex-wrap: nowrap; flex: 0 0 auto; gap: 4px; padding: 7px 9px; background: var(--shop-surface); border-top: 1px solid var(--bt-border); }
+.bt-shop.unit-market .bt-offer .academy-offer-label { flex: none; gap: 1px; }
+.bt-shop.unit-market .academy-offer-label b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; line-height: 1.4; }
+.bt-shop.unit-market .academy-offer-label small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--bt-muted); font-size: 10px; }
+.bt-shop.unit-market .bt-offer-traits { position: static; display: flex; flex-direction: row; flex-wrap: wrap; gap: 3px; min-height: 17px; }
+.bt-shop.unit-market .bt-offer-traits span { display: inline-flex; align-items: center; padding: 1px 5px; border: 1px solid var(--bt-border); border-radius: 4px; background: transparent; color: var(--bt-muted); font-size: 10px; line-height: 1.3; }
+.bt-shop.unit-market .bt-offer-traits .shared-trait { color: var(--shop-accent); background: color-mix(in srgb, var(--shop-accent) 9%, transparent); border-color: color-mix(in srgb, var(--shop-accent) 50%, var(--bt-border)); }
+.bt-shop.unit-market .bt-offer-owned { min-height: 14px; padding: 0; color: var(--bt-muted); background: transparent; font-size: 10px; line-height: 1.4; }
+.bt-shop.unit-market .is-owned .bt-offer-owned { color: var(--shop-accent); }
+.bt-shop.unit-market .merge-ready { border-color: var(--shop-accent); box-shadow: 0 0 0 1px var(--shop-accent); }
+.bt-shop.unit-market .bt-offer-owned.merge { color: var(--shop-accent); font-weight: 800; }
+.bt-shop.unit-market .bt-offer-owned.merge::before { content: '✦ '; }
+.bt-shop.unit-market .bt-offer-buy { display: flex; justify-content: space-between; align-items: center; min-height: 32px; padding: 4px 9px; margin-top: 1px; border: 1px solid color-mix(in srgb, var(--offer-tier) 50%, var(--bt-border)); border-radius: 5px; color: var(--bt-text); background: color-mix(in srgb, var(--offer-tier) 10%, var(--bt-bg)); font-size: 11px; }
+.bt-shop.unit-market .bt-offer-buy:hover:enabled { background: color-mix(in srgb, var(--offer-tier) 23%, var(--bt-bg)); border-color: var(--offer-tier); }
+.bt-shop.unit-market .bt-offer-cost { color: var(--shop-accent); font-size: 13px; font-variant-numeric: tabular-nums; }
+.bt-shop.unit-market .bt-offer-buy:disabled { opacity: .55; }
+.bt-shop.unit-market .unaffordable .bt-offer-art img { filter: saturate(.65); }
+.bt-shop.unit-market .bt-offer.sold { gap: 7px; border: 1px dashed var(--bt-border-strong); color: var(--bt-muted); background: color-mix(in srgb, var(--shop-surface) 50%, transparent); text-align: center; }
+.bt-shop.unit-market .bt-sold-mark { display: grid; place-items: center; width: 32px; height: 32px; margin-bottom: 2px; border: 1px solid var(--bt-border-strong); border-radius: 50%; color: var(--shop-accent); font-size: 17px; }
+.bt-shop.unit-market .bt-offer.sold strong { font-size: 12px; font-weight: 500; }
+.bt-shop.unit-market .bt-offer.sold small { padding: 0 6px; font-size: 10px; }
+.bt-shop.unit-market :is(button, [tabindex]):focus-visible { outline: 2px solid var(--shop-accent); outline-offset: 2px; }
+body[data-skin="modern"] .bt-shop.unit-market { --shop-surface: var(--bt-panel-bottom); }
+body[data-screen="battle"] #tray.stacked:has(.unit-market):not(.collapsed) { height: 282px; }
+
+@media (max-width: 1100px) {
+  .bt-shop.unit-market .bt-shop-side { flex-basis: 152px; }
+  .bt-shop.unit-market .bt-offers { gap: 7px; }
+  .bt-shop.unit-market .bt-offer-foot { padding: 6px; }
+  .bt-shop.unit-market .academy-offer-label small { display: none; }
+}
+
+@media (max-width: 900px), (max-width: 1000px) and (max-height: 620px) {
+  .bt-shop.unit-market { flex-direction: column; gap: 7px; padding: 7px; }
+  .bt-shop.unit-market .bt-shop-side { flex: 0 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 5px 12px; }
+  .bt-shop.unit-market .bt-shop-wallet { grid-column: 2; grid-row: 1; gap: 8px; }
+  .bt-shop.unit-market .bt-shop-gold { font-size: 20px; }
+  .bt-shop.unit-market .bt-shop-progression { grid-column: 1; grid-row: 1; justify-content: center; gap: 3px; }
+  .bt-shop.unit-market .bt-shop-side .bt-xp { display: block; }
+  .bt-shop.unit-market .bt-shop-odds { display: none; }
+  .bt-shop.unit-market .bt-shop-level { justify-content: flex-start; gap: 8px; }
+  .bt-shop.unit-market .bt-shop-level span { display: inline; font-size: 10px; }
+  .bt-shop.unit-market .bt-shop-actions { grid-column: 1 / -1; grid-row: 2; display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 5px; }
+  .bt-shop.unit-market .bt-shop-actions .bt-btn { min-height: 34px; padding: 5px 7px; font-size: 11px; }
+  .bt-shop.unit-market .bt-shop-actions .bt-key { display: none; }
+  .bt-shop.unit-market .bt-action-reason, .bt-shop.unit-market.shop-locked .bt-action-reason { display: none; }
+  .bt-shop.unit-market .bt-sell-overlay { display: none; }
+  body.roster-dragging .bt-shop.unit-market .bt-sell-overlay { display: flex; position: absolute; inset: 0; z-index: 6; font-size: 16px; background: var(--bt-bg); }
+  .bt-shop.unit-market .bt-offers { display: flex; flex: 1 1 0; gap: 8px; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; overscroll-behavior-x: contain; scrollbar-width: thin; padding: 1px 1px 4px; }
+  .bt-shop.unit-market .bt-offer { flex: 0 0 148px; scroll-snap-align: start; }
+  .bt-shop.unit-market .bt-offer-foot { gap: 3px; padding: 5px 7px; }
+  .bt-shop.unit-market .bt-offer-info { min-height: 32px; min-width: 36px; }
+  .bt-shop.unit-market .bt-offer-buy { min-height: 36px; }
+  .bt-shop.unit-market .bt-offer-owned { padding: 0; }
+  body[data-screen="battle"] #tray.stacked:has(.unit-market):not(.collapsed) { height: 322px; min-height: 322px; }
+}
+
+@media (max-width: 900px) and (orientation: portrait) {
+  body[data-screen="battle"] #tray.stacked:has(.unit-market):not(.collapsed) { flex-basis: 322px; }
+}
+
+@media (max-width: 1000px) and (max-height: 620px) and (orientation: landscape) {
+  body[data-screen="battle"] #stage:has(#tray.stacked:not(.collapsed)) #tray:has(.unit-market) { height: 100%; min-height: 300px; }
+  .bt-shop.unit-market .bt-shop-wallet > span { display: none; }
+  .bt-shop.unit-market .bt-shop-side { column-gap: 6px; }
+  .bt-shop.unit-market .bt-shop-actions .bt-btn { padding: 4px; font-size: 10px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bt-shop.unit-market .bt-offer { transition: none; }
+}
+
+/* Three compact controls: the pictogram leads, with cost always visible. */
+.bt-shop.unit-market .bt-shop-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
+.bt-shop.unit-market .bt-shop-actions .shop-control {
+  position: relative; display: flex; flex-direction: column; justify-content: center; align-items: center;
+  min-height: 78px; padding: 7px 2px; gap: 3px; border-radius: 8px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--shop-accent) 10%, var(--shop-surface)), var(--shop-surface));
+  color: var(--bt-text); border: 1px solid var(--bt-border-strong); line-height: 1.1;
+}
+.bt-shop.unit-market .shop-control svg { flex: 0 0 auto; color: var(--shop-accent); pointer-events: none; }
+.bt-shop.unit-market .shop-control-label { font-size: 10px; font-weight: 500; white-space: nowrap; }
+.bt-shop.unit-market .shop-control-cost { color: var(--shop-accent); font-size: 11px; font-variant-numeric: tabular-nums; }
+.bt-shop.unit-market .shop-control .bt-key { position: absolute; right: 3px; top: 3px; font-size: 8px; padding: 1px 2px; opacity: .65; }
+.bt-shop.unit-market .shop-control.lock { grid-column: auto; border-style: dashed; }
+.bt-shop.unit-market .shop-control.lock.selected { border-style: solid; box-shadow: inset 0 0 16px color-mix(in srgb, var(--shop-accent) 14%, transparent); }
+.bt-shop.unit-market .shop-control.lock.selected svg { fill: color-mix(in srgb, var(--shop-accent) 20%, transparent); }
+.bt-shop.unit-market .shop-control:hover:enabled { border-color: var(--shop-accent); background: color-mix(in srgb, var(--shop-accent) 15%, var(--shop-surface)); }
+.bt-shop.unit-market .shop-control:active:enabled { transform: scale(.95); }
+.bt-shop.unit-market .shop-control[data-tip]::after {
+  content: attr(data-tip); position: absolute; bottom: calc(100% + 7px); left: 0; z-index: 8;
+  width: max-content; max-width: min(230px, 70vw); padding: 7px 9px; border-radius: 6px;
+  background: var(--bt-bg); color: var(--bt-text); border: 1px solid var(--bt-border-strong);
+  font: 11px/1.5 var(--bt-font); box-shadow: 0 4px 16px #0005; pointer-events: none;
+  opacity: 0; visibility: hidden; transition: opacity .15s;
+}
+.bt-shop.unit-market .shop-control[data-tip]:hover::after, .bt-shop.unit-market .shop-control[data-tip]:focus-visible::after { opacity: 1; visibility: visible; }
+#tray.stacked .tray-layer[inert] { pointer-events: none; }
+body[data-motion="reduced"] .bt-shop.unit-market .shop-control:active:enabled { transform: none; }
+
+@media (max-width: 900px), (max-width: 1000px) and (max-height: 620px) {
+  .bt-shop.unit-market .bt-shop-actions .shop-control { min-height: 42px; flex-direction: row; gap: 6px; padding: 6px; }
+  .bt-shop.unit-market .shop-control svg { width: 20px; height: 20px; }
+  .bt-shop.unit-market .shop-control.lock[data-tip]::after { left: auto; right: 0; }
+}
+
+@media (max-width: 1000px) and (max-height: 620px) and (orientation: landscape) {
+  .bt-shop.unit-market .bt-shop-actions .shop-control { flex-direction: column; min-height: 58px; gap: 3px; padding: 4px; }
+  .bt-shop.unit-market .shop-control-label { display: none; }
+}

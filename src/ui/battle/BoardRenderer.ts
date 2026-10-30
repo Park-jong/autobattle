@@ -62,7 +62,7 @@ export class BoardRenderer {
     const palette = modern ? MODERN_COLORS : academy ? ACADEMY_COLORS : COLORS;
     const size = this.layout.cellSize;
     if (illustrated) {
-      g.fillStyle(modern ? 0xf7fbff : 0x060a14, 0.8);
+      g.fillStyle(modern ? 0x111e2d : 0x060a14, 0.8);
       g.fillRoundedRect(this.layout.originX - 14, this.layout.originY - 14, this.layout.width + 28, this.layout.height + 28, 14);
       g.lineStyle(1, palette.BOARD_BORDER, 0.3);
       g.strokeRoundedRect(this.layout.originX - 11, this.layout.originY - 11, this.layout.width + 22, this.layout.height + 22, 10);
@@ -86,16 +86,16 @@ export class BoardRenderer {
       g.fillRect(p.x, p.y, size, this.layout.height);
     }
     if (modern) {
-      g.lineStyle(3, 0xf7fbff, 0.65);
+      g.lineStyle(3, 0x91b6c9, 0.4);
       const y = this.layout.originY + this.layout.height / 2;
       for (let x = this.layout.originX + 16; x < this.layout.originX + this.layout.width; x += 48) g.lineBetween(x, y, x + 22, y);
       for (let col = 0; col < BOARD_COLS; col++) {
         const c = this.layout.center(col, 0);
-        this.labels.push(createText(scene, metrics, c.x, this.layout.originY - 13, String.fromCharCode(65 + col), { fontSize: '12px', color: '#60889e' }).setOrigin(0.5));
+        this.labels.push(createText(scene, metrics, c.x, this.layout.originY - 13, String.fromCharCode(65 + col), { fontSize: '12px', color: '#9bafc2' }).setOrigin(0.5));
       }
       for (let row = 0; row < BOARD_ROWS; row++) {
         const c = this.layout.center(0, row);
-        this.labels.push(createText(scene, metrics, this.layout.originX - 18, c.y, String(row + 1), { fontSize: '12px', color: '#60889e' }).setOrigin(0.5));
+        this.labels.push(createText(scene, metrics, this.layout.originX - 18, c.y, String(row + 1), { fontSize: '12px', color: '#9bafc2' }).setOrigin(0.5));
       }
     }
     if (academy) {
@@ -123,13 +123,13 @@ export class BoardRenderer {
 
     // 라벨
     const half = (BOARD_COLS / 2) * size;
-    const labelStyle = { fontSize: '20px', color: modern ? '#577d97' : TEXT_COLORS.MUTED };
+    const labelStyle = { fontSize: '20px', color: modern ? '#9bafc2' : TEXT_COLORS.MUTED };
     const labelY = modern ? 82 : LAYOUT.SIDE_LABEL_Y;
     this.labels.push(createText(scene, metrics, this.layout.originX + half / 2, labelY, modern ? '도시 기동대' : academy ? '◇ 아카데미 분대' : '아군 영역', labelStyle).setOrigin(0.5));
     this.labels.push(createText(scene, metrics, this.layout.originX + half * 1.5, labelY, modern ? '적대 세력' : academy ? '금서의 잔영 ◇' : '적 영역', labelStyle).setOrigin(0.5));
     for (const side of [0, 1] as const) {
       const c = this.layout.center(frontCol(side), 0);
-      this.labels.push(createText(scene, metrics, c.x, LAYOUT.FRONT_LABEL_Y, '전열', { fontSize: '18px', color: modern ? '#67889e' : TEXT_COLORS.MUTED }).setOrigin(0.5));
+      this.labels.push(createText(scene, metrics, c.x, LAYOUT.FRONT_LABEL_Y, '전열', { fontSize: '18px', color: modern ? '#9bafc2' : TEXT_COLORS.MUTED }).setOrigin(0.5));
     }
   }
 }

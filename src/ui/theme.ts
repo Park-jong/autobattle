@@ -104,12 +104,12 @@ export const ACADEMY_COLORS = {
   GRID_LINE: 0x4b5269, BOARD_BORDER: 0xb29a68,
 } as const;
 
-/** 현대 도시전 보드: 콘크리트 바닥과 청색·적색 작전 구역. */
+/** 현대 도시전 보드: 야간 도로와 청색·적색 작전 구역. */
 export const MODERN_COLORS = {
-  BACKGROUND: 0xe6eef5,
-  ALLY_CELL_A: 0xd1e0eb, ALLY_CELL_B: 0xc6d9e7,
-  ENEMY_CELL_A: 0xead8d8, ENEMY_CELL_B: 0xe3ced1,
-  GRID_LINE: 0x91acbe, BOARD_BORDER: 0x5e9bb7,
+  BACKGROUND: 0x0c1420,
+  ALLY_CELL_A: 0x1c3448, ALLY_CELL_B: 0x233f55,
+  ENEMY_CELL_A: 0x392c3b, ENEMY_CELL_B: 0x453344,
+  GRID_LINE: 0x52758d, BOARD_BORDER: 0x6bbad2,
 } as const;
 
 /** 텍스트 색 (CSS 문자열) */

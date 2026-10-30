@@ -8,6 +8,7 @@ export class BoardViewport {
   private readonly mobile = window.matchMedia('(max-width: 900px), (max-width: 1000px) and (max-height: 620px)');
   private readonly zoomButton = button('판 확대', () => this.toggleZoom(), 'bt-btn bt-board-zoom');
   private zoomed = false;
+  private active = false;
 
   constructor(arena: HTMLElement, private readonly canvasHost: HTMLElement) {
     this.viewport.tabIndex = 0;
@@ -22,6 +23,11 @@ export class BoardViewport {
     this.fit();
   }
 
+  setActive(active: boolean): void {
+    this.active = active;
+    this.fit();
+  }
+
   private toggleZoom(): void {
     this.zoomed = !this.zoomed;
     this.fit();
@@ -31,13 +37,14 @@ export class BoardViewport {
 
   private fit(): void {
     const mobile = this.mobile.matches;
-    this.zoomButton.hidden = !mobile;
-    const zoomed = mobile && this.zoomed;
+    this.viewport.classList.toggle('fitted', this.active);
+    this.zoomButton.hidden = !this.active || !mobile;
+    const zoomed = this.active && mobile && this.zoomed;
     this.viewport.classList.toggle('zoomed', zoomed);
     this.zoomButton.textContent = zoomed ? '전체 보기' : '판 확대';
     this.zoomButton.title = zoomed ? '확대 중 · 보드를 밀어서 이동합니다' : '보드와 유닛을 40% 확대합니다';
     this.zoomButton.setAttribute('aria-pressed', String(zoomed));
-    if (!mobile) {
+    if (!this.active) {
       this.surface.removeAttribute('style');
       this.canvasHost.removeAttribute('style');
       return;
