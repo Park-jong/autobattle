@@ -15,7 +15,7 @@ import type {
 } from './contracts';
 import {
   buildActIntroView, buildBossRelicView, buildCampView, buildCommanderChoices, buildDeckList, buildEncounterPreview, buildEndView, buildEventView, buildHud, buildMapView, buildRewardView, buildSettlementView,
-  buildShopView, buildUpgradeNotice, newlyUpgraded, type EncounterPreviewView, type MapView,
+  buildEquipmentView, buildShopView, buildUpgradeNotice, newlyUpgraded, type EncounterPreviewView, type MapView,
 } from './runViews';
 import { buildTestCatalog, buildTestToolsView, type TestCatalogView } from './testViews';
 
@@ -151,6 +151,7 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
       ended: live && screen === 'ended' ? buildEndView(run, this.cards, this.units, this.o.deps.relics) : null,
       endMeta: live && screen === 'ended' && this.endSettlement
         ? buildEndMetaView(this.endSettlement, this.o.meta.catalog, this.o.deps.commanders, this.o.deps.relics, this.o.deps.threat) : null,
+      equipment: live && (screen === 'map' || screen === 'battle') ? buildEquipmentView(run, this.cards, this.units) : null,
       upgraded: live && this.upgradeNotice ? buildUpgradeNotice(this.cards, this.upgradeNotice) : null,
       testTools: live && screen !== 'ended' ? buildTestToolsView(run, this.o.deps, this.testCatalog(), this.resultPending) : null,
     };
@@ -390,6 +391,16 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
     const upgraded = newlyUpgraded(before, deckCards(run.deck));
     if (upgraded.length > 0) this.upgradeNotice = [...(this.upgradeNotice ?? []), ...upgraded];
     this.afterChange();
+  }
+
+  unequipItem(ownedId: number, index: number): void {
+    this.run((run) => run.unequip(ownedId, index));
+    // 전투 준비 중이면 장비가 빠진 편성·되돌아온 카드로 준비 시뮬을 다시 만든다
+    const run = this.controller;
+    if (run && run.phase === 'battlePrep' && !this.resultPending) {
+      this.attachBattle(run, true);
+      this.notify();
+    }
   }
 
   dismissUpgradeNotice(): void {

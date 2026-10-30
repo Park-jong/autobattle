@@ -359,6 +359,40 @@ export function buildCardView(cards: CardCatalog, cardId: string, upgraded = fal
   };
 }
 
+/** 덱 보기 창의 "장착 중인 장비": 소유 유닛이 끼고 있는 장비 카드마다 한 줄 */
+export interface EquippedItemView {
+  ownedId: number;
+  /** 그 유닛의 장비 목록에서 몇 번째인지 (장착 해제 명령에 쓴다) */
+  index: number;
+  unitId: string;
+  unitName: string;
+  star: number;
+  card: CardView;
+}
+
+export interface EquipmentView {
+  items: EquippedItemView[];
+  /** 지금 장착 해제할 수 있는가 (전투 중·런 종료 후에는 불가) */
+  canUnequip: boolean;
+  reason: string | null;
+}
+
+export function buildEquipmentView(run: RunController, cards: CardCatalog, units: UnitCatalog): EquipmentView {
+  const snapshot = run.roster.snapshot();
+  const items: EquippedItemView[] = [];
+  for (const unit of [...snapshot.board, ...snapshot.bench]) {
+    if (!unit) continue;
+    unit.equipment.forEach((item, index) => {
+      const upgraded = item.endsWith('+');
+      const cardId = upgraded ? item.slice(0, -1) : item;
+      if (!cards.get(cardId)) return;
+      items.push({ ownedId: unit.id, index, unitId: unit.unitId, unitName: units.get(unit.unitId)?.name ?? unit.unitId, star: unit.star, card: buildCardView(cards, cardId, upgraded) });
+    });
+  }
+  const blocked = run.phase === 'battle' || run.phase === 'ended';
+  return { items, canUnequip: !blocked, reason: blocked ? '전투 중에는 장비를 장착 해제할 수 없습니다' : null };
+}
+
 /** 강화 결과 창: 방금 강화된 카드마다 강화 전/후 모습 */
 export interface UpgradeNoticeView {
   cards: { instanceId: number; before: CardView; after: CardView }[];

@@ -20,6 +20,8 @@ export class RunRoster {
   constructor(
     private readonly management: Management,
     private readonly gate: RosterGate,
+    /** 팔린 유닛이 끼고 있던 장비 (카드로 덱에 되돌린다) */
+    private readonly onSoldEquipment: (items: readonly string[]) => void = () => {},
   ) {}
 
   snapshot(): ManagementSnapshot {
@@ -48,7 +50,13 @@ export class RunRoster {
   }
 
   sell(id: number): ManagementResult {
-    return this.gate.canEdit() ? this.management.sell(id) : deny('지금은 유닛을 판매할 수 없습니다');
+    if (!this.gate.canEdit()) return deny('지금은 유닛을 판매할 수 없습니다');
+    // 장비는 유닛과 함께 사라지지 않고 장착 해제되어 카드로 덱에 돌아간다
+    const snapshot = this.management.snapshot();
+    const equipment = [...snapshot.board, ...snapshot.bench].find((unit) => unit?.id === id)?.equipment ?? [];
+    const result = this.management.sell(id);
+    if (result.ok && equipment.length > 0) this.onSoldEquipment(equipment);
+    return result;
   }
 
   moveToBoard(id: number, cell: Cell): ManagementResult {

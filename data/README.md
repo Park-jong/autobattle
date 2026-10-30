@@ -46,7 +46,7 @@ M3 추가 카드: `call_reserves`(예비대 호출, 3CP·강화 2CP, 후열 빈 
 
 보드 제공 카드: 군악대→행군가, 첩보원→적진 정찰, 드루이드→덩굴 속박. `syncGrantedCards`는 소유 유닛 ID(`CardInstance.grantedBy`)마다 카드 한 장을 유지하며, 벤치 이동·판매 시 모든 더미에서 제거하고 3성이면 강화한다. 원래 덱의 같은 이름 카드는 제거하지 않는다. 새 카드는 뽑을 더미 뒤에 추가한다. 시작 손패를 만들기 전에 동기화하면 그 손패에도 나올 수 있다.
 
-장비: `FormationEntry.equipment`에 카드 ID 배열을 저장하며 강화는 `forged_blade+`처럼 `+`를 붙인다. 준비 단계 장착 시 즉시 효과를 받고 카드는 소모 더미로 간다. 다음 전투는 소유 로스터의 장비 배열을 시뮬에 전달해 효과를 다시 적용한다. 합성 시 장비는 남는 유닛으로 모으고 판매 시 사라진다. `CombatSimulator.equippedItems`는 임시 소환을 제외한 원본 유닛의 장비 복사본이다.
+장비: `FormationEntry.equipment`에 카드 ID 배열을 저장하며 강화는 `forged_blade+`처럼 `+`를 붙인다. 준비 단계 장착 시 즉시 효과를 받고 카드는 소모 더미로 간다. 다음 전투는 소유 로스터의 장비 배열을 시뮬에 전달해 효과를 다시 적용한다. 합성 시 장비는 남는 유닛으로 모은다. **판매하면 장비는 장착 해제되어 카드로 덱에 돌아가고**(`RunRoster.sell` → `PlayerForces.returnEquipmentCards`, 장착 때 소모 더미로 간 같은 카드가 있으면 그 인스턴스를 되살림 — `returnCardToDeck`), 전투 중이 아니면 `RunController.unequip(ownedId, index)`로 장비 하나를 장착 해제해 덱에 되돌릴 수 있다(UI: 덱 보기 창의 "장착 중인 장비" 구역). 경제 플레이(5연전)의 판매는 이전처럼 장비가 사라진다. `CombatSimulator.equippedItems`는 임시 소환을 제외한 원본 유닛의 장비 복사본이다.
 
 ### 카드 필드
 | 필드 | 값 |

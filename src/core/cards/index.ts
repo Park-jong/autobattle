@@ -7,6 +7,6 @@ export { startingDeckSpecs, type DeckPreset } from './startingDeck';
 export { syncGrantedCards, assertUnitCardReferences, assertCardUnitReferences, type CardProvider } from './grantedCards';
 export { createStartingDeck, dealOpeningHand } from './deckSetup';
 export {
-  addCardToDeck, deckCards, exhaustCardInDeck, isEditableCard, isUpgradableCard,
+  addCardToDeck, deckCards, exhaustCardInDeck, returnCardToDeck, isEditableCard, isUpgradableCard,
   removableCards, removeCardFromDeck, upgradableCards, upgradeCardInDeck,
 } from './deckEdit';

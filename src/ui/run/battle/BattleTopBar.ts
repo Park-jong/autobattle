@@ -7,7 +7,8 @@ import { motionPreferences } from '../../skin/presentation';
 import type { RunSnapshot } from '../contracts';
 import { button, el, tagged } from '../dom';
 import { iconButton } from '../iconButton';
-import { CardListModal, type CardListSpec } from '../CardListModal';
+import { CardListModal, equipmentExtra, type CardListSpec } from '../CardListModal';
+import type { EquipmentView } from '../runViews';
 import { relicRow } from '../relicElements';
 
 type PileKey = 'draw' | 'discard' | 'exhaust';
@@ -35,6 +36,7 @@ export class BattleTopBar {
   private readonly skin = new SkinPicker(undefined, 'battle-skin-select');
   private openList: ListKey | null = null;
   private deck: CardListEntry[] = [];
+  private equipment: EquipmentView | null = null;
   private pileSignature = '';
   private deckSignature = '';
 
@@ -44,6 +46,8 @@ export class BattleTopBar {
     private readonly cardView: () => CardPanelView,
     private readonly listModal = new CardListModal(),
     private readonly onOpenMap: () => void = () => {},
+    /** 덱 보기 창의 장비 장착 해제 */
+    private readonly onUnequip: (ownedId: number, index: number) => void = () => {},
   ) {
     this.more.append(el('summary', '', '전투 정보'), this.moreContent);
     this.settings.append(el('summary', '', '설정'), this.settingsContent);
@@ -56,6 +60,7 @@ export class BattleTopBar {
     if (!info || !hud) return;
     const plan = info.plan;
     this.deck = snap.deck ?? [];
+    this.equipment = snap.equipment;
     if (this.openList === 'deck') {
       // 덱이 그대로면 카드 DOM을 다시 만들지 않는다 (배속 변경 등으로 render가 자주 불린다)
       const signature = this.deckSignatureOf();
@@ -147,11 +152,11 @@ export class BattleTopBar {
   }
 
   private deckSignatureOf(): string {
-    return JSON.stringify(this.deck.map((e) => [e.cardId, e.upgraded, e.count]));
+    return JSON.stringify([this.deck.map((e) => [e.cardId, e.upgraded, e.count]), this.equipment?.canUnequip, this.equipment?.items.map((i) => [i.ownedId, i.index, i.card.cardId, i.card.upgraded])]);
   }
 
   private listSpec(key: ListKey): CardListSpec {
-    if (key === 'deck') return { title: '덱', entries: this.deck };
+    if (key === 'deck') return { title: '덱', entries: this.deck, extra: equipmentExtra(this.equipment, this.onUnequip) };
     const { label, note } = PILES.find((p) => p.key === key)!;
     return { title: label, entries: this.cardView()[key].entries, note };
   }

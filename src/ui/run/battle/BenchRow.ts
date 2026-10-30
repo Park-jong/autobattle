@@ -18,6 +18,12 @@ export class BenchRow {
   private readonly slots = tagged(el('div', 'bt-bench-slots'), 'bench');
   private readonly right = el('div', 'bt-bench-side right');
   private signature = '';
+  /**
+   * 캔버스를 담은 상자와 캔버스 자체의 크기 변화를 지켜본다. 상자만 보면 Phaser가 캔버스 크기를 나중에 바꾸는 경우
+   * (다음 전투에서 트레이 상태가 달라 보드가 커질 때 등)를 놓쳐, 다음 렌더(유닛 구매 등) 때에야 벤치 폭이 늦게 맞춰진다
+   */
+  private readonly resizeObserver = new ResizeObserver(() => this.fitWidth());
+  private observedCanvas: HTMLCanvasElement | null = null;
 
   constructor(
     readonly root: HTMLElement,
@@ -27,12 +33,18 @@ export class BenchRow {
     private readonly onStart: () => void,
   ) {
     root.replaceChildren(this.left, this.slots, this.right);
-    new ResizeObserver(() => this.fitWidth()).observe(canvasHost);
+    this.resizeObserver.observe(canvasHost);
   }
 
   /** 화면에 그려진 보드 폭(캔버스 폭 × 보드 비율)에 벤치 폭을 맞춘다 */
   fitWidth(): void {
     const canvas = this.canvasHost.querySelector('canvas');
+    // 캔버스는 전투 화면에 들어올 때 만들어지므로 처음 찾았을 때(또는 바뀌었을 때) 관찰을 붙인다
+    if (canvas && canvas !== this.observedCanvas) {
+      if (this.observedCanvas) this.resizeObserver.unobserve(this.observedCanvas);
+      this.resizeObserver.observe(canvas);
+      this.observedCanvas = canvas;
+    }
     const width = canvas?.getBoundingClientRect().width ?? 0;
     if (width <= 0) return;
     this.slots.style.width = `${Math.round(width * (BOARD_COLS * LAYOUT.CELL_SIZE) / STAGE.WIDTH)}px`;
