@@ -156,6 +156,7 @@ export const TIMING = {
   STRIKE_FLASH: 0.45,
   /** 궁극기 이름 배너 / 운석 착탄 번쩍임 */
   ULTIMATE_BANNER: 2.2,
+  ULTIMATE_CUTIN: 2.2,
   IMPACT_FLASH: 0.55,
   /** 쌍둥이 부활 번쩍임 / 처치 확정 글자 / 군주 페이즈 배너 / 버프 해제 링 (EFFECT_WINDOW 이하) */
   REVIVE_FLASH: 0.8,

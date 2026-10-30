@@ -6,6 +6,7 @@ import { appSkin } from '../skin/SkinStore';
 import { isIllustratedSkin, unitSkinName, unitSkillName, unitTextureKey } from '../skin/skins';
 import { MODERN_UNITS } from '../skin/modernRoster';
 import { activeSkillCutins } from './skillCutin';
+import { activeUltimate } from './ultimateVisuals';
 
 interface CutinPanel {
   aura: Phaser.GameObjects.Image;
@@ -44,7 +45,7 @@ export class SkillCutinLayer {
     this.clear();
     const skin = appSkin.current;
     // 지휘관 궁극기가 겹칠 때는 궁극기를 우선한다. 축소 설정에서는 기존 유닛 위 이름만 유지한다.
-    if (reduced || !isIllustratedSkin(skin) || effects.some(e => e.kind === 'ultimate' && time >= e.t && time - e.t < 1.25)) return;
+    if (reduced || !isIllustratedSkin(skin) || activeUltimate(time, effects)) return;
     const active = activeSkillCutins(time, effects, views).filter(e => {
       const key = unitTextureKey(skin, views.get(e.unit)!.unitId, 'illustration');
       return key !== null && this.scene.textures.exists(key);

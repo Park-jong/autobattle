@@ -47,6 +47,13 @@ describe('현대전 대원 설정과 표시 매핑', () => {
     expect(unitTextureKey('modern', 'grove_archer', 'sd')).not.toBe(unitTextureKey('academy', 'grove_archer', 'sd'));
     expect(commanderTextureKey('cmd_harten', 'modern')).not.toBe(commanderTextureKey('cmd_harten', 'academy'));
     expect(skinArtList('modern', 'sd')).toHaveLength(34); expect(commanderArtList('modern')).toHaveLength(3);
+    for (const skin of ['academy', 'modern'] as const) {
+      const cutins = commanderArtList(skin, '/autobattle/', 'illustration');
+      expect(cutins).toHaveLength(3);
+      expect(cutins[0]).toEqual({ key: commanderTextureKey('cmd_harten', skin, 'illustration'), url: `/autobattle/skins/${skin}/illustration/C01.png` });
+      expect(cutins[0]!.key).not.toBe(commanderTextureKey('cmd_harten', skin));
+    }
+    expect(commanderArtList('default', '/', 'illustration')).toEqual([]);
     expect(unitArtUrl('modern', 'gate_breaker', 'sd', './')).toBe('./skins/modern/sd/B01.png');
   });
 

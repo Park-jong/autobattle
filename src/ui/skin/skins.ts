@@ -194,14 +194,14 @@ export function commanderArtUrl(skin: SkinId, commanderId: string, kind: ArtKind
   return code ? `${base}skins/${skin}/${kind}/${code}.png` : null;
 }
 
-export function commanderTextureKey(commanderId: string, skin: SkinId = 'academy'): string {
-  return `skin:${skin}:portrait:${commanderId}`;
+export function commanderTextureKey(commanderId: string, skin: SkinId = 'academy', kind: ArtKind = 'portrait'): string {
+  return `skin:${skin}:${kind}:${commanderId}`;
 }
 
-export function commanderArtList(skin: SkinId = 'academy', base: string = BASE_URL): { key: string; url: string }[] {
+export function commanderArtList(skin: SkinId = 'academy', base: string = BASE_URL, kind: ArtKind = 'portrait'): { key: string; url: string }[] {
   if (!isIllustratedSkin(skin)) return [];
   return Object.keys(COMMANDER_ART_CODES).map((id) => ({
-    key: commanderTextureKey(id, skin), url: commanderArtUrl(skin, id, 'portrait', base)!,
+    key: commanderTextureKey(id, skin, kind), url: commanderArtUrl(skin, id, kind, base)!,
   }));
 }
 

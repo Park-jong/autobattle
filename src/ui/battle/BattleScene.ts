@@ -15,6 +15,7 @@ import { commanderArtList, isIllustratedSkin, skinArtList, unitTextureKey, type 
 import { appSkin, type SkinStore } from '../skin/SkinStore';
 import { motionPreferences } from '../skin/presentation';
 import { buildCombatVisualFrame, type AttackProfile } from './combatVisuals';
+import { ultimateRecoil } from './ultimateVisuals';
 
 /** 씬이 화면에 쓸 이름을 얻는 창구 (데이터 카탈로그를 직접 알 필요가 없게) */
 export interface SceneLabels {
@@ -130,6 +131,8 @@ export class BattleScene extends Phaser.Scene {
       meteors: this.source.meteors(),
       aura: this.source.ultimateAura(),
     }, { revives: this.source.reviveWatches(), zones: this.source.zones() }, frame);
+    const recoil = ultimateRecoil(visualTime, recent, frame.reduced);
+    this.cameras.main.setScroll(recoil.x, recoil.y);
 
     const targeting = this.source.targeting();
     this.targetingOverlay.update(targeting, byUid, performance.now());
@@ -204,7 +207,7 @@ export class BattleScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor(skin === 'modern' ? MODERN_COLORS.BACKGROUND : skin === 'academy' ? ACADEMY_COLORS.BACKGROUND : COLORS.BACKGROUND);
     this.signature = '';
     if (this.loadedSkins.has(skin) || this.loadingSkins.has(skin)) return;
-    const pending = [...skinArtList(skin, 'sd'), ...skinArtList(skin, 'illustration'), ...commanderArtList(skin)]
+    const pending = [...skinArtList(skin, 'sd'), ...skinArtList(skin, 'illustration'), ...commanderArtList(skin), ...commanderArtList(skin, undefined, 'illustration')]
       .filter((art) => !this.textures.exists(art.key));
     if (pending.length === 0) {
       this.loadedSkins.add(skin);
