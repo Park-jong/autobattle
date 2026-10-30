@@ -5,10 +5,10 @@ import { BOARD_COLS, BOARD_ROWS } from '../../core/combat/board';
 import { COLORS, COMBAT_FX, LAYOUT, MOTION, STAGE, TEXT_COLORS, TIMING } from '../theme';
 import type { BoardLayout } from './BoardLayout';
 import { buildCombatVisualFrame, damageLabels, projectilePoint, type AttackVisual, type CombatVisualFrame, type HitVisual } from './combatVisuals';
-import { commanderProfile, commanderTextureKey, isIllustratedSkin, unitSkillName } from '../skin/skins';
-import { MODERN_COMMANDERS } from '../skin/modernRoster';
+import { unitSkillName } from '../skin/skins';
 import { appSkin } from '../skin/SkinStore';
 import { SkillCutinLayer } from './SkillCutinLayer';
+import { UltimateCutinLayer } from './UltimateCutinLayer';
 
 interface PooledText {
   text: Phaser.GameObjects.Text;
@@ -50,14 +50,13 @@ export type CardNamer = (cardId: string, upgraded: boolean) => string;
  */
 export class EffectsLayer {
   private readonly skillCutins: SkillCutinLayer;
+  private readonly ultimateCutin: UltimateCutinLayer;
   private readonly lines: Phaser.GameObjects.Graphics;
   private readonly texts = new Map<number, PooledText>();
   private readonly banner: Phaser.GameObjects.Text;
   private readonly cardBanner: Phaser.GameObjects.Text;
   private readonly telegraphLabel: Phaser.GameObjects.Text;
-  private readonly ultimateBanner: Phaser.GameObjects.Text;
   private readonly phaseBanner: Phaser.GameObjects.Text;
-  private cutin: Phaser.GameObjects.Image | null = null;
   /** 부활 대기 쌍둥이마다 하나씩: 죽은 쪽 위의 남은 시간, 짝 위의 "처치" 표시 */
   private readonly reviveLabels = new Map<string, Phaser.GameObjects.Text>();
 
@@ -69,6 +68,7 @@ export class EffectsLayer {
     unitName: (id: string) => string = (id) => id,
   ) {
     this.skillCutins = new SkillCutinLayer(scene, metrics, unitName);
+    this.ultimateCutin = new UltimateCutinLayer(scene, metrics, layout);
     this.lines = scene.add.graphics().setDepth(20);
     this.banner = createText(scene, metrics, STAGE.WIDTH / 2, 84, '과열 시작! 받는 피해 증가', {
       fontSize: '26px',
@@ -89,16 +89,6 @@ export class EffectsLayer {
     })
       .setOrigin(0.5)
       .setDepth(41)
-      .setVisible(false);
-    this.ultimateBanner = createText(scene, metrics, STAGE.WIDTH / 2, 118, '', {
-      fontSize: '30px',
-      fontStyle: 'bold',
-      color: TEXT_COLORS.ULTIMATE,
-      stroke: '#000000',
-      strokeThickness: 5,
-    })
-      .setOrigin(0.5)
-      .setDepth(42)
       .setVisible(false);
     this.phaseBanner = createText(scene, metrics, STAGE.WIDTH / 2, 152, '', {
       fontSize: '26px',
@@ -135,8 +125,7 @@ export class EffectsLayer {
     this.cardBanner.setY(this.scene.game.canvas.closest('.bt-board-viewport.fitted') ? 658 : LAYOUT.CARD_BANNER_Y);
     const visual = combat ?? buildCombatVisualFrame(time, effects, views);
     this.skillCutins.update(time, effects, views, visual.reduced);
-    this.cutin?.setVisible(false);
-    let ultimateText: { text: string; alpha: number } | null = null;
+    this.ultimateCutin.update(time, effects, views, visual.reduced);
     let phaseText: { text: string; alpha: number } | null = null;
     const live = new Set<number>();
     let bannerAlpha = 0;
@@ -199,14 +188,9 @@ export class EffectsLayer {
           if (age <= TIMING.STRIKE_FLASH) this.drawStrike(e.cells, age / TIMING.STRIKE_FLASH);
           break;
         case 'ultimate':
-          if (age < 1.25 && !visual.reduced) this.drawCommanderCutin(e.commanderId, age / 1.25);
-          if (age <= TIMING.ULTIMATE_BANNER) {
-            const name = appSkin.current === 'modern' ? MODERN_COMMANDERS[e.commanderId]?.skillName ?? e.name : e.name;
-            ultimateText = { text: `✦ ${name} ✦`, alpha: 1 - Math.max(0, age / TIMING.ULTIMATE_BANNER - 0.6) / 0.4 };
-          }
           break;
         case 'impact':
-          if (age <= TIMING.IMPACT_FLASH) this.drawImpact(e.cell, e.radius, age / TIMING.IMPACT_FLASH);
+          if (age >= 0 && age <= TIMING.IMPACT_FLASH) this.drawImpact(e.cell, e.radius, age / TIMING.IMPACT_FLASH, visual.reduced);
           break;
         case 'revive':
           if (age <= TIMING.REVIVE_FLASH) this.drawReviveFlash(e.unit, views, age / TIMING.REVIVE_FLASH);
@@ -255,8 +239,8 @@ export class EffectsLayer {
       }
     }
     this.drawTelegraphs(time, telegraphs);
-    this.drawMeteors(time, ultimate.meteors);
-    this.drawAura(time, ultimate.aura, views);
+    this.drawMeteors(time, ultimate.meteors, visual.reduced);
+    this.drawAura(time, ultimate.aura, views, visual.reduced);
     this.drawRevives(time, boss.revives, views);
     this.drawZones(time, boss.zones ?? []);
     for (const attack of visual.attacks) this.drawAttack(attack, visual.reduced);
@@ -275,8 +259,6 @@ export class EffectsLayer {
     else if (curseText) phaseText = curseText;
     if (phaseText) this.phaseBanner.setText(phaseText.text).setAlpha(phaseText.alpha).setVisible(true);
     else this.phaseBanner.setVisible(false);
-    if (ultimateText) this.ultimateBanner.setText(ultimateText.text).setAlpha(ultimateText.alpha).setVisible(true);
-    else this.ultimateBanner.setVisible(false);
 
     this.banner.setVisible(bannerAlpha > 0).setAlpha(bannerAlpha);
     if (cardBannerText) this.cardBanner.setText(cardBannerText.text).setAlpha(cardBannerText.alpha).setVisible(true);
@@ -291,17 +273,16 @@ export class EffectsLayer {
   /** 모든 연출을 지운다 (리셋용) */
   clear(): void {
     this.skillCutins.clear();
+    this.ultimateCutin.clear();
     this.lines.clear();
     for (const pooled of this.texts.values()) pooled.text.destroy();
     this.texts.clear();
     this.banner.setVisible(false);
     this.cardBanner.setVisible(false);
-    this.ultimateBanner.setVisible(false);
     this.phaseBanner.setVisible(false);
     for (const label of this.reviveLabels.values()) label.destroy();
     this.reviveLabels.clear();
     this.telegraphLabel.setVisible(false);
-    this.cutin?.setVisible(false);
   }
 
   /**
@@ -413,9 +394,9 @@ export class EffectsLayer {
   }
 
   /** 낙하 중인 운석: 착탄 범위를 주황으로 칠하고, 수축하는 링과 위에서 내려오는 불덩이를 그린다 */
-  private drawMeteors(time: number, meteors: readonly MeteorView[]): void {
+  private drawMeteors(time: number, meteors: readonly MeteorView[], reduced: boolean): void {
     const size = this.layout.cellSize;
-    const pulse = 0.5 + 0.5 * Math.sin(time * 12);
+    const pulse = reduced ? 0.5 : 0.5 + 0.5 * Math.sin(time * 8);
     for (const m of meteors) {
       for (let dc = -m.radius; dc <= m.radius; dc++) {
         for (let dr = -m.radius; dr <= m.radius; dr++) {
@@ -431,8 +412,20 @@ export class EffectsLayer {
       }
       const center = this.layout.center(m.cell.col, m.cell.row);
       const ring = (m.radius + 0.5) * size * (1.3 - 0.3 * m.progress);
+      if (reduced) {
+        this.lines.lineStyle(2, COLORS.METEOR, 0.8).strokeCircle(center.x, center.y, (m.radius + 0.5) * size);
+        continue;
+      }
+      const fallDistance = (1 - m.progress) * size * 4;
+      const headY = center.y - fallDistance;
+      // 여러 겹의 불꽃 꼬리. 현대 스킨에서는 로켓의 배기 화염으로도 쓴다.
+      for (let i = 7; i > 0; i--) {
+        this.lines.fillStyle(i % 2 ? COLORS.METEOR : COLORS.METEOR_IMPACT, (1 - i / 8) * 0.35);
+        this.lines.fillEllipse(center.x - i * 3, headY - i * 15, 12 + (7 - i) * 4, 22 + i * 3);
+      }
+      this.lines.lineStyle(2, COLORS.METEOR, 0.65).strokeEllipse(center.x, center.y, ring * 2, ring * 0.75);
       if (appSkin.current === 'modern') {
-        const g = this.lines, fall = (1 - m.progress) * size * 3;
+        const g = this.lines, fall = fallDistance;
         g.lineStyle(2, COLORS.METEOR, 0.8);
         const left = Math.max(this.layout.originX, center.x - ring), top = Math.max(this.layout.originY, center.y - ring);
         const right = Math.min(this.layout.originX + this.layout.width, center.x + ring), bottom = Math.min(this.layout.originY + this.layout.height, center.y + ring);
@@ -447,7 +440,8 @@ export class EffectsLayer {
       }
       this.lines.lineStyle(3, COLORS.METEOR, 0.8);
       this.lines.strokeCircle(center.x, center.y, ring);
-      const fall = (1 - m.progress) * size * 3;
+      const fall = fallDistance;
+      this.lines.fillStyle(COLORS.METEOR, 0.16).fillCircle(center.x, center.y - fall, 32 + 12 * m.progress);
       this.lines.fillStyle(COLORS.METEOR_IMPACT, 0.95);
       this.lines.fillCircle(center.x, center.y - fall, 10 + 8 * m.progress);
       this.lines.fillStyle(COLORS.METEOR, 0.8);
@@ -456,7 +450,7 @@ export class EffectsLayer {
   }
 
   /** 운석 착탄 순간: 범위 전체가 번쩍이며 퍼지는 원이 사라진다 */
-  private drawImpact(cell: { col: number; row: number }, radius: number, progress: number): void {
+  private drawImpact(cell: { col: number; row: number }, radius: number, progress: number, reduced: boolean): void {
     const size = this.layout.cellSize;
     for (let dc = -radius; dc <= radius; dc++) {
       for (let dr = -radius; dr <= radius; dr++) {
@@ -464,20 +458,37 @@ export class EffectsLayer {
         const row = cell.row + dr;
         if (col < 0 || col >= BOARD_COLS || row < 0 || row >= BOARD_ROWS) continue;
         const p = this.layout.topLeft(col, row);
-        this.lines.fillStyle(COLORS.METEOR_IMPACT, 0.7 * (1 - progress));
+        this.lines.fillStyle(COLORS.METEOR_IMPACT, (reduced ? 0.22 : 0.5) * (1 - progress));
         this.lines.fillRect(p.x, p.y, size, size);
       }
     }
     const center = this.layout.center(cell.col, cell.row);
+    if (reduced) {
+      this.lines.lineStyle(2, COLORS.METEOR, 1 - progress).strokeCircle(center.x, center.y, (radius + 0.5) * size);
+      return;
+    }
+    const g = this.lines, fade = 1 - progress;
+    const reach = (radius + 0.5) * size;
+    g.fillStyle(COLORS.METEOR, fade * 0.18).fillCircle(center.x, center.y, reach * (0.4 + progress));
+    g.fillStyle(0xfff7df, Math.pow(fade, 3) * 0.85).fillEllipse(center.x, center.y - 12, 28 + progress * reach, 110 * fade + 14);
+    for (let i = 0; i < 18; i++) {
+      const angle = i * Math.PI * 2 / 18 + cell.col * 0.7 + cell.row;
+      const distance = reach * (0.18 + progress * (0.7 + i % 3 * 0.2));
+      const x = center.x + Math.cos(angle) * distance;
+      const y = center.y + Math.sin(angle) * distance * 0.65 - Math.sin(progress * Math.PI) * (18 + i % 4 * 12);
+      g.lineStyle(2 + i % 2, i % 3 === 0 ? 0xfff1cb : COLORS.METEOR, fade);
+      g.lineBetween(x, y, x + Math.cos(angle) * 18 * fade, y + Math.sin(angle) * 18 * fade);
+    }
+    g.lineStyle(2, COLORS.METEOR_IMPACT, fade * 0.8).strokeEllipse(center.x, center.y, reach * (0.4 + progress * 2.5), reach * (0.2 + progress));
     this.lines.lineStyle(6, COLORS.METEOR, 1 - progress);
     this.lines.strokeCircle(center.x, center.y, (radius + 0.5) * size * (0.5 + progress));
   }
 
   /** 지속 효과가 있는 궁극기(불굴의 방진·대가 지불): 아군 주위에 맥동하는 링 */
-  private drawAura(time: number, aura: UltimateAuraView | null, views: ReadonlyMap<number, UnitView>): void {
+  private drawAura(time: number, aura: UltimateAuraView | null, views: ReadonlyMap<number, UnitView>, reduced: boolean): void {
     if (!aura) return;
     const color = auraColor(aura.commanderId);
-    const pulse = 0.5 + 0.5 * Math.sin(time * 8);
+    const pulse = reduced ? 0.5 : 0.5 + 0.5 * Math.sin(time * 4);
     const fade = Math.min(1, (aura.until - time) / 0.5);
     for (const v of views.values()) {
       if (v.side !== 0 || !v.alive) continue;
@@ -486,6 +497,14 @@ export class EffectsLayer {
       const radius = LAYOUT.UNIT_RADIUS + 8 + 4 * pulse;
       if (appSkin.current === 'modern') this.lines.strokeRoundedRect(p.x - radius, p.y - radius, radius * 2, radius * 2, 8);
       else this.lines.strokeCircle(p.x, p.y, radius);
+      if (reduced) continue;
+      this.lines.fillStyle(color, 0.1 * fade).fillEllipse(p.x, p.y + 23, 80 + pulse * 8, 24);
+      this.lines.lineStyle(1, color, 0.45 * fade).strokeEllipse(p.x, p.y + 23, 88 + pulse * 8, 30);
+      for (let i = 0; i < 3; i++) {
+        const phase = ((time - aura.startedAt) * 0.5 + i / 3 + v.uid * 0.13) % 1;
+        this.lines.fillStyle(color, (1 - phase) * fade * 0.7);
+        this.lines.fillRect(p.x + Math.sin(i * 2.4 + v.uid) * 32, p.y + 12 - phase * 62, 2, 6);
+      }
     }
   }
 
@@ -733,18 +752,6 @@ export class EffectsLayer {
       g.fillStyle(color, 1 - progress);
       g.fillCircle(p.x + Math.cos(angle) * radius, p.y + Math.sin(angle) * radius * 0.35 - progress * 24, 2.5);
     }
-  }
-
-  private drawCommanderCutin(commanderId: string, progress: number): void {
-    const key = commanderTextureKey(commanderId, appSkin.current);
-    if (!isIllustratedSkin(appSkin.current) || !this.scene.textures.exists(key)) return;
-    if (!this.cutin) this.cutin = this.scene.add.image(0, 0, key).setDepth(38);
-    const fade = progress < 0.7 ? 1 : (1 - progress) / 0.3;
-    const entrance = Math.min(1, progress / 0.16);
-    this.cutin.setTexture(key).setDisplaySize(190, 190).setPosition(300 - 35 * (1 - entrance), 365).setAlpha(fade).setVisible(true);
-    const profile = commanderProfile(appSkin.current, commanderId);
-    this.lines.lineStyle(2, profile ? Number.parseInt(profile.color.slice(1), 16) : auraColor(commanderId), fade * 0.6);
-    this.lines.strokeCircle(300, 365, 100);
   }
 
   /** 카드 대상에 퍼지는 링: 유닛 대상은 해당 유닛, 칸 대상은 칸 중심 */
