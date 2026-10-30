@@ -14,7 +14,7 @@ interface LayerSpec {
 
 const LAYERS: readonly LayerSpec[] = [
   { id: 'shop', label: '유닛 상점', code: 'KeyS', key: 'S' },
-  { id: 'cards', label: '통합 손패', code: 'KeyC', key: 'C' },
+  { id: 'cards', label: '전술 카드', code: 'KeyC', key: 'C' },
 ];
 
 /**
@@ -90,9 +90,9 @@ export class TrayStack {
     return this.frontId;
   }
 
-  setCardCount(count: number, units = 0): void {
+  setCardCount(count: number): void {
     const tab = this.tabs.get('cards');
-    const label = `손패 ${count + units}장`;
+    const label = `전술 카드 ${count}장`;
     if (tab && tab.firstChild?.textContent !== label) tab.firstChild!.textContent = label;
   }
 

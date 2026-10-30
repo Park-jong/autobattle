@@ -528,7 +528,7 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
     const before = roster.snapshot();
     const formationBefore = JSON.stringify(this.formations[0]);
     const result = action(roster);
-    if (!result.ok) { this.showToast(result.reason.replace(/벤치/g, '유닛 손패')); return false; }
+    if (!result.ok) { this.showToast(result.reason); return false; }
     const snapshot = roster.snapshot();
     if (![...snapshot.board, ...snapshot.bench].some((unit) => unit?.id === this.selectedOwnedId)) this.selectedOwnedId = null;
     this.syncManagementFormation();

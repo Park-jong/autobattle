@@ -14,6 +14,7 @@ export interface RosterDragOptions {
   ghost?(id: number): HTMLElement;
   /** 드래그가 시작될 때 (판매 구역을 앞으로 꺼내는 등) */
   onDragStart?(id: number): void;
+  onDragEnd?(): void;
   onSelect?(id: number): void;
 }
 
@@ -69,7 +70,7 @@ export class RosterDrag {
     const press = this.press;
     if (!press || event.pointerId !== press.pointerId) return;
     if (!this.options.isActive()) return this.end();
-    // Touch hand cards use native scrolling and tap-to-summon, like tactical cards.
+    // Touch benches use native horizontal scrolling and tap-to-place.
     if (press.origin === 'bench' && press.pointerType === 'touch' && Math.hypot(event.clientX - press.x, event.clientY - press.y) >= 8) return this.end();
     if (!press.dragging && Math.hypot(event.clientX - press.x, event.clientY - press.y) >= 8) {
       press.dragging = true;
@@ -102,7 +103,7 @@ export class RosterDrag {
     const bench = under?.closest<HTMLElement>('[data-bench-index]');
     if (bench?.dataset.benchIndex !== undefined) return controller.moveManagedToBench(press.id, Number(bench.dataset.benchIndex));
     if (under?.closest('[data-sell-zone]')) return controller.sellManagedUnit(press.id);
-    if (under?.closest('[data-unit-hand-zone]')) {
+    if (under?.closest('[data-bench-zone]')) {
       if (press.origin !== 'bench') controller.moveManagedToBench(press.id);
       return;
     }
@@ -125,6 +126,7 @@ export class RosterDrag {
   }
 
   private end = (): void => {
+    const wasDragging = this.press?.dragging;
     this.press = null;
     this.ghostNode?.remove();
     this.ghostNode = null;
@@ -133,6 +135,7 @@ export class RosterDrag {
     window.removeEventListener('pointerup', this.onUp);
     window.removeEventListener('pointercancel', this.end);
     window.removeEventListener('keydown', this.onKey);
+    if (wasDragging) this.options.onDragEnd?.();
   };
 }
 

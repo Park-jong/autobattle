@@ -4,7 +4,7 @@ import { button, el, tagged } from './dom';
 import { expeditionHeader } from './expeditionHeader';
 import { encounterPreviewElement } from './encounterPreview';
 import { relicCard, relicRow } from './relicElements';
-import { actPresentation } from '../skin/skins';
+import { actPresentation, unitSkinName } from '../skin/skins';
 import { appSkin } from '../skin/SkinStore';
 import { eventOptionPresentation, eventSceneKind, nodeScene } from './nodePresentation';
 import { playNodeFeedback } from '../feedback/ActionFeedback';
@@ -308,7 +308,7 @@ export class CampScreen extends NodeScreen {
       for (const p of camp.promotions) {
         const row = el('div', 'run-promotion');
         row.append(
-          el('strong', '', `${p.unitName} ${'★'.repeat(p.star)} → ${'★'.repeat(p.nextStar)}`),
+          el('strong', '', `${unitSkinName(appSkin.current, p.unitId, p.unitName)} ${'★'.repeat(p.star)} → ${'★'.repeat(p.nextStar)}`),
           el('span', '', `${p.cost}G · 같은 유닛 ${p.extraCopies}기 분 재고 사용`),
         );
         const go = tagged(button('승급', () => { this.mode = null; this.commands.campPromote(p.id); }), `promote-${p.id}`);

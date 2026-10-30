@@ -568,6 +568,7 @@ export function buildEventView(view: EventView, run: RunController, cards: CardC
 
 export interface CampPromotionEntry {
   id: number;
+  unitId: string;
   unitName: string;
   star: number;
   nextStar: number;
@@ -597,6 +598,7 @@ export function buildCampView(view: CampView, run: RunController, cards: CardCat
     upgradable: deckViews(cards, view.upgradable),
     promotions: view.promotions.map((p) => ({
       id: p.id,
+      unitId: p.unitId,
       unitName: units.get(p.unitId)?.name ?? p.unitId,
       star: p.star,
       nextStar: p.star + 1,

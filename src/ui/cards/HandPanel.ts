@@ -9,7 +9,6 @@ import { commanderArt } from '../skin/commanderArt';
 import { cardFaceElement } from './cardFace';
 import { commanderSkinName, commanderSkillName } from '../skin/skins';
 import { handGesture } from './handGesture';
-import type { UnitHand } from './UnitHand';
 
 type PileKey = 'draw' | 'discard' | 'exhaust';
 const PILE_LABELS: Record<PileKey, string> = { draw: '뽑을 더미', discard: '버린 더미', exhaust: '소모 더미' };
@@ -43,15 +42,6 @@ interface Press {
  * DOM은 표시 내용이 바뀔 때만 다시 만들고, CP 게이지 진행률은 매 프레임 갱신한다.
  */
 export class HandPanel {
-  private units: UnitHand | null = null;
-  private handFilter: 'all' | 'units' | 'tactics' = 'all';
-  private readonly libraryBar = el('div', 'hand-library-bar');
-  private readonly libraryFilters = el('div', 'hand-library-filters');
-  private readonly libraryHint = el('span', 'hand-library-hint');
-  private readonly reserveDrop = el('div', 'hand-reserve-drop', '놓아서 회수');
-  private readonly sellDrop = el('div', 'hand-sell-drop', '놓아서 판매');
-  private readonly filterButtons = new Map<'all' | 'units' | 'tactics', HTMLButtonElement>();
-  private wasManaging = false;
   private readonly side = el('div', 'hand-side');
   private readonly cards = el('div', 'hand-cards');
   private readonly toastBox = el('div', 'hand-toast');
@@ -104,25 +94,6 @@ export class HandPanel {
     this.side.append(this.cancelButton);
     this.detail.setAttribute('aria-label', '카드 상세 정보');
     this.root.replaceChildren(this.side, this.ultimateBox, this.cards, this.scrollHint, this.pileList, this.toastBox, this.detail);
-    this.libraryFilters.setAttribute('role', 'group');
-    this.libraryFilters.setAttribute('aria-label', '손패 종류');
-    for (const [id, label] of [['all', '전체'], ['units', '유닛'], ['tactics', '전술']] as const) {
-      const filter = el('button', 'hand-library-filter', label);
-      filter.type = 'button'; filter.dataset.testid = `hand-filter-${id}`;
-      filter.addEventListener('click', () => {
-        this.cancelAll(); this.handFilter = id; this.signature = '';
-      });
-      this.filterButtons.set(id, filter); this.libraryFilters.append(filter);
-    }
-    this.reserveDrop.dataset.unitHandZone = 'true';
-    this.sellDrop.dataset.sellZone = 'true';
-    this.libraryBar.append(this.libraryFilters, this.libraryHint, this.reserveDrop, this.sellDrop);
-    this.libraryBar.hidden = true;
-    this.root.insertBefore(this.libraryBar, this.cards);
-    // Unit selection and tactical-card targeting are mutually exclusive.
-    for (const eventName of ['pointerdown', 'keydown'] as const) this.cards.addEventListener(eventName, event => {
-      if ((event.target as Element).closest('.hcard:not(.unit-summon-card)')) this.units?.cancel();
-    }, true);
     this.ultimatePop.dataset.testid = 'ultimate-help';
     this.ultimatePop.setAttribute('role', 'tooltip');
     this.ultimatePop.hidden = true;
@@ -144,19 +115,6 @@ export class HandPanel {
     // 손패 칸 폭이 바뀌면 부채꼴을 다시 편다
     new ResizeObserver(() => this.layoutFan()).observe(this.cards);
     this.loop();
-  }
-
-  attachUnits(units: UnitHand): void {
-    this.units = units;
-    this.root.append(units.detail);
-    this.signature = '';
-  }
-
-  /** Reveal recruits alongside tactical cards after purchase or recall. */
-  showUnifiedHand(): void {
-    this.handFilter = 'all';
-    this.signature = '';
-    this.render(this.controller.cardView());
   }
 
   // ---- 구성 ----
@@ -187,14 +145,6 @@ export class HandPanel {
   private loop = (): void => {
     this.frame = requestAnimationFrame(this.loop);
     const view = this.controller.cardView();
-    const unified = this.units?.active ?? false;
-    this.root.classList.toggle('unified-hand', unified);
-    this.libraryBar.hidden = !unified;
-    this.cards.toggleAttribute('data-unit-hand-zone', unified && !!this.units?.canManage);
-    if (unified && this.wasManaging !== this.units!.canManage) {
-      this.wasManaging = this.units!.canManage;
-      this.handFilter = this.wasManaging ? 'all' : 'tactics';
-    }
     this.setVisible(view.visible);
     if (!view.visible) return;
 
@@ -214,8 +164,6 @@ export class HandPanel {
       view.hint,
       view.notice,
       this.openPile,
-      this.units?.signature,
-      this.handFilter,
     ]);
     if (signature !== this.signature) {
       this.signature = signature;
@@ -255,21 +203,10 @@ export class HandPanel {
     this.renderUltimate(view);
     this.hintBox.textContent = view.holding ? view.hint : '';
     this.hintBox.hidden = !view.holding;
-    const summoning = this.units?.active && this.units.selected;
-    this.root.classList.toggle('summoning-unit', !!summoning);
-    const summonHint = '소환할 아군 빈 칸을 선택하세요 · Esc로 취소';
-    this.scrollHint.textContent = summoning ? summonHint : view.holding ? view.hint : this.units?.active ? '유닛: 탭 후 아군 칸 선택 · 보드에서 손패로 끌어 회수' : '좌우로 밀어 보기 · 카드 탭 후 보드에서 대상 선택';
+    this.scrollHint.textContent = view.holding ? view.hint : '좌우로 밀어 보기 · 카드 탭 후 보드에서 대상 선택';
     this.scrollHint.title = this.scrollHint.textContent;
-    this.cancelButton.hidden = !view.holding && !summoning;
-    this.root.dataset.handCount = String(view.hand.length + (this.units?.active ? this.units.count : 0));
-    if (this.units?.active) {
-      const labels = { all: `전체 ${view.hand.length + this.units.count}`, units: `유닛 ${this.units.count}/${this.units.capacity}`, tactics: `전술 ${view.hand.length}` };
-      for (const [id, filter] of this.filterButtons) {
-        filter.textContent = labels[id]; filter.setAttribute('aria-pressed', String(id === this.handFilter));
-      }
-      this.libraryHint.textContent = summoning ? summonHint : this.units.canManage ? '유닛을 아군 칸에 소환' : '전투 중 · 전술 카드를 사용하세요';
-      this.libraryHint.classList.toggle('summoning', !!summoning);
-    }
+    this.cancelButton.hidden = !view.holding;
+    this.root.dataset.handCount = String(view.hand.length);
 
     this.cpLabel.replaceChildren(el('span', 'hand-cp-caption', '지휘력 '), `CP ${view.cp.combat} / ${view.cp.max}`);
     this.prepLabel.hidden = !view.cp.showPrep;
@@ -283,7 +220,7 @@ export class HandPanel {
     }
     this.renderPileList(view);
 
-    if (view.hand.length === 0 && !this.units?.active) {
+    if (view.hand.length === 0) {
       this.cardNodes.clear();
       this.cards.replaceChildren(el('p', 'hand-empty', view.notice ?? '손패가 없습니다.'));
     } else {
@@ -298,9 +235,8 @@ export class HandPanel {
    */
   private renderHand(view: CardPanelView): void {
     const alive = new Set<number>();
-    const unified = this.units?.active ?? false;
-    const nodes: HTMLElement[] = unified && this.handFilter !== 'tactics' ? [...this.units!.nodes] : [];
-    for (const card of unified && this.handFilter === 'units' ? [] : view.hand) {
+    const nodes: HTMLElement[] = [];
+    for (const card of view.hand) {
       alive.add(card.instanceId);
       const face = JSON.stringify([appSkin.current, card.cardId, card.name, card.type, card.typeLabel, card.targetLabel, card.rarity, card.cost, card.baseCost, card.upgraded, card.text, card.tags]);
       let entry = this.cardNodes.get(card.instanceId);
@@ -313,8 +249,8 @@ export class HandPanel {
       nodes.push(entry.node);
     }
     for (const id of [...this.cardNodes.keys()]) if (!alive.has(id)) this.cardNodes.delete(id);
-    if (nodes.length === 0) nodes.push(el('p', 'hand-empty', unified && this.handFilter === 'units' ? '소환 대기 중인 유닛이 없습니다 · 상점에서 영입하세요' : view.notice ?? '손패가 없습니다.'));
-    else if (view.notice && !unified) nodes.unshift(this.noticeNode(view.notice));
+    if (nodes.length === 0) nodes.push(el('p', 'hand-empty', view.notice ?? '손패가 없습니다.'));
+    else if (view.notice) nodes.unshift(this.noticeNode(view.notice));
     // 순서·구성이 같으면 DOM을 건드리지 않는다
     const current = [...this.cards.children];
     if (current.length !== nodes.length || current.some((n, i) => n !== nodes[i])) {
@@ -605,7 +541,6 @@ export class HandPanel {
     this.endPress();
     if (e?.type === 'contextmenu') e.preventDefault();
     this.controller.cancelCard();
-    this.units?.cancel();
   };
 
   private endPress(): void {

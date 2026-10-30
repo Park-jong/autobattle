@@ -19,7 +19,7 @@ import './ui/skin/modern.css';
 import './ui/run/battle/mobileBattle.css';
 import './ui/run/battle/battlePolish.css';
 import './ui/run/battle/unitShop.css';
-import './ui/cards/unitHand.css';
+import './ui/run/battle/benchBar.css';
 import './ui/run/battle/boardTools.css';
 import './ui/run/battle/traySheets.css';
 import { attackProfile } from './ui/battle/combatVisuals';
@@ -86,7 +86,7 @@ function bootstrap(): void {
   skinRow.append(new SkinPicker().root);
   panelHost.replaceChildren(skinRow, debugHost);
   new DebugPanel(debugHost, session, data.units, data.traits, data.commanders, gameHost, data.cards);
-  const handPanel = new HandPanel(handHost, session, gameHost);
+  new HandPanel(handHost, session, gameHost);
   installActionFeedback(session, gameHost);
 
   // 런 UI: 시작 화면에서 시작해 맵·노드 화면(전체 화면 오버레이)과 전투(캔버스 + 패널)를 오간다
@@ -108,7 +108,6 @@ function bootstrap(): void {
     { top: topHost, arena: arenaHost, canvasHost: gameHost, bench: benchHost, tray: trayHost, hand: handHost },
     runSession, runSession, session, session, session,
     { units: data.units, cards: data.cards, traits: data.traits },
-    handPanel,
   );
   new RunShell(runSession, runSession, { debugHost, panelHost });
 

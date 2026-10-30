@@ -158,7 +158,13 @@ describe('이벤트·야영지', () => {
     expect(view.healAmount).toBe(24);
     expect(view.upgradable.length).toBeGreaterThan(0);
     expect(view.upgradable.every((c) => c.upgradePreview !== null)).toBe(true);
-    for (const p of view.promotions) expect(p.nextStar).toBe(p.star + 1);
+    expect(view.promotions.length).toBeGreaterThan(0);
+    for (const p of view.promotions) {
+      const candidate = run.campView()!.promotions.find((unit) => unit.id === p.id)!;
+      expect(p.unitId).toBe(candidate.unitId);
+      expect(p.unitName).toBe(units.get(candidate.unitId)!.name);
+      expect(p.nextStar).toBe(p.star + 1);
+    }
   });
 });
 
