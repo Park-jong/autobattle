@@ -4,10 +4,12 @@ import { button, el, tagged } from './dom';
 import { expeditionHeader } from './expeditionHeader';
 import { encounterPreviewElement } from './encounterPreview';
 import { relicCard, relicRow } from './relicElements';
-import { actPresentation, unitSkinName } from '../skin/skins';
+import { actPresentation, unitArtUrl, unitSkinName } from '../skin/skins';
 import { appSkin } from '../skin/SkinStore';
 import { eventOptionPresentation, eventSceneKind, nodeScene } from './nodePresentation';
 import { playNodeFeedback } from '../feedback/ActionFeedback';
+import { unitAbbreviation } from '../gameData';
+import { tierBadge } from './battle/unitFace';
 import './nodeScenes.css';
 
 /** 노드 화면들이 공유하는 틀: 상단 상태 줄 + 제목 + 본문 */
@@ -306,15 +308,38 @@ export class CampScreen extends NodeScreen {
     } else if (this.mode === 'promote' && camp.promotions.length > 0) {
       const list = tagged(el('div', 'run-promotions'), 'promotion-list');
       for (const p of camp.promotions) {
-        const row = el('div', 'run-promotion');
-        row.append(
-          el('strong', '', `${unitSkinName(appSkin.current, p.unitId, p.unitName)} ${'★'.repeat(p.star)} → ${'★'.repeat(p.nextStar)}`),
-          el('span', '', `${p.cost}G · 같은 유닛 ${p.extraCopies}기 분 재고 사용`),
-        );
-        const go = tagged(button('승급', () => { this.mode = null; this.commands.campPromote(p.id); }), `promote-${p.id}`);
+        const name = unitSkinName(appSkin.current, p.unitId, p.unitName);
+        const row = tagged(el('article', `run-promotion tier-${p.tier}${p.available ? '' : ' unavailable'}`), `promotion-card-${p.id}`);
+        row.setAttribute('aria-label', `${name}, ${p.onBoard ? '출전 중' : '벤치'}, ${p.star}성에서 ${p.nextStar}성으로 승급`);
+        const art = el('div', 'run-promotion-art');
+        const fallback = () => art.append(el('span', 'run-promotion-glyph', unitAbbreviation(name)));
+        const url = unitArtUrl(appSkin.current, p.unitId, 'portrait');
+        if (url) {
+          const img = el('img');
+          img.src = url;
+          img.alt = `${name} 초상화`;
+          img.draggable = false;
+          img.addEventListener('error', () => { img.remove(); fallback(); });
+          art.append(img);
+        } else fallback();
+        const tags = el('div', 'run-promotion-tags');
+        tags.append(tierBadge(p.tier), el('span', 'run-promotion-place', p.onBoard ? '출전 중' : '벤치'));
+        const go = tagged(button('', () => { this.mode = null; this.commands.campPromote(p.id); }, 'run-promotion-action'), `promote-${p.id}`);
+        const stars = el('span', 'run-promotion-stars');
+        stars.append(el('span', 'before', '★'.repeat(p.star)), el('span', 'arrow', '→'), el('span', 'after', '★'.repeat(p.nextStar)));
+        const caption = el('span', 'run-promotion-caption');
+        caption.append(el('strong', 'run-promotion-name', name), el('span', 'run-promotion-cost', `${p.cost}G`));
+        go.append(stars, caption, el('span', 'run-promotion-cta', '승급하기'));
+        go.setAttribute('aria-label', `${name} ${p.nextStar}성으로 승급 · ${p.cost}G`);
+        go.title = `${p.cost}G · 같은 유닛 ${p.extraCopies}기 분 재고 사용`;
         go.disabled = !p.available;
-        row.append(go);
-        if (p.reason) row.append(el('span', 'run-choice-reason', p.reason));
+        if (p.reason) {
+          const reason = el('span', 'run-promotion-reason', p.reason);
+          reason.id = `promotion-reason-${p.id}`;
+          go.append(reason);
+          go.setAttribute('aria-describedby', reason.id);
+        }
+        row.append(art, tags, go);
         list.append(row);
       }
       body.push(list);

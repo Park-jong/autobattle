@@ -161,8 +161,42 @@
 .run-event-choice .run-event-button { width: 100%; box-sizing: border-box; }
 .run-event-result { padding: 10px 12px; background: #1a2a1f; border-left: 3px solid #5fd068; }
 .run-event-result p { margin: 2px 0; }
-.run-promotions { display: flex; flex-direction: column; gap: 6px; }
-.run-promotion { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: center; padding: 8px 10px; background: #151821; border: 1px solid #2f3647; border-radius: 6px; }
+.run-promotions { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; width: 100%; max-width: 1080px; }
+.run-promotion { --promotion-tier: var(--bt-tier-1); position: relative; min-width: 0; height: 280px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--promotion-tier) 65%, var(--bt-border)); border-top: 3px solid var(--promotion-tier); border-radius: 12px; background: radial-gradient(ellipse at 50% 25%, color-mix(in srgb, var(--promotion-tier) 20%, var(--bt-panel-bottom)), var(--bt-bg)); box-shadow: 0 5px 16px #0002; }
+.run-promotion.tier-2 { --promotion-tier: var(--bt-tier-2); }
+.run-promotion.tier-3 { --promotion-tier: var(--bt-tier-3); }
+.run-promotion.tier-4 { --promotion-tier: var(--bt-tier-4); }
+.run-promotion.tier-5 { --promotion-tier: var(--bt-tier-5); }
+.run-promotion-art { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+.run-promotion-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center top; }
+.run-promotion-glyph { color: var(--promotion-tier); font-size: 44px; font-weight: 700; transform: translateY(-25px); }
+.run-promotion-tags { position: absolute; top: 9px; left: 9px; right: 9px; z-index: 2; display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
+.run-promotion-tags .bt-tier-badge { position: static; border-width: 1px; border-radius: 5px; height: 24px; }
+.run-promotion-place { padding: 4px 7px; border: 1px solid #ffffff29; border-radius: 5px; background: #0b1123b8; color: #ebeff9; font-size: 10px; line-height: 1.4; }
+.run-promotion-action { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; gap: 7px; width: 100%; padding: 55px 12px 12px; border: 0; border-radius: 0; background: linear-gradient(0deg, #07101afc 0%, #07101ad9 23%, transparent 65%); color: #f7f8fc; font: 13px/1.4 var(--bt-font); text-align: left; cursor: pointer; }
+.run-promotion-stars { display: flex; align-items: center; gap: 7px; font-size: 14px; line-height: 1.3; text-shadow: 0 1px 4px #000; }
+.run-promotion-stars .before, .run-promotion-stars .arrow { color: #a8b0c0; font-size: 11px; }
+.run-promotion-stars .after { color: #ffe1a4; letter-spacing: 1px; }
+.run-promotion-caption { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; min-width: 0; text-shadow: 0 1px 4px #000; }
+.run-promotion-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 16px; }
+.run-promotion-cost { flex: 0 0 auto; color: #ffe1a4; font-weight: 700; font-variant-numeric: tabular-nums; }
+.run-promotion-cta { display: block; padding: 6px 9px; border: 1px solid #ffe1a452; border-radius: 6px; background: #ffe1a40d; color: #ffe1a4; font-size: 12px; text-align: center; }
+.run-promotion:focus-within { border-color: var(--bt-gold); box-shadow: 0 0 0 2px var(--bt-gold-dim); }
+.run-promotion-action:focus-visible { outline: 2px solid var(--bt-gold); outline-offset: -3px; }
+.run-promotion-action:disabled { cursor: not-allowed; }
+.run-promotion.unavailable .run-promotion-art { filter: saturate(.45); opacity: .75; }
+.run-promotion.unavailable .run-promotion-cta { color: #a8b0c0; border-color: #a8b0c04d; background: transparent; }
+.run-promotion-reason { color: #ffb4a0; font-size: 10px; line-height: 1.4; }
+@media (hover: hover) {
+  .run-promotion:not(.unavailable):hover { border-color: var(--bt-gold); box-shadow: 0 0 0 1px var(--bt-gold-dim), 0 6px 20px #0004; }
+  .run-promotion-action:hover:enabled .run-promotion-cta { background: #ffe1a426; }
+}
+@media (max-width: 520px) {
+  .run-promotions { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .run-promotion { height: 248px; }
+  .run-promotion-action { gap: 6px; padding: 50px 10px 10px; }
+  .run-promotion-name { font-size: 14px; }
+}
 
 /* 전투 패널 (오른쪽) */
 .run-battle-panel { box-sizing: border-box; padding: 12px 14px 24px; background: #151821; color: #e6e9f0; font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif; font-size: 14px; line-height: 1.4; }

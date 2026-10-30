@@ -570,6 +570,8 @@ export interface CampPromotionEntry {
   id: number;
   unitId: string;
   unitName: string;
+  tier: number;
+  onBoard: boolean;
   star: number;
   nextStar: number;
   cost: number;
@@ -589,6 +591,7 @@ export interface CampScreenView {
 }
 
 export function buildCampView(view: CampView, run: RunController, cards: CardCatalog, units: UnitCatalog): CampScreenView {
+  const deployed = new Set(run.roster.snapshot().board.map((unit) => unit.id));
   return {
     hp: run.hp,
     maxHp: run.maxHp,
@@ -600,6 +603,8 @@ export function buildCampView(view: CampView, run: RunController, cards: CardCat
       id: p.id,
       unitId: p.unitId,
       unitName: units.get(p.unitId)?.name ?? p.unitId,
+      tier: units.get(p.unitId)?.tier ?? 1,
+      onBoard: deployed.has(p.id),
       star: p.star,
       nextStar: p.star + 1,
       cost: p.quote.cost,
