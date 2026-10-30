@@ -48,6 +48,17 @@ export interface RunNotice {
   message: string;
 }
 
+/** A committed paid promotion. Presentation consumes each sequence once; never saved. */
+export interface UnitPromotionNotice {
+  id: number;
+  ownedId: number;
+  unitId: string;
+  unitName: string;
+  fromStar: number;
+  star: number;
+  cost: number;
+}
+
 /** 화면이 그리는 읽기 전용 스냅샷. 화면에 해당하지 않는 조각은 null */
 export interface RunSnapshot {
   screen: RunScreenId;
@@ -73,6 +84,7 @@ export interface RunSnapshot {
   equipment: EquipmentView | null;
   /** 방금 강화된 카드 (야영지·이벤트·유물 등으로 강화되면 강화 전/후를 보여 주는 창. 확인하면 null) */
   upgraded: UpgradeNoticeView | null;
+  unitPromotion: UnitPromotionNotice | null;
 }
 
 /** 화면이 보는 쪽 (구독 + 스냅샷). Phaser·DOM과 무관 */

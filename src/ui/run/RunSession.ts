@@ -11,7 +11,7 @@ import { buildThreatPicker } from './threatViews';
 import { RunBattleAdapter } from './RunBattleAdapter';
 import type { RunSaveStore } from './RunSaveStore';
 import type {
-  BattleScreenInfo, BattleStage, RunCommands, RunNotice, RunScreenId, RunSnapshot, RunViewSource, StartInfo, TestCommands, TestToolCommand,
+  BattleScreenInfo, BattleStage, RunCommands, RunNotice, RunScreenId, RunSnapshot, RunViewSource, StartInfo, TestCommands, TestToolCommand, UnitPromotionNotice,
 } from './contracts';
 import {
   buildActIntroView, buildBossRelicView, buildCampView, buildCommanderChoices, buildDeckList, buildEncounterPreview, buildEndView, buildEventView, buildHud, buildMapView, buildRewardView, buildSettlementView,
@@ -71,6 +71,8 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
   private attachedAttempt = 1;
   /** 강화 결과 창에 보여 줄 방금 강화된 카드 (닫으면 null) */
   private upgradeNotice: CardInstance[] | null = null;
+  private unitPromotion: UnitPromotionNotice | null = null;
+  private promotionSeq = 0;
   /**
    * 지금 연결된 전투의 적 편성. 결과 창을 보여 주는 동안 런은 이미 다음 단계로 넘어가 있을 수 있어서
    * (보스 유물 후보가 0개면 곧바로 다음 액트 — 현재 노드가 없다) 전투 단계일 때 계산한 것을 기억해 둔다
@@ -153,6 +155,7 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
         ? buildEndMetaView(this.endSettlement, this.o.meta.catalog, this.o.deps.commanders, this.o.deps.relics, this.o.deps.threat) : null,
       equipment: live && (screen === 'map' || screen === 'battle') ? buildEquipmentView(run, this.cards, this.units) : null,
       upgraded: live && this.upgradeNotice ? buildUpgradeNotice(this.cards, this.upgradeNotice) : null,
+      unitPromotion: live ? this.unitPromotion : null,
       testTools: live && screen !== 'ended' ? buildTestToolsView(run, this.o.deps, this.testCatalog(), this.resultPending) : null,
     };
   }
@@ -320,7 +323,25 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
   finishEvent(): void { this.run((run) => run.finishEvent()); }
   campHeal(): void { this.run((run) => run.campHeal()); }
   campUpgrade(instanceId: number): void { this.run((run) => run.campUpgrade(instanceId)); }
-  campPromote(ownedUnitId: number): void { this.run((run) => run.campPromote(ownedUnitId)); }
+  campPromote(ownedUnitId: number): void {
+    this.run(run => {
+      const before = run.roster.snapshot();
+      const previous = [...before.board, ...before.bench].find(unit => unit?.id === ownedUnitId);
+      const result = run.campPromote(ownedUnitId);
+      if (result.ok && previous) {
+        const after = run.roster.snapshot();
+        const promoted = [...after.board, ...after.bench].find(unit => unit?.id === ownedUnitId);
+        if (promoted && promoted.star > previous.star) {
+          this.unitPromotion = {
+            id: ++this.promotionSeq, ownedId: ownedUnitId, unitId: promoted.unitId,
+            unitName: this.units.get(promoted.unitId)?.name ?? promoted.unitId,
+            fromStar: previous.star, star: promoted.star, cost: before.gold - after.gold,
+          };
+        }
+      }
+      return result;
+    });
+  }
   leaveCamp(): void { this.run((run) => run.leaveCamp()); }
 
   // ---- TestCommands: 런 중 테스트 도구 ----
@@ -421,6 +442,7 @@ export class RunSession implements RunViewSource, RunCommands, TestCommands {
     this.deckListCache = null;
     this.upgradeNotice = null;
     this.controller = null; // 연결을 풀며 전투 세션이 알림을 보내도 옛 런을 건드리지 않게 먼저 비운다
+    this.unitPromotion = null;
     this.resultPending = false;
     this.rewardOverBattle = false;
     this.handledSettlement = null;
