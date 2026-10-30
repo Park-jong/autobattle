@@ -64,6 +64,46 @@ export function encounterSkinName(skin: SkinId, kind: string, fallback: string):
 
 const CARD_ART_UNITS: Readonly<Record<string, string>> = { operation: 'iron_shieldbearer', command: 'legion_centurion', spell: 'ember_kindler', equipment: 'ember_smith', curse: 'void_hierophant' };
 export function cardArtUnit(type: string): string { return CARD_ART_UNITS[type] ?? 'iron_shieldbearer'; }
+
+/** 공용 카드 그림 후보: 설명의 테마(위에서부터 먼저 맞는 것) → 없으면 카드 종류. 유닛 id라 스킨이 바뀌면 그 스킨의 같은 역할 캐릭터로 바뀐다 */
+const CARD_ART_THEMES: readonly { match: RegExp; units: readonly string[] }[] = [
+  { match: /화상|불꽃|화염|불씨|잿불|폭발|폭염|장판/, units: ['ember_kindler', 'ember_slinger', 'volcano_oracle', 'magma_champion', 'ember_bladedancer'] },
+  { match: /보호막|방어|ARM|도발|받는 피해|전열/, units: ['iron_shieldbearer', 'moss_warden', 'bear_warrior', 'legion_centurion'] },
+  { match: /회복|치유|마나|재생/, units: ['grove_druid', 'battle_chaplain', 'abyss_whisperer', 'elder_treeking'] },
+  { match: /처치|치명|후열|순간이동|은신|암살/, units: ['shade_dagger', 'shadow_panther', 'rift_stalker', 'muhon'] },
+  { match: /사거리|화살|관통|저격/, units: ['grove_archer', 'legion_crossbow', 'void_sniper', 'wind_hunter'] },
+];
+const CARD_ART_BY_TYPE: Readonly<Record<string, readonly string[]>> = {
+  operation: ['war_drummer', 'legion_spy', 'legion_centurion', 'siege_bombardier'],
+  command: ['arena_recruit', 'ember_berserker', 'legion_centurion', 'bear_warrior'],
+  spell: ['ember_kindler', 'void_hierophant', 'volcano_oracle', 'abyss_whisperer'],
+  equipment: ['ember_smith', 'legion_crossbow', 'iron_shieldbearer'],
+  curse: ['void_hierophant', 'abyss_devourer', 'abyss_sentinel'],
+};
+
+/** 문자열 → 0 이상 정수 (카드마다 그림을 고정하는 작은 해시, 결정적) */
+function stableHash(text: string): number {
+  let hash = 0;
+  for (const ch of text) hash = (hash * 31 + ch.codePointAt(0)!) >>> 0;
+  return hash;
+}
+
+/** 공용 카드의 그림 유닛: 저주는 심연 쪽, 그 밖은 설명 테마 → 종류 묶음에서 카드 id로 한 명을 고른다 */
+export function neutralCardArtUnit(card: { type: string; text: string; cardId?: string; name: string }): string {
+  const pool = card.type === 'curse'
+    ? CARD_ART_BY_TYPE.curse!
+    : CARD_ART_THEMES.find((theme) => theme.match.test(card.text))?.units ?? CARD_ART_BY_TYPE[card.type] ?? [cardArtUnit(card.type)];
+  return pool[stableHash(card.cardId ?? card.name) % pool.length]!;
+}
+
+/**
+ * 카드 그림 칸의 초상화 URL: 지휘관 전용 카드면 그 지휘관 초상화, 공용 카드면 어울리는 유닛 초상화.
+ * 스킨(아카데미·시티 오퍼레이션)마다 같은 코드의 다른 원화를 쓰고, 기본 스킨이면 null(문양만)
+ */
+export function cardArtUrl(skin: SkinId, card: { type: string; text: string; cardId?: string; name: string; owner?: string }): string | null {
+  if (card.owner && card.owner !== 'neutral' && COMMANDER_ART_CODES[card.owner]) return commanderArtUrl(skin, card.owner, 'portrait');
+  return unitArtUrl(skin, neutralCardArtUnit(card), 'portrait');
+}
 export function cardTypeSkinName(skin: SkinId, type: string, fallback: string): string {
   return skin === 'modern' ? ({ operation: '작전', command: '지휘', spell: '지원', equipment: '장비', curse: '교란' } as Record<string, string>)[type] ?? fallback : fallback;
 }

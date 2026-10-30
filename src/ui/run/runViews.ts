@@ -309,6 +309,8 @@ export function buildEncounterPreview(plan: EncounterPlan): EncounterPreviewView
 
 export interface CardView {
   cardId: string;
+  /** 소유 지휘관 id 또는 'neutral' (카드 그림 선택) */
+  owner: string;
   name: string;
   upgraded: boolean;
   cost: number;
@@ -342,6 +344,7 @@ export function buildCardView(cards: CardCatalog, cardId: string, upgraded = fal
   const effective = effectiveCard(card, upgraded && card.upgrade !== undefined);
   return {
     cardId,
+    owner: card.owner,
     name: `${card.name}${upgraded ? '+' : ''}`,
     upgraded,
     cost: effective.cost,
