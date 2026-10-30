@@ -17,6 +17,7 @@ export class BenchBar {
   private readonly slots = el('div', 'reserve-slots');
   private readonly actions = el('div', 'reserve-actions');
   private readonly start: HTMLButtonElement;
+  private readonly auto: HTMLButtonElement;
   private readonly sell: HTMLButtonElement;
   private signature = '';
   private selected: OwnedUnit | null = null;
@@ -37,7 +38,11 @@ export class BenchBar {
     this.slots.dataset.benchZone = 'true';
     const title = el('div', 'reserve-title');
     title.append(el('b', '', '대기 벤치'), this.count);
-    this.heading.append(title, this.population, this.hint);
+    this.auto = tagged(button('자동 편성', () => this.controller.autoArrangeUnits(), 'reserve-auto'), 'auto-arrange-units');
+    this.auto.title = '보유 유닛의 성급·소속·직업 시너지를 맞추고 전열·후열에 자동 배치';
+    const status = el('div', 'reserve-status');
+    status.append(this.population, this.auto);
+    this.heading.append(title, status, this.hint);
     this.start = tagged(button('', onStart, 'reserve-start'), 'start-battle');
     this.start.append(el('span', '', '전투 시작'), el('kbd', '', 'Enter'));
     this.start.title = '전투 시작 · Enter';
@@ -57,6 +62,7 @@ export class BenchBar {
     this.signature = signature;
     this.canManage = stage === 'prep' && !!management?.canManage;
     this.start.hidden = stage !== 'prep';
+    this.auto.disabled = !this.canManage || !management || management.state.population + management.state.bench.filter(Boolean).length === 0;
     if (!management) {
       this.slots.replaceChildren();
       this.selected = null;

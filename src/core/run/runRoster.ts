@@ -1,6 +1,6 @@
 import type { Cell } from '../combat/board';
 import type { FormationEntry } from '../combat';
-import type { Management, ManagementResult, ManagementSnapshot } from '../management';
+import type { Management, ManagementResult, ManagementSnapshot, RosterPlacement } from '../management';
 
 /** 런 단계에 따라 로스터 명령을 허용할지 정하는 규칙 */
 export interface RosterGate {
@@ -65,5 +65,9 @@ export class RunRoster {
 
   moveToBench(id: number, index?: number): ManagementResult {
     return this.gate.canEdit() ? this.management.moveToBench(id, index) : deny('지금은 유닛을 옮길 수 없습니다');
+  }
+
+  applyFormation(placements: readonly RosterPlacement[]): ManagementResult {
+    return this.gate.canEdit() ? this.management.applyFormation(placements) : deny('지금은 자동 편성을 할 수 없습니다');
   }
 }

@@ -145,6 +145,7 @@ export interface DebugController {
   selectManagedUnit(id: number | null): void;
   moveManagedToBoard(id: number, cell: Cell): void;
   moveManagedToBench(id: number, index?: number): void;
+  autoArrangeUnits(): void;
   sellManagedUnit(id: number): void;
   managedUnitAtStage(x: number, y: number): number | null;
   dropManagedToBoard(id: number, x: number, y: number): void;

@@ -19,6 +19,10 @@ body[data-screen="battle"] #battle-bench.bt-reserve[data-stage="playing"] { disp
 .bt-reserve.is-full .reserve-count { color: var(--bt-gold); border-color: var(--bt-gold-dim); }
 .bt-reserve .reserve-population { color: var(--bt-muted); font-size: 11px; font-weight: 500; font-variant-numeric: tabular-nums; }
 .bt-reserve .reserve-population.has-room { color: var(--bt-ally); }
+.bt-reserve .reserve-status { display: flex; align-items: center; gap: 8px; }
+.bt-reserve .reserve-auto { display: inline-flex; align-items: center; justify-content: center; min-height: 28px; padding: 4px 8px; border: 1px solid var(--bt-gold-dim); border-radius: 6px; background: color-mix(in srgb, var(--bt-gold) 8%, transparent); color: var(--bt-gold); font: 10px var(--bt-font); white-space: nowrap; cursor: pointer; }
+.bt-reserve .reserve-auto:hover:enabled { background: color-mix(in srgb, var(--bt-gold) 18%, transparent); border-color: var(--bt-gold); }
+.bt-reserve .reserve-auto:disabled { opacity: .45; cursor: default; }
 .bt-reserve .reserve-hint { color: var(--bt-muted); font-size: 10px; line-height: 1.5; }
 .bt-reserve.is-placing .reserve-hint { color: var(--bt-gold); }
 .bt-reserve .reserve-slots {
