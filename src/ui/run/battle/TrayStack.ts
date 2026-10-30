@@ -26,23 +26,35 @@ export class TrayStack {
   private readonly shortViewport = window.matchMedia('(max-height: 620px)');
   private collapsed = this.shortViewport.matches;
   private readonly collapseButton = tagged(el('button', 'tray-collapse'), 'tray-collapse');
+  private readonly tabs = new Map<TrayLayerId, HTMLButtonElement>();
 
   constructor(private readonly tray: HTMLElement, contents: Record<TrayLayerId, HTMLElement>) {
+    const tabBar = el('div', 'tray-tabs');
+    tabBar.setAttribute('role', 'tablist');
+    tabBar.setAttribute('aria-label', '전투 도구');
+    tray.append(tabBar);
     for (const spec of LAYERS) {
       const layer = tagged(el('div', `tray-layer ${spec.id}`), `tray-${spec.id}`);
       const tab = tagged(el('button', 'tray-tab'), `tray-tab-${spec.id}`);
       tab.type = 'button';
+      tab.id = `battle-tab-${spec.id}`;
+      layer.id = `battle-layer-${spec.id}`;
+      tab.setAttribute('role', 'tab');
+      tab.setAttribute('aria-controls', layer.id);
+      layer.setAttribute('role', 'tabpanel');
+      layer.setAttribute('aria-labelledby', tab.id);
       tab.append(spec.label, el('span', 'bt-key', spec.key));
       tab.addEventListener('click', () => this.bringFront(spec.id));
-      // 뒤로 물러난 층은 아무 곳이나 눌러도 앞으로 나온다
-      layer.addEventListener('pointerdown', (e) => {
-        if (this.stacked && this.frontId !== spec.id) {
-          e.preventDefault();
-          e.stopPropagation();
-          this.bringFront(spec.id);
-        }
-      }, true);
-      layer.append(tab, contents[spec.id]);
+      tab.addEventListener('keydown', (event) => {
+        if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+        event.preventDefault();
+        const other = spec.id === 'shop' ? 'cards' : 'shop';
+        this.bringFront(other);
+        this.tabs.get(other)?.focus();
+      });
+      tabBar.append(tab);
+      this.tabs.set(spec.id, tab);
+      layer.append(contents[spec.id]);
       this.layers.set(spec.id, layer);
       tray.append(layer);
     }
@@ -57,7 +69,7 @@ export class TrayStack {
       this.apply(false);
     });
     window.addEventListener('keydown', (e) => {
-      if (!this.stacked || e.ctrlKey || e.metaKey || e.altKey || isTyping(e.target)) return;
+      if (!this.stacked || e.ctrlKey || e.metaKey || e.altKey || isTyping(e.target) || document.querySelector('dialog[open]')) return;
       const spec = LAYERS.find((l) => l.code === e.code);
       if (spec) this.bringFront(spec.id);
     });
@@ -66,6 +78,12 @@ export class TrayStack {
 
   get front(): TrayLayerId {
     return this.frontId;
+  }
+
+  setCardCount(count: number): void {
+    const tab = this.tabs.get('cards');
+    const label = `카드 ${count}장`;
+    if (tab && tab.firstChild?.textContent !== label) tab.firstChild!.textContent = label;
   }
 
   /** 런 전투 화면이면 겹침 모드, 아니면 카드 층만 */
@@ -90,14 +108,13 @@ export class TrayStack {
     this.collapseButton.setAttribute('aria-expanded', String(!this.collapsed));
     for (const [id, layer] of this.layers) {
       const front = id === this.frontId;
-      layer.hidden = !this.stacked && id !== 'cards';
+      layer.hidden = this.stacked ? !front || this.collapsed : id !== 'cards';
+      const tab = this.tabs.get(id)!;
+      tab.setAttribute('aria-selected', String(front));
+      tab.tabIndex = front ? 0 : -1;
       layer.classList.toggle('front', !this.stacked || front);
       layer.classList.toggle('back', this.stacked && !front);
       layer.classList.remove('raised');
-      if (animate && front) {
-        void layer.offsetWidth; // 애니메이션 다시 시작
-        layer.classList.add('raised');
-      }
     }
     // 겹침 모드가 바뀌면 트레이 높이가 달라지므로 캔버스(Scale.FIT)가 남는 공간에 맞춰 다시 잡도록 알린다
     window.dispatchEvent(new Event('resize'));

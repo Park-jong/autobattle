@@ -36,6 +36,7 @@ import { ManagementRun } from '../live/ManagementRun';
 import { ReplayState, type MeteorView, type ReplayEffect, type ReviveWatchView, type TelegraphView, type UltimateAuraView, type UnitView, type ZoneView } from '../replay/ReplayState';
 import { CARD_UI, LAYOUT } from '../theme';
 import type { RosterCommands, RunBattleHost, RunBattleLink } from './runLink';
+import type { ActionCue } from '../feedback/ActionCue';
 import type {
   BattleViewSource,
   Brush,
@@ -117,6 +118,7 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
   private toast: { id: number; message: string } | null = null;
   private fallbackDeck: Deck | null = null;
   private readonly listeners = new Set<() => void>();
+  private readonly actionListeners = new Set<(cue: ActionCue) => void>();
   private readonly traitEngine: TraitEngine;
   private readonly interaction: CardInteraction;
   private readonly picker: BoardPicker;
@@ -414,6 +416,15 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
     this.manage((roster) => roster.buy(slot));
   }
 
+  subscribeActionFeedback(listener: (cue: ActionCue) => void): () => void {
+    this.actionListeners.add(listener);
+    return () => { this.actionListeners.delete(listener); };
+  }
+
+  private actionFeedback(cue: ActionCue): void {
+    for (const listener of this.actionListeners) listener(cue);
+  }
+
   rerollShop(): void {
     this.manage((roster) => roster.reroll());
   }
@@ -443,7 +454,16 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
   }
 
   sellManagedUnit(id: number): void {
-    this.manage((roster) => roster.sell(id));
+    const before = this.roster?.snapshot();
+    const unit = before && [...before.board, ...before.bench].find((entry) => entry?.id === id);
+    if (!unit || !before) return;
+    if (this.manage((roster) => roster.sell(id))) {
+      this.actionFeedback({
+        kind: 'sale', label: this.units.get(unit.unitId)?.name ?? '유닛', unitId: unit.unitId,
+        amount: (this.roster?.snapshot().gold ?? before.gold) - before.gold,
+        origin: unit.cell ?? undefined, benchIndex: unit.benchIndex,
+      });
+    }
   }
 
   managedUnitAtStage(x: number, y: number): number | null {
@@ -469,17 +489,18 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
     return this.roster !== null && this.currentPhase === 'edit' && !(this.managementRun?.done ?? false);
   }
 
-  private manage(action: (roster: RosterCommands) => ManagementResult): void {
+  private manage(action: (roster: RosterCommands) => ManagementResult): boolean {
     const roster = this.roster;
-    if (!roster || !this.canManage()) return;
+    if (!roster || !this.canManage()) return false;
     const formationBefore = JSON.stringify(this.formations[0]);
     const result = action(roster);
-    if (!result.ok) return this.showToast(result.reason);
+    if (!result.ok) { this.showToast(result.reason); return false; }
     const snapshot = roster.snapshot();
     if (![...snapshot.board, ...snapshot.bench].some((unit) => unit?.id === this.selectedOwnedId)) this.selectedOwnedId = null;
     this.syncManagementFormation();
     if (JSON.stringify(this.formations[0]) !== formationBefore) this.formationChanged();
     else this.notify();
+    return true;
   }
 
   private syncManagementFormation(): void {
@@ -706,9 +727,21 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
     const live = this.live;
     if (!live) return this.showToast('편성이 필요합니다. 양쪽 진영에 유닛을 배치하세요.');
     const instance = live.sim.deck?.findInHand(instanceId);
-    const equipment = instance && this.extras.cards?.get(instance.cardId)?.type === 'equipment';
+    const definition = instance && this.extras.cards?.get(instance.cardId);
+    const equipment = definition?.type === 'equipment';
+    const targetIds = target.kind === 'unit' ? [target.uid] : target.kind === 'units' ? target.uids : [];
+    const targets = target.kind === 'cell' ? [{ ...target.cell }] : this.views().filter((unit) => targetIds.includes(unit.uid)).map((unit) => ({ ...unit.pos }));
+    const positions = new Map(this.views().map((unit) => [unit.uid, { ...unit.pos }]));
+    const eventStart = live.sim.events.length;
     const result = live.playCard(instanceId, target);
     if (result.ok) {
+      if (target.kind === 'none') {
+        const affected = new Set(live.sim.events.slice(eventStart).flatMap((event) => 'unit' in event ? [event.unit] : []));
+        for (const uid of affected) {
+          const position = positions.get(uid);
+          if (position) targets.push(position);
+        }
+      }
       if (equipment && this.runLink) {
         this.runLink.commitPreparedEquipment(live.sim);
         this.formations[0] = this.runLink.allyFormation();
@@ -722,6 +755,8 @@ export class BattleSession implements BattleViewSource, DebugController, CardCon
         this.managementRun.commitEquipmentCard(instanceId);
         this.formations[0] = this.managementRun.formation();
       }
+      if (definition) this.actionFeedback({ kind: equipment ? 'equipment' : 'card', label: definition.name,
+        instanceId, cardType: definition.type, targets });
       this.notify();
     }
     else this.showToast(result.reason);

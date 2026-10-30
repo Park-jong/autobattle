@@ -63,6 +63,10 @@ export class UnitInfoPanel {
     const close = tagged(button('×', () => this.onClose(), 'bt-info-close'), 'unit-info-close');
     close.title = '닫기 (Esc)';
     const side = enemy ? 1 : 0;
+    const detailsOpen = this.root.querySelector<HTMLDetailsElement>('.bt-unit-details')?.open ?? false;
+    const details = el('details', 'bt-unit-details');
+    details.open = detailsOpen;
+    details.append(el('summary', '', '원화 · 소개 · 성급별 스킬'));
     const nodes: HTMLElement[] = [close, infoHead(info, enemy, {
       large: true,
       onTraitChip: (chip, traitId) => bindTraitChip(chip, traitId, this.traits, this.traitPop, () => this.sideTraits(side)),
@@ -74,17 +78,18 @@ export class UnitInfoPanel {
       art.alt = `${unitSkinName(appSkin.current, def.id, info.name)} 전신 원화`;
       art.draggable = false;
       art.addEventListener('error', () => art.remove());
-      nodes.push(art);
+      details.append(art);
     }
     if (subject.kind === 'live') nodes.push(liveLine(subject.view));
     const profile = appSkin.current === 'modern' ? MODERN_UNITS[def.id] : undefined;
     if (profile) {
       const bio = el('p', 'modern-unit-bio', profile.bio);
-      nodes.push(el('div', 'modern-unit-role', `${profile.faction} · ${profile.role} · ${profile.age}세`), bio);
+      details.append(el('div', 'modern-unit-role', `${profile.faction} · ${profile.role} · ${profile.age}세`), bio);
     }
     const boss = bossProfile(appSkin.current, def.id);
-    if (boss) nodes.push(el('div', 'modern-unit-role', boss.role), el('p', 'modern-unit-bio', boss.bio));
-    nodes.push(statsGrid(info), skillBlock(info));
+    if (boss) details.append(el('div', 'modern-unit-role', boss.role), el('p', 'modern-unit-bio', boss.bio));
+    nodes.push(statsGrid(info), skillBlock(info, true));
+    details.append(skillBlock(info));
 
     const extra = el('div', 'bt-info-extra');
     if (def.grantedCard) {
@@ -110,6 +115,7 @@ export class UnitInfoPanel {
       actions.append(toBench, sell);
       nodes.push(actions);
     }
+    nodes.push(details);
     this.root.replaceChildren(...nodes);
     this.root.hidden = false;
     this.traitPop.reattach(this.root);

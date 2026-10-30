@@ -4,6 +4,7 @@ import type { BattleKind, EconomyView } from '../../core/economy';
 import type { ManagementSnapshot } from '../../core/management';
 import type { CardInputMode } from '../cards/CardInteraction';
 import type { CardPanelView } from '../cards/cardPanelView';
+import type { ActionCue } from '../feedback/ActionCue';
 import type { PlaybackSpeed } from '../cards/playbackScale';
 import type { GauntletRecord, GauntletSummary } from '../live/Gauntlet';
 import type { MeteorView, ReplayEffect, ReviveWatchView, TelegraphView, UltimateAuraView, UnitView, ZoneView } from '../replay/ReplayState';
@@ -119,6 +120,8 @@ export interface BattleViewSource {
 
 /** 패널이 쓰는 쪽: 명령과 상태 조회 */
 export interface DebugController {
+  /** Presentation-only success notifications; never stored in the simulation or save. */
+  subscribeActionFeedback?(listener: (cue: ActionCue) => void): () => void;
   snapshot(): SessionSnapshot;
   subscribe(listener: () => void): () => void;
   setBrush(brush: Brush): void;

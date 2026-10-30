@@ -17,7 +17,9 @@ import { installPresentation } from './ui/skin/presentation';
 import './ui/skin/academy.css';
 import './ui/skin/modern.css';
 import './ui/run/battle/mobileBattle.css';
+import './ui/run/battle/battlePolish.css';
 import { attackProfile } from './ui/battle/combatVisuals';
+import { installActionFeedback } from './ui/feedback/ActionFeedback';
 import { unitSkinName } from './ui/skin/skins';
 
 /** 데이터 검증 오류를 화면에 보여준다 (게임은 시작하지 않음). */
@@ -81,6 +83,7 @@ function bootstrap(): void {
   panelHost.replaceChildren(skinRow, debugHost);
   new DebugPanel(debugHost, session, data.units, data.traits, data.commanders, gameHost, data.cards);
   new HandPanel(handHost, session, gameHost);
+  installActionFeedback(session, gameHost);
 
   // 런 UI: 시작 화면에서 시작해 맵·노드 화면(전체 화면 오버레이)과 전투(캔버스 + 패널)를 오간다
   const runSession = new RunSession({
@@ -114,10 +117,15 @@ function bootstrap(): void {
     cardName: (cardId, upgraded) => `${data.cards.get(cardId)?.name ?? cardId}${upgraded ? '+' : ''}`,
     attackProfile: (unitId, skin) => attackProfile(data.units.get(unitId), skin),
     unitIsBoss: (unitId) => !!data.units.get(unitId)?.boss,
+    unitTier: (unitId) => data.units.get(unitId)?.tier ?? 1,
   };
   let game: Phaser.Game | undefined;
   let rendererActive = false;
-  new ResizeObserver(() => game?.scale.refresh()).observe(gameHost);
+  new ResizeObserver(() => {
+    // refresh() reuses cached parent dimensions; measure after tray/zoom layout changes.
+    game?.scale.getParentBounds();
+    game?.scale.refresh();
+  }).observe(gameHost);
   const syncRenderer = (): void => {
     const active = needsBattleRenderer(runSession.screen);
     if (active === rendererActive) return;
@@ -137,6 +145,9 @@ function bootstrap(): void {
         height: profile.metrics.canvasHeight,
         backgroundColor: COLORS.BACKGROUND,
         fps: { target: profile.fps, limit: profile.fps },
+        // CSS disables touch panning on the normal board and enables it for board zoom.
+        // Phaser's touch capture would otherwise cancel native scrolling even in zoom mode.
+        input: { touch: { capture: false } },
         scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
         scene: [new BattleScene(session, profile.metrics, labels)],
       });

@@ -28,6 +28,10 @@ export class BattleTopBar {
   private readonly chips = el('div', 'bt-top-chips');
   private readonly controls = el('div', 'bt-top-controls');
   private readonly piles = el('span', 'bt-top-piles');
+  private readonly more = el('details', 'bt-menu bt-battle-more');
+  private readonly moreContent = el('div', 'bt-menu-content');
+  private readonly settings = el('details', 'bt-menu bt-settings');
+  private readonly settingsContent = el('div', 'bt-menu-content');
   private readonly skin = new SkinPicker(undefined, 'battle-skin-select');
   private openList: ListKey | null = null;
   private deck: CardListEntry[] = [];
@@ -41,6 +45,8 @@ export class BattleTopBar {
     private readonly listModal = new CardListModal(),
     private readonly onOpenMap: () => void = () => {},
   ) {
+    this.more.append(el('summary', '', '전투 정보'), this.moreContent);
+    this.settings.append(el('summary', '', '설정'), this.settingsContent);
     root.replaceChildren(this.node, this.chips, this.controls);
   }
 
@@ -81,16 +87,19 @@ export class BattleTopBar {
     hp.title = `${commanderSkinName(appSkin.current, hud.commanderId, hud.commanderName)} — 지휘관 HP`;
     const gold = tagged(el('span', 'bt-chip gold'), 'hud-gold');
     gold.append(el('span', 'bt-chip-label', '골드'), el('b', '', `${session.economy.gold}G`));
-    chips.push(hp, gold, this.piles);
-    for (const m of plan.mutations) chips.push(this.tipChip('bt-chip mutation', `변이 ${m.name}`, m.text));
+    const phase = el('span', `bt-phase ${info.stage}`, info.stage === 'prep' ? '준비' : info.stage === 'playing' ? (session.phase === 'paused' ? '일시정지' : '전투 중') : '결과');
+    const secondary: HTMLElement[] = [el('strong', '', encounterSkinName(appSkin.current, plan.kind, plan.name)), this.piles];
+    chips.push(hp, gold, phase);
+    for (const m of plan.mutations) secondary.push(this.tipChip('bt-chip mutation', `변이 ${m.name}`, m.text));
     for (const p of plan.bossPatterns) {
       const unit = plan.units.find((u) => u.name === p.unitName);
       const name = unit ? unitSkinName(appSkin.current, unit.unitId, p.unitName) : p.unitName;
-      chips.push(this.tipChip('bt-chip pattern', `패턴 ${p.title}`, `${name}\n${p.lines.join('\n')}`));
+      secondary.push(this.tipChip('bt-chip pattern', `패턴 ${p.title}`, `${name}\n${p.lines.join('\n')}`));
     }
     const relics = el('span', 'bt-chip bt-relics');
     relics.append(el('span', 'bt-chip-label', '유물'), relicRow(hud.relics, '없음'));
-    chips.push(relics);
+    secondary.push(relics);
+    this.moreContent.replaceChildren(...secondary);
     this.chips.replaceChildren(...chips);
     this.pileSignature = '';
     this.renderPiles();
@@ -166,14 +175,14 @@ export class BattleTopBar {
       speeds.append(tagged(button(`×${value}`, () => this.battle.setSpeed(value), `bt-btn${session.speed === value ? ' selected' : ''}`), `speed-${value}`));
     }
     speeds.title = '배속';
-    nodes.push(speeds, this.skin.root);
+    nodes.push(speeds, this.more, this.settings);
     const motion = tagged(button(motionPreferences.reduced ? '연출: 간결' : '연출: 풍부', () => {
       motionPreferences.setReduced(!motionPreferences.reduced);
       this.renderControls(stage, session);
     }, 'bt-btn'), 'motion-toggle');
     motion.setAttribute('aria-pressed', String(motionPreferences.reduced));
     motion.title = '공격 모션과 빛 번짐을 줄입니다. 전투 규칙과 배속은 유지됩니다.';
-    nodes.push(motion);
+    this.settingsContent.replaceChildren(this.skin.root, motion);
     this.controls.replaceChildren(...nodes);
   }
 

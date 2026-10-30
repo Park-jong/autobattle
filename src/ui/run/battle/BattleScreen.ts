@@ -19,6 +19,7 @@ import { unitDragGhost } from './unitFace';
 import { UnitInfoPanel, type InfoSubject } from './UnitInfoPanel';
 import { UnitTooltip } from './UnitTooltip';
 import './battleScreen.css';
+import { BoardViewport } from './BoardViewport';
 
 /** 전투 화면이 쓰는 DOM 자리 (index.html) */
 export interface BattleScreenHosts {
@@ -84,6 +85,7 @@ export class BattleScreen {
     private readonly hover: UnitHoverSource,
     catalogs: BattleScreenCatalogs,
   ) {
+    new BoardViewport(hosts.arena, hosts.canvasHost);
     this.resultBackdrop.hidden = true;
     this.errorBox.hidden = true;
     const sideTraits = (side: 0 | 1) => this.battle.snapshot().traits[side];
@@ -108,10 +110,11 @@ export class BattleScreen {
         const def = unit ? catalogs.units.get(unit.unitId) : undefined;
         return unitDragGhost(unit?.unitId ?? '', def?.name ?? '유닛', def?.tier ?? 1, unit?.star ?? 1);
       },
-      onDragStart: () => {
+      onDragStart: (id) => {
         this.traitPop.hide();
         this.unitPop.hide();
         this.tray.bringFront('shop');
+        this.shop.previewSale(this.ownedUnit(id));
       },
     });
     this.bench = new BenchRow(hosts.bench, catalogs.units, this.drag, hosts.canvasHost, () => this.commands.startBattle());
@@ -119,6 +122,9 @@ export class BattleScreen {
     this.topBar = new BattleTopBar(hosts.top, battle, () => this.cards.cardView(), undefined, () => this.mapModal.open());
 
     hosts.canvasHost.addEventListener('pointerdown', this.onCanvasDown);
+    hosts.canvasHost.addEventListener('pointerup', (event) => {
+      if (event.pointerType === 'touch' && hosts.canvasHost.closest('.bt-board-viewport.zoomed')) this.onCanvasDown(event);
+    });
     window.addEventListener('keydown', this.onKey);
     view.subscribe(() => this.render());
     battle.subscribe(() => this.render());
@@ -161,6 +167,7 @@ export class BattleScreen {
     this.overlay.hidden = !active;
     this.tray.setStacked(active);
     if (!active) {
+      this.shop.closeDetails();
       this.tooltip.setEnabled(false, null);
       this.traitPop.hide();
       this.unitPop.hide();
@@ -179,6 +186,7 @@ export class BattleScreen {
     requestAnimationFrame(this.loop);
     if (!this.active) return;
     this.topBar.tick();
+    this.tray.setCardCount(this.cards.cardView().hand.length);
     if (this.inspectUid !== null) this.renderInfo(this.battle.snapshot());
   };
 
@@ -219,6 +227,7 @@ export class BattleScreen {
 
   /** 전투 중 유닛을 누르면 읽기 전용 정보를 띄운다. 카드 대상 지정이 우선이다. */
   private onCanvasDown = (event: PointerEvent): void => {
+    if (event.type === 'pointerdown' && event.pointerType === 'touch' && this.hosts.canvasHost.closest('.bt-board-viewport.zoomed')) return;
     if (!this.active || this.stage !== 'playing' || event.button !== 0 || this.cards.cardView().holding) return;
     const canvas = this.hosts.canvasHost.querySelector('canvas');
     const point = canvas ? clientToStage(event.clientX, event.clientY, canvas.getBoundingClientRect()) : null;
@@ -228,7 +237,7 @@ export class BattleScreen {
   };
 
   private onKey = (event: KeyboardEvent): void => {
-    if (!this.active || event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || isTyping(event.target)) return;
+    if (!this.active || event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey || isTyping(event.target) || document.querySelector('dialog[open]')) return;
     if (event.key === 'Enter' && event.target instanceof HTMLElement && event.target.closest('button, summary')) return;
     if (event.key === 'Escape' && !this.cards.cardView().holding) return this.closeInfo();
     if (this.stage !== 'prep') return;

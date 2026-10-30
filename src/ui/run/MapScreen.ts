@@ -8,6 +8,7 @@ import { buildMapBoard, mapLegend } from './mapBoard';
 import type { MapNodeView, MapView } from './runViews';
 import { actPresentation } from '../skin/skins';
 import { appSkin } from '../skin/SkinStore';
+import { nodeScene } from './nodePresentation';
 
 /** 맵 화면: 13층 노드·간선, 방문 경로·현재 위치·선택 가능 노드 강조, 노드 선택 시 적 편성 미리보기 */
 export class MapScreen {
@@ -90,7 +91,14 @@ export class MapScreen {
       const preview = this.view.previewNode(node.id);
       // 전투 미리보기 머리글이 이미 "N층 종류"를 보여 주므로 제목은 비전투 노드에만 붙인다
       if (preview) parts.push(encounterPreviewElement(preview));
-      else parts.push(tagged(el('h3', '', `액트 ${map.act} · ${node.floor}층 ${node.label}`), 'node-title'), el('p', 'dbg-hint', this.describeNonBattle(node)));
+      else {
+        if (node.type === 'shop' || node.type === 'event') {
+          const destination = el('section', 'node-route-preview');
+          destination.append(nodeScene(node.type === 'shop' ? 'market' : 'camp'), el('span', '', node.type === 'shop' ? '다음 전투를 위한 보급 거점' : '뜻밖의 만남과 새로운 선택'));
+          parts.push(destination);
+        }
+        parts.push(tagged(el('h3', '', `액트 ${map.act} · ${node.floor}층 ${node.label}`), 'node-title'), el('p', 'dbg-hint', this.describeNonBattle(node)));
+      }
       if (node.id === this.selectedId) {
         const go = tagged(button('이 노드로 이동', () => this.commands.chooseNode(node.id), 'dbg-btn dbg-primary'), 'choose-node');
         go.disabled = node.state !== 'available';

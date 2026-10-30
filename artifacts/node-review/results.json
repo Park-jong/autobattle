@@ -1,0 +1,26 @@
+[
+  {
+    "name": "desktop",
+    "shopPurchase": true,
+    "removal": true,
+    "event": "부상당한 정찰병"
+  },
+  {
+    "name": "phone",
+    "shopPurchase": true,
+    "removal": true,
+    "event": "부상당한 정찰병"
+  },
+  {
+    "name": "academy",
+    "shopPurchase": true,
+    "removal": true,
+    "event": "부상당한 정찰병"
+  },
+  {
+    "name": "plain",
+    "shopPurchase": true,
+    "removal": true,
+    "event": "부상당한 정찰병"
+  }
+]

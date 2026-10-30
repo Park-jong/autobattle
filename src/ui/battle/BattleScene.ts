@@ -25,6 +25,7 @@ export interface SceneLabels {
   cardName(cardId: string, upgraded: boolean): string;
   attackProfile?(unitId: string, skin?: SkinId): AttackProfile;
   unitIsBoss?(unitId: string): boolean;
+  unitTier?(unitId: string): number;
 }
 
 /**
@@ -90,9 +91,17 @@ export class BattleScene extends Phaser.Scene {
       this.source.pointerLeft();
     });
     this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
+      if (p.wasTouch && this.game.canvas.closest('.bt-board-viewport.zoomed')) return;
       const world = this.worldOf(p);
       this.source.pointerMoved(world.x, world.y);
       this.source.pointerDown(world.x, world.y, p.rightButtonDown());
+    });
+    this.input.on('pointerup', (p: Phaser.Input.Pointer) => {
+      // A touch pan on the enlarged board must not select, move, or cast at its start.
+      if (!p.wasTouch || !this.game.canvas.closest('.bt-board-viewport.zoomed') || Math.hypot(p.x - p.downX, p.y - p.downY) >= 8) return;
+      const world = this.worldOf(p);
+      this.source.pointerMoved(world.x, world.y);
+      this.source.pointerDown(world.x, world.y, false);
     });
     const unsubscribe = this.skin.subscribe(() => this.applySkin());
     this.applySkin();
@@ -135,6 +144,7 @@ export class BattleScene extends Phaser.Scene {
     this.board.drawDynamic(this.source.overheating, hover, open.cells, pulse);
     this.openSlotText.setText(open.count > 0 ? `배치 가능 +${open.count} — 아군 진영에 유닛을 더 놓을 수 있습니다` : '');
     this.openSlotText.setAlpha(0.65 + 0.35 * pulse);
+    this.openSlotText.setVisible(visibleStageInset(this) === 0);
     this.updateTexts(editing, time, targeting.hint);
   }
 
@@ -154,7 +164,11 @@ export class BattleScene extends Phaser.Scene {
 
   private updateTexts(editing: boolean, time: number, targetHint: string): void {
     const modern = this.skin.current === 'modern';
-    const centered = modern || visibleStageInset(this) > 0;
+    const compact = visibleStageInset(this) > 0;
+    const centered = modern || compact;
+    this.timeText.setPosition(STAGE.WIDTH / 2, compact ? 58 : LAYOUT.TIME_Y)
+      .setFontSize(compact ? 20 : 34).setVisible(!compact || !editing);
+    this.hintText.setVisible(!compact);
     this.hintText.setColor(modern ? '#5b7e95' : TEXT_COLORS.MUTED);
     this.hintText.setPosition(centered ? STAGE.WIDTH / 2 : 20, centered ? STAGE.HEIGHT - 24 : 20)
       .setOrigin(centered ? 0.5 : 0, centered ? 1 : 0).setFontSize(modern ? 12 : 16);
@@ -218,7 +232,7 @@ export class BattleScene extends Phaser.Scene {
         view.uid,
         new UnitSprite(this, this.metrics, this.layout, this.labels.unitAbbreviation(view.unitId, this.skin.current), view.star,
           unitTextureKey(this.skin.current, view.unitId, 'sd'),
-          isIllustratedSkin(this.skin.current) && !!this.labels.unitIsBoss?.(view.unitId), this.skin.current),
+          isIllustratedSkin(this.skin.current) && !!this.labels.unitIsBoss?.(view.unitId), this.skin.current, this.labels.unitTier?.(view.unitId) ?? 1),
       );
     }
     this.effects.clear();

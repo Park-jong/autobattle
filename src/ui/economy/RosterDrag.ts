@@ -48,6 +48,7 @@ export class RosterDrag {
 
   private onCanvasDown = (event: PointerEvent): void => {
     if (event.button !== 0 || !this.options.isActive()) return;
+    if (event.pointerType === 'touch' && this.options.canvasHost?.closest('.bt-board-viewport.zoomed')) return;
     const point = this.stagePoint(event);
     if (!point) return;
     const id = this.options.controller.managedUnitAtStage(point.x, point.y);

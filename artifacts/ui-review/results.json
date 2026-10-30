@@ -1,0 +1,44 @@
+[
+  {
+    "name": "phone",
+    "width": 378,
+    "scrollWidth": 764,
+    "touchAction": "pan-x pan-y",
+    "swipeScroll": 160
+  },
+  {
+    "name": "small-phone",
+    "width": 348,
+    "scrollWidth": 764,
+    "touchAction": "pan-x pan-y",
+    "swipeScroll": 160
+  },
+  {
+    "name": "narrow-phone",
+    "width": 308,
+    "scrollWidth": 764,
+    "touchAction": "pan-x pan-y",
+    "swipeScroll": 185
+  },
+  {
+    "name": "landscape",
+    "width": 248,
+    "scrollWidth": 764,
+    "touchAction": "pan-x pan-y",
+    "swipeScroll": 160
+  },
+  {
+    "name": "academy-phone",
+    "width": 378,
+    "scrollWidth": 764,
+    "touchAction": "pan-x pan-y",
+    "swipeScroll": 160
+  },
+  {
+    "name": "default-phone",
+    "width": 378,
+    "scrollWidth": 764,
+    "touchAction": "pan-x pan-y",
+    "swipeScroll": 185
+  }
+]
