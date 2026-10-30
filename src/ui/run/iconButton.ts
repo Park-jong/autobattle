@@ -17,6 +17,12 @@ const ICONS = {
   experience: '<path d="m6 11 6-7 6 7M12 4v12M5 20h14"/><path d="m5 5 1-2 1 2M18 15l1-2 1 2"/>',
   lock: '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/>',
   unlock: '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 7.5-2M12 14v3"/>',
+  /** 손패를 접고 전장 넓게 보기 */
+  boardExpand: '<path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5M3 3l6 6M21 3l-6 6M3 21l6-6M21 21l-6-6"/>',
+  /** 하단 손패·상점 펼치기 */
+  trayExpand: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 14h18M9 10l3-3 3 3M12 7v6"/>',
+  zoomIn: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5M7.5 10.5h6M10.5 7.5v6"/>',
+  zoomOut: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5M7.5 10.5h6"/>',
   /** 일시정지 */
   pause: '<rect x="6.5" y="5" width="3.5" height="14" rx="1"/><rect x="14" y="5" width="3.5" height="14" rx="1"/>',
   /** 재개 */

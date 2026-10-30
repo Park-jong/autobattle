@@ -1,5 +1,6 @@
 import { el, tagged } from '../dom';
 import { motionPreferences } from '../../skin/presentation';
+import { iconSvg, setIconTip } from '../iconButton';
 
 export type TrayLayerId = 'shop' | 'cards';
 
@@ -22,20 +23,23 @@ const LAYERS: readonly LayerSpec[] = [
  */
 export class TrayStack {
   private readonly layers = new Map<TrayLayerId, HTMLElement>();
+  private readonly sheets = new Map<TrayLayerId, HTMLElement>();
   private frontId: TrayLayerId = 'cards';
   private stacked = false;
   private readonly shortViewport = window.matchMedia('(max-height: 620px)');
   private collapsed = this.shortViewport.matches;
-  private readonly collapseButton = tagged(el('button', 'tray-collapse'), 'tray-collapse');
+  private readonly collapseButton = tagged(el('button', 'bt-btn icon-btn bt-board-tool'), 'tray-collapse');
   private readonly tabs = new Map<TrayLayerId, HTMLButtonElement>();
   private motions: Animation[] = [];
 
-  constructor(private readonly tray: HTMLElement, contents: Record<TrayLayerId, HTMLElement>) {
+  constructor(private readonly tray: HTMLElement, contents: Record<TrayLayerId, HTMLElement>, controlHost: HTMLElement) {
     const tabBar = el('div', 'tray-tabs');
     tabBar.setAttribute('role', 'tablist');
     tabBar.setAttribute('aria-label', '전투 도구');
+    tabBar.setAttribute('aria-owns', LAYERS.map(spec => `battle-tab-${spec.id}`).join(' '));
     tray.append(tabBar);
     for (const spec of LAYERS) {
+      const sheet = el('div', `tray-sheet ${spec.id}`);
       const layer = tagged(el('div', `tray-layer ${spec.id}`), `tray-${spec.id}`);
       const tab = tagged(el('button', 'tray-tab'), `tray-tab-${spec.id}`);
       tab.type = 'button';
@@ -54,18 +58,21 @@ export class TrayStack {
         this.bringFront(other);
         this.tabs.get(other)?.focus();
       });
-      tabBar.append(tab);
       this.tabs.set(spec.id, tab);
       layer.append(contents[spec.id]);
       this.layers.set(spec.id, layer);
-      tray.append(layer);
+      // Move the tab and its content as one physical sheet.
+      sheet.append(tab, layer);
+      this.sheets.set(spec.id, sheet);
+      tray.append(sheet);
     }
     this.collapseButton.type = 'button';
+    this.collapseButton.setAttribute('aria-controls', tray.id);
     this.collapseButton.addEventListener('click', () => {
       this.collapsed = !this.collapsed;
       this.apply(false);
     });
-    tray.append(this.collapseButton);
+    controlHost.append(this.collapseButton);
     this.shortViewport.addEventListener('change', () => {
       this.collapsed = this.shortViewport.matches;
       this.apply(false);
@@ -104,13 +111,16 @@ export class TrayStack {
   }
 
   private apply(animate: boolean): void {
-    const outgoing = [...this.layers.entries()].find(([id, layer]) => id !== this.frontId && !layer.hidden && !layer.inert)?.[1];
+    const outgoing = [...this.layers.entries()].find(([id, layer]) => id !== this.frontId && !layer.hidden && !layer.inert);
     for (const motion of this.motions) motion.cancel();
     this.motions = [];
     this.tray.classList.toggle('stacked', this.stacked);
     this.tray.classList.toggle('collapsed', this.stacked && this.collapsed);
     this.collapseButton.hidden = !this.stacked;
-    this.collapseButton.textContent = this.collapsed ? '트레이 펼치기 ▴' : '보드 크게 ▾';
+    this.collapseButton.innerHTML = iconSvg(this.collapsed ? 'trayExpand' : 'boardExpand', 20);
+    const collapseTip = this.collapsed ? '손패·상점 펼치기' : '전장 넓게 보기 · 손패·상점 접기';
+    setIconTip(this.collapseButton, collapseTip);
+    this.collapseButton.title = collapseTip;
     this.collapseButton.setAttribute('aria-expanded', String(!this.collapsed));
     for (const [id, layer] of this.layers) {
       const front = id === this.frontId;
@@ -123,25 +133,32 @@ export class TrayStack {
       layer.classList.toggle('front', !this.stacked || front);
       layer.classList.toggle('back', this.stacked && !front);
       layer.classList.remove('raised');
+      const sheet = this.sheets.get(id)!;
+      sheet.hidden = !this.stacked && id !== 'cards';
+      sheet.classList.toggle('front', !this.stacked || front);
+      sheet.classList.toggle('back', this.stacked && !front);
     }
     if (animate && this.stacked && !this.collapsed && !motionPreferences.reduced) {
-      const front = this.layers.get(this.frontId)!;
+      const front = this.sheets.get(this.frontId)!;
       this.motions.push(front.animate([
-        { transform: 'translateY(22px) scale(.97)', opacity: .35, filter: 'brightness(.7)' },
-        { transform: 'translateY(-9px) scale(1.005)', opacity: 1, filter: 'brightness(1.12)', offset: .55 },
-        { transform: 'translateY(0) scale(1)', opacity: 1, filter: 'brightness(1)' },
-      ], { duration: 360, easing: 'cubic-bezier(.2,.8,.2,1)' }));
+        { transform: 'translate3d(0, 5px, -16px) scale(.99)', filter: 'brightness(.92)', zIndex: '2' },
+        { transform: 'translate3d(0, -10px, 18px) rotateX(2deg) scale(.995)', filter: 'brightness(1.04)', zIndex: '4', offset: .5 },
+        { transform: 'translate3d(0, 0, 0) scale(1)', filter: 'brightness(1)', zIndex: '4' },
+      ], { duration: 340, easing: 'cubic-bezier(.22,.75,.25,1)' }));
       if (outgoing) {
-        outgoing.hidden = false;
+        const [outgoingId, outgoingLayer] = outgoing;
+        const outgoingSheet = this.sheets.get(outgoingId)!;
+        outgoingLayer.hidden = false;
         // Keep the departing panel visible for motion while excluding its controls from input.
-        outgoing.inert = true;
-        outgoing.setAttribute('aria-hidden', 'true');
-        const departure = outgoing.animate([
-          { transform: 'translateY(0) scale(1)', opacity: 1 },
-          { transform: 'translateY(-22px) scale(.96)', opacity: 0 },
-        ], { duration: 240, easing: 'ease-out' });
+        outgoingLayer.inert = true;
+        outgoingLayer.setAttribute('aria-hidden', 'true');
+        const departure = outgoingSheet.animate([
+          { transform: 'translate3d(0, 0, 0) scale(1)', filter: 'brightness(1)', zIndex: '4' },
+          { transform: 'translate3d(0, 9px, -8px) rotateX(-2deg) scale(.99)', filter: 'brightness(.95)', zIndex: '2', offset: .5 },
+          { transform: 'translate3d(0, 5px, -16px) scale(.99)', filter: 'brightness(.92)', zIndex: '2' },
+        ], { duration: 340, easing: 'cubic-bezier(.22,.75,.25,1)' });
         this.motions.push(departure);
-        departure.finished.then(() => { outgoing.hidden = true; }, () => {});
+        departure.finished.then(() => { outgoingLayer.hidden = true; }, () => {});
       }
     }
     // 겹침 모드가 바뀌면 트레이 높이가 달라지므로 캔버스(Scale.FIT)가 남는 공간에 맞춰 다시 잡도록 알린다

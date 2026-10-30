@@ -1,0 +1,70 @@
+/* Each tab is attached to its own sheet; the pair changes depth together. */
+body #tray.stacked {
+  --tray-tab-height: 42px;
+  perspective: 1100px;
+  isolation: isolate;
+}
+body #tray.stacked .tray-tabs {
+  height: var(--tray-tab-height);
+  padding: 0;
+  pointer-events: none;
+}
+.tray-sheet[hidden] { display: none !important; }
+body #tray.stacked .tray-sheet {
+  position: absolute; left: 0; right: 0; bottom: 0;
+  height: calc(100% - var(--tray-tab-height));
+  background: var(--bt-bg);
+  border-radius: 9px 9px 0 0;
+  transform-origin: 50% 0;
+}
+body #tray.stacked .tray-sheet.front {
+  z-index: 4;
+  transform: translate3d(0, 0, 0);
+  filter: none;
+  box-shadow: 0 -3px 12px #0003;
+}
+body #tray.stacked .tray-sheet.back {
+  z-index: 2;
+  transform: translate3d(0, 5px, -16px) scale(.99);
+  filter: brightness(.92);
+  box-shadow: 0 -2px 8px #0002;
+}
+body #tray.stacked .tray-sheet > .tray-tab {
+  position: absolute; top: calc(2px - var(--tray-tab-height));
+  display: flex; align-items: center; gap: 6px;
+  height: var(--tray-tab-height); padding: 0 14px;
+  border: 1px solid var(--bt-border-strong); border-bottom: 0;
+  border-radius: 9px 9px 0 0;
+  background: var(--bt-panel-top); color: var(--bt-muted);
+  font-size: 13px; z-index: 5;
+}
+body #tray.stacked .tray-sheet.shop > .tray-tab { left: 10px; }
+body #tray.stacked .tray-sheet.cards > .tray-tab { left: 154px; }
+body #tray.stacked .tray-sheet.front > .tray-tab {
+  color: var(--bt-gold); border-color: var(--bt-gold-dim);
+  background: var(--bt-bg);
+  box-shadow: 0 -2px 8px #0002;
+}
+body #tray.stacked .tray-sheet.front > .tray-tab::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -2px; height: 4px;
+  background: var(--bt-bg);
+}
+body #tray.stacked .tray-sheet > .tray-layer {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  transform: none; filter: none; box-shadow: none; transition: none;
+}
+body #tray.stacked .tray-sheet > .tray-layer[inert] { pointer-events: none; }
+body #tray.stacked.collapsed .tray-sheet {
+  height: 0; transform: none; filter: none; box-shadow: none;
+}
+body #tray.stacked.collapsed .tray-sheet > .tray-layer { display: none; }
+@media (max-width: 900px), (max-width: 1000px) and (max-height: 620px) {
+  body #tray.stacked { --tray-tab-height: 40px; }
+  body #tray.stacked .tray-sheet > .tray-tab { font-size: 12px; padding: 0 12px; }
+  body #tray.stacked .tray-sheet.shop > .tray-tab { left: 6px; }
+  body #tray.stacked .tray-sheet.cards > .tray-tab { left: 130px; }
+}
+@media (max-width: 1000px) and (max-height: 620px) and (orientation: landscape) {
+  body #tray.stacked .tray-sheet.cards > .tray-tab { left: 118px; }
+  body #tray.stacked .tray-sheet > .tray-tab { padding: 0 10px; font-size: 11px; }
+}

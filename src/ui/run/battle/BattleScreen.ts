@@ -105,7 +105,7 @@ export class BattleScreen {
     this.overlay.hidden = true;
 
     this.shop = new ShopLayer(battle, catalogs.units, catalogs.traits, this.traitPop, this.unitPop, () => sideTraits(0));
-    this.tray = new TrayStack(hosts.tray, { shop: this.shop.root, cards: hosts.hand });
+    this.tray = new TrayStack(hosts.tray, { shop: this.shop.root, cards: hosts.hand }, this.boardViewport.tools);
     this.drag = new RosterDrag({
       controller: battle,
       canvasHost: hosts.canvasHost,
