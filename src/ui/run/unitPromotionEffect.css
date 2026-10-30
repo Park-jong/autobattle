@@ -1,0 +1,32 @@
+.promotion-fx-layer { position: fixed; inset: 0; z-index: 180; pointer-events: none; overflow: hidden; color: #ffe7aa; background: radial-gradient(ellipse at center, #090e1880, #060a14b3); font-family: var(--bt-font, sans-serif); }
+.promotion-fx-layer[hidden] { display: none; }
+.promotion-fx-layer * { box-sizing: border-box; pointer-events: none; }
+.promotion-fx-status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.promotion-fx-scene { position: absolute; inset: 0; }
+.promotion-fx-hero { position: absolute; top: 50%; left: 50%; width: clamp(174px, 40vw, 216px); height: clamp(246px, 48vh, 300px); transform: translate(-50%, -50%); z-index: 2; }
+.promotion-fx-card { position: relative; width: 100%; height: 100%; overflow: hidden; border: 2px solid #ffe1a4; border-radius: 16px; background: radial-gradient(ellipse at 50% 25%, #786445, #151d30 75%); box-shadow: 0 0 0 4px #ffe1a422, 0 0 45px #f8cd6470, 0 22px 60px #0008; }
+.promotion-fx-card::after { content: ''; position: absolute; inset: 0; background: linear-gradient(0deg, #0b1125 2%, #0b1125b8 22%, transparent 60%); }
+.promotion-fx-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center top; }
+.promotion-fx-glyph { display: grid; place-items: center; height: 70%; color: #ffe1a4; font-size: 44px; font-weight: 800; }
+.promotion-fx-name { position: absolute; left: 12px; right: 12px; bottom: 68px; z-index: 2; color: #fff6e3; font-size: 19px; text-align: center; text-shadow: 0 2px 6px #000; }
+.promotion-fx-stars { position: absolute; bottom: 18px; left: 0; right: 0; z-index: 2; display: flex; align-items: center; justify-content: center; gap: 7px; height: 38px; color: #ffe4a1; font-size: 31px; line-height: 1; text-shadow: 0 0 12px #ffc44a99, 0 2px 4px #0008; }
+.promotion-fx-stars[hidden] { display: none; }
+.promotion-fx-stars.before { color: #b9b1a3; text-shadow: none; }
+.promotion-fx-stars .new-star { color: #fff2b8; text-shadow: 0 0 18px #ffc542, 0 0 5px #fff7c2; }
+.promotion-fx-title { position: absolute; bottom: calc(100% + 20px); left: -30px; right: -30px; color: #ffe6ab; font-size: 24px; font-weight: 800; text-align: center; letter-spacing: .18em; text-shadow: 0 0 20px #ffd16a80, 0 2px 8px #000; }
+.promotion-fx-summary { position: absolute; top: calc(100% + 18px); left: -30px; right: -30px; color: #ede0c7; font-size: 13px; text-align: center; text-shadow: 0 2px 5px #000; }
+.promotion-fx-aura { position: absolute; left: 50%; top: 50%; width: min(440px, 94vw); aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, #ffdfa249, #ffcd601c 45%, transparent 70%); transform: translate(-50%, -50%); }
+.promotion-fx-ring { position: absolute; left: 50%; top: 50%; width: 200px; height: 200px; border: 2px solid #ffdfa2; border-radius: 50%; box-shadow: 0 0 20px #ffcf7b66, inset 0 0 16px #ffcf7b33; }
+.promotion-fx-particle { position: absolute; left: 50%; top: 50%; width: 4px; height: 13px; border-radius: 3px; background: #ffe6af; box-shadow: 0 0 12px #ffd064; }
+.promotion-fx-particle.spark { width: 6px; height: 6px; border-radius: 1px; }
+.promotion-fx-sheen { position: absolute; inset: 0; z-index: 3; width: 90%; background: linear-gradient(90deg, transparent, #fff9dd9c, transparent); }
+.promotion-fx-layer.triple .promotion-fx-card { border-color: #fff1c1; box-shadow: 0 0 0 5px #ffe1a433, 0 0 70px #f8cd6499, 0 22px 60px #0008; }
+.promotion-fx-layer.triple .promotion-fx-title { color: #fff3cb; font-size: 28px; }
+.promotion-fx-layer.reduced { background: #060a1466; }
+.promotion-fx-layer.reduced .promotion-fx-sheen { display: none; }
+@media (max-height: 430px) {
+  .promotion-fx-hero { width: 158px; height: 222px; }
+  .promotion-fx-title { bottom: calc(100% + 8px); font-size: 20px; }
+  .promotion-fx-layer.triple .promotion-fx-title { font-size: 22px; }
+  .promotion-fx-summary { top: calc(100% + 8px); font-size: 11px; }
+}

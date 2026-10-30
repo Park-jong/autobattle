@@ -9,6 +9,7 @@ import { StartScreen } from './StartScreen';
 import { TestToolsPanel } from './TestToolsPanel';
 import './runScreens.css';
 import { appSkin } from '../skin/SkinStore';
+import { UnitPromotionEffect } from './UnitPromotionEffect';
 
 /** 전체 화면 오버레이로 그리는 화면 (그 외 battle은 캔버스 + 오른쪽 패널, debug는 기존 디버그 패널) */
 interface OverlayScreen {
@@ -39,6 +40,7 @@ export class RunShell {
   private readonly rewardModal: RewardModal;
   /** 카드 강화 결과 창 (어느 화면 위에도) */
   private readonly upgradeModal: UpgradeModal;
+  private readonly promotionEffect = new UnitPromotionEffect();
   private readonly screens: Partial<Record<RunScreenId, OverlayScreen>>;
   private mounted: RunScreenId | null = null;
   private shownNotice = 0;
@@ -64,7 +66,7 @@ export class RunShell {
     this.testTools = new TestToolsPanel(view, commands);
     this.rewardModal = new RewardModal(commands);
     this.upgradeModal = new UpgradeModal(commands);
-    document.body.append(this.overlay, this.rewardModal.root, this.upgradeModal.root, this.toast, this.backButton, this.testTools.root);
+    document.body.append(this.overlay, this.rewardModal.root, this.upgradeModal.root, this.toast, this.backButton, this.testTools.root, this.promotionEffect.root);
     view.subscribe(() => this.render());
     appSkin.subscribe(() => this.render());
     this.render();
@@ -72,6 +74,10 @@ export class RunShell {
 
   render(): void {
     const snap = this.view.snapshot();
+    // Capture the selected card before the successful promotion replaces the camp screen.
+    const promotionSource = snap.unitPromotion
+      ? this.overlay.querySelector(`[data-testid="promotion-card-${snap.unitPromotion.ownedId}"]`)?.getBoundingClientRect()
+      : undefined;
     const screen = snap.screen;
     const overlayScreen = this.screens[screen];
     this.overlay.hidden = overlayScreen === undefined;
@@ -95,6 +101,7 @@ export class RunShell {
     this.rewardModal.render(snap);
     this.upgradeModal.render(snap);
     this.renderToast(snap);
+    this.promotionEffect.render(snap, promotionSource);
   }
 
   private renderToast(snap: RunSnapshot): void {
