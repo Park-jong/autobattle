@@ -2,14 +2,13 @@ import type { TraitCatalog } from '../../../core/data/traitLoader';
 import type { UnitCatalog } from '../../../core/data/unitLoader';
 import { LEVEL_ODDS, MANAGEMENT, type ShopOffer } from '../../../core/management';
 import type { DebugController, SessionSnapshot } from '../../debug/contracts';
-import { traitSkinName, unitArtUrl, unitSkinName } from '../../skin/skins';
+import { traitSkinName, unitArtUrl, unitSkinName, unitSkillName } from '../../skin/skins';
 import { appSkin } from '../../skin/SkinStore';
 import { unitAbbreviation } from '../../gameData';
 import type { ActiveTrait } from '../../../core/combat/traits';
 import { button, el, tagged } from '../dom';
 import type { HoverPop } from './hoverPop';
-import { bindTraitChip } from './TraitPanel';
-import { infoHead, skillBlock, statsGrid } from './UnitInfoPanel';
+import { skillBlock, statsGrid } from './UnitInfoPanel';
 import { buildUnitInfo } from './unitInfoView';
 import { sellRefund } from './unitInfoView';
 import { tierBadge } from './unitFace';
@@ -17,11 +16,12 @@ import { purchaseHint } from './unitPresentation';
 import type { OwnedUnit } from '../../../core/management';
 import { iconSvg, setIconTip } from '../iconButton';
 import { traitBadge } from './traitBadge';
+import { traitRowFor } from './traitPanelView';
 
 /**
  * 하단 트레이의 유닛 상점 층: 레벨·XP·골드, 리롤·경험치·잠금, 진열 5칸(원화·등급 색·기원/직업·가격).
  * 판매 구역에 유닛을 끌어 놓으면 판다. 전투 중에는 잠김 안내를 덮는다.
- * 원화 위에 이름·가격을 겹친다. 정보 아이콘과 소속·직업 배지에서 설명을 볼 수 있다.
+ * 초상화를 누르면 소속·직업과 유닛 설명이 있는 뒷면을 보여 준다. 영입은 별도 버튼으로 한다.
  */
 export class ShopLayer {
   readonly root = tagged(el('div', 'bt-shop unit-market'), 'unit-shop');
@@ -29,7 +29,7 @@ export class ShopLayer {
   private readonly offers = el('div', 'bt-offers');
   private readonly lockMsg = el('div', 'bt-shop-lockmsg');
   private readonly sellOverlay = el('div', 'bt-sell-overlay', '여기에 놓아 판매');
-  private readonly detail = el('dialog', 'bt-shop-detail bt-panel');
+  private readonly flipped = new Map<number, string>();
   private owned: OwnedUnit[] = [];
   private signature = '';
 
@@ -45,14 +45,11 @@ export class ShopLayer {
     this.sellOverlay.dataset.sellZone = 'true';
     this.sellOverlay.setAttribute('aria-label', '유닛 판매 구역');
     this.root.append(this.side, this.offers, this.lockMsg);
-    this.detail.setAttribute('aria-label', '상점 유닛 상세 정보');
-    this.detail.addEventListener('click', (event) => { if (event.target === this.detail) this.detail.close(); });
-    this.root.append(this.detail);
     appSkin.subscribe(() => { this.signature = ''; });
   }
 
   render(session: SessionSnapshot, stage: 'prep' | 'playing' | 'result'): void {
-    if (stage !== 'prep' && this.detail.open) this.detail.close();
+    if (stage !== 'prep') this.flipped.clear();
     const management = session.management;
     const signature = JSON.stringify([management?.state.offers, management?.state.board, management?.state.bench, management?.state.level, management?.state.xp, management?.state.locked, management?.canManage, session.economy.gold, stage, appSkin.current, session.traits[0]]);
     if (signature === this.signature) return;
@@ -81,7 +78,7 @@ export class ShopLayer {
     const fill = el('div', 'bt-xp-fill');
     fill.style.width = state.xpToNext ? `${Math.round((state.xp / state.xpToNext) * 100)}%` : '100%';
     xp.append(fill);
-    const reroll = tagged(button('', () => this.controller.rerollShop(), 'bt-btn shop-control shop-refresh'), 'shop-reroll');
+    const reroll = tagged(button('', () => { this.flipped.clear(); this.controller.rerollShop(); }, 'bt-btn shop-control shop-refresh'), 'shop-reroll');
     reroll.innerHTML = iconSvg('reroll', 24);
     reroll.append(el('span', 'shop-control-label', '리롤'), el('strong', 'shop-control-cost', `${MANAGEMENT.REROLL_COST}G`), el('span', 'bt-key', 'R'));
     setIconTip(reroll, '리롤 · 1G · R (유물의 무료 리롤 우선 사용)');
@@ -123,6 +120,7 @@ export class ShopLayer {
 
   private offer(offer: ShopOffer | null, slot: number, canManage: boolean, gold: number): HTMLElement {
     if (!offer) {
+      this.flipped.delete(slot);
       const sold = tagged(el('div', 'bt-offer sold'), `shop-offer-${slot}`);
       sold.append(el('span', 'bt-sold-mark', '✓'), el('strong', '', '영입 완료'));
       return sold;
@@ -132,11 +130,41 @@ export class ShopLayer {
     const node = tagged(el('article', `bt-offer tier-${offer.tier}`), `shop-offer-${slot}`);
     const displayName = unitSkinName(appSkin.current, offer.unitId, name);
     node.setAttribute('aria-label', `${displayName} · ${offer.tier}등급 · ${offer.cost}G`);
+    if (this.flipped.get(slot) !== offer.unitId) this.flipped.delete(slot);
     const hint = purchaseHint(offer.unitId, this.owned);
     const merging = hint.includes('합성');
     node.classList.toggle('merge-ready', merging);
     node.classList.toggle('is-owned', hint !== '미보유');
     node.classList.toggle('unaffordable', gold < offer.cost);
+    const turner = el('div', 'bt-offer-turner');
+    const front = el('div', 'bt-offer-front');
+    const back = el('div', 'bt-offer-back');
+    back.id = `shop-back-${slot}`;
+    const backTitle = el('strong', 'bt-offer-back-name', displayName);
+    backTitle.tabIndex = -1;
+    const toggle = tagged(button('', () => setFlipped(true, true), 'bt-offer-flip'), `shop-flip-${slot}`);
+    toggle.setAttribute('aria-label', `${displayName} 정보 보기 · 카드 뒤집기`);
+    toggle.setAttribute('aria-controls', back.id);
+    const setFlipped = (show: boolean, focus = false): void => {
+      if (show) this.flipped.set(slot, offer.unitId);
+      else this.flipped.delete(slot);
+      node.classList.toggle('is-flipped', show);
+      front.inert = show;
+      back.inert = !show;
+      front.setAttribute('aria-hidden', String(show));
+      back.setAttribute('aria-hidden', String(!show));
+      toggle.setAttribute('aria-expanded', String(show));
+      this.traitPop.hide();
+      this.unitPop.hide();
+      if (focus) (show ? backTitle : toggle).focus({ preventScroll: true });
+    };
+    node.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && node.classList.contains('is-flipped')) {
+        event.preventDefault();
+        event.stopPropagation();
+        setFlipped(false, true);
+      }
+    });
     const art = el('div', 'bt-offer-art');
     const traits = el('div', 'bt-offer-traits');
     const url = unitArtUrl(appSkin.current, offer.unitId, 'portrait');
@@ -150,54 +178,59 @@ export class ShopLayer {
     } else {
       art.append(unitAbbreviation(displayName));
     }
+    const backScroll = el('div', 'bt-offer-back-scroll');
+    backScroll.tabIndex = 0;
+    backScroll.setAttribute('role', 'region');
+    backScroll.setAttribute('aria-label', `${displayName} 소속·직업·스킬 정보`);
+    backScroll.append(backTitle, el('span', 'bt-offer-back-tier', `${offer.tier}등급 · 1성`));
     if (def) {
+      const affiliations: string[] = [];
       for (const id of [def.origin, def.job]) {
         const trait = this.traits.get(id);
-        const chip = traitBadge(id, traitSkinName(appSkin.current, id, trait?.name ?? id), id === def.origin ? 'origin' : 'job');
+        const traitName = traitSkinName(appSkin.current, id, trait?.name ?? id);
+        affiliations.push(traitName);
+        const kind = id === def.origin ? 'origin' : 'job';
+        const chip = traitBadge(id, traitName, kind);
         chip.classList.toggle('shared-trait', this.allyTraits().some((trait) => trait.traitId === id));
-        bindTraitChip(chip, id, this.traits, this.traitPop, this.allyTraits);
+        chip.dataset.traitId = id;
+        chip.setAttribute('aria-label', `${kind === 'origin' ? '소속' : '직업'} ${traitName} 정보 보기`);
+        chip.addEventListener('click', () => setFlipped(true, true));
         traits.append(chip);
+        const section = el('section', 'bt-offer-back-trait');
+        section.append(el('strong', '', `${kind === 'origin' ? '소속' : '직업'} · ${traitName}`));
+        if (trait) {
+          const row = traitRowFor(trait, this.allyTraits().find(t => t.traitId === id));
+          section.append(el('span', 'bt-offer-back-progress', `보유 ${row.count}종 · ${trait.thresholds.join('/')}종 활성`), el('p', '', row.currentText));
+        }
+        backScroll.append(section);
       }
-      node.dataset.popKey = `offer:${slot}:${offer.unitId}`;
-      const content = () => {
-        const info = buildUnitInfo(def, 1, { traitName: (id) => traitSkinName(appSkin.current, id, this.traits.get(id)?.name ?? id) });
-        return [infoHead(info, false, { large: false }), el('div', 'bt-unit-pop-cost', `${offer.tier}등급 · ${offer.cost}G`), statsGrid(info), skillBlock(info)];
-      };
-      const inspect = button('', () => {
-        this.unitPop.hide();
-        this.traitPop.hide();
-        this.detail.replaceChildren(button('닫기', () => this.detail.close(), 'bt-btn bt-detail-close'), ...content());
-        this.detail.showModal();
-      }, 'bt-offer-info');
-      inspect.innerHTML = iconSvg('info', 17);
-      inspect.setAttribute('aria-label', `${unitSkinName(appSkin.current, offer.unitId, name)} 상세 정보`);
-      node.append(inspect);
-      inspect.addEventListener('mouseenter', () => {
-        if (!window.matchMedia('(hover: hover)').matches) return;
-        this.traitPop.hide();
-        this.unitPop.show(inspect, content, 'above');
-      });
-      inspect.addEventListener('mouseleave', () => this.unitPop.hide());
+      const info = buildUnitInfo(def, 1, { traitName: id => traitSkinName(appSkin.current, id, this.traits.get(id)?.name ?? id) });
+      info.skillName = unitSkillName(appSkin.current, offer.unitId, info.skillName);
+      backScroll.append(statsGrid(info), skillBlock(info));
+      toggle.append(el('span', 'bt-offer-affiliation', affiliations.join(' · ')));
     }
-    traits.prepend(tierBadge(offer.tier));
+    const caption = el('span', 'bt-offer-caption');
+    caption.append(el('strong', 'bt-offer-name', displayName));
+    toggle.append(caption);
+    front.append(art, toggle, traits, tierBadge(offer.tier), el('span', 'bt-offer-flip-hint', '눌러서 정보 보기'));
+    back.append(backScroll, tagged(button('초상화', () => setFlipped(false, true), 'bt-offer-return'), `shop-return-${slot}`));
+    turner.append(front, back);
     const buy = button('', () => {
       this.unitPop.hide();
       this.traitPop.hide();
       this.controller.buyUnit(slot);
     }, 'bt-btn bt-offer-buy');
-    const caption = el('span', 'bt-offer-caption');
-    caption.append(el('strong', 'bt-offer-name', displayName), el('strong', 'bt-offer-cost', `${offer.cost}G`));
+    buy.append(el('span', '', gold < offer.cost && canManage ? '부족' : '영입'), el('strong', 'bt-offer-cost', `${offer.cost}G`));
     if (hint !== '미보유') {
       const ownership = el('span', `bt-offer-owned${merging ? ' merge' : ''}`, hint);
       ownership.title = '동일 유닛 3기 합성 기준. 유물의 추가 합성 효과는 별도로 적용됩니다.';
-      buy.append(ownership);
+      toggle.prepend(ownership);
     }
-    buy.append(caption);
     buy.setAttribute('aria-label', `${displayName} 영입 ${offer.cost}G`);
     buy.disabled = !canManage || gold < offer.cost;
     buy.title = !canManage ? '전투 중 사용 불가' : gold < offer.cost ? '골드 부족' : `${displayName} 영입 · ${offer.cost}G`;
-    node.prepend(art, buy);
-    node.append(traits);
+    node.append(turner, buy);
+    setFlipped(this.flipped.get(slot) === offer.unitId);
     return node;
   }
 
@@ -207,6 +240,7 @@ export class ShopLayer {
   }
 
   closeDetails(): void {
-    if (this.detail.open) this.detail.close();
+    this.flipped.clear();
+    this.signature = '';
   }
 }
