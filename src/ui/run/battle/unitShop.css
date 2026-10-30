@@ -33,6 +33,7 @@
 .bt-shop.unit-market .bt-offer {
   min-width: 0;
   min-height: 0;
+  perspective: 900px;
   border: 1px solid color-mix(in srgb, var(--offer-tier) 65%, var(--bt-border));
   border-top: 3px solid var(--offer-tier);
   border-radius: 9px;
@@ -42,30 +43,47 @@
   transition: border-color .15s, box-shadow .15s;
 }
 .bt-shop.unit-market .bt-offer:hover:not(:disabled), .bt-shop.unit-market .bt-offer:focus-within { transform: none; border-color: var(--offer-tier); box-shadow: 0 0 0 1px var(--offer-tier), 0 4px 14px #00000020; }
+.bt-shop.unit-market .bt-offer-turner { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .28s cubic-bezier(.2,.7,.3,1); }
+.bt-shop.unit-market .bt-offer.is-flipped .bt-offer-turner { transform: rotateY(180deg); }
+.bt-shop.unit-market .bt-offer-front, .bt-shop.unit-market .bt-offer-back { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.bt-shop.unit-market .bt-offer-back { display: flex; flex-direction: column; padding: 12px 10px 62px; box-sizing: border-box; transform: rotateY(180deg); background: linear-gradient(150deg, color-mix(in srgb, var(--offer-tier) 12%, var(--shop-surface)), var(--bt-bg)); }
+.bt-shop.unit-market .bt-offer-back-scroll { flex: 1 1 0; min-height: 0; overflow: auto; scrollbar-width: thin; scrollbar-color: var(--bt-border-strong) transparent; overscroll-behavior: contain; font-size: 12px; line-height: 1.5; }
+.bt-shop.unit-market .bt-offer-back-name { display: block; font-size: 15px; }
+.bt-shop.unit-market .bt-offer-back-tier { display: block; color: var(--bt-muted); font-size: 10px; margin-bottom: 8px; }
+.bt-shop.unit-market .bt-offer-back-trait { margin-bottom: 9px; padding-bottom: 8px; border-bottom: 1px solid var(--bt-border); }
+.bt-shop.unit-market .bt-offer-back-trait strong { display: block; color: var(--shop-accent); font-size: 13px; }
+.bt-shop.unit-market .bt-offer-back-progress { display: block; color: var(--bt-muted); font-size: 10px; }
+.bt-shop.unit-market .bt-offer-back-trait p { margin: 3px 0 0; }
+.bt-shop.unit-market .bt-offer-back .bt-stats { gap: 3px 8px; margin: 8px 0; padding: 6px; font-size: 11px; }
+.bt-shop.unit-market .bt-offer-back .bt-skill-name { font-size: 12px; }
+.bt-shop.unit-market .bt-offer-back .bt-skill-line { grid-template-columns: 23px 1fr; gap: 3px; padding: 4px; font-size: 11px; }
+.bt-shop.unit-market .bt-offer-return { position: absolute; bottom: 10px; left: 10px; min-height: 40px; padding: 6px 10px; border: 1px solid var(--bt-border-strong); border-radius: 7px; color: var(--bt-text); background: var(--shop-surface); font: 11px var(--bt-font); cursor: pointer; }
 .bt-shop.unit-market .bt-offer-art { position: absolute; inset: 0; min-height: 0; overflow: hidden; background: radial-gradient(ellipse at 50% 20%, color-mix(in srgb, var(--offer-tier) 25%, var(--shop-surface)), var(--shop-surface)); }
 .bt-shop.unit-market .bt-offer-art img { object-fit: contain; object-position: center; }
-.bt-shop.unit-market .bt-offer .bt-tier-badge { position: static; min-width: 23px; height: 26px; padding: 0 4px; border: 1px solid color-mix(in srgb, var(--offer-tier) 65%, transparent); border-radius: 6px; background: #0b1123b8; color: var(--offer-tier); font-size: 11px; }
-.bt-shop.unit-market .bt-offer-info { display: grid; place-items: center; z-index: 3; top: 8px; right: 8px; min-width: 28px; min-height: 28px; padding: 0; border: 1px solid #ffffff29; border-radius: 50%; background: #0b1123b8; color: #f1f4fa; }
-.bt-shop.unit-market .bt-offer-info svg { pointer-events: none; }
-.bt-shop.unit-market .bt-offer-traits { position: absolute; z-index: 2; top: 8px; left: 8px; bottom: auto; display: flex; flex-direction: row; gap: 4px; }
-.bt-shop.unit-market .bt-trait-emblem { --emblem-color: #dce6fb; display: grid; place-items: center; width: 26px; height: 26px; min-width: 26px; padding: 0; border: 1px solid color-mix(in srgb, var(--emblem-color) 38%, transparent); border-radius: 7px; color: var(--emblem-color); background: #0b1123d1; box-shadow: 0 2px 6px #0002; cursor: help; }
+.bt-shop.unit-market .bt-offer .bt-tier-badge { position: absolute; top: 10px; right: 10px; left: auto; min-width: 26px; height: 28px; padding: 0 4px; border: 1px solid color-mix(in srgb, var(--offer-tier) 65%, transparent); border-radius: 6px; background: #0b1123b8; color: var(--offer-tier); font-size: 12px; }
+.bt-shop.unit-market .bt-offer-traits { position: absolute; z-index: 2; top: 10px; left: 10px; bottom: auto; display: flex; flex-direction: row; gap: 6px; }
+.bt-shop.unit-market .bt-trait-emblem { --emblem-color: #dce6fb; display: grid; place-items: center; width: 40px; height: 40px; min-width: 40px; padding: 0; border: 1px solid color-mix(in srgb, var(--emblem-color) 55%, transparent); border-radius: 9px; color: var(--emblem-color); background: #0b1123d1; box-shadow: 0 2px 6px #0002; cursor: pointer; }
 .bt-shop.unit-market .bt-trait-emblem.job { border-radius: 50%; }
 .bt-shop.unit-market .emblem-iron_legion { --emblem-color: #b9d1f3; }
 .bt-shop.unit-market .emblem-ember { --emblem-color: #ffb08b; }
 .bt-shop.unit-market .emblem-abyss { --emblem-color: #c8b0fa; }
 .bt-shop.unit-market .emblem-forest_pact { --emblem-color: #9cd9be; }
-.bt-shop.unit-market .bt-trait-emblem svg { pointer-events: none; }
+.bt-shop.unit-market .bt-trait-emblem svg { width: 25px; height: 25px; pointer-events: none; }
 .bt-shop.unit-market .bt-trait-emblem:hover, .bt-shop.unit-market .bt-trait-emblem:focus-visible { background: #1c2947; border-color: var(--emblem-color); }
 .bt-shop.unit-market .bt-trait-emblem.shared-trait { box-shadow: 0 0 0 1px var(--shop-accent); }
 .bt-shop.unit-market .bt-offer-owned { display: block; align-self: flex-start; min-height: 0; padding: 0; margin-bottom: 3px; color: #ede5ce; background: transparent; font-size: 10px; line-height: 1.4; text-shadow: 0 1px 4px #000; }
 .bt-shop.unit-market .merge-ready { border-color: var(--shop-accent); box-shadow: 0 0 0 1px var(--shop-accent); }
 .bt-shop.unit-market .bt-offer-owned.merge { color: var(--shop-accent); font-weight: 800; }
 .bt-shop.unit-market .bt-offer-owned.merge::before { content: '✦ '; }
-.bt-shop.unit-market .bt-offer-buy, .bt-shop.unit-market .bt-offer-buy:hover:enabled { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; gap: 0; width: 100%; height: 100%; min-height: 0; padding: 50px 11px 11px; margin: 0; border: 0; border-radius: 0; color: #fff; background: linear-gradient(0deg, #07101af0, #07101a66 25%, transparent 56%); text-align: left; }
-.bt-shop.unit-market .bt-offer-caption { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; min-width: 0; text-shadow: 0 1px 5px #000; }
+.bt-shop.unit-market .bt-offer-flip { position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; width: 100%; height: 100%; padding: 54px 94px 13px 11px; border: 0; background: linear-gradient(0deg, #07101af0, #07101a66 25%, transparent 56%); color: #fff; font: 12px var(--bt-font); text-align: left; cursor: pointer; }
+.bt-shop.unit-market .bt-offer-affiliation { display: block; margin-bottom: 3px; color: #d2dceb; font-size: 11px; line-height: 1.5; text-shadow: 0 1px 4px #000; }
+.bt-shop.unit-market .bt-offer-caption { display: flex; min-width: 0; text-shadow: 0 1px 5px #000; }
+.bt-shop.unit-market .bt-offer-flip-hint { position: absolute; top: 56px; left: 11px; z-index: 1; color: #e4eaf5; font-size: 9px; text-shadow: 0 1px 4px #000; pointer-events: none; }
+.bt-shop.unit-market .bt-offer-buy { position: absolute; top: auto; left: auto; bottom: 10px; right: 10px; z-index: 3; display: flex; flex-direction: row; justify-content: center; align-items: center; gap: 6px; width: 76px; height: 40px; min-height: 40px; padding: 6px; margin: 0; border: 1px solid #ffe1a482; border-radius: 7px; color: #ffe1a4; background: #172131eb; font-size: 11px; text-align: center; box-shadow: 0 2px 8px #0004; }
+.bt-shop.unit-market .bt-offer-buy:hover:enabled { background: #51452e; border-color: #ffe1a4; }
 .bt-shop.unit-market .bt-offer-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; line-height: 1.4; }
 .bt-shop.unit-market .bt-offer-cost { flex: 0 0 auto; color: #ffe1a4; font-size: 13px; font-variant-numeric: tabular-nums; }
-.bt-shop.unit-market .bt-offer-buy:disabled { opacity: 1; cursor: not-allowed; }
+.bt-shop.unit-market .bt-offer-buy:disabled { opacity: .65; cursor: not-allowed; border-color: var(--bt-border); }
 .bt-shop.unit-market .unaffordable .bt-offer-cost { color: #c3c6d0; }
 .bt-shop.unit-market .bt-offer-buy:focus-visible { outline-offset: -3px; }
 .bt-shop.unit-market .unaffordable .bt-offer-art img { filter: saturate(.65); }
@@ -99,11 +117,10 @@ body[data-screen="battle"] #tray.stacked:has(.unit-market):not(.collapsed) { hei
   .bt-shop.unit-market .bt-sell-overlay { display: none; }
   body.roster-dragging .bt-shop.unit-market .bt-sell-overlay { display: flex; position: absolute; inset: 0; z-index: 6; font-size: 16px; background: var(--bt-bg); }
   .bt-shop.unit-market .bt-offers { display: flex; flex: 1 1 0; gap: 8px; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; overscroll-behavior-x: contain; scrollbar-width: thin; padding: 1px 1px 4px; }
-  .bt-shop.unit-market .bt-offer { flex: 0 0 148px; scroll-snap-align: start; }
-  .bt-shop.unit-market .bt-offer-traits { top: 6px; left: 6px; gap: 3px; }
-  .bt-shop.unit-market .bt-offer-info { top: 6px; right: 6px; }
+  .bt-shop.unit-market .bt-offer { flex: 0 0 200px; scroll-snap-align: start; }
+  .bt-shop.unit-market .bt-trait-emblem { width: 44px; height: 44px; min-width: 44px; }
+  .bt-shop.unit-market .bt-offer-flip-hint { top: 60px; }
   .bt-shop.unit-market .bt-offer-name { font-size: 13px; }
-  .bt-shop.unit-market .bt-offer-buy, .bt-shop.unit-market .bt-offer-buy:hover:enabled { padding: 50px 8px 9px; }
   body[data-screen="battle"] #tray.stacked:has(.unit-market):not(.collapsed) { height: 322px; min-height: 322px; }
 }
 
@@ -119,8 +136,9 @@ body[data-screen="battle"] #tray.stacked:has(.unit-market):not(.collapsed) { hei
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bt-shop.unit-market .bt-offer { transition: none; }
+  .bt-shop.unit-market .bt-offer, .bt-shop.unit-market .bt-offer-turner { transition: none; }
 }
+body[data-motion="reduced"] .bt-shop.unit-market .bt-offer-turner { transition: none; }
 
 /* Three compact controls: the pictogram leads, with cost always visible. */
 .bt-shop.unit-market .bt-shop-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
