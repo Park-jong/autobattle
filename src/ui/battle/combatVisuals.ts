@@ -2,6 +2,7 @@ import type { UnitDef } from '../../core/data/unit';
 import type { CellPos, ReplayEffect, UnitView } from '../replay/ReplayState';
 import { COMBAT_FX, TIMING } from '../theme';
 import { MODERN_UNITS, type ModernWeapon } from '../skin/modernRoster';
+import { THREE_KINGDOMS_CHARACTERS } from '../skin/threeKingdomsRoster';
 import type { SkinId } from '../skin/skins';
 
 export type AttackStyle = 'slash' | 'claw' | 'arrow' | 'ember' | 'orb' | 'shell' | Exclude<ModernWeapon, 'blade'>;
@@ -10,6 +11,14 @@ export type ProfileResolver = (unitId: string) => AttackProfile;
 
 /** 유닛의 무기·학부를 시각 표현으로만 연결한다. 사거리·피해 계산에는 쓰지 않는다. */
 export function attackProfile(def?: UnitDef, skin?: SkinId): AttackProfile {
+  if (skin === 'three_kingdoms') {
+    const row = def ? THREE_KINGDOMS_CHARACTERS[def.id] : undefined;
+    const color = row ? Number.parseInt(row.color.slice(1), 16) : 0xd7bc7c;
+    if (row && ['U03', 'U05', 'U21', 'U22', 'U24'].includes(row.code)) return { style: 'arrow', color, ranged: true };
+    if (row?.code === 'U07') return { style: 'shell', color, ranged: true };
+    if (def?.job === 'mystic') return { style: row?.faction === '오' || row?.code === 'B02' ? 'ember' : 'orb', color, ranged: true };
+    return { style: 'slash', color, ranged: false };
+  }
   if (skin === 'modern') {
     const row = def ? MODERN_UNITS[def.id] : undefined;
     const boss: Readonly<Record<string, ModernWeapon>> = { gate_breaker: 'machinegun', twin_ser: 'drone', twin_mir: 'drone', legion_lord: 'rifle' };

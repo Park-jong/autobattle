@@ -1,0 +1,30 @@
+/* 연화삼국: 짙은 비취·먹색 바탕, 옥과 금장. 공통 원화 레이아웃은 academy.css. */
+body[data-skin="three_kingdoms"] {
+  --bt-bg: #101b1a; --bt-panel-top: #263b32; --bt-panel-bottom: #14241f;
+  --bt-border: #46584b; --bt-border-strong: #8e855e; --bt-gold: #e6c98d;
+  --bt-text: #f4eedf; --bt-muted: #a8b9a9; --bt-ally: #8bd4b2; --bt-enemy: #d99ab6;
+  background: var(--bt-bg); color: var(--bt-text);
+}
+body[data-skin="three_kingdoms"] .run-overlay {
+  background: radial-gradient(ellipse at 10% 5%, #3d6a4938, transparent 50%), radial-gradient(ellipse at 92% 70%, #87684022, transparent 55%), #101b1a;
+}
+body[data-skin="three_kingdoms"] .run-start-card {
+  background: linear-gradient(145deg, #24392ff5, #121f1cf5); border-color: #b7a16e66;
+}
+body[data-skin="three_kingdoms"] .run-start-card::before { content: '◇'; background: #1c2e25; }
+body[data-skin="three_kingdoms"] .run-commander { background-color: #152820; }
+body[data-skin="three_kingdoms"] .run-commander:hover { background-color: #213d30; }
+body[data-skin="three_kingdoms"] .run-commander.selected { background-color: #2a3d2e; }
+body[data-skin="three_kingdoms"] :is(.dbg-input, .skin-select) { background: #12251f; border-color: #6e7d60; }
+body[data-skin="three_kingdoms"] :is(.run-screen-header, .run-map-side, .run-battle-panel) { background: #152820eb; }
+body[data-skin="three_kingdoms"] .run-act-bar { background: #22392d; }
+body[data-skin="three_kingdoms"] #stage { background: #101b1a; }
+body[data-skin="three_kingdoms"] .modern-gallery-open { margin-top: 12px; padding: 6px 16px; }
+body[data-skin="three_kingdoms"] .modern-gallery { color: var(--bt-text); background: #172a23; border-color: #b7a16e; }
+body[data-skin="three_kingdoms"] .modern-gallery-card { color: var(--bt-text); background: #233b2e; border-color: #566b4d; border-top-color: var(--unit-color); }
+body[data-skin="three_kingdoms"] .modern-gallery-card[aria-pressed="true"] { outline-color: #e6c98d; }
+body[data-skin="three_kingdoms"] .modern-gallery-card img { background: #1a3027; }
+body[data-skin="three_kingdoms"] :is(.modern-gallery-header h2, .modern-unit-role) { color: #e6c98d; }
+body[data-skin="three_kingdoms"] :is(.modern-unit-bio, .modern-unit-quote, .modern-gallery-card span) { color: #bdcbb6; }
+body[data-skin="three_kingdoms"] .modern-gallery-full { background: radial-gradient(ellipse, #77965a38, transparent 70%); }
+body[data-skin="three_kingdoms"] .modern-run-card-art { background: linear-gradient(120deg, #526744, #172d25); }

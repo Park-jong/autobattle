@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { BOARD_COLS, BOARD_ROWS, frontCol, type Cell } from '../../core/combat/board';
 import { createText, type HiDpiMetrics } from '../hidpi';
-import { ACADEMY_COLORS, COLORS, LAYOUT, MODERN_COLORS, TEXT_COLORS } from '../theme';
+import { ACADEMY_COLORS, COLORS, LAYOUT, MODERN_COLORS, THREE_KINGDOMS_COLORS, TEXT_COLORS } from '../theme';
 import { isIllustratedSkin, type SkinId } from '../skin/skins';
 import type { BoardLayout } from './BoardLayout';
 
@@ -59,7 +59,8 @@ export class BoardRenderer {
     this.labels = [];
     const modern = this.skin === 'modern', academy = this.skin === 'academy';
     const illustrated = isIllustratedSkin(this.skin);
-    const palette = modern ? MODERN_COLORS : academy ? ACADEMY_COLORS : COLORS;
+    const kingdoms = this.skin === 'three_kingdoms';
+    const palette = kingdoms ? THREE_KINGDOMS_COLORS : modern ? MODERN_COLORS : academy ? ACADEMY_COLORS : COLORS;
     const size = this.layout.cellSize;
     if (illustrated) {
       g.fillStyle(modern ? 0x111e2d : 0x060a14, 0.8);
@@ -125,8 +126,8 @@ export class BoardRenderer {
     const half = (BOARD_COLS / 2) * size;
     const labelStyle = { fontSize: '20px', color: modern ? '#9bafc2' : TEXT_COLORS.MUTED };
     const labelY = modern ? 82 : LAYOUT.SIDE_LABEL_Y;
-    this.labels.push(createText(scene, metrics, this.layout.originX + half / 2, labelY, modern ? '도시 기동대' : academy ? '◇ 아카데미 분대' : '아군 영역', labelStyle).setOrigin(0.5));
-    this.labels.push(createText(scene, metrics, this.layout.originX + half * 1.5, labelY, modern ? '적대 세력' : academy ? '금서의 잔영 ◇' : '적 영역', labelStyle).setOrigin(0.5));
+    this.labels.push(createText(scene, metrics, this.layout.originX + half / 2, labelY, kingdoms ? '위·촉·오 연합' : modern ? '도시 기동대' : academy ? '◇ 아카데미 분대' : '아군 영역', labelStyle).setOrigin(0.5));
+    this.labels.push(createText(scene, metrics, this.layout.originX + half * 1.5, labelY, kingdoms ? '동탁군 방진' : modern ? '적대 세력' : academy ? '금서의 잔영 ◇' : '적 영역', labelStyle).setOrigin(0.5));
     for (const side of [0, 1] as const) {
       const c = this.layout.center(frontCol(side), 0);
       this.labels.push(createText(scene, metrics, c.x, LAYOUT.FRONT_LABEL_Y, '전열', { fontSize: '18px', color: modern ? '#9bafc2' : TEXT_COLORS.MUTED }).setOrigin(0.5));

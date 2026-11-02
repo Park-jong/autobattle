@@ -1,12 +1,12 @@
 ﻿# 원본을 보존하고 배포용 PNG만 축소한다.
 param(
-  [ValidateSet('academy', 'modern')][string]$Skin = 'academy',
+  [ValidateSet('academy', 'modern', 'three_kingdoms')][string]$Skin = 'academy',
   [switch]$AllowPartial,
   [switch]$BossesOnly
 )
 Add-Type -AssemblyName System.Drawing
 $assetRoot = Split-Path -Parent $PSScriptRoot
-$sourceRoot = if ($Skin -eq 'modern') { 'characters/modern' } else { 'characters' }
+$sourceRoot = if ($Skin -eq 'academy') { 'characters' } else { "characters/$Skin" }
 $exported = 0
 
 function Export-SkinArt([string]$Code, [string]$Kind, [int]$Width, [int]$Height, [string]$ArtRoot = $sourceRoot) {

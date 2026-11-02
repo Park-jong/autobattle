@@ -1,4 +1,5 @@
 import type { SkinId } from './skins';
+import { THREE_KINGDOMS_CHARACTERS } from './threeKingdomsRoster';
 
 /** 보스는 상점 유닛·지휘관 로스터와 별도로 관리한다. 전투·저장 ID는 그대로 사용한다. */
 export const BOSS_ART_CODES: Readonly<Record<string, string>> = {
@@ -28,5 +29,6 @@ const PROFILES: Readonly<Record<'academy' | 'modern', Readonly<Record<string, Bo
 };
 
 export function bossProfile(skin: SkinId, unitId: string): BossSkinProfile | undefined {
+  if (skin === 'three_kingdoms') return BOSS_ART_CODES[unitId] ? THREE_KINGDOMS_CHARACTERS[unitId] : undefined;
   return skin === 'default' ? undefined : PROFILES[skin][unitId];
 }

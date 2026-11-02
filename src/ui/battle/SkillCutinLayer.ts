@@ -4,7 +4,7 @@ import type { ReplayEffect, UnitView } from '../replay/ReplayState';
 import { STAGE, TIMING } from '../theme';
 import { appSkin } from '../skin/SkinStore';
 import { isIllustratedSkin, unitSkinName, unitSkillName, unitTextureKey } from '../skin/skins';
-import { MODERN_UNITS } from '../skin/modernRoster';
+import { skinCharacter } from '../skin/skins';
 import { activeSkillCutins } from './skillCutin';
 import { activeUltimate } from './ultimateVisuals';
 
@@ -65,7 +65,7 @@ export class SkillCutinLayer {
       const direction = side === 0 ? 1 : -1;
       const anchor = side === 0 ? inset + 164 : STAGE.WIDTH - inset - 164;
       const x = anchor - direction * (1 - entrance) * 90 + direction * exit * 28;
-      const colorHex = skin === 'modern' ? MODERN_UNITS[unit.unitId]?.color : undefined;
+      const colorHex = skinCharacter(skin, unit.unitId)?.color;
       const color = colorHex ? Number.parseInt(colorHex.slice(1), 16) : side === 0 ? 0x86d5ff : 0xffab91;
       const key = unitTextureKey(skin, unit.unitId, 'illustration')!;
       const panel = this.panel(side, key);

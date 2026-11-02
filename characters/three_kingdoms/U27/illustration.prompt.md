@@ -2,9 +2,9 @@
 
 [캐릭터 콘셉트](README.md) · [공통 작화 기준](../ART_DIRECTION.md)
 
-- 상태: **프롬프트 작성 완료 · 이미지 미생성**.
+- 상태: **이미지 생성 · 사용자 검수 대기**.
 - 스킨 / 데이터 ID: `three_kingdoms` / `void_hierophant`.
-- 예정 채택 경로: `characters/three_kingdoms/U27/illustration.png` (현재 파일 없음).
+- 예정 채택 경로: `characters/three_kingdoms/U27/illustration.png` (생성 파일 저장됨).
 - 참조: 없음 — 이 캐릭터의 신규 전신 디자인. modern 원화는 선택적으로 화풍만 참고하며 얼굴·체형·장비를 복사하지 않는다.
 - 향후 생성 도구 옵션: `transparent_background: true`. 배경을 투명하게 보이도록 칠하는 대신 실제 알파 채널로 출력한다.
 - 이 문서는 준비된 프롬프트이며 이미지 생성 실행 기록이 아니다.

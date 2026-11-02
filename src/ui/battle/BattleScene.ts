@@ -5,7 +5,7 @@ import type { Cell } from '../../core/combat';
 import type { BattleViewSource } from '../debug/contracts';
 import { applyHiDpiCamera, createText, visibleStageInset, type HiDpiMetrics } from '../hidpi';
 import type { UnitView } from '../replay/ReplayState';
-import { ACADEMY_COLORS, COLORS, LAYOUT, MODERN_COLORS, STAGE, TEXT_COLORS, TIMING } from '../theme';
+import { ACADEMY_COLORS, COLORS, LAYOUT, MODERN_COLORS, THREE_KINGDOMS_COLORS, STAGE, TEXT_COLORS, TIMING } from '../theme';
 import { BoardLayout } from './BoardLayout';
 import { BoardRenderer } from './BoardRenderer';
 import { EffectsLayer } from './EffectsLayer';
@@ -204,7 +204,7 @@ export class BattleScene extends Phaser.Scene {
   private applySkin(): void {
     const skin = this.skin.current;
     this.board.setSkin(skin);
-    this.cameras.main.setBackgroundColor(skin === 'modern' ? MODERN_COLORS.BACKGROUND : skin === 'academy' ? ACADEMY_COLORS.BACKGROUND : COLORS.BACKGROUND);
+    this.cameras.main.setBackgroundColor(skin === 'three_kingdoms' ? THREE_KINGDOMS_COLORS.BACKGROUND : skin === 'modern' ? MODERN_COLORS.BACKGROUND : skin === 'academy' ? ACADEMY_COLORS.BACKGROUND : COLORS.BACKGROUND);
     this.signature = '';
     if (this.loadedSkins.has(skin) || this.loadingSkins.has(skin)) return;
     const pending = [...skinArtList(skin, 'sd'), ...skinArtList(skin, 'illustration'), ...commanderArtList(skin), ...commanderArtList(skin, undefined, 'illustration')]

@@ -16,6 +16,7 @@ import { COLORS } from './ui/theme';
 import { installPresentation } from './ui/skin/presentation';
 import './ui/skin/academy.css';
 import './ui/skin/modern.css';
+import './ui/skin/threeKingdoms.css';
 import './ui/run/battle/mobileBattle.css';
 import './ui/run/battle/battlePolish.css';
 import './ui/run/battle/unitShop.css';

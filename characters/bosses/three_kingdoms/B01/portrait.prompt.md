@@ -2,14 +2,14 @@
 
 [캐릭터 콘셉트](README.md) · [공통 작화 기준](../../../three_kingdoms/ART_DIRECTION.md)
 
-- 상태: **프롬프트 작성 완료 · 이미지 미생성 · 전신 참조 대기**.
+- 상태: **이미지 생성 · 사용자 검수 대기**.
 - 스킨 / 데이터 ID: `three_kingdoms` / `gate_breaker`.
-- 예정 채택 경로: `characters/bosses/three_kingdoms/B01/portrait.png` (현재 파일 없음).
-- 참조: 같은 폴더의 채택 전신 `illustration.png` (`characters/bosses/three_kingdoms/B01/illustration.png`). **현재 파일 없음: 전신 생성·채택 후 실제 이미지를 첨부해야 실행 가능.**
+- 예정 채택 경로: `characters/bosses/three_kingdoms/B01/portrait.png` (생성 파일 저장됨).
+- 참조: 같은 폴더의 채택 전신 `illustration.png` (`characters/bosses/three_kingdoms/B01/illustration.png`). 생성 시 같은 폴더 전신을 실제 참조로 첨부했다. 검수는 사용자가 진행한다.
 - 향후 생성 도구 옵션: `transparent_background: true`. 배경을 투명하게 보이도록 칠하는 대신 실제 알파 채널로 출력한다.
 - 이 문서는 준비된 프롬프트이며 이미지 생성 실행 기록이 아니다.
 
-참조 전신이 아직 없으므로 현재는 프롬프트 준비 상태다. 파일명만 프롬프트에 적는 것으로 참조가 전달되지 않으며, 생성 시 채택 전신 파일을 실제 이미지 입력으로 첨부한다.
+같은 폴더 전신을 참조해 이미지를 생성했다. 파일명만 프롬프트에 적는 것으로 참조가 전달되지 않으며, 생성 시 채택 전신 파일을 실제 이미지 입력으로 첨부한다.
 
 ## 실행 프롬프트
 

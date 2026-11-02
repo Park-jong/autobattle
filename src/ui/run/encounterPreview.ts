@@ -3,6 +3,7 @@ import type { EncounterPreviewView } from './runViews';
 import { appSkin } from '../skin/SkinStore';
 import { encounterSkinName, isIllustratedSkin, unitArtUrl, unitSkinName, unitSkillName } from '../skin/skins';
 import { bossProfile } from '../skin/bossRoster';
+import { skinNarrative } from '../skin/threeKingdomsText';
 import { unitFace } from './battle/unitFace';
 
 /** 적 편성 미리보기: 편성 이름·층 보정·변이·유닛(등급·성급·보정 후 HP/ATK) */
@@ -10,7 +11,7 @@ export function encounterPreviewElement(view: EncounterPreviewView): HTMLElement
   const root = tagged(el('section', `run-preview kind-${view.kind}`), 'encounter-preview');
   const head = el('div', 'run-preview-head');
   head.append(el('strong', '', `액트 ${view.act} · ${view.floor}층 ${view.kindLabel}`), el('span', 'run-preview-name', encounterSkinName(appSkin.current, view.kind, view.name)));
-  root.append(head, el('p', 'dbg-hint', view.text), el('p', 'run-preview-scale', `층 보정: ${view.scaleLabel}`));
+  root.append(head, el('p', 'dbg-hint', skinNarrative(appSkin.current, view.text)), el('p', 'run-preview-scale', `층 보정: ${view.scaleLabel}`));
   if (view.kind === 'boss' && isIllustratedSkin(appSkin.current)) {
     const art = tagged(el('div', 'run-preview-bosses'), 'boss-art');
     for (const u of view.units.filter((unit) => unit.boss)) {
@@ -60,8 +61,8 @@ export function encounterPreviewElement(view: EncounterPreviewView): HTMLElement
       const row = el('div', 'run-boss-pattern');
       const unit = view.units.find((u) => u.name === pattern.unitName);
       const name = unit ? unitSkinName(appSkin.current, unit.unitId, pattern.unitName) : pattern.unitName;
-      row.append(el('strong', '', `보스 패턴 [${pattern.title}] — ${name}`));
-      for (const line of pattern.lines) row.append(el('span', '', line));
+      row.append(el('strong', '', `보스 패턴 [${skinNarrative(appSkin.current, pattern.title)}] — ${name}`));
+      for (const line of pattern.lines) row.append(el('span', '', skinNarrative(appSkin.current, line)));
       box.append(row);
     }
     root.append(box);

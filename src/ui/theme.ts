@@ -112,6 +112,14 @@ export const MODERN_COLORS = {
   GRID_LINE: 0x52758d, BOARD_BORDER: 0x6bbad2,
 } as const;
 
+/** 삼국지 보드: 비취빛 연합군과 흑자주 동탁군, 금장 경계. */
+export const THREE_KINGDOMS_COLORS = {
+  BACKGROUND: 0x101b1a,
+  ALLY_CELL_A: 0x203b33, ALLY_CELL_B: 0x28473d,
+  ENEMY_CELL_A: 0x3a2b3a, ENEMY_CELL_B: 0x453343,
+  GRID_LINE: 0x697b64, BOARD_BORDER: 0xc1a66c,
+} as const;
+
 /** 텍스트 색 (CSS 문자열) */
 export const TEXT_COLORS = {
   TITLE: '#ffffff',

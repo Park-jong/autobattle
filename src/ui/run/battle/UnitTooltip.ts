@@ -9,6 +9,7 @@ import { infoHead, liveLine, skillBlock, statsGrid } from './UnitInfoPanel';
 import { buildUnitInfo, type StarLevel, type StatOverride } from './unitInfoView';
 import { appSkin } from '../../skin/SkinStore';
 import { traitSkinName, unitSkillName } from '../../skin/skins';
+import { skinNarrative } from '../../skin/threeKingdomsText';
 
 /** 툴팁이 붙는 쪽: 캔버스 기준 오프셋 (px) */
 const OFFSET = 18;
@@ -95,7 +96,7 @@ export class UnitTooltip {
     const pattern = plan?.bossPatterns.find((p) => p.unitName === def.name);
     if (pattern) {
       const note = el('div', 'bt-tooltip-note');
-      note.append(el('b', '', `보스 패턴 [${pattern.title}] `), pattern.lines.join(' '));
+      note.append(el('b', '', `보스 패턴 [${skinNarrative(appSkin.current, pattern.title)}] `), pattern.lines.map(line => skinNarrative(appSkin.current, line)).join(' '));
       nodes.push(note);
     }
     if (!planned && this.plan) nodes.push(el('div', 'bt-tooltip-note', '전투 중 소환된 유닛 (기본 수치 표시)'));

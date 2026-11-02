@@ -7,7 +7,7 @@ import type { UnitView } from '../../replay/ReplayState';
 import type { ActiveTrait } from '../../../core/combat/traits';
 import { appSkin } from '../../skin/SkinStore';
 import { isIllustratedSkin, traitSkinName, unitArtUrl, unitSkinName, unitSkinRole, unitSkillName } from '../../skin/skins';
-import { MODERN_UNITS } from '../../skin/modernRoster';
+import { skinCharacter } from '../../skin/skins';
 import { bossProfile } from '../../skin/bossRoster';
 import { button, el, tagged } from '../dom';
 import type { HoverPop } from './hoverPop';
@@ -81,7 +81,7 @@ export class UnitInfoPanel {
       details.append(art);
     }
     if (subject.kind === 'live') nodes.push(liveLine(subject.view));
-    const profile = appSkin.current === 'modern' ? MODERN_UNITS[def.id] : undefined;
+    const profile = bossProfile(appSkin.current, def.id) ? undefined : skinCharacter(appSkin.current, def.id);
     if (profile) {
       const bio = el('p', 'modern-unit-bio', profile.bio);
       details.append(el('div', 'modern-unit-role', `${profile.faction} · ${profile.role} · ${profile.age}세`), bio);

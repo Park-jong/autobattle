@@ -83,9 +83,9 @@ export class StartScreen {
     brand.append(el('p', 'run-subtitle', presentation.subtitle));
     const tags = el('div', 'academy-brand-tags');
     tags.append(el('span', '', '오토배틀 × 덱빌딩'), el('span', '', '3액트 로그라이크'));
-    if (academy) tags.append(el('span', 'academy-adult-label', appSkin.current === 'modern' ? '성인향 현대전 · 전원 성인 여성' : '성인향 판타지 · 전원 성인 설정'));
+    if (academy) tags.append(el('span', 'academy-adult-label', appSkin.current === 'three_kingdoms' ? '삼국지 모에화 · 전원 성인 여성' : appSkin.current === 'modern' ? '성인향 현대전 · 전원 성인 여성' : '성인향 판타지 · 전원 성인 설정'));
     brand.append(tags);
-    if (appSkin.current === 'modern') brand.append(tagged(button('대원 도감 · 30', () => this.gallery.open(), 'dbg-btn modern-gallery-open'), 'open-roster-gallery'));
+    if (appSkin.current === 'modern' || appSkin.current === 'three_kingdoms') brand.append(tagged(button(appSkin.current === 'three_kingdoms' ? '장수 도감 · 37' : '대원 도감 · 30', () => this.gallery.open(), 'dbg-btn modern-gallery-open'), 'open-roster-gallery'));
     brand.append(tagged(button(`유물 도감 · ${start.testCatalog.relics.length}`, () => openRelicCollection(start.testCatalog.relics, '유물 도감'), 'dbg-btn relic-catalog-open'), 'open-relic-catalog'));
     card.append(brand);
 

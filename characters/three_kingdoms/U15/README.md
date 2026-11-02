@@ -2,7 +2,7 @@
 
 [삼국지 스킨 목록](../README.md) · [modern 형식 참고](../../modern/U15/README.md) · [공통 작화 기준](../ART_DIRECTION.md)
 
-상태: **콘셉트·전신/초상화/SD 프롬프트 작성 · 이미지 미생성 · 게임 미연결**.
+상태: **전신·초상화·SD 생성 · 게임 연결 · 사용자 검수 대기**.
 
 ## 기본 설정
 
@@ -65,8 +65,8 @@ H~K컵의 매우 풍만한 가슴이다. 몸에 맞춘 불투명 안감과 흉�
 
 | 향후 파일명 | 준비된 프롬프트 | 이미지 상태 |
 |---|---|---|
-| `illustration.png` | [전신](illustration.prompt.md) | 미생성 · 파일 없음 |
-| `portrait.png` | [초상화](portrait.prompt.md) | 미생성 · 전신 참조 대기 |
-| `sd.png` | [전투 SD](sd.prompt.md) | 미생성 · 전신 참조 대기 |
+| [illustration.png](illustration.png) | [전신](illustration.prompt.md) | 생성 · 사용자 검수 대기 |
+| [portrait.png](portrait.png) | [초상화](portrait.prompt.md) | 생성 · 사용자 검수 대기 |
+| [sd.png](sd.png) | [전투 SD](sd.prompt.md) | 생성 · 사용자 검수 대기 |
 
-현재 이 폴더에는 콘셉트와 3종의 생성 프롬프트 MD가 있다. 이미지는 아직 없다. 전신을 먼저 생성·검수해 채택하고, 같은 전신 파일을 실제 참조로 첨부해 초상화·SD를 제작한다. 실제 생성 시에만 제작 이력과 [제작 진행](../PROGRESS.md)을 갱신한다.
+전신·초상화·SD 원본과 프롬프트를 이 폴더에 보관한다. 배포용 축소본은 public/skins/three_kingdoms에 연결했다. 이미지의 실제 생성 경로·참조·해시는 스킨 asset-manifest.json에 기록한다. 원화 검수는 사용자가 진행한다.

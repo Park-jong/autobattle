@@ -3,11 +3,13 @@
  * - default: 진영색 도형 + 이름 약자 (기존 표시)
  * - academy: 마도아카데미 캐릭터 원화 (characters/Uxx → public/skins/academy, tools/skin-assets.ps1로 축소)
  * - modern: 성인 여성 도시 작전요원 (characters/modern/Uxx → public/skins/modern)
+ * - three_kingdoms: 삼국지 여성 무장·군주와 동탁군 (characters/three_kingdoms → public/skins/three_kingdoms)
  */
 import { MODERN_COMMANDERS, MODERN_UNITS } from './modernRoster';
+import { THREE_KINGDOMS_CHARACTERS, THREE_KINGDOMS_COMMANDERS } from './threeKingdomsRoster';
 import { BOSS_ART_CODES, bossProfile } from './bossRoster';
 
-export type SkinId = 'default' | 'academy' | 'modern';
+export type SkinId = 'default' | 'academy' | 'modern' | 'three_kingdoms';
 
 export interface SkinDef {
   readonly id: SkinId;
@@ -19,6 +21,7 @@ export const SKINS: readonly SkinDef[] = [
   { id: 'default', name: '기본', description: '진영색 도형과 이름 약자로 유닛을 표시합니다.' },
   { id: 'academy', name: '마도아카데미', description: '캐릭터·지휘관 원화와 골렘·화로령·촉수 군주 보스를 갖춘 아카데미 테마입니다.' },
   { id: 'modern', name: '시티 오퍼레이션', description: '성인 여성 작전요원과 지휘관, 공성 병기·쌍둥이 안드로이드·최고통수관 보스의 현대 도시전 테마입니다.' },
+  { id: 'three_kingdoms', name: '연화삼국', description: '여성 무장으로 재해석한 위·촉·오의 군주와 30명의 장수, 동탁군의 낙양 봉쇄에 맞서는 삼국지 테마입니다.' },
 ];
 
 export const DEFAULT_SKIN: SkinId = 'academy';
@@ -27,24 +30,37 @@ export function isSkinId(value: unknown): value is SkinId {
   return SKINS.some((s) => s.id === value);
 }
 
-export function isIllustratedSkin(skin: SkinId): boolean { return skin === 'academy' || skin === 'modern'; }
+export function isIllustratedSkin(skin: SkinId): boolean { return skin !== 'default'; }
+
+/** 도감·유닛 소개·컷인의 공통 표시 설정. */
+export function skinCharacter(skin: SkinId, id: string) {
+  return skin === 'three_kingdoms' ? THREE_KINGDOMS_CHARACTERS[id] : skin === 'modern' ? MODERN_UNITS[id] ?? MODERN_COMMANDERS[id] : undefined;
+}
 
 export function skinPresentation(skin: SkinId): { title: string; eyebrow: string; subtitle: string } {
+  if (skin === 'three_kingdoms') return { title: '연화삼국', eyebrow: 'THREE KINGDOMS · OATH OF BLOSSOMS', subtitle: '위·촉·오의 맹약, 서른 장수와 함께 낙양의 봉쇄를 돌파하라.' };
   if (skin === 'modern') return { title: '시티 오퍼레이션', eyebrow: 'URBAN TASK FORCE · OPERATIONS', subtitle: '도시의 평화를 되찾을 30명의 대원, 당신의 작전이 시작된다.' };
   if (skin === 'academy') return { title: '마도아카데미', eyebrow: 'ARCANA ACADEMY · TACTICS', subtitle: '금서가 깨어난 밤, 당신의 전술이 그녀들의 운명을 바꾼다.' };
   return { title: '전술 지휘관', eyebrow: 'TACTICAL COMMANDER', subtitle: '오토체스 + 덱빌딩 로그라이크' };
 }
 
 export function commanderProfile(skin: SkinId, id: string): { title: string; quote: string; color: string } | undefined {
+  const kingdoms = skin === 'three_kingdoms' ? THREE_KINGDOMS_COMMANDERS[id] : undefined;
+  if (kingdoms) return { title: kingdoms.role, quote: kingdoms.quote, color: kingdoms.color };
   const modern = skin === 'modern' ? MODERN_COMMANDERS[id] : undefined;
   return modern ? { title: modern.role, quote: modern.quote, color: modern.color } : skin === 'academy' ? COMMANDER_PROFILES[id] : undefined;
 }
 
 export function commanderSkinName(skin: SkinId, id: string | undefined, fallback: string): string {
+  if (skin === 'three_kingdoms' && id) return THREE_KINGDOMS_COMMANDERS[id]?.name ?? fallback;
   return skin === 'modern' && id ? MODERN_COMMANDERS[id]?.name ?? fallback : fallback;
 }
 
 export function commanderSkillName(skin: SkinId, id: string | undefined, kind: 'passive' | 'ultimate', fallback: string): string {
+  if (skin === 'three_kingdoms' && id && THREE_KINGDOMS_COMMANDERS[id]) {
+    const passives: Readonly<Record<string, string>> = { cmd_harten: '도원의 맹약', cmd_isera: '강동의 불씨', cmd_nox: '패왕의 군자금' };
+    return kind === 'ultimate' ? THREE_KINGDOMS_COMMANDERS[id]!.skillName : passives[id] ?? fallback;
+  }
   if (skin !== 'modern' || !id || !MODERN_COMMANDERS[id]) return fallback;
   const passives: Readonly<Record<string, string>> = { cmd_harten: '전열 방호 프로토콜', cmd_isera: '탄약 과충전', cmd_nox: '비인가 지원선' };
   return kind === 'ultimate' ? MODERN_COMMANDERS[id]!.skillName : passives[id] ?? fallback;
@@ -56,9 +72,15 @@ const MODERN_ACTS: Readonly<Record<number, { name: string; region: string; text:
   3: { name: '중앙 관제도시', region: '데이터 센터 · 중앙 지휘부', text: '전자전 방어선을 넘어 도시 관제망을 복구하세요.' },
 };
 export function actPresentation(skin: SkinId, act: number): { name: string; region: string; text: string } | undefined {
+  if (skin === 'three_kingdoms') return ({
+    1: { name: '사수관 돌파', region: '연합군 진영 · 사수관', text: '화웅의 관문 수비대를 넘어 낙양으로 향하는 길을 여세요.' },
+    2: { name: '서량의 결의', region: '수도 진입로 · 서량군 방진', text: '이각과 곽사의 상호 호위를 끊고 수도 봉쇄선을 돌파하세요.' },
+    3: { name: '낙양의 여태사', region: '낙양 본진 · 옥새의 전각', text: '동탁의 세 겹 봉인을 깨고 빼앗긴 군량과 옥새를 되찾으세요.' },
+  } as Record<number, { name: string; region: string; text: string }>)[act];
   return skin === 'modern' ? MODERN_ACTS[act] : undefined;
 }
 export function encounterSkinName(skin: SkinId, kind: string, fallback: string): string {
+  if (skin === 'three_kingdoms') return ({ normal: '서량군 조우', elite: '정예 방진 격파', boss: '동탁군 관문 결전' } as Record<string, string>)[kind] ?? fallback;
   return skin === 'modern' ? ({ normal: '적 기동대 대치전', elite: '특수부대 제압 작전', boss: '지휘부 돌파 작전' } as Record<string, string>)[kind] ?? fallback : fallback;
 }
 
@@ -105,19 +127,23 @@ export function cardArtUrl(skin: SkinId, card: { type: string; text: string; car
   return unitArtUrl(skin, neutralCardArtUnit(card), 'portrait');
 }
 export function cardTypeSkinName(skin: SkinId, type: string, fallback: string): string {
+  if (skin === 'three_kingdoms') return ({ operation: '군략', command: '군령', spell: '계략', equipment: '병장기', curse: '흉계' } as Record<string, string>)[type] ?? fallback;
   return skin === 'modern' ? ({ operation: '작전', command: '지휘', spell: '지원', equipment: '장비', curse: '교란' } as Record<string, string>)[type] ?? fallback : fallback;
 }
 
 export function unitSkinRole(skin: SkinId, id: string, fallback: string): string {
+  if (skin === 'three_kingdoms') return THREE_KINGDOMS_CHARACTERS[id]?.role ?? fallback;
   return bossProfile(skin, id)?.role ?? (skin === 'modern' ? MODERN_UNITS[id]?.role ?? fallback : fallback);
 }
 
 export function unitSkillName(skin: SkinId, id: string, fallback: string): string {
+  if (skin === 'three_kingdoms') return THREE_KINGDOMS_CHARACTERS[id]?.skillName ?? fallback;
   return bossProfile(skin, id)?.skillName ?? (skin === 'modern' ? MODERN_UNITS[id]?.skillName ?? fallback : fallback);
 }
 
 const MODERN_TRAITS: Readonly<Record<string, string>> = { iron_legion: '도시방위대', forest_pact: '구조정찰대', ember: '화력공병대', abyss: '특수작전국', guardian: '방호', gladiator: '돌격', marksman: '사수', mystic: '지원', assassin: '침투' };
 export function traitSkinName(skin: SkinId, id: string, fallback: string): string {
+  if (skin === 'three_kingdoms') return ({ iron_legion: '촉', forest_pact: '동탁', ember: '오', abyss: '위', guardian: '호위', gladiator: '맹장', marksman: '궁수', mystic: '책사', assassin: '기습' } as Record<string, string>)[id] ?? fallback;
   return skin === 'modern' ? MODERN_TRAITS[id] ?? fallback : fallback;
 }
 
@@ -186,6 +212,7 @@ export const ACADEMY_UNIT_NAMES: Readonly<Record<string, string>> = {
 };
 
 export function unitSkinName(skin: SkinId, unitId: string, fallback: string): string {
+  if (skin === 'three_kingdoms') return THREE_KINGDOMS_CHARACTERS[unitId]?.name ?? fallback;
   return bossProfile(skin, unitId)?.name ?? (skin === 'modern' ? MODERN_UNITS[unitId]?.name ?? fallback : skin === 'academy' ? ACADEMY_UNIT_NAMES[ACADEMY_ART_CODES[unitId] ?? ''] ?? fallback : fallback);
 }
 

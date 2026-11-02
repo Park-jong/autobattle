@@ -14,8 +14,8 @@ class MapStorage implements StorageLike {
 }
 
 describe('스킨 정의', () => {
-  it('기본·아카데미·현대전 스킨이 있고 기본값은 academy', () => {
-    expect(SKINS.map((s) => s.id)).toEqual(['default', 'academy', 'modern']);
+  it('기본·아카데미·현대전·삼국지 스킨이 있고 기본값은 academy', () => {
+    expect(SKINS.map((s) => s.id)).toEqual(['default', 'academy', 'modern', 'three_kingdoms']);
     expect(DEFAULT_SKIN).toBe('academy');
     expect(isSkinId('academy')).toBe(true);
     expect(isSkinId('neon')).toBe(false);

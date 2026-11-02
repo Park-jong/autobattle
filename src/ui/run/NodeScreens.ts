@@ -94,7 +94,7 @@ export class ShopScreen extends NodeScreen {
     const hero = el('section', 'node-market-hero');
     const intro = el('div', 'node-market-intro');
     intro.append(el('span', 'node-eyebrow', `액트 ${snap.hud?.act} · ${snap.hud?.floor}층 / 보급 거점`),
-      el('h2', '', appSkin.current === 'modern' ? '보급 교환소' : '떠돌이 상인의 가게'),
+      el('h2', '', appSkin.current === 'three_kingdoms' ? '군량 교역소' : appSkin.current === 'modern' ? '보급 교환소' : '떠돌이 상인의 가게'),
       el('p', 'node-merchant-quote', '“다음 전투에 필요한 한 수, 여기서 찾아보세요.”'));
     const wallet = tagged(el('div', 'node-wallet'), 'shop-wallet');
     wallet.append(el('span', '', '사용 가능한 골드'), el('strong', '', `${shop.gold} G`), el('small', '', '카드는 덱에 추가되고, 유물은 바로 효과를 얻습니다'));

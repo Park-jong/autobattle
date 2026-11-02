@@ -1,0 +1,1395 @@
+{
+  "version": 1,
+  "skin": "three_kingdoms",
+  "assets": {
+    "C01/illustration": {
+      "path": "characters/three_kingdoms/C01/illustration.png",
+      "prompt": "characters/three_kingdoms/C01/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-c087288a-75dd-4b9f-9626-3911e26d2008.png",
+      "width": 1024,
+      "height": 1536,
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.48333,
+      "sha256": "42d1f1f53c2f824025c44257f2fe6c5a48ed2daccb99998ccadcfc3befdb368d",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T04:57:17.911084+00:00",
+      "references": []
+    },
+    "C01/portrait": {
+      "path": "characters/three_kingdoms/C01/portrait.png",
+      "prompt": "characters/three_kingdoms/C01/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-7f6016e2-5ede-44bd-b0ed-98839a2ef670.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.2465,
+      "sha256": "8b54768db7065a1c913471201e0d0df981d05d38e8be64332ded0791e2a6f8fb",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T04:59:44.904667+00:00",
+      "references": [
+        "characters/three_kingdoms/C01/illustration.png"
+      ]
+    },
+    "C01/sd": {
+      "path": "characters/three_kingdoms/C01/sd.png",
+      "prompt": "characters/three_kingdoms/C01/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-788e92df-3e8a-4c16-bf4e-dcb4dedc2eff.png",
+      "width": 1254,
+      "height": 1254,
+      "alpha_range": [
+        0,
+        255
+      ],
+      "transparent_fraction": 0.55682,
+      "sha256": "e4a7a3638c4d3b8620e0b1ea6700f0d1c374da8a013ebc09ac6ec626f567a4cb",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T04:59:45.342426+00:00",
+      "references": [
+        "characters/three_kingdoms/C01/illustration.png"
+      ]
+    },
+    "C02/illustration": {
+      "path": "characters/three_kingdoms/C02/illustration.png",
+      "prompt": "characters/three_kingdoms/C02/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-6c43c8bb-9e07-44e1-bbf1-3366f14da1ac.png",
+      "width": 1024,
+      "height": 1536,
+      "alpha_range": [
+        0,
+        254
+      ],
+      "transparent_fraction": 0.53002,
+      "sha256": "874985fa68421843aa58ba1b768c19641a37893a185b5177b7a3a842fff9e159",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T04:59:45.710552+00:00",
+      "references": []
+    },
+    "C02/portrait": {
+      "path": "characters/three_kingdoms/C02/portrait.png",
+      "prompt": "characters/three_kingdoms/C02/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-5c3ea719-db15-43f7-9c13-a030dc48d1c6.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "fa87b54beb95bf5f37e32bb9217a40c8ba9e87627437a9eb63cf694f8e552b2a",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:01:59.061922+00:00",
+      "references": [
+        "characters/three_kingdoms/C02/illustration.png"
+      ]
+    },
+    "C02/sd": {
+      "path": "characters/three_kingdoms/C02/sd.png",
+      "prompt": "characters/three_kingdoms/C02/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-c36925af-4832-464a-9177-6538ce2694e7.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "774ff85767288ebfcb5286842c55de33b05c3c5e64da6ca4fe0d5fff5df85c05",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:01:59.492384+00:00",
+      "references": [
+        "characters/three_kingdoms/C02/illustration.png"
+      ]
+    },
+    "C03/illustration": {
+      "path": "characters/three_kingdoms/C03/illustration.png",
+      "prompt": "characters/three_kingdoms/C03/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-690c268c-5925-4852-b9f7-84fe8a3dc4ef.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "cf9be1ae96e8fc84c63f9aa71ee474ae2f3521c827b5919b88a40d206b41292d",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:01:59.854526+00:00",
+      "references": []
+    },
+    "C03/portrait": {
+      "path": "characters/three_kingdoms/C03/portrait.png",
+      "prompt": "characters/three_kingdoms/C03/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-cf295a10-0643-4c46-a4be-85c5ad40c2b9.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "9e5d781445390e4a114410c1c9dcf383562a52502c1d26d87ce6332caade804d",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:04:14.799307+00:00",
+      "references": [
+        "characters/three_kingdoms/C03/illustration.png"
+      ]
+    },
+    "C03/sd": {
+      "path": "characters/three_kingdoms/C03/sd.png",
+      "prompt": "characters/three_kingdoms/C03/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-e8646a4a-ca04-4adc-a644-a7cc77282ba5.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "6290227dee3334122967dac25c0d512c6f188f50096e2b83ef774a78e8c68ce8",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:04:15.223066+00:00",
+      "references": [
+        "characters/three_kingdoms/C03/illustration.png"
+      ]
+    },
+    "U01/illustration": {
+      "path": "characters/three_kingdoms/U01/illustration.png",
+      "prompt": "characters/three_kingdoms/U01/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-b614102a-f98c-4ef7-9aa8-469789cb96c6.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "84b7af40aa27d1a303cf2458b451cdb2dc44063596e933ba84a68576b4fa758d",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:04:15.585196+00:00",
+      "references": []
+    },
+    "U01/portrait": {
+      "path": "characters/three_kingdoms/U01/portrait.png",
+      "prompt": "characters/three_kingdoms/U01/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-a7297a6d-1124-492a-8e40-ad4d00325b69.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "001e2011aeb33bdb66705ac4d980dd6e9a63a1f47e5e2f70e9d9c7c7d97957dc",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:06:24.329903+00:00",
+      "references": [
+        "characters/three_kingdoms/U01/illustration.png"
+      ]
+    },
+    "U01/sd": {
+      "path": "characters/three_kingdoms/U01/sd.png",
+      "prompt": "characters/three_kingdoms/U01/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-b7f8853d-46fc-42dc-a9cd-9da8d8756a84.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "e4ccd9b404d823f290a9b7ec34df28b9749147e794e1557f5485d71f81cf2e95",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:06:24.696795+00:00",
+      "references": [
+        "characters/three_kingdoms/U01/illustration.png"
+      ]
+    },
+    "U02/illustration": {
+      "path": "characters/three_kingdoms/U02/illustration.png",
+      "prompt": "characters/three_kingdoms/U02/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-17ff507a-d17c-49c7-914e-798887926927.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "a92a1ac2be409953234580e52f62cb7d82119dcb00478f63abf56c50f8bab310",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:06:25.065852+00:00",
+      "references": []
+    },
+    "U02/portrait": {
+      "path": "characters/three_kingdoms/U02/portrait.png",
+      "prompt": "characters/three_kingdoms/U02/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-51595e3b-3173-4ef9-95aa-bdc4bbc5d9dd.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "45e4db7a70b7006b8d173e31d511afcfb1ed26965acde2f855bb9627cbfd570a",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:08:38.718829+00:00",
+      "references": [
+        "characters/three_kingdoms/U02/illustration.png"
+      ]
+    },
+    "U02/sd": {
+      "path": "characters/three_kingdoms/U02/sd.png",
+      "prompt": "characters/three_kingdoms/U02/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-b013c6fa-b194-4e0d-ab52-8b68967e56b9.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "2fc256933e550c77818c5e96d5cebfff225487e8bcf254fe919cd47c6af46232",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:08:39.146495+00:00",
+      "references": [
+        "characters/three_kingdoms/U02/illustration.png"
+      ]
+    },
+    "U03/illustration": {
+      "path": "characters/three_kingdoms/U03/illustration.png",
+      "prompt": "characters/three_kingdoms/U03/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-1400ef5d-447c-42a7-bc8e-9e8046fd6336.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "5b74ea6d17589daca7f32cc3ded50fe05a636532c4bb09cc18a7830ddef436fb",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:08:39.528820+00:00",
+      "references": []
+    },
+    "U03/portrait": {
+      "path": "characters/three_kingdoms/U03/portrait.png",
+      "prompt": "characters/three_kingdoms/U03/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-14d7a9e9-b731-4df9-990a-c3386352d69a.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "233b8fccb7ad2dd8034568885e484080e18af8cd63de506cfaee0c17f6e3ef2f",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:10:46.557677+00:00",
+      "references": [
+        "characters/three_kingdoms/U03/illustration.png"
+      ]
+    },
+    "U03/sd": {
+      "path": "characters/three_kingdoms/U03/sd.png",
+      "prompt": "characters/three_kingdoms/U03/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-28b788ed-b873-4205-9581-d6fe113a70f3.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "7257e40faf254e2918dc0a36d6efac1dbfdbb48a7423cf03859cfafa751a2189",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:10:46.935214+00:00",
+      "references": [
+        "characters/three_kingdoms/U03/illustration.png"
+      ]
+    },
+    "U04/illustration": {
+      "path": "characters/three_kingdoms/U04/illustration.png",
+      "prompt": "characters/three_kingdoms/U04/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-0371079e-491e-4d4c-807c-05e57e5bd328.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "f6695040c06c008f46597d6dededde3ccef824c55ad4c8d417d897cd04d8176c",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:10:47.325265+00:00",
+      "references": []
+    },
+    "U04/portrait": {
+      "path": "characters/three_kingdoms/U04/portrait.png",
+      "prompt": "characters/three_kingdoms/U04/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-5a802730-3314-4e7f-95b1-ffb584b5c151.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "8fd1e6719753e0fbb1a51d5b20dfeb8c55a33484b251ee5c7e6a9bddeed3029d",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:12:55.903870+00:00",
+      "references": [
+        "characters/three_kingdoms/U04/illustration.png"
+      ]
+    },
+    "U04/sd": {
+      "path": "characters/three_kingdoms/U04/sd.png",
+      "prompt": "characters/three_kingdoms/U04/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-8e69de13-cb7e-4329-b811-fca622419078.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "e0a0b8c6c24ad3012fca12bcb4208332b0e0fb5bb0a1ae4dd464fcd40fc3f9bb",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:12:56.290765+00:00",
+      "references": [
+        "characters/three_kingdoms/U04/illustration.png"
+      ]
+    },
+    "U05/illustration": {
+      "path": "characters/three_kingdoms/U05/illustration.png",
+      "prompt": "characters/three_kingdoms/U05/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-b68020fd-aca4-4aec-b773-e4457bdd796d.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "85b530ffedce0215fd840d0abccac7597631ec65b1cc73fa062f3123d8a04113",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:12:56.682864+00:00",
+      "references": []
+    },
+    "U05/portrait": {
+      "path": "characters/three_kingdoms/U05/portrait.png",
+      "prompt": "characters/three_kingdoms/U05/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-79799d3b-05d5-4031-a8bf-c722f5375789.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "3bd4cbbc5d0af500b22df94ffa51724968b1ac728ff66f5e92d1836853c6fad7",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:14:50.905240+00:00",
+      "references": [
+        "characters/three_kingdoms/U05/illustration.png"
+      ]
+    },
+    "U05/sd": {
+      "path": "characters/three_kingdoms/U05/sd.png",
+      "prompt": "characters/three_kingdoms/U05/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-6c49e0a4-f5cf-490d-8e29-18e4f414531f.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "3927bc4ba9f779f5053c8e5024c6469c13a9e978d09ff9d1594d6a910c0a5177",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:14:51.279835+00:00",
+      "references": [
+        "characters/three_kingdoms/U05/illustration.png"
+      ]
+    },
+    "U06/illustration": {
+      "path": "characters/three_kingdoms/U06/illustration.png",
+      "prompt": "characters/three_kingdoms/U06/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-599f9588-bcc4-43f7-a0e2-4a0811b2b1b9.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "c1e668e2e0ed0d9fd1e90ad06727ddd62ed9d5f17052175edb803b51066caaef",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:14:51.650248+00:00",
+      "references": []
+    },
+    "U06/portrait": {
+      "path": "characters/three_kingdoms/U06/portrait.png",
+      "prompt": "characters/three_kingdoms/U06/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-1dfb1da0-e39c-4cf3-863a-440daa53709d.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "c4b598dd93a44add1b09471768f86870ad9fe3d52e169526135dca633b2aa6e8",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:16:47.844898+00:00",
+      "references": [
+        "characters/three_kingdoms/U06/illustration.png"
+      ]
+    },
+    "U06/sd": {
+      "path": "characters/three_kingdoms/U06/sd.png",
+      "prompt": "characters/three_kingdoms/U06/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-10155015-2f90-44b4-8901-9f1d8473fc12.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "fd6b2e063f20fa7fa623127aeb498ad08bc862299322b8a54cceb1df188b49c3",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:16:48.254951+00:00",
+      "references": [
+        "characters/three_kingdoms/U06/illustration.png"
+      ]
+    },
+    "U07/illustration": {
+      "path": "characters/three_kingdoms/U07/illustration.png",
+      "prompt": "characters/three_kingdoms/U07/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-f7bc986d-5a47-4a52-a191-dde7b1641114.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "0dab2286bb2bbbda3072cd5ceaf565b5b720643df7419579c3691be9c9916919",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:16:48.655730+00:00",
+      "references": []
+    },
+    "U07/portrait": {
+      "path": "characters/three_kingdoms/U07/portrait.png",
+      "prompt": "characters/three_kingdoms/U07/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-fe0c2252-7acd-4075-a6ae-91a63e5afa89.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "f0ce4325caf3356ab3d8b8d644797e08d092564e4ab2c746c0a356f42519188d",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:18:58.256320+00:00",
+      "references": [
+        "characters/three_kingdoms/U07/illustration.png"
+      ]
+    },
+    "U07/sd": {
+      "path": "characters/three_kingdoms/U07/sd.png",
+      "prompt": "characters/three_kingdoms/U07/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-8d835729-07e1-4b05-93a4-615994194add.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "eb25391d4b3bf973f4d5bb5ec0f0d0f476deb365d25b29e82cce77dda01c5228",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:18:58.670034+00:00",
+      "references": [
+        "characters/three_kingdoms/U07/illustration.png"
+      ]
+    },
+    "U08/illustration": {
+      "path": "characters/three_kingdoms/U08/illustration.png",
+      "prompt": "characters/three_kingdoms/U08/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-9cf331e4-2cee-425a-bfa6-a3a4e7423d7e.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "7a68241b444ce3e72d95bfb174782e41d678fdc418a05a2ef3d0c762b1f94209",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:18:59.028797+00:00",
+      "references": []
+    },
+    "U08/portrait": {
+      "path": "characters/three_kingdoms/U08/portrait.png",
+      "prompt": "characters/three_kingdoms/U08/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-e39f264d-fc78-4f78-8d00-5591a576f8cf.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "db6511c2ab2e93a5437970e87ab5185971cd51fcc9840fc91c432020240192d3",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:21:08.138834+00:00",
+      "references": [
+        "characters/three_kingdoms/U08/illustration.png"
+      ]
+    },
+    "U08/sd": {
+      "path": "characters/three_kingdoms/U08/sd.png",
+      "prompt": "characters/three_kingdoms/U08/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-b67fcfb4-09be-4123-a497-da31ebc16596.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "959f77e138b0d58a01a0e4134f44281a5af084772c0d29e7013ee744a52ed373",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:21:08.505961+00:00",
+      "references": [
+        "characters/three_kingdoms/U08/illustration.png"
+      ]
+    },
+    "U09/illustration": {
+      "path": "characters/three_kingdoms/U09/illustration.png",
+      "prompt": "characters/three_kingdoms/U09/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-5e0433be-85d9-4a79-b543-71111b0d5c69.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "0a46bdfb352d522ee3d0840156b6d933f25f45d6e75b07794284f80f457a1329",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:21:08.868248+00:00",
+      "references": []
+    },
+    "U09/portrait": {
+      "path": "characters/three_kingdoms/U09/portrait.png",
+      "prompt": "characters/three_kingdoms/U09/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-6746c302-61c3-4d57-94ce-61f8a167052b.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "b12e7160aaa3fa47eaea6ba431620e9fdff36c3014db4e3f60d1be34bb55dbbf",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:23:24.879575+00:00",
+      "references": [
+        "characters/three_kingdoms/U09/illustration.png"
+      ]
+    },
+    "U09/sd": {
+      "path": "characters/three_kingdoms/U09/sd.png",
+      "prompt": "characters/three_kingdoms/U09/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-6c0f3d0f-db36-4642-951b-0a8f3ac21600.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "bc43657801afac4d12ec9c1cc50d13021959a460efcb777a792c443261dc17da",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:23:25.252709+00:00",
+      "references": [
+        "characters/three_kingdoms/U09/illustration.png"
+      ]
+    },
+    "U10/illustration": {
+      "path": "characters/three_kingdoms/U10/illustration.png",
+      "prompt": "characters/three_kingdoms/U10/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-e7537eb4-5fbb-4a86-bfcd-63130047044a.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "4c6f42b3b29855dd0b886c90f4aac125737c2b93301081ba10afb26ed00c8b2a",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:23:25.626459+00:00",
+      "references": []
+    },
+    "U10/portrait": {
+      "path": "characters/three_kingdoms/U10/portrait.png",
+      "prompt": "characters/three_kingdoms/U10/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-d9b6b518-3796-4613-a390-68266b1346d9.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "953ced5c44ff320ca86c3c89fd7e8b8ff3b89540da411f8df35aec349c457b97",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:27:13.834097+00:00",
+      "references": [
+        "characters/three_kingdoms/U10/illustration.png"
+      ]
+    },
+    "U10/sd": {
+      "path": "characters/three_kingdoms/U10/sd.png",
+      "prompt": "characters/three_kingdoms/U10/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-d501798a-73d4-40f7-b78e-dd4318f0c259.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "5690ab2989f1207cfa0e24c6d426b7a5ca653f167fa0499f38f5586e15780cd9",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:27:14.203171+00:00",
+      "references": [
+        "characters/three_kingdoms/U10/illustration.png"
+      ]
+    },
+    "U11/illustration": {
+      "path": "characters/three_kingdoms/U11/illustration.png",
+      "prompt": "characters/three_kingdoms/U11/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-f374d965-ce5c-4659-ada3-c1076ebec225.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "7f73c9ce8d006c5b328cdf5e72a3d0141832d34108f698edd3faed8a9582c040",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:27:14.570894+00:00",
+      "references": []
+    },
+    "U11/portrait": {
+      "path": "characters/three_kingdoms/U11/portrait.png",
+      "prompt": "characters/three_kingdoms/U11/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-40d69773-3f70-421c-ae52-14a6b27b0c9d.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "331d73d3dd3fd0deff61aa40adcdc2dbbfaaa1eca8a76f6e887b67ebd6ffc346",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:29:25.677666+00:00",
+      "references": [
+        "characters/three_kingdoms/U11/illustration.png"
+      ]
+    },
+    "U11/sd": {
+      "path": "characters/three_kingdoms/U11/sd.png",
+      "prompt": "characters/three_kingdoms/U11/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-aafe2672-0238-46fb-8e7a-a99135bae8a3.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "7d95db2cd2b2a20b6a80c75b754423221d00e3bccc593b0a25dea7cf2b363d37",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:29:26.049446+00:00",
+      "references": [
+        "characters/three_kingdoms/U11/illustration.png"
+      ]
+    },
+    "U12/illustration": {
+      "path": "characters/three_kingdoms/U12/illustration.png",
+      "prompt": "characters/three_kingdoms/U12/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-fffd3552-656a-48e1-9944-c07a98a81d7f.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "a4b7aa87d5105c2d240cfe0f68fd49956c474f6cc8974868806cf6e58d08fe41",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:29:26.425197+00:00",
+      "references": []
+    },
+    "U12/portrait": {
+      "path": "characters/three_kingdoms/U12/portrait.png",
+      "prompt": "characters/three_kingdoms/U12/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-550028e1-9074-4dc8-a789-d817d9e95f02.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "4e474d1bc008a20ae3bf25ffb55000983732521eaa77211ba24f46a5ceed7bab",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:31:37.661790+00:00",
+      "references": [
+        "characters/three_kingdoms/U12/illustration.png"
+      ]
+    },
+    "U12/sd": {
+      "path": "characters/three_kingdoms/U12/sd.png",
+      "prompt": "characters/three_kingdoms/U12/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-44b35dbe-ec3d-4a2c-9385-49f7f4725c4e.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "03ed93154114922938127cea75d33595850f37bdcf09150d0c1e5ee3c2311b3f",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:31:38.024906+00:00",
+      "references": [
+        "characters/three_kingdoms/U12/illustration.png"
+      ]
+    },
+    "U13/illustration": {
+      "path": "characters/three_kingdoms/U13/illustration.png",
+      "prompt": "characters/three_kingdoms/U13/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-281ff805-bf7a-4bfa-a35d-d3387bfc432c.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "a9276258c04f77419e2f1177f68a9d73242474e5506dade36c2392ee5dd2b32e",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:31:38.379079+00:00",
+      "references": []
+    },
+    "U13/portrait": {
+      "path": "characters/three_kingdoms/U13/portrait.png",
+      "prompt": "characters/three_kingdoms/U13/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-1b9e41f1-d19b-403d-a4d8-99204012261a.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "063ed81a690643b544beeecd704e3a795c027ab40f888b8d69bcfa0daf06cff0",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:33:47.684733+00:00",
+      "references": [
+        "characters/three_kingdoms/U13/illustration.png"
+      ]
+    },
+    "U13/sd": {
+      "path": "characters/three_kingdoms/U13/sd.png",
+      "prompt": "characters/three_kingdoms/U13/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-2bd253f3-7614-44e8-b316-bac2bcb8dd0d.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "f884964cea80929b523b06efe1b216777ebdc41c636c3833c08fbdf187bd0455",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:33:48.043139+00:00",
+      "references": [
+        "characters/three_kingdoms/U13/illustration.png"
+      ]
+    },
+    "U14/illustration": {
+      "path": "characters/three_kingdoms/U14/illustration.png",
+      "prompt": "characters/three_kingdoms/U14/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-df497ec4-2797-4c37-bab0-f39a282905b9.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "c8b32fc969315281cc56109f8decf805c02970a2ecd1379ce0e66ca425c5d98a",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:33:48.399918+00:00",
+      "references": []
+    },
+    "U14/portrait": {
+      "path": "characters/three_kingdoms/U14/portrait.png",
+      "prompt": "characters/three_kingdoms/U14/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-e496f3cf-8383-41b4-a363-fc2d154c4c6e.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "298684f65c6d456be50aa5baaf739b7a966fd0e3e30811e34f39218587d9cb60",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:36:00.695352+00:00",
+      "references": [
+        "characters/three_kingdoms/U14/illustration.png"
+      ]
+    },
+    "U14/sd": {
+      "path": "characters/three_kingdoms/U14/sd.png",
+      "prompt": "characters/three_kingdoms/U14/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-26cd8dd7-62f2-43d8-9f7d-c4c4a4e01ff5.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "0f56e86a1f47e2d07ff4aaacf90d6796b1d5c19c2ec623050bcef35728c6f6f8",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:36:01.113081+00:00",
+      "references": [
+        "characters/three_kingdoms/U14/illustration.png"
+      ]
+    },
+    "U15/illustration": {
+      "path": "characters/three_kingdoms/U15/illustration.png",
+      "prompt": "characters/three_kingdoms/U15/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-929f15fc-682d-49d6-888c-4eafa6ba125c.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "810f3f70738fd0e7540bbbdf902ebfaf335756aff712545935bee3bdd30d231e",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:36:01.553184+00:00",
+      "references": []
+    },
+    "U15/portrait": {
+      "path": "characters/three_kingdoms/U15/portrait.png",
+      "prompt": "characters/three_kingdoms/U15/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-b34695c9-05f9-4393-a565-bc8e06572fb0.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "8a9550684d3414bac960609857dddd0bc40ebbda5ee7fd8ac5e14a3871fec033",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:38:12.719514+00:00",
+      "references": [
+        "characters/three_kingdoms/U15/illustration.png"
+      ]
+    },
+    "U15/sd": {
+      "path": "characters/three_kingdoms/U15/sd.png",
+      "prompt": "characters/three_kingdoms/U15/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-5ab08bee-9697-400a-9c2f-921d6c4593e5.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "3cd993d44ff928c2488c1723bcaa830db0a19e36d4431380d6cd04a026659b84",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:38:13.152872+00:00",
+      "references": [
+        "characters/three_kingdoms/U15/illustration.png"
+      ]
+    },
+    "U16/illustration": {
+      "path": "characters/three_kingdoms/U16/illustration.png",
+      "prompt": "characters/three_kingdoms/U16/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-0908a53c-c8ae-41ac-9bb8-171efe11451f.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "1b45e3d429404560067ffe6fab71741cba2565824fe0eeda782027c73f96b05f",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:38:13.579099+00:00",
+      "references": []
+    },
+    "U16/portrait": {
+      "path": "characters/three_kingdoms/U16/portrait.png",
+      "prompt": "characters/three_kingdoms/U16/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-12368270-a198-4dde-bb78-be954a127285.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "2552f996a9cd4ace3db0beb40735b71fb2b185afda729b32d4c4b4326adcd6c0",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:41:28.398094+00:00",
+      "references": [
+        "characters/three_kingdoms/U16/illustration.png"
+      ]
+    },
+    "U16/sd": {
+      "path": "characters/three_kingdoms/U16/sd.png",
+      "prompt": "characters/three_kingdoms/U16/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-78ba2282-b602-4b94-84b7-88b0e5733241.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "550561fdd8b69539f0d9fdacc3f69f98a1d66e5c79db77cedf27e22ac7237ccb",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:41:28.864356+00:00",
+      "references": [
+        "characters/three_kingdoms/U16/illustration.png"
+      ]
+    },
+    "U17/illustration": {
+      "path": "characters/three_kingdoms/U17/illustration.png",
+      "prompt": "characters/three_kingdoms/U17/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-5de759d4-7ffb-4f37-8e81-d378f2317551.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "eae1272ec58215de9a66aef52a3e81ea64082a285cb2f1860fd167ff946a398a",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:41:29.299040+00:00",
+      "references": []
+    },
+    "U17/portrait": {
+      "path": "characters/three_kingdoms/U17/portrait.png",
+      "prompt": "characters/three_kingdoms/U17/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-66868efb-e0c6-4ab9-907d-d9c3ee175329.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "7c010e3c7ccaf80c4e43522824e48d043650ed60275e9127b4178e34196cebd4",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:43:36.041128+00:00",
+      "references": [
+        "characters/three_kingdoms/U17/illustration.png"
+      ]
+    },
+    "U17/sd": {
+      "path": "characters/three_kingdoms/U17/sd.png",
+      "prompt": "characters/three_kingdoms/U17/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-788ef916-61d8-4cde-9f2a-8c9d1146414d.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "4a7140e96b804cf7ababe6f52b466df4df144b5452ac52e9ccddbc393afc01ca",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:43:36.442829+00:00",
+      "references": [
+        "characters/three_kingdoms/U17/illustration.png"
+      ]
+    },
+    "U18/illustration": {
+      "path": "characters/three_kingdoms/U18/illustration.png",
+      "prompt": "characters/three_kingdoms/U18/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-21bf550a-f17d-43c4-8bd0-7920e57f12be.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "8b412f33b921dd82edc11e0a914dafe0c047fde8b91f24a312090f69c37fa851",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:43:36.829027+00:00",
+      "references": []
+    },
+    "U18/portrait": {
+      "path": "characters/three_kingdoms/U18/portrait.png",
+      "prompt": "characters/three_kingdoms/U18/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-fc2fb17e-dd15-41bd-b83a-96558446219e.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "476982561bc59e05a77c76169e7ec5f2df05ca99fb486064fb86cb955207b5aa",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:46:42.288887+00:00",
+      "references": [
+        "characters/three_kingdoms/U18/illustration.png"
+      ]
+    },
+    "U18/sd": {
+      "path": "characters/three_kingdoms/U18/sd.png",
+      "prompt": "characters/three_kingdoms/U18/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-d5de4c61-8b58-401c-932c-8be8365e7840.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "58d7ba8d2237cdd4aec6b7b1eb6024d05e9351f69ab32d9e2a08f000ce1096bc",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:46:42.696869+00:00",
+      "references": [
+        "characters/three_kingdoms/U18/illustration.png"
+      ]
+    },
+    "U19/illustration": {
+      "path": "characters/three_kingdoms/U19/illustration.png",
+      "prompt": "characters/three_kingdoms/U19/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-02d54bef-b590-46e4-91f6-0db54972d36f.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "c750d5fff2cab57a2195c246d39f8d9969eb973752f11e4f0656432d02a37ce1",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:46:43.078606+00:00",
+      "references": []
+    },
+    "U19/portrait": {
+      "path": "characters/three_kingdoms/U19/portrait.png",
+      "prompt": "characters/three_kingdoms/U19/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-73db8f0e-3e49-434d-b295-e3499bad8d9f.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "888dc5b8ce13ce62d8993e34f787a5202cab5fe124010644602790d2bdebb866",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:48:50.150009+00:00",
+      "references": [
+        "characters/three_kingdoms/U19/illustration.png"
+      ]
+    },
+    "U19/sd": {
+      "path": "characters/three_kingdoms/U19/sd.png",
+      "prompt": "characters/three_kingdoms/U19/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-27170d77-f4db-486c-9a13-1344b3438dfd.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "6becf988a9d50cd23f28388394ea5e8110a78fcd9ef7ffb30c42c819fc988812",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:48:50.594605+00:00",
+      "references": [
+        "characters/three_kingdoms/U19/illustration.png"
+      ]
+    },
+    "U20/illustration": {
+      "path": "characters/three_kingdoms/U20/illustration.png",
+      "prompt": "characters/three_kingdoms/U20/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-47395d84-76d7-4f15-b6e7-a223e836d176.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "2886216c91bdef37b482ca1906cf130018bf7ea46d67debf6a3ab05dbfc5cd3c",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:48:50.989428+00:00",
+      "references": []
+    },
+    "U20/portrait": {
+      "path": "characters/three_kingdoms/U20/portrait.png",
+      "prompt": "characters/three_kingdoms/U20/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-ba1dd5c0-cfef-4f44-81c5-38b79a50ac4e.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "da82365d29fe6309fd8c7778776116be75a2b0753888f491f84ea64bcbc5e244",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:50:55.579904+00:00",
+      "references": [
+        "characters/three_kingdoms/U20/illustration.png"
+      ]
+    },
+    "U20/sd": {
+      "path": "characters/three_kingdoms/U20/sd.png",
+      "prompt": "characters/three_kingdoms/U20/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-0deec6ed-32aa-4ae3-89ad-c1879b4884f4.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "e3f313f2d76a15bc42004cadde783a59c959fe04e7a68b083749a7760363961e",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:50:55.969727+00:00",
+      "references": [
+        "characters/three_kingdoms/U20/illustration.png"
+      ]
+    },
+    "U21/illustration": {
+      "path": "characters/three_kingdoms/U21/illustration.png",
+      "prompt": "characters/three_kingdoms/U21/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-762ba76a-e926-49c7-a771-241575888be3.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "e358f31edaf1fb5834afe41d92c7088fc06a361c6d51264588360e9b4eb03d9c",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:50:56.365769+00:00",
+      "references": []
+    },
+    "U21/portrait": {
+      "path": "characters/three_kingdoms/U21/portrait.png",
+      "prompt": "characters/three_kingdoms/U21/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-773c806a-4f0c-4ed0-a0cb-7a6cb1c79b2f.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "0e940c0d20f55da9444b240516b97d77fd60fa340d862d8c2920ccd598caaf28",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:53:02.734626+00:00",
+      "references": [
+        "characters/three_kingdoms/U21/illustration.png"
+      ]
+    },
+    "U21/sd": {
+      "path": "characters/three_kingdoms/U21/sd.png",
+      "prompt": "characters/three_kingdoms/U21/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-9ba586af-87da-416d-9899-70a83b057f5f.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "0bd315acb4f253fa08727b4496060e0825d1499e73156b3ddb1916b9708d2168",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:53:03.107696+00:00",
+      "references": [
+        "characters/three_kingdoms/U21/illustration.png"
+      ]
+    },
+    "U22/illustration": {
+      "path": "characters/three_kingdoms/U22/illustration.png",
+      "prompt": "characters/three_kingdoms/U22/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-4a6a78f7-897b-4acd-87e2-e2e51b319a91.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "b9575fb0ae6168e414e546bde224bc0a974e775ab004f0809405b3277368bc2c",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:53:03.470159+00:00",
+      "references": []
+    },
+    "U22/portrait": {
+      "path": "characters/three_kingdoms/U22/portrait.png",
+      "prompt": "characters/three_kingdoms/U22/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-416a2bdf-d997-4dbf-b223-35944670c6d1.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "a96df3476d479cc08562df85e75fd11cfc9b669af890c282f30b1560c66f4c44",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:55:15.334731+00:00",
+      "references": [
+        "characters/three_kingdoms/U22/illustration.png"
+      ]
+    },
+    "U22/sd": {
+      "path": "characters/three_kingdoms/U22/sd.png",
+      "prompt": "characters/three_kingdoms/U22/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-b99f2da7-dd71-4cda-aa1c-50b09557d65f.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "d0d26736c9937434a19b9c3f632ec0893b1e12704395bf5d80483ed4f9030f19",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:55:15.695683+00:00",
+      "references": [
+        "characters/three_kingdoms/U22/illustration.png"
+      ]
+    },
+    "U23/illustration": {
+      "path": "characters/three_kingdoms/U23/illustration.png",
+      "prompt": "characters/three_kingdoms/U23/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-0886e763-c151-4e59-a99b-08a2537581ec.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "db86c0a66bb22e27e111dc81ccf17912bbbae848db29f0ab22755bc0406a645a",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:55:16.096086+00:00",
+      "references": []
+    },
+    "U23/portrait": {
+      "path": "characters/three_kingdoms/U23/portrait.png",
+      "prompt": "characters/three_kingdoms/U23/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-9b760efd-d796-44f8-94b0-4570754073c3.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "468073991b6ea38c50d632906c4cb2177a7f56967c0cb15a1f4bde9322338550",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:57:24.125694+00:00",
+      "references": [
+        "characters/three_kingdoms/U23/illustration.png"
+      ]
+    },
+    "U23/sd": {
+      "path": "characters/three_kingdoms/U23/sd.png",
+      "prompt": "characters/three_kingdoms/U23/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-e57160f4-6c03-485b-b789-a6695b5eb07f.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "0f5a7be5a5576794b9f7d8965b8a21ebfccfeac74b8094a2438029339f993efc",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:57:24.543207+00:00",
+      "references": [
+        "characters/three_kingdoms/U23/illustration.png"
+      ]
+    },
+    "U24/illustration": {
+      "path": "characters/three_kingdoms/U24/illustration.png",
+      "prompt": "characters/three_kingdoms/U24/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-f55888d8-0e3d-43b0-b970-e8dc05ba1e5b.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "9ea7a88087b89deae4b7d9f234703266f16fe7e54aaf0d9fdd6098a3cb376999",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:57:24.945764+00:00",
+      "references": []
+    },
+    "U24/portrait": {
+      "path": "characters/three_kingdoms/U24/portrait.png",
+      "prompt": "characters/three_kingdoms/U24/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-abc048e9-9180-4110-804a-bbc37e08cbec.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "6bc0dfc6b89d408dccc187edf748a7cd8c45dd38e08e0549af16fcd3b4f4dbc9",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:59:29.923819+00:00",
+      "references": [
+        "characters/three_kingdoms/U24/illustration.png"
+      ]
+    },
+    "U24/sd": {
+      "path": "characters/three_kingdoms/U24/sd.png",
+      "prompt": "characters/three_kingdoms/U24/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-ec8c5f23-d7a3-4dcb-ab13-bf001ea1595d.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "90233b548cf3b1b96e51e2d2e6fde240fbc8692ab2124e58d3eb0ebdf01f60f0",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:59:30.289753+00:00",
+      "references": [
+        "characters/three_kingdoms/U24/illustration.png"
+      ]
+    },
+    "U25/illustration": {
+      "path": "characters/three_kingdoms/U25/illustration.png",
+      "prompt": "characters/three_kingdoms/U25/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-03dbf87f-ded2-43ab-b7f4-4863776c15df.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "84278c449fb952fbd2101a9ec5fc2899771a9c991fb84639a34907ccb0a63e23",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T05:59:30.647737+00:00",
+      "references": []
+    },
+    "U25/portrait": {
+      "path": "characters/three_kingdoms/U25/portrait.png",
+      "prompt": "characters/three_kingdoms/U25/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-dfdacbd5-4366-43ee-9b05-bfcd3e06bd4f.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "7f76b5b8e0a7f6d46bcc3187d3e68c2bfbfe310bc692a0dae37c8495a6a48276",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:01:43.661590+00:00",
+      "references": [
+        "characters/three_kingdoms/U25/illustration.png"
+      ]
+    },
+    "U25/sd": {
+      "path": "characters/three_kingdoms/U25/sd.png",
+      "prompt": "characters/three_kingdoms/U25/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-a7dda8d8-c3f0-4082-b35f-b148e95b310a.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "225b932ebfaea513db8415c9d35d9a507ec5aadb1b839a2c8c3fdfb277f0e6c8",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:01:44.063284+00:00",
+      "references": [
+        "characters/three_kingdoms/U25/illustration.png"
+      ]
+    },
+    "U26/illustration": {
+      "path": "characters/three_kingdoms/U26/illustration.png",
+      "prompt": "characters/three_kingdoms/U26/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-74bca544-3e06-488a-8ddb-02f3fd0d7d2b.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "27b3bd2b89b5e6ada4c88ffaac9cdcb32799622d8b6ca71d8b25b5e5990f8331",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:01:44.435628+00:00",
+      "references": []
+    },
+    "U26/portrait": {
+      "path": "characters/three_kingdoms/U26/portrait.png",
+      "prompt": "characters/three_kingdoms/U26/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-984fa805-ff08-4a7a-ad98-b700a9352ea5.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "9f4db180d1e55b6154ea0a3f4c1bceec630f7a57c9bd3aac202c5002b0ff1f91",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:03:48.463894+00:00",
+      "references": [
+        "characters/three_kingdoms/U26/illustration.png"
+      ]
+    },
+    "U26/sd": {
+      "path": "characters/three_kingdoms/U26/sd.png",
+      "prompt": "characters/three_kingdoms/U26/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-36c34164-ec92-40fb-a29f-9a11dc62d8e5.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "6f14eb7c13e8c3714ec0cf4e90fe0c5be1adb624b939bfc7774fd0ea8f8b336f",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:03:48.827305+00:00",
+      "references": [
+        "characters/three_kingdoms/U26/illustration.png"
+      ]
+    },
+    "U27/illustration": {
+      "path": "characters/three_kingdoms/U27/illustration.png",
+      "prompt": "characters/three_kingdoms/U27/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-73ae6c2e-fc5c-4c9a-b283-67959b50aae5.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "7dc297cf7d8b9e44048e5a7c29afc42296d0b41f6f05eae3fab91a2b7a96abcf",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:03:49.187055+00:00",
+      "references": []
+    },
+    "U27/portrait": {
+      "path": "characters/three_kingdoms/U27/portrait.png",
+      "prompt": "characters/three_kingdoms/U27/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-6742fc15-f313-4209-8d09-543ab2a26ffe.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "309b8f5343cb504449f3f4b82fd53662fea479a132a235341d64e80afbc2b09e",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:06:04.729853+00:00",
+      "references": [
+        "characters/three_kingdoms/U27/illustration.png"
+      ]
+    },
+    "U27/sd": {
+      "path": "characters/three_kingdoms/U27/sd.png",
+      "prompt": "characters/three_kingdoms/U27/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-0c0e139d-aa57-4798-a9ae-efda9205fb9f.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "724201b46251ceb5676339890646c15af5bf79eec9a38eb7895c02d5c08860c8",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:06:05.099792+00:00",
+      "references": [
+        "characters/three_kingdoms/U27/illustration.png"
+      ]
+    },
+    "U28/illustration": {
+      "path": "characters/three_kingdoms/U28/illustration.png",
+      "prompt": "characters/three_kingdoms/U28/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-f85b26cd-ccee-42f0-b9c9-91d6f7c3355d.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "6b704cab3a25b6e115c99674691f2ab46684522aac8533ab35fce319369e66ca",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:06:05.468008+00:00",
+      "references": []
+    },
+    "U28/portrait": {
+      "path": "characters/three_kingdoms/U28/portrait.png",
+      "prompt": "characters/three_kingdoms/U28/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-3b048d82-40d4-4e40-b4a9-96dc4c345f7e.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "b37ee4525858b88d688adb0feba5fa943e3143f3a84e5272c58cfd0a17d364ee",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:08:13.153780+00:00",
+      "references": [
+        "characters/three_kingdoms/U28/illustration.png"
+      ]
+    },
+    "U28/sd": {
+      "path": "characters/three_kingdoms/U28/sd.png",
+      "prompt": "characters/three_kingdoms/U28/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-9c184228-0969-4b43-85f5-e1b41c4026a7.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "bd980e02190c4674b705664e0f88ec22c4db68d62df357ce7c9e56c98fbae136",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:08:13.544909+00:00",
+      "references": [
+        "characters/three_kingdoms/U28/illustration.png"
+      ]
+    },
+    "U29/illustration": {
+      "path": "characters/three_kingdoms/U29/illustration.png",
+      "prompt": "characters/three_kingdoms/U29/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-4ba6ca65-4b27-4ab6-8199-79f0fb8c9bd1.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "b4aa6a7d92de1fb71a859bcc3206d0f4f68a687e0cbcfb4db4b2117f307c46f4",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:08:13.944871+00:00",
+      "references": []
+    },
+    "U29/portrait": {
+      "path": "characters/three_kingdoms/U29/portrait.png",
+      "prompt": "characters/three_kingdoms/U29/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-1fb85fcf-e643-4823-bdfb-b2166bafd58c.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "a9370c9fd51c34178de10fbe4c5e169a66fda21ee17cae3bbfb1fe4fca876689",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:10:30.834178+00:00",
+      "references": [
+        "characters/three_kingdoms/U29/illustration.png"
+      ]
+    },
+    "U29/sd": {
+      "path": "characters/three_kingdoms/U29/sd.png",
+      "prompt": "characters/three_kingdoms/U29/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-b5c7fc45-787b-48e7-bef1-9867e18753ed.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "8da2562ab11cf6357f05aefc4097f34af7fe570475146417fd35fafbf60911ac",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:10:31.201063+00:00",
+      "references": [
+        "characters/three_kingdoms/U29/illustration.png"
+      ]
+    },
+    "U30/illustration": {
+      "path": "characters/three_kingdoms/U30/illustration.png",
+      "prompt": "characters/three_kingdoms/U30/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-61010864-5019-4476-a9ba-0519bd37ce7c.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "0f9f47b9b6421956d88828d59a4660386f85fe52c258259facf139431403e029",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:10:31.574411+00:00",
+      "references": []
+    },
+    "U30/portrait": {
+      "path": "characters/three_kingdoms/U30/portrait.png",
+      "prompt": "characters/three_kingdoms/U30/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-2c19d46f-8564-4ef1-bc2a-2c56b385a7ba.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "3db33345f03ba5a0bda9886b6c6b5ad34585282fe8475126aa0b9d8ed4015f5e",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:12:46.853189+00:00",
+      "references": [
+        "characters/three_kingdoms/U30/illustration.png"
+      ]
+    },
+    "U30/sd": {
+      "path": "characters/three_kingdoms/U30/sd.png",
+      "prompt": "characters/three_kingdoms/U30/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-8b3f7497-333a-409c-9ef8-83a1d55bdedd.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "38f3665e506c69869a4b3e4365edc9c7793014cb0f367c083cd698397a8b1841",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:12:47.279835+00:00",
+      "references": [
+        "characters/three_kingdoms/U30/illustration.png"
+      ]
+    },
+    "B01/illustration": {
+      "path": "characters/bosses/three_kingdoms/B01/illustration.png",
+      "prompt": "characters/bosses/three_kingdoms/B01/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-0da83599-26c3-499a-988f-8de6279b227a.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "ff85abe765aaa09a6715ab5e56a11057c9a7e154f2738903d1e4031c1e24b09a",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:12:47.715110+00:00",
+      "references": []
+    },
+    "B01/portrait": {
+      "path": "characters/bosses/three_kingdoms/B01/portrait.png",
+      "prompt": "characters/bosses/three_kingdoms/B01/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-50e492e1-cd44-46ce-aa89-2d1c16afa495.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "6f0234af1099265b8096f02b64dc898af767fc4d3b7db2dc9d5fc2705e162f51",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:14:46.659624+00:00",
+      "references": [
+        "characters/bosses/three_kingdoms/B01/illustration.png"
+      ]
+    },
+    "B01/sd": {
+      "path": "characters/bosses/three_kingdoms/B01/sd.png",
+      "prompt": "characters/bosses/three_kingdoms/B01/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-196cf0ce-1bbb-46e0-b855-2dba0b5ef930.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "de086c58208821fba3c8691c8fbaa60ae9fb9e27506c74f32081eaa0d623ee5d",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:14:47.046766+00:00",
+      "references": [
+        "characters/bosses/three_kingdoms/B01/illustration.png"
+      ]
+    },
+    "B02/illustration": {
+      "path": "characters/bosses/three_kingdoms/B02/illustration.png",
+      "prompt": "characters/bosses/three_kingdoms/B02/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-1d148af0-01b9-47d8-bb70-1103a5fcf14f.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "3177aef39141ea76b2dff82f7183609dcb08f868fcd5f58634240872c87a4807",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:14:47.429338+00:00",
+      "references": []
+    },
+    "B02/portrait": {
+      "path": "characters/bosses/three_kingdoms/B02/portrait.png",
+      "prompt": "characters/bosses/three_kingdoms/B02/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-513f32e4-cfd1-4199-a939-8405f4071140.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "1e278019d0780c437d776ee3d29c9a05af67e0caa2321090135235f0f9b09d1e",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:16:58.421846+00:00",
+      "references": [
+        "characters/bosses/three_kingdoms/B02/illustration.png"
+      ]
+    },
+    "B02/sd": {
+      "path": "characters/bosses/three_kingdoms/B02/sd.png",
+      "prompt": "characters/bosses/three_kingdoms/B02/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-fefabaf6-9c80-488f-ba82-e528db666359.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "11080fbdcc07092f9a5fa4034d4a319836030ec7c06c9611df241a5bb9e03a17",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:16:58.796992+00:00",
+      "references": [
+        "characters/bosses/three_kingdoms/B02/illustration.png"
+      ]
+    },
+    "B03/illustration": {
+      "path": "characters/bosses/three_kingdoms/B03/illustration.png",
+      "prompt": "characters/bosses/three_kingdoms/B03/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-4d8bb982-c5bf-4f5b-95e8-c9ef9c1c1ee8.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "9a83b6cae663fd25e73b07f17111191577eacb2c879f6671864f4e7d0fb6484d",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:16:59.171911+00:00",
+      "references": []
+    },
+    "B03/portrait": {
+      "path": "characters/bosses/three_kingdoms/B03/portrait.png",
+      "prompt": "characters/bosses/three_kingdoms/B03/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-dcfc404b-b12e-439f-9112-e2efcf54b40c.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "f9ca7d733cab32cfd8875652aaa34ac45b92478e35a204edd23a10818ba6b4f0",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:19:06.146417+00:00",
+      "references": [
+        "characters/bosses/three_kingdoms/B03/illustration.png"
+      ]
+    },
+    "B03/sd": {
+      "path": "characters/bosses/three_kingdoms/B03/sd.png",
+      "prompt": "characters/bosses/three_kingdoms/B03/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-77e2ce50-8802-49c6-87c0-50d406d8226a.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "aab216978f3ec2260db7a35a50aa310cc1927d161c320ab3e2ebdf8ba79174b1",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:19:06.522646+00:00",
+      "references": [
+        "characters/bosses/three_kingdoms/B03/illustration.png"
+      ]
+    },
+    "B04/illustration": {
+      "path": "characters/bosses/three_kingdoms/B04/illustration.png",
+      "prompt": "characters/bosses/three_kingdoms/B04/illustration.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-023d2f0d-d09c-4ea0-b644-42ced95e0d36.png",
+      "width": 1024,
+      "height": 1536,
+      "sha256": "3a9d17a10568f87305b2fca05f17bd869b205fd13e3f65316fb188c2fdddf3da",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:19:06.892802+00:00",
+      "references": []
+    },
+    "B04/portrait": {
+      "path": "characters/bosses/three_kingdoms/B04/portrait.png",
+      "prompt": "characters/bosses/three_kingdoms/B04/portrait.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-2d2b553b-f2cd-4789-8e73-360aeb209412.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "1ab48803202e200ab82e56467365b555e057094e84952a0126737af3903dbcc7",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:22:10.786509+00:00",
+      "references": [
+        "characters/bosses/three_kingdoms/B04/illustration.png"
+      ]
+    },
+    "B04/sd": {
+      "path": "characters/bosses/three_kingdoms/B04/sd.png",
+      "prompt": "characters/bosses/three_kingdoms/B04/sd.prompt.md",
+      "source": "C:\\Users\\axgatge\\.codex\\generated_images\\01a19a88-78a4-7231-af40-512986e0074f\\exec-deafe016-ad75-4c9d-be0a-320629d989f0.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "1364ae0d8c05e2313d2894e445e8d2fded10e949900672063f4703d3a274371b",
+      "tool": "built-in image_gen",
+      "generated_at": "2026-11-02T06:22:11.166091+00:00",
+      "references": [
+        "characters/bosses/three_kingdoms/B04/illustration.png"
+      ]
+    }
+  }
+}

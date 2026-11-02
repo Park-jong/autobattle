@@ -2,6 +2,7 @@ import type { CardListEntry } from '../../cards/cardListView';
 import type { CardPanelView, PileView } from '../../cards/cardPanelView';
 import { PLAYBACK_SPEEDS, type DebugController, type SessionSnapshot } from '../../debug/contracts';
 import { SkinPicker } from '../../skin/SkinPicker';
+import { skinNarrative } from '../../skin/threeKingdomsText';
 import { commanderArt } from '../../skin/commanderArt';
 import { motionPreferences } from '../../skin/presentation';
 import type { RunSnapshot } from '../contracts';
@@ -73,7 +74,7 @@ export class BattleTopBar {
     const title = el('strong');
     title.append(el('span', `bt-kind ${plan.kind}`, plan.kindLabel), `액트 ${plan.act} · ${plan.floor}층`);
     this.node.replaceChildren(title, el('span', '', `${encounterSkinName(appSkin.current, plan.kind, plan.name)}${info.attempt > 1 ? ` · ${info.attempt}번째 도전` : ''} · ${actPresentation(appSkin.current, hud.act)?.name ?? hud.actName}`));
-    this.node.title = plan.text;
+    this.node.title = skinNarrative(appSkin.current, plan.text);
 
     const chips: HTMLElement[] = [];
     if (hud.test) chips.push(tagged(el('span', 'bt-chip test', '테스트 런'), 'test-badge'));
@@ -99,7 +100,7 @@ export class BattleTopBar {
     for (const p of plan.bossPatterns) {
       const unit = plan.units.find((u) => u.name === p.unitName);
       const name = unit ? unitSkinName(appSkin.current, unit.unitId, p.unitName) : p.unitName;
-      secondary.push(this.tipChip('bt-chip pattern', `패턴 ${p.title}`, `${name}\n${p.lines.join('\n')}`));
+      secondary.push(this.tipChip('bt-chip pattern', `패턴 ${skinNarrative(appSkin.current, p.title)}`, `${name}\n${p.lines.map(line => skinNarrative(appSkin.current, line)).join('\n')}`));
     }
     const relics = el('span', 'bt-chip bt-relics');
     relics.append(el('span', 'bt-chip-label', '유물'), relicRow(hud.relics, '없음'));

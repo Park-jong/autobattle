@@ -12,9 +12,9 @@ export function cardElement(card: CardView): HTMLElement {
   const meta = el('div', 'run-card-meta', `${cardTypeSkinName(appSkin.current, card.type, card.typeLabel)} · ${card.rarityLabel} · ${card.targetLabel}`);
   const body = el('p', 'run-card-text', card.text);
   root.append(head);
-  if (appSkin.current === 'modern') {
+  if (appSkin.current === 'modern' || appSkin.current === 'three_kingdoms') {
     const art = el('div', 'modern-run-card-art');
-    const img = el('img'); img.src = cardArtUrl('modern', card)!;
+    const img = el('img'); img.src = cardArtUrl(appSkin.current, card)!;
     img.alt = ''; img.loading = 'lazy'; img.draggable = false;
     img.addEventListener('error', () => img.remove()); art.append(img); root.append(art);
   }
