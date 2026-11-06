@@ -180,6 +180,7 @@
 - 첫 배포 후 GitHub 저장소 Settings → Pages에서 Source를 `gh-pages` 브랜치 / root로 지정해야 한다.
 - Vite `base`는 `./`(상대 경로): 저장소 이름이 바뀌어도 하위 경로에서 동작하고 dev 서버(`/`)에도 영향이 없다. 데이터 JSON은 import로 번들되어 별도 fetch 파일이 없다.
 - 캐릭터 원본은 아카데미 `characters/U01`~`U30`·`C01`~`C03`, 현대전 `characters/modern/U01`~`U30`·`C01`~`C03`에서 관리하고 배포하지 않는다. 게임은 `public/skins/academy`와 `public/skins/modern`의 축소본 각 99개만 사용한다(위 "스킨").
+- **원본 PNG는 저장소에 없다**: `characters/**/*.png`(원본 원화 478개, 약 920MB)는 `.gitignore`로 제외하고 공유 드라이브에서 관리한다(2026-11-06에 Git 기록에서도 제거, 원격 약 1GB → 약 100MB). `characters/`의 README·프롬프트·manifest 같은 텍스트는 저장소에 있고 테스트가 읽는다. 게임·빌드·배포·테스트는 원본 없이 동작하며, 원본은 `tools/skin-assets.ps1` 등으로 축소본을 다시 만들 때만 필요하다(드라이브에서 받아 같은 경로에 둔다). 원화를 새로 추가해도 저장소에는 `public/`의 축소본만 커밋한다.
 
 ## 문서
 - [DESIGN.md](DESIGN.md) 게임 설계, 10장 구현 구조

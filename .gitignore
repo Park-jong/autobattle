@@ -3,3 +3,5 @@ dist
 .claude/settings.local.json
 agent-summaries
 /artifacts/
+# 캐릭터 원본 원화는 저장소 밖(공유 드라이브)에서 관리한다. 게임은 public/의 축소본만 쓴다
+characters/**/*.png
